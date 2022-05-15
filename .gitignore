@@ -1,0 +1,4 @@
+*.o
+boot/boot
+kernel/kernel
+shitOS.img
