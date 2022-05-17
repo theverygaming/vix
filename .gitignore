@@ -1,4 +1,6 @@
 *.o
+*.ocpp
+*.oasm
 boot/boot
 kernel/kernel
 shitOS.img

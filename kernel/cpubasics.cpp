@@ -1,8 +1,9 @@
 #include "cpubasics.h"
+#include "gdt.h"
+#include "idt.h"
 
 namespace cpubasics
 {
-
 
     void init_pic(void)
     {
@@ -48,7 +49,7 @@ namespace cpubasics
         ticks = 0;
     }
 
-    void isr_clock_int(void) //this will not work until we manage the IDT
+    void isr_clock_int(void)
     {
         if (count == 1)
         {
@@ -56,10 +57,7 @@ namespace cpubasics
         }
     }
 
-
-
     void cpuinit()
     {
-        init_pic();
     }
 }
