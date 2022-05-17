@@ -52,7 +52,7 @@ char kbd_US [128] =
 void handler(isr::Registers* gaming) {
 	signed char keycode = inb(0x60);
 	if(keycode > 0) {
-		printf("got %d %c\n",keycode, kbd_US[keycode]);
+		printf("%c", kbd_US[keycode]);
 	}
 	outb(0x20, 0x20);
 }
@@ -73,6 +73,6 @@ void kernelstart()
 	printf("ayy\n");
 
     while(1) {
-      //printf("%d\n", read_pit_count());
+      __asm("hlt");
     }
 }

@@ -9,10 +9,10 @@ isr::intHandler handlers[256];
 extern "C" void i686_ISR_Handler(isr::Registers* regs) {
     if(handlers[regs->interrupt] != NULL) { handlers[regs->interrupt](regs); }
     else if(regs->interrupt >= 32) {
-        printf("No interrupt handler for #%d!, ignoring\n");
+        printf("No interrupt handler for #%lu!, ignoring\n", regs->interrupt);
     }
     else {
-        printf("Unhandled Exception #%d, halting CPU\n");
+        printf("Unhandled Exception #%lu, halting CPU\n", regs->interrupt);
         __asm("hlt");
     }
 }

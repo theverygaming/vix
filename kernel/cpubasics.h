@@ -26,10 +26,10 @@ namespace cpubasics
     _v;                           \
 })
 
-    void init_pic(void);
-
-    void set_pit_freq(int hz);
     void sleep(int ms);
+
+    void RegisterClockHandler(int number, void (*)());
+    void DeregisterClockHandler(int number);
 
     void cpuinit();
 }

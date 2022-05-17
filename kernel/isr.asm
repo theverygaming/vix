@@ -25,6 +25,7 @@ i686_ISR%1:
 %include "isrs.inc"
 
 isr_common:
+    cli
     pusha
 
     xor eax, eax
@@ -49,4 +50,5 @@ isr_common:
 
     popa
     add esp, 8              ; remove error code and interrupt number
+    sti
     iret
