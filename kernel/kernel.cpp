@@ -60,24 +60,19 @@ void handler(isr::Registers* gaming) {
 void kernelstart()
 {
 	printf("hewwo\n");
-	gdt::i686_GDT_Initialize();
-	idt::i686_IDT_Initialize();
-	isr::i686_ISR_Initialize();
-	cpubasics::init_pic();
-	cpubasics::set_pit_freq(1000);
-	outb(0x21 , 0xFD);
-	asm("sti");
+	cpubasics::cpuinit();
 
 	//__asm("int $33");
 	printf("registering handler\n");
 	isr::RegisterHandler(33, handler);
+  cpubasics::sleep(1000);
 	//__asm("int $33");
 	printf("deregistering handler\n");
 	//isr::DeregisterHandler(33);
-	//__asm("int $33");
+	//__asm("int $32");
 	printf("ayy\n");
 
     while(1) {
-		
+      //printf("%d\n", read_pit_count());
     }
 }

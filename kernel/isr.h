@@ -13,6 +13,5 @@ namespace isr {
     void i686_ISR_Initialize();
 
     void RegisterHandler(int , void (*)(Registers*));
-
     void DeregisterHandler(int handler);
 }

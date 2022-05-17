@@ -1,6 +1,7 @@
 #include "cpubasics.h"
 #include "gdt.h"
 #include "idt.h"
+#include "isr.h"
 
 namespace cpubasics
 {
@@ -49,15 +50,23 @@ namespace cpubasics
         ticks = 0;
     }
 
-    void isr_clock_int(void)
-    {
+    void isr_clock_int(isr::Registers* gaming) {
         if (count == 1)
         {
             ticks++;
         }
+        outb(0x20, 0x20);
     }
 
     void cpuinit()
     {
+        gdt::i686_GDT_Initialize();
+        idt::i686_IDT_Initialize();
+        isr::i686_ISR_Initialize();
+        cpubasics::init_pic();
+        cpubasics::set_pit_freq(1000);
+        isr::RegisterHandler(32, isr_clock_int);
+        outb(0x21, 0b11111100); // Enable IRQ 0 and 1
+        asm("sti");
     }
 }
