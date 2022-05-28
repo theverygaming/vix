@@ -12,6 +12,7 @@ void _start(void)
 #include "idt.h"
 #include "isr.h"
 #include "stdio.h"
+#include "paging.h"
 
 
 char kbd_US [128] =
@@ -60,19 +61,29 @@ void handler(isr::Registers* gaming) {
 void kernelstart()
 {
 	printf("hewwo\n");
+  
 	cpubasics::cpuinit();
 
 	//__asm("int $33");
 	printf("registering handler\n");
 	isr::RegisterHandler(33, handler);
-  cpubasics::sleep(1000);
+  //cpubasics::sleep(100);
 	//__asm("int $33");
-	printf("deregistering handler\n");
 	//isr::DeregisterHandler(33);
 	//__asm("int $32");
 	printf("ayy\n");
-
+  //cpubasics::sleep(100);
+  //printf("initializing paging\n");
+  //paging::initpaging();
+  //printf("initialized paging\n");
+  unsigned int* balls = (unsigned int*)0xFC18;
+  int counter = 0;
     while(1) {
-      __asm("hlt");
+      //cpubasics::sleep(10);
+      *((unsigned char *)(0xB8000 + 2 * 70 + 160 * 0)) = counter / 20;
+      //printf("HAI ");
+      //printf("%llu ", *balls);
+      counter++;
+      if(counter == 1000) { counter = 0; }
     }
 }

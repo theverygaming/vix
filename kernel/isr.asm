@@ -26,6 +26,16 @@ i686_ISR%1:
 
 isr_common:
     cli
+    ; we store all registers in a struct at 0x100043C
+    mov [0x100043C], eax
+    mov [0x100043C+4], ebx
+    mov [0x100043C+8], ecx
+    mov [0x100043C+12], edx
+    mov [0x100043C+16], esi
+    mov [0x100043C+20], edi
+    mov [0x100043C+24], esp
+    mov [0x100043C+28], ebp
+    add dword [0x100043C+24], 8
     pusha
 
     xor eax, eax
@@ -49,6 +59,15 @@ isr_common:
     mov gs, ax
 
     popa
-    add esp, 8              ; remove error code and interrupt number
+    ;add esp, 8              ; remove error code and interrupt number
+    mov eax, [0x100043C]
+    mov ebx, [0x100043C+4]
+    mov ecx, [0x100043C+8]
+    mov edx, [0x100043C+12]
+    mov esi, [0x100043C+16]
+    mov edi, [0x100043C+20]
+    mov esp, [0x100043C+24]
+    mov ebp, [0x100043C+28]
     sti
+    add dword [0xB8314], 1
     iret

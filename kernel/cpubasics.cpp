@@ -4,6 +4,7 @@
 #include "isr.h"
 #include <cstddef>
 #include "stdio.h"
+#include "multitasking.h"
 
 void init_pic(void)
 {
@@ -29,7 +30,7 @@ void init_pic(void)
 }
 
 
-void (*clockHandlers[256])();
+//void (*clockHandlers[256])();
 
 void set_pit_freq(int hz)
 {
@@ -40,7 +41,7 @@ void set_pit_freq(int hz)
 }
 
 int ticks = 0;
-int count = 0;
+int count = 1;
 
 void cpubasics::sleep(int ms)
 {
@@ -62,21 +63,23 @@ void isr_clock_int()
 }
 
 void clockHandler(isr::Registers *gaming) {
-    for(int i = 0; i < 256; i++) {
+    /*for(int i = 0; i < 256; i++) {
         if(clockHandlers[i] != NULL) {
             clockHandlers[i]();
         }
-    }
+    }*/
     outb(0x20, 0x20);
+    isr_clock_int();
+    multitasking::interruptTrigger();
 }
 
-void cpubasics::RegisterClockHandler(int number, void (*_func)()) {
+/*void cpubasics::RegisterClockHandler(int number, void (*_func)()) {
     clockHandlers[number] = _func;
 }
 
 void cpubasics::DeregisterClockHandler(int number) {
     clockHandlers[number] = NULL;
-}
+}*/
 
 void cpubasics::cpuinit()
 {
@@ -86,7 +89,7 @@ void cpubasics::cpuinit()
     init_pic();
     set_pit_freq(1000);
     isr::RegisterHandler(32, clockHandler);
-    RegisterClockHandler(0, isr_clock_int);
+    //RegisterClockHandler(0, isr_clock_int);
     outb(0x21, 0b11111100); // Enable IRQ 0 and 1
     asm("sti");
 }

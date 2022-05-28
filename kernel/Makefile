@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -Wall -m32 -fno-pie -fno-stack-protector 
+CFLAGS = -Wall -m32 -march=i486 -fno-pie -fno-stack-protector -ffreestanding
 
 HEADERS_CPP = $(wildcard *.h) \
 			$(wildcard */*.h) \
