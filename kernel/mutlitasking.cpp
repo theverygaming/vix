@@ -53,7 +53,7 @@ void multitasking::interruptTrigger() {
         return;
     }
     if(counter == 0) {
-        printf("Switching tasks!");
+        //printf("Switching tasks!");
         memcpy((uint32_t*)kern_context, (uint32_t*)current_context, sizeof(context));
         init_empty_stack(0x17D7840, task1);
         t1_context->esp = 0x17D7840;

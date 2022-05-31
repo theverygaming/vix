@@ -69,5 +69,4 @@ isr_common:
     mov esp, [0x100043C+24]
     mov ebp, [0x100043C+28]
     sti
-    add dword [0xB8314], 1
     iret

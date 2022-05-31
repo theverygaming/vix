@@ -13,6 +13,7 @@ void _start(void)
 #include "isr.h"
 #include "stdio.h"
 #include "paging.h"
+#include "memorymap.h"
 
 
 char kbd_US [128] =
@@ -61,9 +62,8 @@ void handler(isr::Registers* gaming) {
 void kernelstart()
 {
 	printf("hewwo\n");
-  
 	cpubasics::cpuinit();
-
+  memorymap::initMemoryMap((void*)0x7C00 + 0x7000, (void*)0x7C00 + (0x7004));
 	//__asm("int $33");
 	printf("registering handler\n");
 	isr::RegisterHandler(33, handler);
