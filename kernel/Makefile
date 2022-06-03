@@ -28,7 +28,7 @@ OBJECTS_ASM = $(patsubst %.asm, %.oasm, $(SOURCES_ASM))
 all: kernel
 
 kernel: kernel.ocpp $(OBJECTS_ASM) $(OBJECTS_CPP)
-	ld -m elf_i386 --oformat binary -Ttext 1000 $^ -o $@
+	ld -m elf_i386 --oformat binary -T linker.ld -nostdlib $^ -o $@
 
 %.ocpp: %.cpp $(HEADERS_CPP)
 	$(CC) $(CFLAGS) -c $< -o $@ 
