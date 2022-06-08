@@ -83,7 +83,7 @@ void cpubasics::DeregisterClockHandler(int number) {
 
 void cpubasics::cpuinit()
 {
-    gdt::i686_GDT_Initialize();
+    //gdt::i686_GDT_Initialize();
     idt::i686_IDT_Initialize();
     isr::i686_ISR_Initialize();
     init_pic();

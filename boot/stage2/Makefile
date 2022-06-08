@@ -3,7 +3,7 @@ CFLAGS = -nostdlib -Wall -m32 -march=i386 -fno-pie -fno-stack-protector -ffreest
 
 all: stage2
 
-stage2: stage2.ocpp
+stage2: stage2.ocpp gdt.oasm gdt.ocpp paging.ocpp paging.oasm stdio.ocpp hdd.ocpp
 	ld -m elf_i386 --oformat binary -T linker.ld -nostdlib $^ -o $@
 
 %.ocpp: %.cpp
