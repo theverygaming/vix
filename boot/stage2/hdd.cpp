@@ -9,7 +9,13 @@ void cmd_identify() {
 
     outb(0x1F7, 0xEC);
     if(inb(0x1F7)) {
+        while(inb(0x1F7) == 0x80) {
+            printf("x");
+        }
         printf("Drive detected!\n");
+        if(inb(0x1F4) || inb(0x1F5)) {
+            printf("Drive not ATA!\n");
+        }
     }
     else {
         printf("no drive detected\n");
