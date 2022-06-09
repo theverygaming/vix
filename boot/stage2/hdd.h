@@ -17,6 +17,14 @@
     _v;                           \
 })
 
+#define inw(port) ({              \
+    unsigned short _v;             \
+    asm volatile("inw %%dx, %%ax" \
+                 : "=a"(_v)       \
+                 : "d"(port));    \
+    _v;                           \
+})
+
 namespace hdd {
     void idk();
 }
