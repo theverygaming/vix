@@ -26,5 +26,9 @@
 })
 
 namespace hdd {
+    typedef struct __atadevice_t {
+        bool dev_okay;
+	    char name[41];
+    } atadevice_t;
     void idk();
 }

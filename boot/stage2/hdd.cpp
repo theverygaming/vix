@@ -1,6 +1,11 @@
 #include "hdd.h"
 
-void cmd_identify() {
+#define PIO_BUF 0x1001000
+
+
+hdd::atadevice_t cmd_identify() {
+    hdd::atadevice_t device;
+    device.dev_okay = false;
     outb(0x1F6, 0xA0); // 0xA0 master, 0xB0 slave
     outb(0x1F2, 0);
     outb(0x1F3, 0);
@@ -13,48 +18,30 @@ void cmd_identify() {
         while(inb(0x1F7) & (1 << 7)) { } //this loop is kinda bad, could possibly get stuck?
         if(inb(0x1F4) || inb(0x1F5)) {
             printf("Drive not ATA!\n");
-            return;
+            return device;
         }
         while(1) {
             char status = inb(0x1F7);
             if(status & (1 << 0)) {
                 printf("Error!\n");
-                return;
+                return device;
             }
             if(status & (1 << 3)) {
                 printf("Ayo we fine and can read all data\n");
-                uint16_t id0, id83, id88, id93, id60, id61, id100, id101, id103;
+                uint16_t* buffer = (uint16_t*)PIO_BUF;
                 for(int i = 0; i < 256; i++) {
-                    uint16_t value = inw(0x1F0);
-                    if(i == 0) {
-                        id0 = value;
-                        printf("id0: %d\n", id0);
-                    }
-                    if(i == 83) {
-                        id83 = value;
-                        printf("id83: %d\n", id83);
-                        if(id83 & (1 << 10)) {
-                            printf("LBA48 supported\n");
-                        }
-                    }
-                    if(i == 88) {
-                        id88 = value;
-                        printf("id88: %d\n", id88);
-                    }
-                    if(i == 93) {
-                        id93 = value;
-                        printf("id93: %d\n", id93);
-                    }
-                    if(i == 60) {
-                        id60 = value;
-                        printf("id60: %d\n", id60);
-                    }
-                    if(i == 61) {
-                        id61 = value;
-                        printf("id61: %d\n", id61);
-                    }
+                    buffer[i] = inw(0x1F0);
                 }
-                return;
+                // The fuck IDE?
+                for(int i = 0; i < 40; i += 2)
+		        {
+			        device.name[i] = ((char*)(PIO_BUF + 54))[i + 1];
+                    device.name[i + 1] = ((char*)(PIO_BUF + 54))[i];
+		        }
+                device.name[41] = 0;
+                printf(device.name);
+                device.dev_okay = true;
+                return device;
             }
         }
     }
