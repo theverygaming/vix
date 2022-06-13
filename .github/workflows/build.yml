@@ -9,7 +9,7 @@ jobs:
       - name: install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install nasm
+          sudo apt-get install nasm gcc-multilib g++-multilib
 
       - name: compile
         run: cd $GITHUB_WORKSPACE && make
