@@ -1,0 +1,16 @@
+name: Build
+on: [push, pull_request]
+jobs:
+  build-image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: compile
+        run: cd $GITHUB_WORKSPACE && make
+      
+      - name: save image
+        uses:  actions/upload-artifact@v2
+        with:
+            name: image
+            path: ${{runner.workspace}}/shitOS.img
