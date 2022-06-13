@@ -26,9 +26,19 @@
 })
 
 namespace hdd {
-    typedef struct __atadevice_t {
-        bool dev_okay;
-	    char name[41];
-    } atadevice_t;
-    void idk();
+    namespace ata_pio {
+        typedef struct __atadevice_t {
+            bool dev_okay;
+	        char name[41];
+        } atadevice_t;
+        enum controller {
+            ATA_CONTROLLER_PRIMARY = 0x1F0,
+            ATA_CONTROLLER_SECONDARY = 0x170,
+        };
+        enum drive {
+            ATA_DRIVE_MASTER = 0xA0,
+            ATA_DRIVE_SLAVE = 0xB0,
+        };
+        void idk();
+    }
 }
