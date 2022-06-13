@@ -1,7 +1,7 @@
 ; Will write this myself later when i actually understand all this, for now copypasted from https://github.com/AlexandreRouma/PenutOS/blob/master/boot/bootsect.asm
 
 %define LD_ADDRESS 0x100 ; Address of where to load the kernel
-%define KRN_SIZE   54      ; Kernel size in sectors
+%define KRN_SIZE   20      ; Kernel size in sectors
 %define FST_SECTOR 2      ; Sector of the kernel
 
 [bits 16]

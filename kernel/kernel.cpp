@@ -61,6 +61,7 @@ void handler(isr::Registers* gaming) {
 
 void kernelstart()
 {
+  clrscr();
 	printf("hewwo\n");
 	cpubasics::cpuinit();
   memorymap::initMemoryMap((void*)0x7C00 + 0x7000, (void*)0x7C00 + (0x7004));

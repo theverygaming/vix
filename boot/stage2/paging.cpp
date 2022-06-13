@@ -21,6 +21,7 @@ void stage2_pagetablefill() {
     }
 }
 
+
 void* paging::get_physaddr(void* virtualaddr) {
     unsigned long pdindex = (unsigned long)virtualaddr >> 22;
     unsigned long ptindex = (unsigned long)virtualaddr >> 12 & 0x03FF;
@@ -33,9 +34,13 @@ void* paging::get_physaddr(void* virtualaddr) {
     return (void *)((pt[ptindex] & ~0xFFF) + ((unsigned long)virtualaddr & 0xFFF));
 }
 
-uint32_t get_pd_index(void* virtualaddr) {
-    float x = 0.1;
-    floor(x);
+//Both addresses have to be page-aligned!
+void map_page(void *physaddr, void *virtualaddr) {
+    unsigned long pDirIndex = (unsigned long)virtualaddr >> 22;
+    unsigned long pTableIndex = (unsigned long)virtualaddr >> 12 & 0x03FF;
+
+    paging::create_pagetable_entry(pDirIndex, pTableIndex, physaddr, false, false, false, paging::SUPERVISOR, paging::RW, true);
+    paging::create_directory_entry(pDirIndex, (void*)pagetables[pDirIndex], paging::FOUR_KiB, 0, 0, paging::SUPERVISOR, paging::RW, true);
 }
 
 
@@ -47,9 +52,9 @@ void paging::initpaging()
     }
 
     stage2_pagetablefill();
-    printf("Allocated memory for stage2 ranges to: %dKB\n", (1024 * 6) * 4);
-    printf("virt: %p, phys: %d\n", 0xC0000000, get_physaddr((void*)0xC0000000));
-    get_pd_index((void*)0xC0000000);
+    for(int i = 0; i < 56; i++) {
+        map_page((void*)KERNEL_PHYS_ADDRESS + (i * 0x1000), (void*)KERNEL_VIRT_ADDRESS + (i * 0x1000));
+    }
 
     loadPageDirectory(page_directory);
     enablePaging();
