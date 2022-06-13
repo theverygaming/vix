@@ -26,6 +26,19 @@
 })
 
 namespace hdd {
+    namespace generic {
+        typedef struct __genericDrive_t {
+            bool alive;
+            enum __drivetype {
+                GENERIC_DRIVE_ATAPIO = 0,
+                GENERIC_DRIVE_USBFLASH = 1,
+                GENERIC_DRIVE_SATA = 2,
+            } drivetype;
+            uint64_t devinfo1;
+            uint64_t devinfo2;
+        } genericDrive_t;
+    }
+
     namespace ata_pio {
         typedef struct __atadevice_t {
             bool dev_okay;
@@ -40,5 +53,7 @@ namespace hdd {
             ATA_DRIVE_SLAVE = 0xB0,
         };
         void idk();
+        int generic_get_drives(int occupied, int max, hdd::generic::genericDrive_t* drivearr);
+        void generic_read(void* buf, uint64_t lba, uint16_t sectors, hdd::generic::genericDrive_t drive);
     }
 }
