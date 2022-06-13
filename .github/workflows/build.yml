@@ -6,6 +6,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install nasm
+
       - name: compile
         run: cd $GITHUB_WORKSPACE && make
       
