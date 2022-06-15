@@ -30,6 +30,7 @@ namespace hdd {
         typedef struct __genericDrive_t {
             bool alive;
             enum __drivetype {
+                GENERIC_DRIVE_NONE = -1,
                 GENERIC_DRIVE_ATAPIO = 0,
                 GENERIC_DRIVE_USBFLASH = 1,
                 GENERIC_DRIVE_SATA = 2,
@@ -37,6 +38,9 @@ namespace hdd {
             uint64_t devinfo1;
             uint64_t devinfo2;
         } genericDrive_t;
+        extern genericDrive_t alldrives[4];
+        void scanDrives();
+        int readDrive(void *buf, uint64_t lba, uint16_t sectors, hdd::generic::genericDrive_t drive);
     }
 
     namespace ata_pio {
@@ -44,15 +48,14 @@ namespace hdd {
             bool dev_okay;
 	        char name[41];
         } atadevice_t;
-        enum controller {
+        enum controller_e {
             ATA_CONTROLLER_PRIMARY = 0x1F0,
             ATA_CONTROLLER_SECONDARY = 0x170,
         };
-        enum drive {
+        enum drive_e {
             ATA_DRIVE_MASTER = 0xA0,
             ATA_DRIVE_SLAVE = 0xB0,
         };
-        void idk();
         int generic_get_drives(int occupied, int max, hdd::generic::genericDrive_t* drivearr);
         void generic_read(void* buf, uint64_t lba, uint16_t sectors, hdd::generic::genericDrive_t drive);
     }
