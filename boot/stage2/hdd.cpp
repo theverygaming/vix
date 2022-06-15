@@ -1,7 +1,5 @@
 #include "hdd.h"
 
-#define PIO_BUF 0x1001000
-
 namespace hdd::ata_pio
 {
     hdd::ata_pio::atadevice_t cmd_identify(enum hdd::ata_pio::controller_e controller, enum hdd::ata_pio::drive_e drive) {
@@ -33,14 +31,14 @@ namespace hdd::ata_pio
                     return device;
                 }
                 if (status & (1 << 3)) {
-                    uint16_t *buffer = (uint16_t *)PIO_BUF;
+                    uint16_t buffer[256];
                     for (int i = 0; i < 256; i++) {
                         buffer[i] = inw(io_base);
                     }
                     // The fuck IDE?
                     for (int i = 0; i < 40; i += 2) {
-                        device.name[i] = ((char *)(PIO_BUF + 54))[i + 1];
-                        device.name[i + 1] = ((char *)(PIO_BUF + 54))[i];
+                        device.name[i] = ((char*)&buffer)[i + 54 + 1];
+                        device.name[i + 1] = ((char*)&buffer)[i + 54];
                     }
                     device.name[41] = 0;
                     device.dev_okay = true;
