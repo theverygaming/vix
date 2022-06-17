@@ -1,24 +1,42 @@
 #include "paging.h"
 #include "stdio.h"
+#include <cmath>
+#include "../config.h"
 
-
-//uint32_t pagetables[1024][1024] __attribute__((aligned(4096)));
-//uint32_t page_directory[1024] __attribute__((aligned(4096)));
-
-uint32_t (*pagetables)[1024] = (uint32_t(*)[1024])0x1002000; //size: 4194304 bytes
-uint32_t *page_directory = (uint32_t*)0x1001000; // size: 4096 bytes
+uint32_t (*pagetables)[1024] = (uint32_t(*)[1024])KERNEL_PHYS_ADDRESS + PAGE_TABLES_OFFSET;
+uint32_t *page_directory = (uint32_t*)KERNEL_PHYS_ADDRESS + PAGE_DIRECTORY_OFFSET;
 
 extern "C" void loadPageDirectory(uint32_t* address);
 extern "C" void enablePaging();
 
-
-void kernel_pagetablefill(int tablenum, bool global, bool cache_disabled, bool write_through, enum paging::page_priv priv, enum paging::page_perms perms, bool present) {
-    for (unsigned int i = 0; i < 1024; i++)
-    {
-        paging::create_pagetable_entry(tablenum, i, (void*)((i + (tablenum * 1024)) * 0x1000), global, cache_disabled, write_through, priv, perms, present);
+void stage2_pagetablefill() {
+    for(int i = 0; i < 6; i++) {
+        for (unsigned int j = 0; j < 1024; j++)
+        {
+            paging::create_pagetable_entry(i, j, (void*)((j + (i * 1024)) * 0x1000), false, false, false, paging::SUPERVISOR, paging::RW, true);
+        }
+        paging::create_directory_entry(i, (void*)pagetables[i], paging::FOUR_KiB, 0, 0, paging::SUPERVISOR, paging::RW, true);
     }
 }
 
+void* paging::get_physaddr(void* virtualaddr) {
+    unsigned long pdindex = (unsigned long)virtualaddr >> 22;
+    unsigned long ptindex = (unsigned long)virtualaddr >> 12 & 0x03FF;
+ 
+    // TODO: check if entry is actually present
+    unsigned long *pd = (unsigned long *)page_directory;
+    unsigned long *pt = ((unsigned long *)pagetables) + (0x400 * pdindex);
+    return (void *)((pt[ptindex] & ~0xFFF) + ((unsigned long)virtualaddr & 0xFFF));
+}
+
+//Both addresses have to be page-aligned!
+void map_page(void *physaddr, void *virtualaddr) {
+    unsigned long pDirIndex = (unsigned long)virtualaddr >> 22;
+    unsigned long pTableIndex = (unsigned long)virtualaddr >> 12 & 0x03FF;
+
+    paging::create_pagetable_entry(pDirIndex, pTableIndex, physaddr, false, false, false, paging::SUPERVISOR, paging::RW, true);
+    paging::create_directory_entry(pDirIndex, (void*)pagetables[pDirIndex], paging::FOUR_KiB, 0, 0, paging::SUPERVISOR, paging::RW, true);
+}
 
 void paging::initpaging()
 {
@@ -27,11 +45,10 @@ void paging::initpaging()
         delete_directory_entry(i);
     }
 
-    for(int i = 0; i < 6; i++) {
-        kernel_pagetablefill(i, false, false, false, SUPERVISOR, RW, true);
-        create_directory_entry(i, (void*)pagetables[i], FOUR_KB, 0, 0, SUPERVISOR, RW, 1);
+    stage2_pagetablefill();
+    for(int i = 0; i < 56; i++) {
+        map_page((void*)KERNEL_PHYS_ADDRESS + (i * 0x1000), (void*)KERNEL_VIRT_ADDRESS + (i * 0x1000));
     }
-    printf("Allocated memory for kernel ranges to: %dKB\n", (1024 * 6) * 4);
 
     loadPageDirectory(page_directory);
     enablePaging();
@@ -64,5 +81,5 @@ void paging::create_directory_entry(int tablenum, void* address, enum page_size 
 }
 
 void paging::delete_directory_entry(int tablenum) {
-    create_directory_entry(tablenum, 0, FOUR_KB, false, false, SUPERVISOR, RW, false);
+    create_directory_entry(tablenum, 0, FOUR_KiB, false, false, SUPERVISOR, RW, false);
 }

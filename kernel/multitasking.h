@@ -14,6 +14,13 @@ namespace multitasking
         uint32_t esp;
         uint32_t ebp;
     } context;
-    
+
+    typedef struct {
+        uint32_t pid;
+        context registerContext;
+        uint8_t priority;
+        bool run;
+    } process;
+    void killCurrentProcess();
     void interruptTrigger();
 }

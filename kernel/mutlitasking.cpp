@@ -17,28 +17,31 @@ void task1() {
             break;
         }
     }
+
+    //printf("death");
 }
 
-int died = 0;
-void end() {
-    printf("process died!\n");
-    died = 1;
-    asm("int $32");
-}
 
-multitasking::context *kern_context = (multitasking::context*)0x100443C;
-multitasking::context *t1_context = (multitasking::context*)0x100343C;
+//multitasking::context *kern_context = (multitasking::context*)0x100443C;
+//multitasking::context *t1_context = (multitasking::context*)0x120343C;
 
 multitasking::context *current_context = (multitasking::context*)0x100043C;
 
+multitasking::process current_process;
+
+multitasking::process processes[10] = {0, {0, 0, 0, 0, 0, 0, 0, 0}, 0, false}; 
+
 int counter = 0;
 
-void init_empty_stack(uint32_t stackadr, void (*func)()) {
+int currentProcess = 0;
+int processCounter = 0;
+
+void init_empty_stack(void* stackadr, void (*func)()) {
     uint32_t* stack = (uint32_t*)stackadr;
     stack[0] = (uint32_t)func; // EIP
     stack[1] = 8; // CS?
     stack[2] = 1 << 9; // EFLAGS, set interrupt bit
-    stack[3] = (uint32_t)end;
+    stack[3] = (uint32_t)0xFFFFFFFF; // cause a page fault
     stack[4] = 8; // CS?
     stack[5] = 1 << 9; // EFLAGS, set interrupt bit
 }
@@ -47,35 +50,56 @@ int initcounter = 0;
 
 extern "C" void task2();
 
+void multitasking::killCurrentProcess() {
+    processes[currentProcess].run = false;
+    //memcpy((char*)current_context, (char*)&processes[0].registerContext, sizeof(context));
+    interruptTrigger();
+}
+
 void multitasking::interruptTrigger() {
-    if(initcounter < -1) {
+    if(initcounter < 100) {
         initcounter++;
         return;
     }
     if(counter == 0) {
-        //printf("Switching tasks!");
-        memcpy((uint32_t*)kern_context, (uint32_t*)current_context, sizeof(context));
-        init_empty_stack(0x17D7840, task1);
-        t1_context->esp = 0x17D7840;
+        processes[0] = {0, {0, 0, 0, 0, 0, 0, 0, 0}, 0, true};
+        memcpy((char*)&processes[0].registerContext, (char*)current_context, sizeof(context));
+        init_empty_stack((void*)0x17D7840, task1);
+        processes[1] = {1, {0, 0, 0, 0, 0, 0, 0x17D7840, 0}, 0, true};
         counter = 19;
+        currentProcess = 0;
     }
-    if(died == 1) {
-        memcpy((uint32_t*)current_context, (uint32_t*)kern_context, sizeof(context));
-    }
-    if(counter == 10) {
-        if(died == 0) {
-            memcpy((uint32_t*)t1_context, (uint32_t*)current_context, sizeof(context));
+    memcpy((char*)&processes[currentProcess].registerContext, (char*)current_context, sizeof(context)); // Save current process context
+    int runningProcesses = 0;
+    for(int i = 0; i < 10; i++) {
+        if(processes[i].run) {
+            runningProcesses++;
         }
-        memcpy((uint32_t*)current_context, (uint32_t*)kern_context, sizeof(context));
-        *((unsigned char *)(0xB8000 + 2 * 75 + 160 * 10)) = 'K';
     }
-    else if(counter == 20) {
-        memcpy((uint32_t*)kern_context, (uint32_t*)current_context, sizeof(context));
-        if(died == 0) {
-            memcpy((uint32_t*)current_context, (uint32_t*)t1_context, sizeof(context));
+    if(!processes[currentProcess].run) {
+        for(int i = 0; i < 10; i++) {
+                if(processes[i].run && currentProcess != i) {
+                    memcpy((char*)current_context, (char*)&processes[i].registerContext, sizeof(context));
+                    currentProcess = i;
+                    break;
+                }
+            }
+    }
+    if(processCounter > processes[currentProcess].priority) {
+        // Priority exceeded, now we have to switch process
+        if(runningProcesses > 1) { // is it even possible to switch?
+            int start = currentProcess;
+            if(currentProcess == runningProcesses - 1) { start = 0; }
+            for(int i = start; i < 10; i++) {
+                if(processes[i].run && currentProcess != i) {
+                    memcpy((char*)current_context, (char*)&processes[i].registerContext, sizeof(context));
+                    currentProcess = i;
+                    break;
+                }
+            }
         }
-        *((unsigned char *)(0xB8000 + 2 * 75 + 160 * 10)) = 'T';
-        counter = 1;
+        processCounter = 0;
     }
+    processCounter++;
     counter++;
 }
