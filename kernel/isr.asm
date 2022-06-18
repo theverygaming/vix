@@ -24,18 +24,20 @@ i686_ISR%1:
 
 %include "isrs.inc"
 
+%include "../config.inc"
+
 isr_common:
     cli
-    ; we store all registers in a struct at 0x100043C
-    mov [0x100043C], eax
-    mov [0x100043C+4], ebx
-    mov [0x100043C+8], ecx
-    mov [0x100043C+12], edx
-    mov [0x100043C+16], esi
-    mov [0x100043C+20], edi
-    mov [0x100043C+24], esp
-    mov [0x100043C+28], ebp
-    add dword [0x100043C+24], 8
+    ; we store all registers in a struct at KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET
+    mov [KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET], eax
+    mov [KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET + 4], ebx
+    mov [KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET + 8], ecx
+    mov [KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET + 12], edx
+    mov [KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET + 16], esi
+    mov [KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET + 20], edi
+    mov [KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET + 24], esp
+    mov [KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET + 28], ebp
+    add dword [KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET + 24], 8
     pusha
 
     xor eax, eax
@@ -60,13 +62,13 @@ isr_common:
 
     popa
     ;add esp, 8              ; remove error code and interrupt number
-    mov eax, [0x100043C]
-    mov ebx, [0x100043C+4]
-    mov ecx, [0x100043C+8]
-    mov edx, [0x100043C+12]
-    mov esi, [0x100043C+16]
-    mov edi, [0x100043C+20]
-    mov esp, [0x100043C+24]
-    mov ebp, [0x100043C+28]
+    mov eax, [KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET]
+    mov ebx, [KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET + 4]
+    mov ecx, [KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET + 8]
+    mov edx, [KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET + 12]
+    mov esi, [KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET + 16]
+    mov edi, [KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET + 20]
+    mov esp, [KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET + 24]
+    mov ebp, [KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET + 28]
     sti
     iret

@@ -2,6 +2,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "cpubasics.h"
+#include "../config.h"
 
 void task1() {
     int counter = 0;
@@ -17,15 +18,9 @@ void task1() {
             break;
         }
     }
-
-    //printf("death");
 }
 
-
-//multitasking::context *kern_context = (multitasking::context*)0x100443C;
-//multitasking::context *t1_context = (multitasking::context*)0x120343C;
-
-multitasking::context *current_context = (multitasking::context*)0x100043C;
+multitasking::context *current_context = (multitasking::context*)(KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET);
 
 multitasking::process current_process;
 
@@ -47,8 +42,6 @@ void init_empty_stack(void* stackadr, void (*func)()) {
 }
 
 int initcounter = 0;
-
-extern "C" void task2();
 
 void multitasking::killCurrentProcess() {
     processes[currentProcess].run = false;

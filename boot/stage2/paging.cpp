@@ -52,7 +52,7 @@ void paging::initpaging()
     }
 
     stage2_pagetablefill();
-    for(int i = 0; i < 56; i++) {
+    for(int i = 0; i < 100000; i++) {
         map_page((void*)KERNEL_PHYS_ADDRESS + (i * 0x1000), (void*)KERNEL_VIRT_ADDRESS + (i * 0x1000));
     }
 
