@@ -8,4 +8,7 @@
 
 // location where ISR stores registers, size: 32 bytes 
 //could be moved a bit
-#define REGISTER_STORE_OFFSET 0x1402000 
+#define REGISTER_STORE_OFFSET 0x1401FE0
+
+// 80 * 25 * 2 = 4000 bytes, will be 4096 bytes bc it's paged
+#define VIDMEM_OFFSET 0x1402000

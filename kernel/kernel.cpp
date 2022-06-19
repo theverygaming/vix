@@ -14,6 +14,7 @@ void _start(void)
 #include "stdio.h"
 #include "paging.h"
 #include "memorymap.h"
+#include "../config.h"
 
 
 char kbd_US [128] =
@@ -81,7 +82,7 @@ void kernelstart()
   int counter = 0;
     while(1) {
       //cpubasics::sleep(10);
-      *((unsigned char *)(0xB8000 + 2 * 70 + 160 * 0)) = counter / 20;
+      *((unsigned char *)((KERNEL_VIRT_ADDRESS + VIDMEM_OFFSET) + 2 * 70 + 160 * 0)) = counter / 20;
       //printf("HAI ");
       //printf("%llu ", *balls);
       counter++;

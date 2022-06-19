@@ -5,6 +5,7 @@
 #include <cstddef>
 #include "stdio.h"
 #include "multitasking.h"
+#include "../config.h"
 
 void init_pic(void)
 {
@@ -59,7 +60,7 @@ void isr_clock_int()
     {
         ticks++;
     }
-    *((unsigned char *)(0xB8000 + 2 * 79 + 160 * 0)) = ticks / 20;
+    *((unsigned char *)((KERNEL_VIRT_ADDRESS + VIDMEM_OFFSET) + 2 * 79 + 160 * 0)) = ticks / 20;
 }
 
 void clockHandler(isr::Registers *gaming) {

@@ -55,6 +55,7 @@ void paging::initpaging()
     for(int i = 0; i < 100000; i++) {
         map_page((void*)KERNEL_PHYS_ADDRESS + (i * 0x1000), (void*)KERNEL_VIRT_ADDRESS + (i * 0x1000));
     }
+    map_page((void*)0xB8000, (void*)(KERNEL_VIRT_ADDRESS + VIDMEM_OFFSET)); // Video memory
 
     loadPageDirectory(page_directory);
     enablePaging();

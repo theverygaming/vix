@@ -7,10 +7,10 @@
 void task1() {
     int counter = 0;
     uint32_t counterr = 0;
-    *((unsigned char *)(0xB8000 + 2 * 74 + 160 * 5)) += 1;
+    *((unsigned char *)((KERNEL_VIRT_ADDRESS + VIDMEM_OFFSET) + 2 * 74 + 160 * 5)) += 1;
     while (1)
     {
-        *((unsigned char *)(0xB8000 + 2 * 75 + 160 * 5)) = counter / 20;
+        *((unsigned char *)((KERNEL_VIRT_ADDRESS + VIDMEM_OFFSET) + 2 * 75 + 160 * 5)) = counter / 20;
         counter++;
         counterr++;
         if(counter == 1000) { counter = 0; }

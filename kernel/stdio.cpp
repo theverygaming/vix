@@ -3,13 +3,14 @@
 
 #include <stdbool.h>
 #include <cstdarg>
+#include "../config.h"
 
 
 const unsigned SCREEN_WIDTH = 80;
 const unsigned SCREEN_HEIGHT = 25;
 const uint8_t DEFAULT_COLOR = 0x7;
 
-uint8_t* g_ScreenBuffer = (uint8_t*)0xB8000;
+uint8_t* g_ScreenBuffer = (uint8_t*)(KERNEL_VIRT_ADDRESS + VIDMEM_OFFSET);
 int g_ScreenX = 0, g_ScreenY = 0;
 
 void putchr(int x, int y, char c)
