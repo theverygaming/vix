@@ -5,8 +5,9 @@
 #include <cstddef>
 #include "stdlib.h"
 #include "multitasking.h"
+#include "../config.h"
 
-isr::intHandler *handlers = (isr::intHandler*)0x01000000;
+isr::intHandler *handlers = (isr::intHandler*)(KERNEL_VIRT_ADDRESS + ISR_HANDLER_OFFSET);
 
 extern "C" void i686_ISR_Handler(isr::Registers* regs) {
     if(handlers[regs->interrupt] != NULL) { handlers[regs->interrupt](regs); }
@@ -17,8 +18,9 @@ extern "C" void i686_ISR_Handler(isr::Registers* regs) {
         printf("Unhandled Exception #%lu, halting CPU\n", regs->interrupt);
         printf("DUMP:\neax: %u\nebx: %u\necx: %u\nedx: %u\nesi: %u\nedi: %u\nesp: %u\nebp: %u\neip:%u\n", regs->eax, regs->ebx, regs->ecx, regs->edx, regs->esi, regs->edi, regs->esp, regs->ebp, regs->eip);
         printf("Killing current process\n");
+        __asm("hlt");
         multitasking::killCurrentProcess();
-        //__asm("hlt");
+        __asm("hlt");
     }
 }
 

@@ -1,5 +1,5 @@
 #define KERNEL_VIRT_ADDRESS 0xC0000000
-#define KERNEL_PHYS_ADDRESS 0x00100000
+#define KERNEL_PHYS_ADDRESS 0x01CA5000
 
 // directory size: 4096 bytes(ends 0x1001000)
 // tables size: 4194304 bytes
@@ -12,3 +12,7 @@
 
 // 80 * 25 * 2 = 4000 bytes, will be 4096 bytes bc it's paged
 #define VIDMEM_OFFSET 0x1402000
+
+#define ISR_HANDLER_OFFSET 0x1403000 // TODO: add size
+
+#define KERNEL_START_STACK_POINTER_OFFSET 0x1404000

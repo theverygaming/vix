@@ -1,16 +1,28 @@
-ENTRY(start)
-OUTPUT_FORMAT("binary")
-phys = 0xC0000000;
+ENTRY(main)
 
-SECTIONS
-{
-    . = phys;
+PAGE = 0x1000;
+HIGHER_HALF = 0xC0000000;
 
-    .entry              : { __entry_start = .;      *(.entry)   }
-    .text               : { __text_start = .;       *(.text)    }
-    .data               : { __data_start = .;       *(.data)    }
-    .rodata             : { __rodata_start = .;     *(.rodata)  }
-    .bss                : { __bss_start = .;        *(.bss)     }
-    
-    __end = .;
+SECTIONS {
+	. = HIGHER_HALF;
+
+	.text ALIGN(PAGE) : AT(ADDR(.text) - HIGHER_HALF) {
+		*(.text)
+		*(.eh_frame)
+	}
+
+	.rodata ALIGN(PAGE) : AT(ADDR(.rodata) - HIGHER_HALF) {
+		*(.rodata)
+	}
+
+	.data ALIGN(PAGE) : AT(ADDR(.data) - HIGHER_HALF) {
+		*(.data)
+	} 
+
+	.bss ALIGN(PAGE) : AT(ADDR(.bss) - HIGHER_HALF) {
+		*(.bss)
+	}
+
+	KERNEL_SIZE = . - HIGHER_HALF;
 }
+

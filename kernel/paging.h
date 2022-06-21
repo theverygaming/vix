@@ -15,4 +15,6 @@ namespace paging {
     void delete_pagetable_entry(int tablenum, int entrynum);
 
     void* get_physaddr(void* virtualaddr);
+    void loadApplicationMemory(void* appPhysAddress, int pagecount);
+    void clearPageTables(void* virtAddress, int pagecount);
 }

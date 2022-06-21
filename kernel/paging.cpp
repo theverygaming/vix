@@ -3,8 +3,8 @@
 #include <cmath>
 #include "../config.h"
 
-uint32_t (*pagetables)[1024] = (uint32_t(*)[1024])KERNEL_PHYS_ADDRESS + PAGE_TABLES_OFFSET;
-uint32_t *page_directory = (uint32_t*)KERNEL_PHYS_ADDRESS + PAGE_DIRECTORY_OFFSET;
+uint32_t (*pagetables)[1024] = (uint32_t(*)[1024])KERNEL_VIRT_ADDRESS + PAGE_TABLES_OFFSET;
+uint32_t *page_directory = (uint32_t*)KERNEL_VIRT_ADDRESS + PAGE_DIRECTORY_OFFSET;
 
 extern "C" void loadPageDirectory(uint32_t* address);
 extern "C" void enablePaging();
@@ -36,6 +36,28 @@ void map_page(void *physaddr, void *virtualaddr) {
 
     paging::create_pagetable_entry(pDirIndex, pTableIndex, physaddr, false, false, false, paging::SUPERVISOR, paging::RW, true);
     paging::create_directory_entry(pDirIndex, (void*)pagetables[pDirIndex], paging::FOUR_KiB, 0, 0, paging::SUPERVISOR, paging::RW, true);
+}
+
+void unmap_page(void *virtualaddr) {
+    unsigned long pDirIndex = (unsigned long)virtualaddr >> 22;
+    unsigned long pTableIndex = (unsigned long)virtualaddr >> 12 & 0x03FF;
+
+    paging::create_pagetable_entry(pDirIndex, pTableIndex, (void*)0, false, false, false, paging::SUPERVISOR, paging::RW, false);
+    paging::create_directory_entry(pDirIndex, (void*)pagetables[pDirIndex], paging::FOUR_KiB, 0, 0, paging::SUPERVISOR, paging::RW, false);
+}
+
+void paging::loadApplicationMemory(void* appPhysAddress, int pagecount) {
+    for(int i = 0; i < pagecount; i++) {
+        map_page(appPhysAddress + (i * 0x1000), (void*)0 + (i * 0x1000));
+    }
+}
+
+void paging::clearPageTables(void* virtAddress, int pagecount) {
+    for(int i = 0; i < pagecount; i++) {
+        //unmap_page(virtAddress + (i * 0x1000));
+        paging::create_directory_entry(i, 0, paging::FOUR_KiB, false, false, paging::SUPERVISOR, paging::RW, false);
+        printf("unmapped dir %lu\n", i);
+    }
 }
 
 void paging::initpaging()

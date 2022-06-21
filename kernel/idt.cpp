@@ -1,5 +1,6 @@
 #include "idt.h"
 #include <stdint.h>
+#include "paging.h"
 
 #define FLAG_SET(x, flag) x |= (flag)
 #define FLAG_UNSET(x, flag) x &= ~(flag)
@@ -47,5 +48,5 @@ void idt::i686_IDT_DisableGate(int interrupt)
 
 void idt::i686_IDT_Initialize()
 {
-    i686_IDT_Load(&g_IDTDescriptor);
+    i686_IDT_Load((IDTDescriptor*)paging::get_physaddr(&g_IDTDescriptor));
 }

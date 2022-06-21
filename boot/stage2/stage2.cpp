@@ -12,8 +12,8 @@ void _start(void)
 #include "../../config.h"
 
 void stage2start(void) {
-    gdt::i686_GDT_Initialize();
     clrscr();
+    //gdt::i686_GDT_Initialize();
     paging::initpaging();
     printf("Searching for hard drives\n"); 
     hdd::generic::scanDrives();
@@ -21,8 +21,14 @@ void stage2start(void) {
         printf("Trying to load data from HDD...\n");
         hdd::generic::readDrive((void*)KERNEL_VIRT_ADDRESS, 21, 56, hdd::generic::alldrives[0]);
         printf("Jumping to kernel\n");
-        void (*kernel)(void) = (void (*)())KERNEL_VIRT_ADDRESS;
-        kernel();
+        uint32_t sp_adr = KERNEL_VIRT_ADDRESS + KERNEL_START_STACK_POINTER_OFFSET;
+        uint32_t kerneladr = KERNEL_VIRT_ADDRESS;
+        asm volatile("" : : "a"(sp_adr));
+        asm("mov %eax, %esp");
+        asm volatile("" : : "a"(kerneladr));
+        asm("jmpl %eax");
+        //void (*kernel)(void) = (void (*)())KERNEL_VIRT_ADDRESS;
+        //kernel();
     }
     else {
         printf("no IDE hdd found. go get one\nSystem halted\n");

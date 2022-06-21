@@ -59,20 +59,20 @@ void clrscr()
 
 void scrollback(int lines)
 {
-    for (int y = lines; y < SCREEN_HEIGHT; y++)
-        for (int x = 0; x < SCREEN_WIDTH; x++)
-        {
+    for (int y = lines; y < SCREEN_HEIGHT; y++) {
+        for (int x = 0; x < SCREEN_WIDTH; x++) {
             putchr(x, y - lines, getchr(x, y));
             putcolor(x, y - lines, getcolor(x, y));
         }
+    }
 
-    for (int y = SCREEN_HEIGHT - lines; y < SCREEN_HEIGHT; y++)
-        for (int x = 0; x < SCREEN_WIDTH; x++)
-        {
+    for (int y = SCREEN_HEIGHT - lines; y < SCREEN_HEIGHT; y++) {
+        for (int x = 0; x < SCREEN_WIDTH; x++) {
             putchr(x, y, '\0');
             putcolor(x, y, DEFAULT_COLOR);
         }
-
+    }
+    
     g_ScreenY -= lines;
 }
 

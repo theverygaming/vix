@@ -50,17 +50,21 @@ void multitasking::killCurrentProcess() {
 }
 
 void multitasking::interruptTrigger() {
-    if(initcounter < 100) {
+    if(initcounter < 200) {
         initcounter++;
         return;
     }
+    
     if(counter == 0) {
         processes[0] = {0, {0, 0, 0, 0, 0, 0, 0, 0}, 0, true};
         memcpy((char*)&processes[0].registerContext, (char*)current_context, sizeof(context));
-        init_empty_stack((void*)0x17D7840, task1);
-        processes[1] = {1, {0, 0, 0, 0, 0, 0, 0x17D7840, 0}, 0, true};
+        paging::loadApplicationMemory((void*)0x17D7840, 10);
+        //init_empty_stack((void*)0x1000, task1);
+        //processes[1] = {1, {0, 0, 0, 0, 0, 0, 0x1000, 0}, 0, true};
+        *((int*)0x1000) = 6940;
         counter = 19;
         currentProcess = 0;
+        printf("---Multitasking enabled---\n");
     }
     memcpy((char*)&processes[currentProcess].registerContext, (char*)current_context, sizeof(context)); // Save current process context
     int runningProcesses = 0;

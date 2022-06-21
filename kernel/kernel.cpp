@@ -62,23 +62,33 @@ void handler(isr::Registers* gaming) {
 
 void kernelstart()
 {
+  //uint32_t sp_adr = KERNEL_VIRT_ADDRESS + KERNEL_START_STACK_POINTER_OFFSET;
+  //asm("mov %0, %%esp" : "=r"(sp_adr) :);
   clrscr();
+  //paging::clearPageTables((void*)0x0, 6);
+  //register uint32_t esp asm("esp");
 	printf("hewwo\n");
-	cpubasics::cpuinit();
-  memorymap::initMemoryMap((void*)0x7C00 + 0x7000, (void*)0x7C00 + (0x7004));
+  register uint32_t esp asm("esp");
+  printf("esp: %p\n", esp);
+  cpubasics::cpuinit();
+  isr::RegisterHandler(33, handler);
+  paging::clearPageTables((void*)0x0, 100);
+  for(;;);
+  //for(;;);
+	//cpubasics::cpuinit();
+  //memorymap::initMemoryMap((void*)0x7C00 + 0x7000, (void*)0x7C00 + (0x7004));
 	//__asm("int $33");
-	printf("registering handler\n");
-	isr::RegisterHandler(33, handler);
+	//printf("registering handler\n");
+	//isr::RegisterHandler(33, handler);
   //cpubasics::sleep(100);
 	//__asm("int $33");
 	//isr::DeregisterHandler(33);
-	//__asm("int $32");
 	printf("ayy\n");
   //cpubasics::sleep(100);
-  //printf("initializing paging\n");
+  printf("initializing paging\n");
   //paging::initpaging();
   //printf("initialized paging\n");
-  unsigned int* balls = (unsigned int*)0xFC18;
+  //__asm("int $35");
   int counter = 0;
     while(1) {
       //cpubasics::sleep(10);

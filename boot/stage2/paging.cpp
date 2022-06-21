@@ -11,17 +11,6 @@ extern "C" void loadPageDirectory(uint32_t* address);
 extern "C" void enablePaging();
 
 
-void stage2_pagetablefill() {
-    for(int i = 0; i < 6; i++) {
-        for (unsigned int j = 0; j < 1024; j++)
-        {
-            paging::create_pagetable_entry(i, j, (void*)((j + (i * 1024)) * 0x1000), false, false, false, paging::SUPERVISOR, paging::RW, true);
-        }
-        paging::create_directory_entry(i, (void*)pagetables[i], paging::FOUR_KiB, 0, 0, paging::SUPERVISOR, paging::RW, true);
-    }
-}
-
-
 void* paging::get_physaddr(void* virtualaddr) {
     unsigned long pdindex = (unsigned long)virtualaddr >> 22;
     unsigned long ptindex = (unsigned long)virtualaddr >> 12 & 0x03FF;
@@ -43,11 +32,20 @@ void map_page(void *physaddr, void *virtualaddr) {
     paging::create_directory_entry(pDirIndex, (void*)pagetables[pDirIndex], paging::FOUR_KiB, 0, 0, paging::SUPERVISOR, paging::RW, true);
 }
 
+void stage2_pagetablefill() {
+    for(int i = 0; i < 100000; i++) {
+        map_page((void*)0 + (i * 0x1000), (void*)0 + (i * 0x1000));
+    }
+}
 
 void paging::initpaging()
 {
     for (int i = 0; i < 1024; i++)
     {
+        for (unsigned int j = 0; j < 1024; j++)
+        {
+            create_pagetable_entry(i, j, (void*)0, false, false, false, SUPERVISOR, RW, false);
+        }
         delete_directory_entry(i);
     }
 
