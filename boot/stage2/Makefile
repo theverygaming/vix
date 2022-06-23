@@ -6,7 +6,7 @@ all: stage2 stage2pad
 stage2pad: 
 	dd if=/dev/zero of=stage2 bs=1 count=1 seek=10239
 
-stage2: stage2.ocpp gdt.oasm gdt.ocpp paging.ocpp paging.oasm stdio.ocpp hdd.ocpp
+stage2: stage2.ocpp gdt.oasm gdt.ocpp paging.ocpp paging.oasm stdio.ocpp hdd.ocpp stdlib.ocpp
 	ld -m elf_i386 --oformat binary -T linker.ld -nostdlib $^ -o $@
 
 %.ocpp: %.cpp

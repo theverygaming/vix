@@ -1,5 +1,7 @@
 #include "gdt.h"
 #include <stdint.h>
+#include "stdlib.h"
+#include "../../config.h"
 
 typedef struct
 {
@@ -84,11 +86,13 @@ GDTEntry g_GDT[] = {
 
 };
 
-GDTDescriptor g_GDTDescriptor = { sizeof(g_GDT) - 1, g_GDT};
+GDTDescriptor g_GDTDescriptor = { sizeof(g_GDT) - 1, (GDTEntry*)(KERNEL_VIRT_ADDRESS + GDT_OFFSET + sizeof(GDTDescriptor))};
 
 extern "C" void i686_GDT_Load(GDTDescriptor* descriptor, uint16_t codeSegment, uint16_t dataSegment);
 
 void gdt::i686_GDT_Initialize()
 {
-    i686_GDT_Load(&g_GDTDescriptor, i686_GDT_CODE_SEGMENT, i686_GDT_DATA_SEGMENT);
+    memcpy((char*)(KERNEL_VIRT_ADDRESS + GDT_OFFSET), (char*)&g_GDTDescriptor, sizeof(GDTDescriptor));
+    memcpy((char*)(KERNEL_VIRT_ADDRESS + GDT_OFFSET + sizeof(GDTDescriptor)), (char*)&g_GDT, sizeof(g_GDT));
+    i686_GDT_Load((GDTDescriptor*)(KERNEL_VIRT_ADDRESS + GDT_OFFSET), i686_GDT_CODE_SEGMENT, i686_GDT_DATA_SEGMENT);
 }

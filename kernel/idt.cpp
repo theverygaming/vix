@@ -48,5 +48,5 @@ void idt::i686_IDT_DisableGate(int interrupt)
 
 void idt::i686_IDT_Initialize()
 {
-    i686_IDT_Load((IDTDescriptor*)paging::get_physaddr(&g_IDTDescriptor));
+    i686_IDT_Load((IDTDescriptor*)&g_IDTDescriptor);
 }

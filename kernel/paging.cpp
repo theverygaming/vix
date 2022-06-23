@@ -32,7 +32,7 @@ void* paging::get_physaddr(void* virtualaddr) {
 void invlpg(void* virtaddrx) {
     uint32_t virtaddr = (uint32_t)virtaddrx;
     asm volatile("invlpg (%0)" ::"r" (virtaddr) : "memory");
-    printf("invlpg 0x%p\n", virtaddr);
+    //printf("invlpg 0x%p\n", virtaddr);
 }
 
 //Both addresses have to be page-aligned!
@@ -40,10 +40,7 @@ void paging::map_page(void *physaddr, void *virtualaddr) {
     uint32_t pDirIndex = (uint32_t)virtualaddr >> 22;
     uint32_t pTableIndex = (uint32_t)virtualaddr >> 12 & 0x03FF;
 
-    bool do_invlpg = false;
-    if(check_directory_entry_present(pDirIndex) && check_pagetable_entry_present(pDirIndex, pTableIndex)) {
-        do_invlpg = true;
-    }
+    bool do_invlpg = check_directory_entry_present(pDirIndex) && check_pagetable_entry_present(pDirIndex, pTableIndex);
     paging::set_pagetable_entry(pDirIndex, pTableIndex, physaddr, false, false, false, paging::SUPERVISOR, paging::RW, true);
     paging::set_directory_entry(pDirIndex, get_physaddr((void*)&pagetables[pDirIndex]), paging::FOUR_KiB, 0, 0, paging::SUPERVISOR, paging::RW, true);
     if(do_invlpg) {
@@ -55,8 +52,12 @@ void unmap_page(void *virtualaddr) {
     unsigned long pDirIndex = (unsigned long)virtualaddr >> 22;
     unsigned long pTableIndex = (unsigned long)virtualaddr >> 12 & 0x03FF;
 
-    paging::create_pagetable_entry(pDirIndex, pTableIndex, (void*)0, false, false, false, paging::SUPERVISOR, paging::RW, false);
-    paging::create_directory_entry(pDirIndex, (void*)pagetables[pDirIndex], paging::FOUR_KiB, 0, 0, paging::SUPERVISOR, paging::RW, false);
+    bool do_invlpg = paging::check_directory_entry_present(pDirIndex) && paging::check_pagetable_entry_present(pDirIndex, pTableIndex);
+    paging::set_pagetable_entry(pDirIndex, pTableIndex, (void*)0, false, false, false, paging::SUPERVISOR, paging::RW, false);
+    paging::set_directory_entry(pDirIndex, (void*)pagetables[pDirIndex], paging::FOUR_KiB, 0, 0, paging::SUPERVISOR, paging::RW, false);
+    if(do_invlpg) {
+        invlpg(virtualaddr);
+    }
 }
 
 void paging::loadApplicationMemory(void* appPhysAddress, int pagecount) {
@@ -68,8 +69,6 @@ void paging::loadApplicationMemory(void* appPhysAddress, int pagecount) {
 void paging::clearPageTables(void* virtAddress, uint32_t pagecount) {
     for(uint32_t i = 0; i < pagecount; i++) {
         unmap_page(virtAddress + (i * 0x1000));
-        //paging::create_directory_entry(i, 0, paging::FOUR_KiB, false, false, paging::SUPERVISOR, paging::RW, false);
-        //printf("unmapped dir %lu\n", i);
     }
 }
 
