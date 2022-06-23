@@ -72,7 +72,7 @@ void kernelstart()
   printf("esp: %p\n", esp);
   cpubasics::cpuinit();
   isr::RegisterHandler(33, handler);
-  paging::clearPageTables((void*)0x0, 100);
+  //paging::clearPageTables((void*)0x0, 100000);
   for(;;);
   //for(;;);
 	//cpubasics::cpuinit();

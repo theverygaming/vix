@@ -58,10 +58,9 @@ void multitasking::interruptTrigger() {
     if(counter == 0) {
         processes[0] = {0, {0, 0, 0, 0, 0, 0, 0, 0}, 0, true};
         memcpy((char*)&processes[0].registerContext, (char*)current_context, sizeof(context));
-        paging::loadApplicationMemory((void*)0x17D7840, 10);
-        //init_empty_stack((void*)0x1000, task1);
-        //processes[1] = {1, {0, 0, 0, 0, 0, 0, 0x1000, 0}, 0, true};
-        *((int*)0x1000) = 6940;
+        paging::map_page((void*)0x1CA3000, (void*)0x5000);
+        init_empty_stack((void*)0x5000, task1);
+        processes[1] = {1, {0, 0, 0, 0, 0, 0, 0x5000, 0}, 0, true};
         counter = 19;
         currentProcess = 0;
         printf("---Multitasking enabled---\n");

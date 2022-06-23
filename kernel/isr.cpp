@@ -14,13 +14,31 @@ extern "C" void i686_ISR_Handler(isr::Registers* regs) {
     else if(regs->interrupt >= 32) {
         printf("No interrupt handler for #%lu!, ignoring\n", regs->interrupt);
     }
+    else if(regs->interrupt == 14) { 
+        uint32_t fault_address;
+        asm volatile("mov %%cr2, %0" : "=r"(fault_address)); // get address page fault occoured at
+        int present = !(regs->error & 0x1); // page not present
+        int rw = regs->error & 0x2;         // is caused by write
+        int us = regs->error & 0x4;         // user or kernel fault?
+        int reserved = regs->error & 0x8;   // reserved bt fuckup?
+        int id = regs->error & 0x10;        // instruction access or data?
+
+        // Output an error message.
+        printf("Page fault! ( ");
+        if (present) { printf("present "); }
+        if (rw) { printf("read-only "); }
+        if (us) { printf("user-mode "); }
+        if (reserved){ printf("reserved "); }
+        printf(") at 0x%p\n", fault_address);
+        printf("Error code: 0x%p\n", regs->error);
+        printf("Killing current process\n");
+        multitasking::killCurrentProcess();
+    }
     else {
         printf("Unhandled Exception #%lu, halting CPU\n", regs->interrupt);
         printf("DUMP:\neax: %u\nebx: %u\necx: %u\nedx: %u\nesi: %u\nedi: %u\nesp: %u\nebp: %u\neip:%u\n", regs->eax, regs->ebx, regs->ecx, regs->edx, regs->esi, regs->edi, regs->esp, regs->ebp, regs->eip);
         printf("Killing current process\n");
-        __asm("hlt");
         multitasking::killCurrentProcess();
-        __asm("hlt");
     }
 }
 

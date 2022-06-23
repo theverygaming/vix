@@ -13,8 +13,8 @@ void _start(void)
 
 void stage2start(void) {
     clrscr();
-    //gdt::i686_GDT_Initialize();
     paging::initpaging();
+    gdt::i686_GDT_Initialize(); // ! the GDT may be overwritten in the current state
     printf("Searching for hard drives\n"); 
     hdd::generic::scanDrives();
     if(hdd::generic::alldrives[0].alive) {
@@ -27,8 +27,6 @@ void stage2start(void) {
         asm("mov %eax, %esp");
         asm volatile("" : : "a"(kerneladr));
         asm("jmpl %eax");
-        //void (*kernel)(void) = (void (*)())KERNEL_VIRT_ADDRESS;
-        //kernel();
     }
     else {
         printf("no IDE hdd found. go get one\nSystem halted\n");

@@ -15,4 +15,6 @@
 
 #define ISR_HANDLER_OFFSET 0x1403000 // TODO: add size
 
-#define KERNEL_START_STACK_POINTER_OFFSET 0x1404000
+#define KERNEL_START_STACK_POINTER_OFFSET 0x1409000 // stack grows downwards
+
+#define GDT_OFFSET 0x1409000 // still unused
