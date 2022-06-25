@@ -4,22 +4,6 @@
 #include "cpubasics.h"
 #include "../config.h"
 
-void task1() {
-    int counter = 0;
-    uint32_t counterr = 0;
-    *((unsigned char *)((KERNEL_VIRT_ADDRESS + VIDMEM_OFFSET) + 2 * 74 + 160 * 5)) += 1;
-    while (1)
-    {
-        *((unsigned char *)((KERNEL_VIRT_ADDRESS + VIDMEM_OFFSET) + 2 * 75 + 160 * 5)) = counter / 20;
-        counter++;
-        counterr++;
-        if(counter == 1000) { counter = 0; }
-        if(counterr == 10000000) {
-            break;
-        }
-    }
-}
-
 multitasking::context *current_context = (multitasking::context*)(KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET);
 
 multitasking::process current_process;
@@ -31,9 +15,9 @@ int counter = 0;
 int currentProcess = 0;
 int processCounter = 0;
 
-void init_empty_stack(void* stackadr, void (*func)()) {
+void init_empty_stack(void* stackadr, void* codeadr) {
     uint32_t* stack = (uint32_t*)stackadr;
-    stack[0] = (uint32_t)func; // EIP
+    stack[0] = (uint32_t)codeadr; // EIP
     stack[1] = 8; // CS?
     stack[2] = 1 << 9; // EFLAGS, set interrupt bit
     stack[3] = (uint32_t)0xFFFFFFFF; // cause a page fault
@@ -49,6 +33,17 @@ void multitasking::killCurrentProcess() {
     interruptTrigger();
 }
 
+void multitasking::create_task(void* stackadr, void* codeadr) {
+    stackadr -= (32 * 6); // init_empty_stack has to build the stack up
+    init_empty_stack(stackadr, codeadr);
+    for(int i = 0; i < 10; i++) {
+        if(!processes[i].run) {
+            processes[i] = {i, {0, 0, 0, 0, 0, 0, (uint32_t)stackadr, 0}, 0, true};
+            break;
+        }
+    }
+}
+
 void multitasking::interruptTrigger() {
     if(initcounter < 200) {
         initcounter++;
@@ -58,9 +53,6 @@ void multitasking::interruptTrigger() {
     if(counter == 0) {
         processes[0] = {0, {0, 0, 0, 0, 0, 0, 0, 0}, 0, true};
         memcpy((char*)&processes[0].registerContext, (char*)current_context, sizeof(context));
-        paging::map_page((void*)0x1CA3000, (void*)0x5000);
-        init_empty_stack((void*)0x5000, task1);
-        processes[1] = {1, {0, 0, 0, 0, 0, 0, 0x5000, 0}, 0, true};
         counter = 19;
         currentProcess = 0;
         printf("---Multitasking enabled---\n");
@@ -71,6 +63,10 @@ void multitasking::interruptTrigger() {
         if(processes[i].run) {
             runningProcesses++;
         }
+    }
+    if(runningProcesses == 0) {
+        printf("PANIK: All processes died. Halting system\n");
+        asm("hlt");
     }
     if(!processes[currentProcess].run) {
         for(int i = 0; i < 10; i++) {

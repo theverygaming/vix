@@ -31,12 +31,18 @@ extern "C" void i686_ISR_Handler(isr::Registers* regs) {
         if (reserved){ printf("reserved "); }
         printf(") at 0x%p\n", fault_address);
         printf("Error code: 0x%p\n", regs->error);
+        printf("eax: 0x%p ebx: 0x%p ecx: 0x%p edx: 0x%p\nesi: 0x%p edi: 0x%p esp: 0x%p ebp: 0x%p eip: 0x%p\n", regs->eax, regs->ebx, regs->ecx, regs->edx, regs->esi, regs->edi, regs->esp, regs->ebp, regs->eip);
         printf("Killing current process\n");
         multitasking::killCurrentProcess();
     }
+    else if(regs->interrupt == 8 || regs->interrupt == 18) {
+        printf("---RIP---\nException #%lu, cannot recover\n", regs->interrupt);
+        printf("eax: 0x%p ebx: 0x%p ecx: 0x%p edx: 0x%p\nesi: 0x%p edi: 0x%p esp: 0x%p ebp: 0x%p eip: 0x%p\n", regs->eax, regs->ebx, regs->ecx, regs->edx, regs->esi, regs->edi, regs->esp, regs->ebp, regs->eip);
+        asm("hlt");
+    }
     else {
-        printf("Unhandled Exception #%lu, halting CPU\n", regs->interrupt);
-        printf("DUMP:\neax: %u\nebx: %u\necx: %u\nedx: %u\nesi: %u\nedi: %u\nesp: %u\nebp: %u\neip:%u\n", regs->eax, regs->ebx, regs->ecx, regs->edx, regs->esi, regs->edi, regs->esp, regs->ebp, regs->eip);
+        printf("Exception #%lu\n", regs->interrupt);
+        printf("eax: 0x%p ebx: 0x%p ecx: 0x%p edx: 0x%p\nesi: 0x%p edi: 0x%p esp: 0x%p ebp: 0x%p eip: 0x%p\n", regs->eax, regs->ebx, regs->ecx, regs->edx, regs->esi, regs->edi, regs->esp, regs->ebp, regs->eip);
         printf("Killing current process\n");
         multitasking::killCurrentProcess();
     }
