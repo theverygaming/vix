@@ -29,6 +29,7 @@ int initcounter = 0;
 
 void multitasking::killCurrentProcess() {
     processes[currentProcess].run = false;
+    printf("Killed PID %u\n", processes[currentProcess].pid);
     //memcpy((char*)current_context, (char*)&processes[0].registerContext, sizeof(context));
     interruptTrigger();
 }

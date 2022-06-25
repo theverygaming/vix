@@ -15,7 +15,9 @@ void _start(void)
 #include "paging.h"
 #include "memorymap.h"
 #include "../config.h"
-
+#include "elf.h"
+#include "multitasking.h"
+#include "syscall.h"
 
 char kbd_US [128] =
 {
@@ -62,7 +64,7 @@ void handler(isr::Registers* gaming) {
 
 void kernelstart()
 {
-  paging::clearPageTables((void*)0x0, 100000);
+  paging::clearPageTables((void*)0x0, 10000);
   //uint32_t sp_adr = KERNEL_VIRT_ADDRESS + KERNEL_START_STACK_POINTER_OFFSET;
   //asm("mov %0, %%esp" : "=r"(sp_adr) :);
   //clrscr();
@@ -74,6 +76,10 @@ void kernelstart()
   printf("esp: %p\n", esp);
   cpubasics::cpuinit();
   isr::RegisterHandler(33, handler);
+  isr::RegisterHandler(0x80, syscall::syscallHandler);
+  // program is loaded at 0x4C4C000
+  for(uint32_t i = 0; i < 0xFFFFFFF; i++) {}
+  elf::load_program((void*)0x4C4C000);
   //for(;;);
 	//cpubasics::cpuinit();
   //memorymap::initMemoryMap((void*)0x7C00 + 0x7000, (void*)0x7C00 + (0x7004));
@@ -83,7 +89,7 @@ void kernelstart()
   //cpubasics::sleep(100);
 	//__asm("int $33");
 	//isr::DeregisterHandler(33);
-	printf("ayy\n");
+	//printf("ayy\n");
   //cpubasics::sleep(100);
   //paging::initpaging();
   //printf("initialized paging\n");
