@@ -2,11 +2,11 @@
 #include "stdio.h"
 
 #define outb(port, value) \
-    asm volatile("outb %%al, %%dx" ::"d"(port), "a"(value));
+    asm volatile("outb %%al, %%dx" ::"d"(port), "a"(value))
 
 
 #define outbp(port, value) \
-    asm volatile("outb %%al, %%dx; jmp 1f; 1:" ::"d"(port), "a"(value));
+    asm volatile("outb %%al, %%dx; jmp 1f; 1:" ::"d"(port), "a"(value))
 
 
 #define inb(port) ({              \

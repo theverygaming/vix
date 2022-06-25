@@ -29,7 +29,7 @@ void map_page(void *physaddr, void *virtualaddr) {
     unsigned long pTableIndex = (unsigned long)virtualaddr >> 12 & 0x03FF;
 
     paging::create_pagetable_entry(pDirIndex, pTableIndex, physaddr, false, false, false, paging::SUPERVISOR, paging::RW, true);
-    paging::create_directory_entry(pDirIndex, (void*)&pagetables[pDirIndex], paging::FOUR_KiB, 0, 0, paging::SUPERVISOR, paging::RW, true);
+    paging::create_directory_entry(pDirIndex, (void*)pagetables[pDirIndex], paging::FOUR_KiB, false, false, paging::SUPERVISOR, paging::RW, true);
 }
 
 void stage2_pagetablefill() {
@@ -46,7 +46,7 @@ void paging::initpaging()
         {
             create_pagetable_entry(i, j, (void*)0, false, false, false, SUPERVISOR, RW, false);
         }
-        paging::create_directory_entry(i, (void*)&pagetables[i], paging::FOUR_KiB, 0, 0, paging::SUPERVISOR, paging::RW, true);
+        paging::create_directory_entry(i, (void*)pagetables[i], paging::FOUR_KiB, false, false, paging::SUPERVISOR, paging::RW, true);
     }
 
     stage2_pagetablefill();
@@ -56,7 +56,7 @@ void paging::initpaging()
     map_page((void*)0xB8000, (void*)(KERNEL_VIRT_ADDRESS + VIDMEM_OFFSET)); // Video memory
     
     // 0x4C4C000 -> 355 sectors -> ~45 pages
-    for(int i = 0; i < 45; i++) {
+    for(int i = 0; i < 171; i++) {
         map_page((void*)0x4C4C000 + (i * 0x1000), (void*)0x4C4C000 + (i * 0x1000));
     }
     

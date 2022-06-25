@@ -29,16 +29,32 @@ void elf::load_program(void* ELF_baseadr) {
     // we make a lot of assumptions here
     
     // allocate memory for this one specific binary
+
+    uint32_t max = 0;
+    uint32_t min = 0xFFFFFFFF;
+    for (int i = 0; i < header.e_phnum; i++) {
+        uint32_t addr;
+        memcpy((char*)&pHeader, (char*)ELF_baseadr + header.e_phoff + (header.e_phentsize * i), sizeof(pHeader));
+        if(pHeader.p_type != 1) {
+            continue;
+        }
+        if(pHeader.p_vaddr + pHeader.p_memsz > max) {
+            max = pHeader.p_vaddr + pHeader.p_memsz;
+        }
+        if(pHeader.p_vaddr < min) {
+            min = pHeader.p_vaddr;
+        }
+    }
+
     uint32_t initial_physadr = 0x10000000;
     uint32_t virt_base = 134512640;
+    uint32_t pagecount = ((max - min) / 4096) + 5;
 
-    for(int i = 0; i < 48; i++) {
+    for(int i = 0; i < pagecount; i++) {
         paging::map_page((void*)(initial_physadr + (i * 0x1000)), (void*)(virt_base + (i * 0x1000)));
     }
     
     printf("---Program Headers---\n");
-    uint32_t max = 0;
-    uint32_t min = 0xFFFFFFFF;
     for (int i = 0; i < header.e_phnum; i++) {
 
         uint32_t addr;
@@ -69,5 +85,5 @@ void elf::load_program(void* ELF_baseadr) {
     printf("Entry point: 0x%p\n", header.e_entry);
 
 
-    multitasking::create_task((void*)(134705152 + 4096), (void*)header.e_entry);
+    multitasking::create_task((void*)(max + (4096 * 4)), (void*)header.e_entry);
 }

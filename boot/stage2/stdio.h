@@ -2,7 +2,7 @@
 #include "../../kernel/types.h"
 
 #define outb(port, value) \
-    asm volatile("outb %%al, %%dx" ::"d"(port), "a"(value));
+    asm volatile("outb %%al, %%dx" ::"d"(port), "a"(value))
 
 void clrscr();
 void putc(char c);
