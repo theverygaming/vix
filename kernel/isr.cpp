@@ -25,7 +25,7 @@ extern "C" void i686_ISR_Handler(isr::Registers* regs) {
 
         // Output an error message.
         printf("Page fault! ( ");
-        if (present) { printf("present "); }
+        if (present) { printf("non-present "); }
         if (rw) { printf("read-only "); }
         if (us) { printf("user-mode "); }
         if (reserved){ printf("reserved "); }
