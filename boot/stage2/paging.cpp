@@ -33,7 +33,7 @@ void map_page(void *physaddr, void *virtualaddr) {
 }
 
 void stage2_pagetablefill() {
-    for(int i = 0; i < 100000; i++) {
+    for(int i = 0; i < 10000; i++) {
         map_page((void*)0 + (i * 0x1000), (void*)0 + (i * 0x1000));
     }
 }
@@ -46,7 +46,7 @@ void paging::initpaging()
         {
             create_pagetable_entry(i, j, (void*)0, false, false, false, SUPERVISOR, RW, false);
         }
-        delete_directory_entry(i);
+        paging::create_directory_entry(i, (void*)pagetables[i], paging::FOUR_KiB, 0, 0, paging::SUPERVISOR, paging::RW, true);
     }
 
     stage2_pagetablefill();
@@ -83,8 +83,4 @@ void paging::create_directory_entry(int tablenum, void* address, enum page_size 
     direntry |= perms << 1;
     direntry |= present;
     page_directory[tablenum] = direntry;
-}
-
-void paging::delete_directory_entry(int tablenum) {
-    create_directory_entry(tablenum, 0, FOUR_KiB, false, false, SUPERVISOR, RW, false);
 }

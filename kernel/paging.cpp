@@ -40,9 +40,8 @@ void paging::map_page(void *physaddr, void *virtualaddr) {
     uint32_t pDirIndex = (uint32_t)virtualaddr >> 22;
     uint32_t pTableIndex = (uint32_t)virtualaddr >> 12 & 0x03FF;
 
-    bool do_invlpg = check_directory_entry_present(pDirIndex) && check_pagetable_entry_present(pDirIndex, pTableIndex);
+    bool do_invlpg = check_pagetable_entry_present(pDirIndex, pTableIndex);
     paging::set_pagetable_entry(pDirIndex, pTableIndex, physaddr, false, false, false, paging::SUPERVISOR, paging::RW, true);
-    paging::set_directory_entry(pDirIndex, get_physaddr((void*)&pagetables[pDirIndex]), paging::FOUR_KiB, 0, 0, paging::SUPERVISOR, paging::RW, true);
     if(do_invlpg) {
         invlpg(virtualaddr);
     }
@@ -52,9 +51,8 @@ void unmap_page(void *virtualaddr) {
     unsigned long pDirIndex = (unsigned long)virtualaddr >> 22;
     unsigned long pTableIndex = (unsigned long)virtualaddr >> 12 & 0x03FF;
 
-    bool do_invlpg = paging::check_directory_entry_present(pDirIndex) && paging::check_pagetable_entry_present(pDirIndex, pTableIndex);
+    bool do_invlpg = paging::check_pagetable_entry_present(pDirIndex, pTableIndex);
     paging::set_pagetable_entry(pDirIndex, pTableIndex, (void*)0, false, false, false, paging::SUPERVISOR, paging::RW, false);
-    paging::set_directory_entry(pDirIndex, (void*)pagetables[pDirIndex], paging::FOUR_KiB, 0, 0, paging::SUPERVISOR, paging::RW, false);
     if(do_invlpg) {
         invlpg(virtualaddr);
     }
@@ -76,7 +74,7 @@ void paging::initpaging()
 {
     for (int i = 0; i < 1024; i++)
     {
-        delete_directory_entry(i);
+        //delete_directory_entry(i);
     }
 
     stage2_pagetablefill();
@@ -144,8 +142,4 @@ void paging::create_directory_entry(int tablenum, void* address, enum page_size 
     direntry |= perms << 1;
     direntry |= present;
     page_directory[tablenum] = direntry;
-}
-
-void paging::delete_directory_entry(int tablenum) {
-    create_directory_entry(tablenum, 0, FOUR_KiB, false, false, SUPERVISOR, RW, false);
 }
