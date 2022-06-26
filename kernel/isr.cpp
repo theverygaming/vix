@@ -6,6 +6,7 @@
 #include "stdlib.h"
 #include "multitasking.h"
 #include "../config.h"
+#include "debug.h"
 
 isr::intHandler *handlers = (isr::intHandler*)(KERNEL_VIRT_ADDRESS + ISR_HANDLER_OFFSET);
 
@@ -34,6 +35,7 @@ extern "C" void i686_ISR_Handler(isr::Registers* regs) {
         printf("eax: 0x%p ebx: 0x%p ecx: 0x%p edx: 0x%p\nesi: 0x%p edi: 0x%p esp: 0x%p ebp: 0x%p eip: 0x%p\n", regs->eax, regs->ebx, regs->ecx, regs->edx, regs->esi, regs->edi, regs->esp, regs->ebp, regs->eip);
         printf("Killing current process\n");
         multitasking::killCurrentProcess();
+        debug::stack_trace(10, regs->ebp);
     }
     else if(regs->interrupt == 8 || regs->interrupt == 18) {
         printf("---RIP---\nException #%lu, cannot recover\n", regs->interrupt);
@@ -45,6 +47,7 @@ extern "C" void i686_ISR_Handler(isr::Registers* regs) {
         printf("eax: 0x%p ebx: 0x%p ecx: 0x%p edx: 0x%p\nesi: 0x%p edi: 0x%p esp: 0x%p ebp: 0x%p eip: 0x%p\n", regs->eax, regs->ebx, regs->ecx, regs->edx, regs->esi, regs->edi, regs->esp, regs->ebp, regs->eip);
         printf("Killing current process\n");
         multitasking::killCurrentProcess();
+        debug::stack_trace(10, regs->ebp);
     }
 }
 
