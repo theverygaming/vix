@@ -133,6 +133,12 @@ bool paging::check_pagetable_entry_present(int tablenum, int entrynum) {
     return (pagetables[tablenum][entrynum] & (1 << 0)) >> 0;
 }
 
+bool paging::is_readable(void* virtualaddr) {
+    unsigned long pdindex = (unsigned long)virtualaddr >> 22;
+    unsigned long ptindex = (unsigned long)virtualaddr >> 12 & 0x03FF;
+    return paging::check_pagetable_entry_present(pdindex, ptindex) && paging::check_directory_entry_present(pdindex);
+}
+
 void paging::create_directory_entry(int tablenum, void* address, enum page_size pagesize, bool cache_disabled, bool write_through, enum page_priv priv, enum page_perms perms, bool present) {
     uint32_t direntry = (uint32_t)address;
     direntry |= pagesize << 7;

@@ -22,4 +22,5 @@ namespace paging {
     void set_directory_entry(int tablenum, void* address, enum page_size pagesize, bool cache_disabled, bool write_through, enum page_priv priv, enum page_perms perms, bool present);
     bool check_directory_entry_present(int tablenum);
     bool check_pagetable_entry_present(int tablenum, int entrynum);
+    bool is_readable(void* virtualaddr);
 }
