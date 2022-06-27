@@ -24,4 +24,6 @@ namespace multitasking
     void killCurrentProcess();
     void interruptTrigger();
     void create_task(void* stackadr, void* codeadr);
+    process* getCurrentProcess();
+    process* fork_process(process* process);
 }

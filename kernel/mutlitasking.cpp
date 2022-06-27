@@ -6,8 +6,6 @@
 
 multitasking::context *current_context = (multitasking::context*)(KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET);
 
-multitasking::process current_process;
-
 multitasking::process processes[10] = {0, {0, 0, 0, 0, 0, 0, 0, 0}, 0, false}; 
 
 int counter = 0;
@@ -20,22 +18,33 @@ void init_empty_stack(void* stackadr, void* codeadr) {
     stack[0] = (uint32_t)codeadr; // EIP
     stack[1] = 8; // CS?
     stack[2] = 1 << 9; // EFLAGS, set interrupt bit
-    stack[3] = (uint32_t)0xFFFFFFFF; // cause a page fault
+    /*stack[3] = (uint32_t)0xFFFFFFFF; // cause a page fault
     stack[4] = 8; // CS?
-    stack[5] = 1 << 9; // EFLAGS, set interrupt bit
+    stack[5] = 1 << 9; // EFLAGS, set interrupt bit*/
+    stack[3] = 0; // argc
+    stack[4] = 0; // NULL
+    stack[5] = 0; // envp
+    stack[6] = 0; // NULL
 }
 
 int initcounter = 0;
 
+multitasking::process* multitasking::getCurrentProcess() {
+    return &processes[currentProcess];
+}
+
+multitasking::process* multitasking::fork_process(multitasking::process* process) {
+    
+}
+
 void multitasking::killCurrentProcess() {
     processes[currentProcess].run = false;
     printf("Killed PID %u\n", processes[currentProcess].pid);
-    //memcpy((char*)current_context, (char*)&processes[0].registerContext, sizeof(context));
     interruptTrigger();
 }
 
 void multitasking::create_task(void* stackadr, void* codeadr) {
-    stackadr -= (32 * 6); // init_empty_stack has to build the stack up
+    stackadr -= (4 * 7); // init_empty_stack has to build the stack up
     init_empty_stack(stackadr, codeadr);
     for(int i = 0; i < 10; i++) {
         if(!processes[i].run) {

@@ -47,7 +47,7 @@ void elf::load_program(void* ELF_baseadr) {
     }
 
     uint32_t initial_physadr = 0x10000000;
-    uint32_t virt_base = 134512640;
+    uint32_t virt_base = min;
     uint32_t pagecount = ((max - min) / 4096) + 5;
 
     for(int i = 0; i < pagecount; i++) {
@@ -60,13 +60,11 @@ void elf::load_program(void* ELF_baseadr) {
         uint32_t addr;
         memcpy((char*)&pHeader, (char*)ELF_baseadr + header.e_phoff + (header.e_phentsize * i), sizeof(pHeader));
         
-
+        printf("section: align: 0x%p vaddr->0x%p sizef->0x%p sizem->0x%p\n", pHeader.p_align, pHeader.p_vaddr, pHeader.p_filesz, pHeader.p_memsz);
         if(pHeader.p_type != 1) {
             printf("ignoring section of type: 0x%p\n", pHeader.p_type);
             continue;
         }
-        printf("section: align: 0x%p vaddr->0x%p sizef->0x%p sizem->0x%p\n", pHeader.p_align, pHeader.p_vaddr, pHeader.p_filesz, pHeader.p_memsz);
-        printf("offset: 0x%p\n", pHeader.p_offset);
 
         memset((char*)pHeader.p_vaddr, 0, pHeader.p_memsz);
         memcpy((char*)pHeader.p_vaddr, (char*)ELF_baseadr+pHeader.p_offset, pHeader.p_filesz);
