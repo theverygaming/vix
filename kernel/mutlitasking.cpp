@@ -46,7 +46,7 @@ void multitasking::killCurrentProcess() {
 void multitasking::create_task(void* stackadr, void* codeadr) {
     stackadr -= (4 * 7); // init_empty_stack has to build the stack up
     init_empty_stack(stackadr, codeadr);
-    for(int i = 0; i < 10; i++) {
+    for(uint32_t i = 0; i < 10; i++) {
         if(!processes[i].run) {
             processes[i] = {i, {0, 0, 0, 0, 0, 0, (uint32_t)stackadr, 0}, 0, true};
             break;

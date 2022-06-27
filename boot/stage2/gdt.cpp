@@ -68,7 +68,12 @@ typedef enum
     GDT_BASE_HIGH(base)                                             \
 }
 
-GDTEntry g_GDT[] = {
+
+extern "C" void i686_GDT_Load(GDTDescriptor* descriptor, uint16_t codeSegment, uint16_t dataSegment);
+
+void gdt::i686_GDT_Initialize()
+{
+    GDTEntry g_GDT[] = {
     // NULL descriptor
     GDT_ENTRY(0, 0, 0, 0),
 
@@ -84,14 +89,10 @@ GDTEntry g_GDT[] = {
               GDT_ACCESS_PRESENT | GDT_ACCESS_RING0 | GDT_ACCESS_DATA_SEGMENT | GDT_ACCESS_DATA_WRITEABLE,
               GDT_FLAG_32BIT | GDT_FLAG_GRANULARITY_4K),
 
-};
+    };
 
-GDTDescriptor g_GDTDescriptor = { sizeof(g_GDT) - 1, (GDTEntry*)(KERNEL_VIRT_ADDRESS + GDT_OFFSET + sizeof(GDTDescriptor))};
+    GDTDescriptor g_GDTDescriptor = { sizeof(g_GDT) - 1, (GDTEntry*)(KERNEL_VIRT_ADDRESS + GDT_OFFSET + sizeof(GDTDescriptor))};
 
-extern "C" void i686_GDT_Load(GDTDescriptor* descriptor, uint16_t codeSegment, uint16_t dataSegment);
-
-void gdt::i686_GDT_Initialize()
-{
     memcpy((char*)(KERNEL_VIRT_ADDRESS + GDT_OFFSET), (char*)&g_GDTDescriptor, sizeof(GDTDescriptor));
     memcpy((char*)(KERNEL_VIRT_ADDRESS + GDT_OFFSET + sizeof(GDTDescriptor)), (char*)&g_GDT, sizeof(g_GDT));
     i686_GDT_Load((GDTDescriptor*)(KERNEL_VIRT_ADDRESS + GDT_OFFSET), i686_GDT_CODE_SEGMENT, i686_GDT_DATA_SEGMENT);
