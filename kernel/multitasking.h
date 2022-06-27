@@ -26,4 +26,5 @@ namespace multitasking
     void create_task(void* stackadr, void* codeadr);
     process* getCurrentProcess();
     process* fork_process(process* process);
+    void setProcessSwitching(bool state);
 }

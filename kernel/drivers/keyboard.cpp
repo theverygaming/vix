@@ -3,6 +3,11 @@
 #include "../stdio.h"
 #include "../cpubasics.h"
 
+namespace drivers::keyboard {
+  char buffer[100];
+  int bufferlocation = -1;
+}
+
 char kbd_US [128] =
 {
     0,  27, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\b',   
@@ -42,6 +47,12 @@ void kbdIntHandler(isr::Registers* gaming) {
 	signed char keycode = inb(0x60);
 	if(keycode > 0) {
 		printf("%c", kbd_US[keycode]);
+    if(drivers::keyboard::bufferlocation < 100) {
+      drivers::keyboard::buffer[++drivers::keyboard::bufferlocation] = kbd_US[keycode];
+    }
+    else{
+      printf("keyboard buffer filled\n");
+    }
 	}
 	outb(0x20, 0x20);
 }

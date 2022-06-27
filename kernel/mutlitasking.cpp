@@ -12,6 +12,7 @@ int counter = 0;
 
 int currentProcess = 0;
 int processCounter = 0;
+bool processSwitchingEnabled = true;
 
 void init_empty_stack(void* stackadr, void* codeadr) {
     uint32_t* stack = (uint32_t*)stackadr;
@@ -34,7 +35,7 @@ multitasking::process* multitasking::getCurrentProcess() {
 }
 
 multitasking::process* multitasking::fork_process(multitasking::process* process) {
-    
+    // this can be implemented as soon as the process struct includes paging
 }
 
 void multitasking::killCurrentProcess() {
@@ -52,6 +53,10 @@ void multitasking::create_task(void* stackadr, void* codeadr) {
             break;
         }
     }
+}
+
+void multitasking::setProcessSwitching(bool state) {
+    processSwitchingEnabled = state;
 }
 
 void multitasking::interruptTrigger() {
@@ -87,7 +92,7 @@ void multitasking::interruptTrigger() {
                 }
             }
     }
-    if(processCounter > processes[currentProcess].priority) {
+    if(processCounter > processes[currentProcess].priority && processSwitchingEnabled) {
         // Priority exceeded, now we have to switch process
         if(runningProcesses > 1) { // is it even possible to switch?
             int start = currentProcess;
