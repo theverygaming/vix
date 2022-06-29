@@ -8,9 +8,9 @@ char* memcpy(char* dst, char* src, int n)
 	return p;
 }
 
-char* memset(char* dst, char value, int n)
+uint8_t* memset(uint8_t* dst, uint8_t value, uint32_t n)
 {
-	char* p = dst;
+	uint8_t* p = dst;
 	while (n--)
 		*dst++ = value;
 	return p;

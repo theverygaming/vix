@@ -66,7 +66,7 @@ void elf::load_program(void* ELF_baseadr) {
             continue;
         }
 
-        memset((char*)pHeader.p_vaddr, 0, pHeader.p_memsz);
+        memset((uint8_t*)pHeader.p_vaddr, 0, pHeader.p_memsz);
         memcpy((char*)pHeader.p_vaddr, (char*)ELF_baseadr+pHeader.p_offset, pHeader.p_filesz);
 
         if(pHeader.p_vaddr + pHeader.p_memsz > max) {
