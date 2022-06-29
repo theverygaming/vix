@@ -56,7 +56,7 @@ void paging::initpaging()
     map_page((void*)0xB8000, (void*)(KERNEL_VIRT_ADDRESS + VIDMEM_OFFSET)); // Video memory
     
     // 0x4C4C000 -> 355 sectors -> ~45 pages
-    for(int i = 0; i < 171; i++) {
+    for(int i = 0; i < 245; i++) {
         map_page((void*)0x4C4C000 + (i * 0x1000), (void*)0x4C4C000 + (i * 0x1000));
     }
     
