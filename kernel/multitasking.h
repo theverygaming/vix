@@ -2,9 +2,11 @@
 #include "paging.h"
 #include "types.h"
 
+#define PROCESS_MAX_PAGE_RANGES 20
+
 namespace multitasking
 {
-    typedef struct{
+    typedef struct {
         uint32_t eax;
         uint32_t ebx;
         uint32_t ecx;
@@ -16,15 +18,26 @@ namespace multitasking
     } context;
 
     typedef struct {
+        uint32_t phys_base;
+        uint32_t virt_base;
+        uint32_t pages;
+    } process_pagerange;
+
+    typedef struct {
         uint32_t pid;
         context registerContext;
         uint8_t priority;
-        bool run;
+        bool running;
+        process_pagerange pages[PROCESS_MAX_PAGE_RANGES];
     } process;
+
     void killCurrentProcess();
     void interruptTrigger();
     void create_task(void* stackadr, void* codeadr);
     process* getCurrentProcess();
     process* fork_process(process* process);
     void setProcessSwitching(bool state);
+    void createPageRange(process_pagerange* range);
+    void setPageRange(process_pagerange* range);
+    void unsetPageRange(process_pagerange* range);
 }

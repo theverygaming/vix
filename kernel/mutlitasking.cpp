@@ -39,7 +39,7 @@ multitasking::process* multitasking::fork_process(multitasking::process* process
 }
 
 void multitasking::killCurrentProcess() {
-    processes[currentProcess].run = false;
+    processes[currentProcess].running = false;
     printf("Killed PID %u\n", processes[currentProcess].pid);
     interruptTrigger();
 }
@@ -48,7 +48,7 @@ void multitasking::create_task(void* stackadr, void* codeadr) {
     stackadr -= (4 * 7); // init_empty_stack has to build the stack up
     init_empty_stack(stackadr, codeadr);
     for(uint32_t i = 0; i < 10; i++) {
-        if(!processes[i].run) {
+        if(!processes[i].running) {
             processes[i] = {i, {0, 0, 0, 0, 0, 0, (uint32_t)stackadr, 0}, 0, true};
             break;
         }
@@ -75,7 +75,7 @@ void multitasking::interruptTrigger() {
     memcpy((char*)&processes[currentProcess].registerContext, (char*)current_context, sizeof(context)); // Save current process context
     int runningProcesses = 0;
     for(int i = 0; i < 10; i++) {
-        if(processes[i].run) {
+        if(processes[i].running) {
             runningProcesses++;
         }
     }
@@ -83,9 +83,9 @@ void multitasking::interruptTrigger() {
         printf("PANIK: All processes died. Halting system\n");
         asm("hlt");
     }
-    if(!processes[currentProcess].run) {
+    if(!processes[currentProcess].running) {
         for(int i = 0; i < 10; i++) {
-                if(processes[i].run && currentProcess != i) {
+                if(processes[i].running && currentProcess != i) {
                     memcpy((char*)current_context, (char*)&processes[i].registerContext, sizeof(context));
                     currentProcess = i;
                     break;
@@ -98,7 +98,7 @@ void multitasking::interruptTrigger() {
             int start = currentProcess;
             if(currentProcess == runningProcesses - 1) { start = 0; }
             for(int i = start; i < 10; i++) {
-                if(processes[i].run && currentProcess != i) {
+                if(processes[i].running && currentProcess != i) {
                     memcpy((char*)current_context, (char*)&processes[i].registerContext, sizeof(context));
                     currentProcess = i;
                     break;
@@ -109,4 +109,26 @@ void multitasking::interruptTrigger() {
     }
     processCounter++;
     counter++;
+}
+
+void multitasking::createPageRange(process_pagerange* range) {
+
+}
+
+void multitasking::setPageRange(process_pagerange* range) {
+    for(int i = 0; i < PROCESS_MAX_PAGE_RANGES; i++) {
+        if(range[i].pages > 0) {
+            paging::clearPageTables((void*)range[i].virt_base, range[i].pages);
+        }
+    }
+}
+
+void multitasking::unsetPageRange(process_pagerange* range) {
+    for(int i = 0; i < PROCESS_MAX_PAGE_RANGES; i++) {
+        if(range[i].pages > 0) {
+            for(int j = 0; j < range[i].pages; j++) {
+                paging::map_page((void*)(range[i].phys_base + (j * 0x1000)), (void*)(range[i].virt_base + (j * 0x1000)));
+            }
+        }
+    }
 }
