@@ -5,10 +5,9 @@
 #define BLOCK_SIZE 4096
 
 #define USER_MAX_MEM 4294963200
-#define USER_MIN_MEM 0 // lower 100MB of physical memory for kernel
 
-#define BITMAP_BLOCK_COUNT ((USER_MAX_MEM - USER_MIN_MEM) / BLOCK_SIZE)
-#define BITMAP_LEN (BITMAP_BLOCK_COUNT) / (8 / 2)
+#define BITMAP_BLOCK_COUNT USER_MAX_MEM / BLOCK_SIZE
+#define BITMAP_LEN (BITMAP_BLOCK_COUNT / (8 / 2)) + 1
 
 uint8_t memoryBitmap[BITMAP_LEN]; // each block is two bits, the first bit marks if the block is allocated or not, the second bit marks the end of a block
 
@@ -26,8 +25,6 @@ void p_get_memmap_entry(uint32_t block, uint8_t* allocated, uint8_t* marker) {
     uint32_t offset = ((uint32_t)address & 0x3FFF) >> 12;
     *allocated = bitget(memoryBitmap[index], offset * 2);
     *marker = bitget(memoryBitmap[index], (offset * 2) + 1);
-    *allocated = 1;
-    *marker = 1;
 }
 
 void p_set_memmap_entry(uint32_t block, uint8_t allocated, uint8_t marker) {
@@ -88,4 +85,36 @@ void memalloc::page::free(void* adr) {
         counter++;
     }
     printf("free %d blocks\n", counter);
+}
+
+void memalloc::page::init(memorymap::SMAP_entry* e620_map, int e620_len) {
+    memset((uint8_t*)memoryBitmap, 0xFF, BITMAP_LEN); // set everything as used
+    // first set all the areas marked as usable
+    for(int i = 0; i < e620_len; i++) {
+        uint64_t start = e620_map[i].Base / 4096;
+        uint64_t end = (e620_map[i].Base + e620_map[i].Length) / 4096;
+        if(end > BITMAP_BLOCK_COUNT) { end = BITMAP_BLOCK_COUNT - 1; }
+        if(start > BITMAP_BLOCK_COUNT) { printf("memalloc: entry bigger than memory map\n"); continue; }
+        if(e620_map[i].Type == 1) {
+            for(uint32_t j = 0; j < (end - start); j++) {
+                p_set_memmap_entry(start + j, 0, 0);
+            }
+        }
+    }
+    // now set all areas marked as unusable
+    for(int i = 0; i < e620_len; i++) {
+        uint64_t start = e620_map[i].Base / 4096;
+        uint64_t end = (e620_map[i].Base + e620_map[i].Length) / 4096;
+        if(end > BITMAP_BLOCK_COUNT) { end = BITMAP_BLOCK_COUNT - 1; }
+        if(start > BITMAP_BLOCK_COUNT) { printf("memalloc: entry bigger than memory map\n"); continue; }
+        if(e620_map[i].Type > 1) {
+            for(uint32_t j = 0; j < (end - start); j++) {
+                p_set_memmap_entry(start + j, 1, 1);
+            }
+        }
+    }
+    // mark the first 100MB as unusable since they are used by the kernel
+    for(uint32_t j = 0; j < 24414; j++) { 
+        p_set_memmap_entry(j, 1, 1);
+    }
 }
