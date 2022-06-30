@@ -112,7 +112,20 @@ void multitasking::interruptTrigger() {
 }
 
 void multitasking::createPageRange(process_pagerange* range) {
+    process_pagerange prange[PROCESS_MAX_PAGE_RANGES];
+    uint32_t prange_counter = 0;
+    uint32_t page = 0;
+    uint32_t physAddress = 0;
+    uint32_t lastPhysAddress = 0;
+    for(; page < (KERNEL_VIRT_ADDRESS / 4096); page++) {
+        if(paging::is_readable((void*)(page * 4096))) {
+            physAddress = (uint32_t)paging::get_physaddr((void*)(page * 4096));
+            if(physAddress != lastPhysAddress) {
 
+            }
+            lastPhysAddress = physAddress;
+        }
+    }
 }
 
 void multitasking::setPageRange(process_pagerange* range) {
