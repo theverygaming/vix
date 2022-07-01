@@ -2,7 +2,6 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "cpubasics.h"
-#include "../config.h"
 
 multitasking::context *current_context = (multitasking::context*)(KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET);
 
@@ -111,25 +110,47 @@ void multitasking::interruptTrigger() {
     counter++;
 }
 
-void multitasking::createPageRange(process_pagerange* range) {
+bool multitasking::createPageRange(process_pagerange* range, uint32_t max_address) {
     process_pagerange prange[PROCESS_MAX_PAGE_RANGES];
-    int prange_counter = -1;
+    for(int i = 0; i < PROCESS_MAX_PAGE_RANGES; i++) {
+        prange[i] = {0, 0, 0};
+    }
+    
+    int prange_counter = 0;
 
     uint32_t physAddress = 69420;
     uint32_t lastPhysAddress = 0;
+    bool invalidated = true;
 
     uint32_t page = 0;
-    for(; page < (KERNEL_VIRT_ADDRESS / 4096); page++) {
-        if(paging::is_readable((void*)(page * 4096))) {
-            physAddress = (uint32_t)paging::get_physaddr((void*)(page * 4096));
-            if(physAddress != lastPhysAddress) {
+    for(; page < (max_address / 4096)+1; page++) {
+        uint32_t virtadr = page * 4096;
+        if(paging::is_readable((void*)virtadr)) {
+            physAddress = (uint32_t)paging::get_physaddr((void*)virtadr);
+            if((physAddress - 4096) != lastPhysAddress || invalidated) {
+                if(prange[prange_counter].pages != 0) {
+                    prange_counter++;
+                    if(prange_counter >= PROCESS_MAX_PAGE_RANGES) {
+                        return false;
+                    }
+                }
                 prange[prange_counter].phys_base = physAddress;
-                prange[prange_counter].virt_base = page * 4096;
-                prange_counter++;
+                prange[prange_counter].virt_base = virtadr;
+                invalidated = false;
             }
+            prange[prange_counter].pages++;
             lastPhysAddress = physAddress;
         }
+        else {
+            invalidated = true;
+        }
     }
+    for(int i = 0; i < PROCESS_MAX_PAGE_RANGES; i++) {
+        if(prange[i].pages == 0) {
+            prange[i] = {0, 0, 0};
+        }
+    }
+    memcpy((char*)range, (char*)prange, PROCESS_MAX_PAGE_RANGES * sizeof(process_pagerange));
 }
 
 void multitasking::setPageRange(process_pagerange* range) {

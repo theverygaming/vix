@@ -1,6 +1,7 @@
 #pragma once
 #include "paging.h"
 #include "types.h"
+#include "../config.h"
 
 #define PROCESS_MAX_PAGE_RANGES 20
 
@@ -37,7 +38,7 @@ namespace multitasking
     process* getCurrentProcess();
     process* fork_process(process* process);
     void setProcessSwitching(bool state);
-    void createPageRange(process_pagerange* range);
+    bool createPageRange(process_pagerange* range, uint32_t max_address = KERNEL_VIRT_ADDRESS);
     void setPageRange(process_pagerange* range);
     void unsetPageRange(process_pagerange* range);
 }

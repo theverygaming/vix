@@ -86,6 +86,14 @@ void kernelstart()
           putcolor(j+49, i, franxxlogo[i][j] << 4 | 7);
       }
   }
+  
+  multitasking::process_pagerange prange[PROCESS_MAX_PAGE_RANGES];
+  multitasking::createPageRange(prange);
+  for(int i = 0; i < PROCESS_MAX_PAGE_RANGES; i++) {
+    if(prange[i].pages != 0) {
+      printf("created prange, pb: 0x%p vb: 0x%p pg: %u, i: %d\n", prange[i].phys_base, prange[i].virt_base, prange[i].pages, i);
+    }
+  }
   //for(;;);
 	//cpubasics::cpuinit();
   //memorymap::initMemoryMap((void*)0x7C00 + 0x7000, (void*)0x7C00 + (0x7004));
