@@ -2,6 +2,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "cpubasics.h"
+#include "memalloc.h"
 
 multitasking::context *current_context = (multitasking::context*)(KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET);
 
@@ -34,7 +35,27 @@ multitasking::process* multitasking::getCurrentProcess() {
 }
 
 multitasking::process* multitasking::fork_process(multitasking::process* process) {
-    // this can be implemented as soon as the process struct includes paging
+    int freeProcess = -1;
+    for(int i = 0; i < 10; i++) {
+        if(!processes[i].running) {
+            freeProcess = i;
+        }
+    }
+    if(freeProcess == -1) { return nullptr; }
+    for(int i = 0; i < PROCESS_MAX_PAGE_RANGES; i++) {
+        if(process->pages[i].pages != 0) {
+            void* physadr = memalloc::page::phys_malloc(process->pages[i].pages);
+            processes[freeProcess].pages[i].pages = process->pages[i].pages;
+            processes[freeProcess].pages[i].phys_base = (uint32_t)physadr;
+            processes[freeProcess].pages[i].virt_base = process->pages[i].virt_base;
+        }
+    }
+    processes[freeProcess].priority = 0;
+    processes[freeProcess].pid = freeProcess;
+    memcpy((char*)&processes[freeProcess].registerContext, (char*)&process->registerContext, sizeof(multitasking::context));
+    processes[freeProcess].running = true;
+    printf("forked -> new PID: %u\n", processes[freeProcess].pid);
+    return &processes[freeProcess];
 }
 
 void multitasking::killCurrentProcess() {
@@ -43,12 +64,13 @@ void multitasking::killCurrentProcess() {
     interruptTrigger();
 }
 
-void multitasking::create_task(void* stackadr, void* codeadr) {
+void multitasking::create_task(void* stackadr, void* codeadr, process_pagerange* pagerange) {
     stackadr -= (4 * 7); // init_empty_stack has to build the stack up
     init_empty_stack(stackadr, codeadr);
     for(uint32_t i = 0; i < 10; i++) {
         if(!processes[i].running) {
             processes[i] = {i, {0, 0, 0, 0, 0, 0, (uint32_t)stackadr, 0}, 0, true};
+            memcpy((char*)&processes[i].pages, (char*)&pagerange, sizeof(process_pagerange));
             break;
         }
     }
@@ -67,6 +89,7 @@ void multitasking::interruptTrigger() {
     if(counter == 0) {
         processes[0] = {0, {0, 0, 0, 0, 0, 0, 0, 0}, 0, true};
         memcpy((char*)&processes[0].registerContext, (char*)current_context, sizeof(context));
+        createPageRange(processes[0].pages);
         counter = 19;
         currentProcess = 0;
         printf("---Multitasking enabled---\n");
@@ -86,6 +109,9 @@ void multitasking::interruptTrigger() {
         for(int i = 0; i < 10; i++) {
                 if(processes[i].running && currentProcess != i) {
                     memcpy((char*)current_context, (char*)&processes[i].registerContext, sizeof(context));
+                    createPageRange(processes[currentProcess].pages);
+                    unsetPageRange(processes[currentProcess].pages);
+                    setPageRange(processes[i].pages);
                     currentProcess = i;
                     break;
                 }
@@ -99,6 +125,9 @@ void multitasking::interruptTrigger() {
             for(int i = start; i < 10; i++) {
                 if(processes[i].running && currentProcess != i) {
                     memcpy((char*)current_context, (char*)&processes[i].registerContext, sizeof(context));
+                    createPageRange(processes[currentProcess].pages);
+                    unsetPageRange(processes[currentProcess].pages);
+                    setPageRange(processes[i].pages);
                     currentProcess = i;
                     break;
                 }

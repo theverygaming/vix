@@ -34,7 +34,7 @@ namespace multitasking
 
     void killCurrentProcess();
     void interruptTrigger();
-    void create_task(void* stackadr, void* codeadr);
+    void create_task(void* stackadr, void* codeadr, process_pagerange* pagerange);
     process* getCurrentProcess();
     process* fork_process(process* process);
     void setProcessSwitching(bool state);

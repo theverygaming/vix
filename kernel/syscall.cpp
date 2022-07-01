@@ -47,8 +47,9 @@ void syscall::syscallHandler(isr::Registers* regs) {
     }
     else if(regs->eax == 2) { // sys_fork
         printf("syscall: sys_fork\n");
-        multitasking::fork_process(currentProcess);
-        current_context->eax = 0; // make the process think it's the child
+        multitasking::process* newprocess = multitasking::fork_process(currentProcess);
+        newprocess->registerContext.eax = 0;
+        current_context->eax = newprocess->pid;
     }
     else if(regs->eax == 11) { // sys_fork
         printf("syscall: sys_execve\n");
