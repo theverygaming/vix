@@ -28,6 +28,7 @@ void create_directory_entry(int tablenum, void* address, enum page_size pagesize
 void set_pagetable_entry(int tablenum, int entrynum, void* address, bool global, bool cache_disabled, bool write_through, enum page_priv priv, enum page_perms perms, bool present) {
     uint32_t tentry = pagetables[tablenum][entrynum];
     tentry = (tentry & ~0xFFFFE000) | (((uint32_t)address) & 0xFFFFE000);
+    tentry = (tentry & ~0x1FFF) | (0 & 0x1FFF);
     tentry |= global << 8;
     tentry |= cache_disabled << 6;
     tentry |= write_through << 3;
@@ -51,6 +52,7 @@ void create_pagetable_entry(int tablenum, int entrynum, void* address, bool glob
 void set_directory_entry(int tablenum, void* address, enum page_size pagesize, bool cache_disabled, bool write_through, enum page_priv priv, enum page_perms perms, bool present) {
     uint32_t direntry = page_directory[tablenum];
     direntry = (direntry & ~0xFFFFE000) | (((uint32_t)address) & 0xFFFFE000);
+    direntry = (direntry & ~0x1FFF) | (0 & 0x1FFF);
     direntry |= pagesize << 7;
     direntry |= cache_disabled << 4;
     direntry |= write_through << 3;
@@ -65,11 +67,11 @@ void delete_pagetable_entry(int tablenum, int entrynum) {
 }
 
 bool check_directory_entry_present(int tablenum) {
-    return (page_directory[tablenum] & (1 << 0)) >> 0;
+    return page_directory[tablenum] & 0x1;
 }
 
 bool check_pagetable_entry_present(int tablenum, int entrynum) {
-    return (pagetables[tablenum][entrynum] & (1 << 0)) >> 0;
+    return pagetables[tablenum][entrynum] & 0x1;
 }
 
 void* paging::get_physaddr(void* virtualaddr) {
@@ -77,9 +79,7 @@ void* paging::get_physaddr(void* virtualaddr) {
     unsigned long ptindex = (unsigned long)virtualaddr >> 12 & 0x03FF;
  
     // TODO: check if entry is actually present
-    unsigned long *pd = (unsigned long *)page_directory;
-    unsigned long *pt = ((unsigned long *)pagetables) + (0x400 * pdindex);
-    return (void *)((pt[ptindex] & ~0xFFF) + ((unsigned long)virtualaddr & 0xFFF));
+    return (void*)(pagetables[pdindex][ptindex] & 0xFFFFF000);
 }
 
 void invlpg(void* virtaddrx) {
