@@ -138,6 +138,12 @@ void* memalloc::page::kernel_malloc(uint32_t blockcount) {
     return (void*)((block * PAGE_SIZE) + KERNEL_VIRT_ADDRESS);
 }
 
+void memalloc::page::kernel_alloc(void* adr, uint32_t blockcount) {
+    adr -= KERNEL_VIRT_ADDRESS;
+    uint32_t block = (uint32_t)adr / 4096;
+    p_allocate_blocks(block, blockcount, kernel_memoryBitmap);
+}
+
 void memalloc::page::kernel_free(void* adr) {
     adr -= KERNEL_VIRT_ADDRESS;
     uint32_t block = ((uint32_t)adr) / PAGE_SIZE;

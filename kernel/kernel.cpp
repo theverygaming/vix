@@ -69,12 +69,15 @@ void kernelstart()
   memorymap::initMemoryMap((void*)0x7C00 + 0x7000, (void*)0x7C00 + (0x7004));
   paging::clearPageTables((void*)0x0, 10000);
   memalloc::page::phys_init(memorymap::map_entries, memorymap::map_entrycount);
+  memalloc::page::kernel_init();
+  memalloc::page::kernel_alloc((void*)(KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET), 245);
   cpubasics::cpuinit();
   drivers::keyboard::init();
   isr::RegisterHandler(0x80, syscall::syscallHandler);
   // program is loaded at 0x4C4C000
   for(uint32_t i = 0; i < 0xFFFFFFF; i++) {}
-  elf::load_program((void*)0x4C4C000);
+  elf::load_program((void*)(KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET));
+  memalloc::page::kernel_free((void*)(KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET));
   
   for(int i = 0; i < 18; i++) {
       for(int j = 0; j < 13; j++) {

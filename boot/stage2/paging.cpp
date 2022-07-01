@@ -57,7 +57,7 @@ void paging::initpaging()
     
     // 0x4C4C000 -> 355 sectors -> ~45 pages
     for(int i = 0; i < 245; i++) {
-        map_page((void*)0x4C4C000 + (i * 0x1000), (void*)0x4C4C000 + (i * 0x1000));
+        map_page((void*)(KERNEL_PHYS_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET) + (i * 0x1000), (void*)(KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET) + (i * 0x1000));
     }
     
 
