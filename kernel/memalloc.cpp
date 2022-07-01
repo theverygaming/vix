@@ -88,6 +88,7 @@ void memalloc::page::phys_free(void* adr) {
     while(!marker) {
         p_get_memmap_entry(block, &allocated, &marker, phys_memoryBitmap);
         p_set_memmap_entry(block, 0, 0, phys_memoryBitmap);
+        if(!allocated) { break; }
         block++;
         counter++;
     }
@@ -153,6 +154,7 @@ void memalloc::page::kernel_free(void* adr) {
     while(!marker) {
         p_get_memmap_entry(block, &allocated, &marker, kernel_memoryBitmap);
         p_set_memmap_entry(block, 0, 0, kernel_memoryBitmap);
+        if(!allocated) { break; }
         block++;
         counter++;
     }
