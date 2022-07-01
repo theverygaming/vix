@@ -68,7 +68,7 @@ void kernelstart()
   printf("esp: %p\n", esp);
   memorymap::initMemoryMap((void*)0x7C00 + 0x7000, (void*)0x7C00 + (0x7004));
   paging::clearPageTables((void*)0x0, 10000);
-  memalloc::page::init(memorymap::map_entries, memorymap::map_entrycount);
+  memalloc::page::phys_init(memorymap::map_entries, memorymap::map_entrycount);
   cpubasics::cpuinit();
   drivers::keyboard::init();
   isr::RegisterHandler(0x80, syscall::syscallHandler);

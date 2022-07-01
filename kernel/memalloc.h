@@ -3,7 +3,7 @@
 #include "memorymap.h"
 
 namespace memalloc::page {
-    void* malloc(uint32_t blocks);
-    void free(void* adr);
-    void init(memorymap::SMAP_entry* e620_map, int e620_len);
+    void* phys_malloc(uint32_t blocks);
+    void phys_free(void* adr);
+    void phys_init(memorymap::SMAP_entry* e620_map, int e620_len);
 }
