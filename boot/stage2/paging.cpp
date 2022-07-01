@@ -50,7 +50,7 @@ void paging::initpaging()
     }
 
     stage2_pagetablefill();
-    for(int i = 0; i < 100000; i++) {
+    for(int i = 0; i < (KERNEL_MEMORY_END_OFFSET / 4096); i++) {
         map_page((void*)KERNEL_PHYS_ADDRESS + (i * 0x1000), (void*)KERNEL_VIRT_ADDRESS + (i * 0x1000));
     }
     map_page((void*)0xB8000, (void*)(KERNEL_VIRT_ADDRESS + VIDMEM_OFFSET)); // Video memory

@@ -1,6 +1,7 @@
 #include "memalloc.h"
 #include "stdio.h"
 #include "stdlib.h"
+#include "../config.h"
 
 #define PAGE_SIZE 4096
 
@@ -10,6 +11,12 @@
 #define PHYS_BITMAP_LEN (PHYS_BITMAP_BLOCK_COUNT / (8 / 2)) + 1
 
 uint8_t phys_memoryBitmap[PHYS_BITMAP_LEN]; // each block is two bits, the first bit marks if the block is allocated or not, the second bit marks the end of a block
+
+#define KERNEL_PAGES KERNEL_MEMORY_END_OFFSET / 4096
+#define KERNEL_BITMAP_LEN (KERNEL_PAGES / (8 / 2)) + 1
+
+uint8_t kernel_memoryBitmap[KERNEL_BITMAP_LEN];
+
 
 uint8_t bitset(uint8_t* byte, uint8_t bitnum, uint8_t value) {
     *byte ^= (-value ^ *byte) & (1 << bitnum); 
@@ -70,7 +77,7 @@ void* memalloc::page::phys_malloc(uint32_t blockcount) {
         return nullptr;
     }
     p_allocate_blocks(block, blockcount, phys_memoryBitmap);
-    return (void*)((block * PAGE_SIZE)); // HERE
+    return (void*)((block * PAGE_SIZE));
 }
 
 void memalloc::page::phys_free(void* adr) {
@@ -114,7 +121,41 @@ void memalloc::page::phys_init(memorymap::SMAP_entry* e620_map, int e620_len) {
         }
     }
     // mark the first 100MB as unusable since they are used by the kernel
-    for(uint32_t j = 0; j < 24414; j++) { 
+    for(uint32_t j = 0; j < KERNEL_PAGES; j++) { 
         p_set_memmap_entry(j, 1, 1, phys_memoryBitmap);
+    }
+}
+
+
+
+void* memalloc::page::kernel_malloc(uint32_t blockcount) {
+    uint32_t block;
+    if(!p_memmap_find_empty_block(&block, blockcount, kernel_memoryBitmap)) {
+        printf("malloc: memory full\n");
+        return nullptr;
+    }
+    p_allocate_blocks(block, blockcount, kernel_memoryBitmap);
+    return (void*)((block * PAGE_SIZE) + KERNEL_VIRT_ADDRESS);
+}
+
+void memalloc::page::kernel_free(void* adr) {
+    adr -= KERNEL_VIRT_ADDRESS;
+    uint32_t block = ((uint32_t)adr) / PAGE_SIZE;
+    int counter = 0;
+    uint8_t allocated;
+    uint8_t marker = 0;
+    while(!marker) {
+        p_get_memmap_entry(block, &allocated, &marker, kernel_memoryBitmap);
+        p_set_memmap_entry(block, 0, 0, kernel_memoryBitmap);
+        block++;
+        counter++;
+    }
+    printf("free %d blocks\n", counter);
+}
+
+void memalloc::page::kernel_init() {
+    memset((uint8_t*)kernel_memoryBitmap, 0, KERNEL_BITMAP_LEN); // set everything as free
+    for(int i = 0; i < (KERNEL_FREE_AREA_BEGIN_OFFSET / 4096); i++) {
+        p_set_memmap_entry(i, 1, 1, kernel_memoryBitmap);
     }
 }
