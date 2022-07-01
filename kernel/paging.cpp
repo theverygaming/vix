@@ -27,8 +27,8 @@ void create_directory_entry(int tablenum, void* address, enum page_size pagesize
 
 void set_pagetable_entry(int tablenum, int entrynum, void* address, bool global, bool cache_disabled, bool write_through, enum page_priv priv, enum page_perms perms, bool present) {
     uint32_t tentry = pagetables[tablenum][entrynum];
-    tentry = (tentry & ~0xFFFFE000) | (((uint32_t)address) & 0xFFFFE000);
-    tentry = (tentry & ~0x1FFF) | (0 & 0x1FFF);
+    tentry = (tentry & ~0xFFFFF000) | (((uint32_t)address) & 0xFFFFF000);
+    tentry = (tentry & ~0xFFF) | (0 & 0xFFF);
     tentry |= global << 8;
     tentry |= cache_disabled << 6;
     tentry |= write_through << 3;
@@ -51,8 +51,8 @@ void create_pagetable_entry(int tablenum, int entrynum, void* address, bool glob
 
 void set_directory_entry(int tablenum, void* address, enum page_size pagesize, bool cache_disabled, bool write_through, enum page_priv priv, enum page_perms perms, bool present) {
     uint32_t direntry = page_directory[tablenum];
-    direntry = (direntry & ~0xFFFFE000) | (((uint32_t)address) & 0xFFFFE000);
-    direntry = (direntry & ~0x1FFF) | (0 & 0x1FFF);
+    direntry = (direntry & ~0xFFFFF000) | (((uint32_t)address) & 0xFFFFF000);
+    direntry = (direntry & ~0xFFF) | (0 & 0xFFF);
     direntry |= pagesize << 7;
     direntry |= cache_disabled << 4;
     direntry |= write_through << 3;
