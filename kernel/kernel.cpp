@@ -74,8 +74,7 @@ void kernelstart()
   cpubasics::cpuinit();
   drivers::keyboard::init();
   isr::RegisterHandler(0x80, syscall::syscallHandler);
-  // program is loaded at 0x4C4C000
-  for(uint32_t i = 0; i < 0xFFFFFFF; i++) {}
+  for(uint32_t i = 0; i < 0xFFFFFF; i++) {}
   elf::load_program((void*)(KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET));
   memalloc::page::kernel_free((void*)(KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET));
   
