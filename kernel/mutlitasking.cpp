@@ -39,6 +39,7 @@ multitasking::process* multitasking::fork_process(multitasking::process* process
     for(int i = 0; i < 10; i++) {
         if(!processes[i].running) {
             freeProcess = i;
+            break;
         }
     }
     if(freeProcess == -1) { return nullptr; }
