@@ -7,10 +7,11 @@
 #include "multitasking.h"
 #include "../config.h"
 #include "debug.h"
+#include "memalloc.h"
 
 isr::intHandler *handlers = (isr::intHandler*)(KERNEL_VIRT_ADDRESS + ISR_HANDLER_OFFSET);
 
-extern "C" void i686_ISR_Handler(isr::Registers* regs) {
+extern "C" uint32_t i686_ISR_Handler(isr::Registers* regs) {
     if(handlers[regs->interrupt] != NULL) { handlers[regs->interrupt](regs); }
     else if(regs->interrupt >= 32) {
         printf("No interrupt handler for #%lu!, ignoring\n", regs->interrupt);
@@ -49,6 +50,7 @@ extern "C" void i686_ISR_Handler(isr::Registers* regs) {
         multitasking::killCurrentProcess();
         debug::stack_trace(10, regs->ebp);
     }
+    return regs->intStackLocation;
 }
 
 void isr::i686_ISR_Initialize() {
@@ -68,4 +70,13 @@ void isr::RegisterHandler(int handler, void (*_func)(Registers* regs)) {
 
 void isr::DeregisterHandler(int handler) {
     handlers[handler] = NULL;
+}
+
+extern "C" void* isr_alloc_stack() {
+    return memalloc::page::kernel_malloc(100) + (100 * 4096); // return top of range
+}
+
+extern "C" void isr_free_stack(void* stackadr) {
+    // we get top of range
+    memalloc::page::kernel_free(stackadr - (100 * 4096));
 }

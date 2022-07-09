@@ -6,4 +6,5 @@ namespace paging {
     void clearPageTables(void* virtAddress, uint32_t pagecount);
     void map_page(void *physaddr, void *virtualaddr);
     bool is_readable(void* virtualaddr);
+    void copyPhysPage(void* dest, void* src);
 }

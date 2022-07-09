@@ -1,6 +1,8 @@
 [bits 32]
 
 extern i686_ISR_Handler
+extern isr_alloc_stack
+extern isr_free_stack
 
 %macro ISR_NOERRORCODE 1
 
@@ -38,6 +40,7 @@ isr_common:
     mov [KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET + 24], esp
     mov [KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET + 28], ebp
     add dword [KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET + 24], 8
+
     pusha
 
     xor eax, eax
@@ -50,18 +53,45 @@ isr_common:
     mov fs, ax
     mov gs, ax
 
+    ; we want to switch to another stack location so we have to copy everything over to the new location
+    push eax
+    push ebx
+    push ecx
+    cmp dword [esp + (4 * 9)], 0x80 ; only do malloc for syscalls
+    jne .isnosys
+    call isr_alloc_stack ; returns allocated address in eax
+    jmp .idfk
+    .isnosys:
+    mov eax, KERNEL_VIRT_ADDRESS + KERNEL_ISR_STACK_POINTER_OFFSET - 64
+    .idfk:
+    mov edx, eax ; move returned value to edx, we will need it later
+    sub eax, 64 ; subtract 64 from returned address because we copy data to the new stack
+    mov ebx, esp ; source
+    add ebx, 12
+    mov ecx, 16 ; size
+    call memcpy32
+    pop ecx
+    pop ebx
+    pop eax
+    
+    sub edx, 64
+    mov esp, edx
+    mov ebp, edx
+    add edx, 64
+    .skipmalloc:
+
+    push edx
     push esp                ; pass pointer to stack to C
     call i686_ISR_Handler
-    add esp, 4
 
-    pop eax                 ; restore old segment
-    mov ds, ax
-    mov es, ax
-    mov fs, ax
-    mov gs, ax
+    cmp dword [esp + (4 * 11)], 0x80
+    jne .skipfree
+    push eax
+    call isr_free_stack
+    .skipfree:
+    
 
-    popa
-    ;add esp, 8              ; remove error code and interrupt number
+
     mov eax, [KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET]
     mov ebx, [KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET + 4]
     mov ecx, [KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET + 8]
@@ -72,3 +102,28 @@ isr_common:
     mov ebp, [KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET + 28]
     sti
     iret
+
+
+
+
+; in the future change this to simply use rep movs because S P E E D
+memcpy32: ; Arguments: eax->dest, ebx->source, ecx->element count in 32bits
+    push eax
+    push ebx
+    push ecx
+    push edx
+.cp:
+    dec ecx
+    cmp ecx, -1 ; if ecx = -1 we copied everything
+    je .end
+    mov edx, [ebx]
+    mov [eax], edx
+    add eax, 4 ; add 4 bytes to dest & source
+    add ebx, 4
+    jmp .cp
+.end:
+    pop edx
+    pop ecx
+    pop ebx
+    pop eax
+    ret

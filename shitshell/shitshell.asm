@@ -37,7 +37,7 @@ read_stdin:
     mov eax, 3 ; sys_read(stdin, stdinstr, stdinstr_mlen)
     mov ebx, 0
     mov ecx, stdinstr
-    mov edx, stdinstr_mlen
+    mov edx, [stdinstr_mlen]
     int 0x80
     mov [stdinstr_len], eax
     mov ebx, 0

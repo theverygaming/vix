@@ -20,6 +20,7 @@ void _start(void)
 #include "syscall.h"
 #include "drivers/keyboard.h"
 #include "memalloc.h"
+#include "drivers/serial.h"
 
 // very important arrays definitely
 uint8_t zerotwo[18][13] = {
@@ -73,8 +74,9 @@ void kernelstart()
   memalloc::page::kernel_alloc((void*)(KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET), 245);
   cpubasics::cpuinit();
   drivers::keyboard::init();
+  drivers::serial::init();
   isr::RegisterHandler(0x80, syscall::syscallHandler);
-  for(uint32_t i = 0; i < 0xFFFFFF; i++) {}
+  for(uint32_t i = 0; i < 0xFFFFFFF; i++) {}
   elf::load_program((void*)(KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET));
   memalloc::page::kernel_free((void*)(KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET));
   

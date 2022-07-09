@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -nostdlib -Wall -m32 -march=i386 -fno-pie -fno-stack-protector -ffreestanding
+CFLAGS = -nostdlib -Wall -m32 -march=i386 -fno-pie -fno-stack-protector -ffreestanding -fno-exceptions
 
 HEADERS_CPP = $(wildcard *.h) \
 			$(wildcard */*.h) \

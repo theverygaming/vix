@@ -133,6 +133,7 @@ void* memalloc::page::kernel_malloc(uint32_t blockcount) {
     uint32_t block;
     if(!p_memmap_find_empty_block(&block, blockcount, kernel_memoryBitmap)) {
         printf("malloc: memory full\n");
+        for(;;);
         return nullptr;
     }
     p_allocate_blocks(block, blockcount, kernel_memoryBitmap);
@@ -158,7 +159,6 @@ void memalloc::page::kernel_free(void* adr) {
         block++;
         counter++;
     }
-    printf("free %d blocks\n", counter);
 }
 
 void memalloc::page::kernel_init() {

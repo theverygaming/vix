@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <cstdarg>
 #include "../config.h"
+#include "drivers/serial.h"
 
 
 const unsigned SCREEN_WIDTH = 80;
@@ -78,6 +79,7 @@ void scrollback(int lines)
 
 void putc(char c)
 {
+    drivers::serial::putc(c);
     switch (c)
     {
         case '\n':

@@ -41,12 +41,7 @@ void elf::load_program(void* ELF_baseadr) {
     }
 
     void* initial_physadr = memalloc::page::phys_malloc(pagecount);
-    //void* initial_physadr = (void*)0x10000000;
-    //pageranges[0] = { (uint32_t)inital_physadr, virt_base, pagecount };
-    pageranges[0].phys_base = (uint32_t)initial_physadr;
-    pageranges[0].virt_base = virt_baseadr;
-    printf("virt_base = %u\n", virt_baseadr);
-    pageranges[0].pages = pagecount;
+    pageranges[0] = { (uint32_t)initial_physadr, virt_baseadr, pagecount };
     multitasking::setPageRange(pageranges);
     
     printf("---Program Headers---\n");
@@ -77,7 +72,6 @@ void elf::load_program(void* ELF_baseadr) {
 
     printf("Entry point: 0x%p\n", header.e_entry);
 
+    multitasking::create_task((void*)(max + (4096 * 4)), (void*)header.e_entry, pageranges);
     multitasking::unsetPageRange(pageranges);
-
-    //multitasking::create_task((void*)(max + (4096 * 4)), (void*)header.e_entry, pageranges);
 }

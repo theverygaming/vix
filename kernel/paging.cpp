@@ -1,6 +1,7 @@
 #include "paging.h"
 #include "stdio.h"
 #include <cmath>
+#include "stdlib.h"
 #include "../config.h"
 
 uint32_t (*pagetables)[1024] = (uint32_t(*)[1024])KERNEL_VIRT_ADDRESS + PAGE_TABLES_OFFSET;
@@ -101,8 +102,8 @@ void paging::map_page(void *physaddr, void *virtualaddr) {
 }
 
 void unmap_page(void *virtualaddr) {
-    unsigned long pDirIndex = (unsigned long)virtualaddr >> 22;
-    unsigned long pTableIndex = (unsigned long)virtualaddr >> 12 & 0x03FF;
+    uint32_t pDirIndex = (uint32_t)virtualaddr >> 22;
+    uint32_t pTableIndex = (uint32_t)virtualaddr >> 12 & 0x03FF;
 
     bool do_invlpg = check_pagetable_entry_present(pDirIndex, pTableIndex);
     set_pagetable_entry(pDirIndex, pTableIndex, (void*)0, false, false, false, SUPERVISOR, RW, false);
@@ -118,8 +119,22 @@ void paging::clearPageTables(void* virtAddress, uint32_t pagecount) {
 }
 
 bool paging::is_readable(void* virtualaddr) {
-    unsigned long pdindex = (unsigned long)virtualaddr >> 22;
-    unsigned long ptindex = (unsigned long)virtualaddr >> 12 & 0x03FF;
-    return check_pagetable_entry_present(pdindex, ptindex) && check_directory_entry_present(pdindex);
+    uint32_t pdindex = (uint32_t)virtualaddr >> 22;
+    uint32_t ptindex = (uint32_t)virtualaddr >> 12 & 0x03FF;
+    return check_pagetable_entry_present(pdindex, ptindex);
+}
+
+void paging::copyPhysPage(void* dest, void* src) {
+    uint32_t before1 = pagetables[0][0];
+    uint32_t before2 = pagetables[0][1];
+    set_pagetable_entry(0, 0, src, false, false, false, SUPERVISOR, RW, true);
+    set_pagetable_entry(0, 1, dest, false, false, false, SUPERVISOR, RW, true);
+    invlpg((void*)0);
+    invlpg((void*)4096);
+    memcpy((char*)4096, (char*)0, 4096);
+    pagetables[0][0] = before1;
+    pagetables[0][1] = before2;
+    invlpg((void*)0);
+    invlpg((void*)4096);
 }
 

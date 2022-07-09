@@ -34,7 +34,7 @@ multitasking::process* multitasking::getCurrentProcess() {
     return &processes[currentProcess];
 }
 
-multitasking::process* multitasking::fork_process(multitasking::process* process) {
+multitasking::process* multitasking::fork_process(multitasking::process* process, uint32_t process_eip) {
     int freeProcess = -1;
     for(int i = 0; i < 10; i++) {
         if(!processes[i].running) {
@@ -42,17 +42,36 @@ multitasking::process* multitasking::fork_process(multitasking::process* process
         }
     }
     if(freeProcess == -1) { return nullptr; }
+    memcpy((char*)&processes[freeProcess], (char*)process, sizeof(process));
+    zeroPageRange(processes[freeProcess].pages);
     for(int i = 0; i < PROCESS_MAX_PAGE_RANGES; i++) {
         if(process->pages[i].pages != 0) {
             void* physadr = memalloc::page::phys_malloc(process->pages[i].pages);
             processes[freeProcess].pages[i].pages = process->pages[i].pages;
             processes[freeProcess].pages[i].phys_base = (uint32_t)physadr;
             processes[freeProcess].pages[i].virt_base = process->pages[i].virt_base;
+            for(int j = 0; j < processes[freeProcess].pages[i].pages; j++) {
+                paging::copyPhysPage((void*)processes[freeProcess].pages[i].phys_base + (j * 0x1000), (void*)process->pages[i].phys_base + (j * 0x1000));
+            }
+        }
+        else {
+            process->pages[i] = {0, 0, 0};
         }
     }
     processes[freeProcess].priority = 0;
     processes[freeProcess].pid = freeProcess;
     memcpy((char*)&processes[freeProcess].registerContext, (char*)&process->registerContext, sizeof(multitasking::context));
+    process_pagerange before_pages[PROCESS_MAX_PAGE_RANGES];
+    createPageRange(before_pages);
+    unsetPageRange(before_pages);
+    setPageRange(processes[freeProcess].pages);
+    uint32_t* esp = (uint32_t*)process->registerContext.esp;
+    esp[2] = 1 << 9; // EFLAGS, set interrupt bit
+    esp[1] = 8; // CS?
+    esp[0] = process_eip;
+    process->registerContext.esp -= 3;
+    unsetPageRange(processes[freeProcess].pages);
+    setPageRange(before_pages);
     processes[freeProcess].running = true;
     printf("forked -> new PID: %u\n", processes[freeProcess].pid);
     return &processes[freeProcess];
@@ -69,8 +88,9 @@ void multitasking::create_task(void* stackadr, void* codeadr, process_pagerange*
     init_empty_stack(stackadr, codeadr);
     for(uint32_t i = 0; i < 10; i++) {
         if(!processes[i].running) {
-            processes[i] = {i, {0, 0, 0, 0, 0, 0, (uint32_t)stackadr, 0}, 0, true};
-            memcpy((char*)&processes[i].pages, (char*)&pagerange, sizeof(process_pagerange));
+            processes[i] = {i, {0, 0, 0, 0, 0, 0, (uint32_t)stackadr, 0}, 0, false};
+            memcpy((char*)processes[i].pages, (char*)pagerange, sizeof(process_pagerange) * PROCESS_MAX_PAGE_RANGES);
+            processes[i].running = true;
             break;
         }
     }
@@ -87,6 +107,13 @@ void multitasking::interruptTrigger() {
     }
     
     if(counter == 0) {
+        // set all process space to zero
+        for(int i = 0; i < 10; i++) {
+            processes[i] = {0, {0, 0, 0, 0, 0, 0, 0, 0}, 0, false};
+            for(int j = 0; j < PROCESS_MAX_PAGE_RANGES; j++) {
+                processes[i].pages[j] = {0, 0, 0};
+            }
+        }
         processes[0] = {0, {0, 0, 0, 0, 0, 0, 0, 0}, 0, true};
         memcpy((char*)&processes[0].registerContext, (char*)current_context, sizeof(context));
         createPageRange(processes[0].pages);
@@ -110,8 +137,8 @@ void multitasking::interruptTrigger() {
                 if(processes[i].running && currentProcess != i) {
                     memcpy((char*)current_context, (char*)&processes[i].registerContext, sizeof(context));
                     //createPageRange(processes[currentProcess].pages);
-                    //unsetPageRange(processes[currentProcess].pages);
-                    //setPageRange(processes[i].pages);
+                    unsetPageRange(processes[currentProcess].pages);
+                    setPageRange(processes[i].pages);
                     currentProcess = i;
                     break;
                 }
@@ -126,8 +153,8 @@ void multitasking::interruptTrigger() {
                 if(processes[i].running && currentProcess != i) {
                     memcpy((char*)current_context, (char*)&processes[i].registerContext, sizeof(context));
                     //createPageRange(processes[currentProcess].pages);
-                    //unsetPageRange(processes[currentProcess].pages);
-                    //setPageRange(processes[i].pages);
+                    unsetPageRange(processes[currentProcess].pages);
+                    setPageRange(processes[i].pages);
                     currentProcess = i;
                     break;
                 }
@@ -152,7 +179,7 @@ bool multitasking::createPageRange(process_pagerange* range, uint32_t max_addres
     bool invalidated = true;
 
     uint32_t page = 0;
-    for(; page < (max_address / 4096)+1; page++) {
+    for(; page < (max_address / 4096); page++) {
         uint32_t virtadr = page * 4096;
         if(paging::is_readable((void*)virtadr)) {
             physAddress = (uint32_t)paging::get_physaddr((void*)virtadr);
@@ -185,10 +212,9 @@ bool multitasking::createPageRange(process_pagerange* range, uint32_t max_addres
 void multitasking::setPageRange(process_pagerange* range) {
     for(int i = 0; i < PROCESS_MAX_PAGE_RANGES; i++) {
         if(range[i].pages > 0) {
-            //paging::clearPageTables((void*)range[i].virt_base, range[i].pages);
+            //printf("map range v: 0x%p p: 0x%p len: %u\n", range[i].virt_base, range[i].phys_base, range[i].pages);
             for(int j = 0; j < range[i].pages; j++) {
-                //paging::map_page((void*)(range[i].phys_base + (j * 0x1000)), (void*)(range[i].virt_base + (j * 0x1000)));
-                printf("0x%p -> 0x%p\n", (void*)(range[i].phys_base + (j * 0x1000)), (void*)(range[i].virt_base + (j * 0x1000)));
+                paging::map_page((void*)(range[i].phys_base + (j * 0x1000)), (void*)(range[i].virt_base + (j * 0x1000)));
             }
         }
     }
@@ -197,7 +223,15 @@ void multitasking::setPageRange(process_pagerange* range) {
 void multitasking::unsetPageRange(process_pagerange* range) {
     for(int i = 0; i < PROCESS_MAX_PAGE_RANGES; i++) {
         if(range[i].pages > 0) {
+            //printf("clearing 0x%p -> pages: %u\n", (void*)(range[i].virt_base), range[i].pages);
             paging::clearPageTables((void*)range[i].virt_base, range[i].pages);
         }
+    }
+}
+
+
+void multitasking::zeroPageRange(process_pagerange* range) {
+    for(int i = 0; i < PROCESS_MAX_PAGE_RANGES; i++) {
+        range[i] = {0,0,0};
     }
 }
