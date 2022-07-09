@@ -4,8 +4,8 @@
 #include "../cpubasics.h"
 
 namespace drivers::keyboard {
-  char buffer[100];
-  int bufferlocation = -1;
+    char buffer[100];
+    int bufferlocation = -1;
 }
 
 char kbd_US [128] =
@@ -43,12 +43,20 @@ char kbd_US [128] =
     0,  /* All other keys are undefined */
 };
 
+char readkbdchar() {
+    char keycode = inb(0x60);
+    if(keycode > 0) {
+      return kbd_US[keycode];
+    }
+    return -1;
+}
+
 void kbdIntHandler(isr::Registers* gaming) {
-	signed char keycode = inb(0x60);
-	if(keycode > 0) {
-		printf("%c", kbd_US[keycode]);
+	char key = readkbdchar();
+	if(key > 0) {
+		printf("%c", key);
     if(drivers::keyboard::bufferlocation < 100) {
-      drivers::keyboard::buffer[++drivers::keyboard::bufferlocation] = kbd_US[keycode];
+      drivers::keyboard::buffer[++drivers::keyboard::bufferlocation] = key;
     }
     else{
       printf("keyboard buffer filled\n");
@@ -59,4 +67,10 @@ void kbdIntHandler(isr::Registers* gaming) {
 
 void drivers::keyboard::init() {
     isr::RegisterHandler(33, kbdIntHandler);
+}
+
+void drivers::keyboard::manualRead() {
+    char key = readkbdchar();
+    kbdIntHandler(nullptr);
+    while(readkbdchar() == key);
 }

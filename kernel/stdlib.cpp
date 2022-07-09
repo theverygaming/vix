@@ -12,18 +12,10 @@ char* memcpy(char* dst, char* src, int n)
 
 char* s_memcpy(char* dst, char* src, int n)
 {
-	register uint32_t esp asm("esp");
-  	printf("esp: %p\n", esp);
-	for(;;);
-	return (char*)paging::is_readable(dst);
-	if((paging::is_readable(dst) && paging::is_readable(src))) {
-			printf("s_memcpy page issue, src: 0x%p dest: 0x%p", src, dst);
-		}
-	return dst;
 	char* p = dst;
 	while (n--) { // this could be made a lot faster
-		if((paging::is_readable(dst) && paging::is_readable(src))) {
-			printf("s_memcpy page issue, src: 0x%p dest: 0x%p", src, dst);
+		if(!(paging::is_readable(dst) && paging::is_readable(src))) {
+			printf("s_memcpy page issue, src: 0x%p dest: 0x%p\n", src, dst);
 			break;
 		}
 		*dst++ = *src++;
