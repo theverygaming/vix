@@ -1,5 +1,6 @@
 .vscode
 *.o
+*.oc
 *.ocpp
 *.oasm
 boot/boot
