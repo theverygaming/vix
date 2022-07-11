@@ -77,9 +77,10 @@ void scrollback(int lines)
     g_ScreenY -= lines;
 }
 
-void putc(char c)
+void putc(char c, bool serialonly)
 {
     drivers::serial::putc(c);
+    if(serialonly) { return; }
     switch (c)
     {
         case '\n':
@@ -89,7 +90,7 @@ void putc(char c)
     
         case '\t':
             for (int i = 0; i < 4 - (g_ScreenX % 4); i++)
-                putc(' ');
+                putc(' ', false);
             break;
 
         case '\r':
@@ -113,18 +114,18 @@ void putc(char c)
     setcursor(g_ScreenX, g_ScreenY);
 }
 
-void puts(const char* str)
+void puts(const char* str, bool serialonly)
 {
     while(*str)
     {
-        putc(*str);
+        putc(*str, serialonly);
         str++;
     }
 }
 
 const char g_HexChars[] = "0123456789abcdef";
 
-void printf_unsigned(uint32_t number, int radix) // long long causes issue so using 32 bit unsigned
+void printf_unsigned(uint32_t number, int radix, bool serialonly) // long long causes issue so using 32 bit unsigned
 {
     char buffer[32];
     int pos = 0;
@@ -139,17 +140,17 @@ void printf_unsigned(uint32_t number, int radix) // long long causes issue so us
 
     // print number in reverse order
     while (--pos >= 0)
-        putc(buffer[pos]);
+        putc(buffer[pos], serialonly);
 }
 
-void printf_signed(long long number, int radix)
+void printf_signed(long long number, int radix, bool serialonly)
 {
     if (number < 0)
     {
-        putc('-');
-        printf_unsigned(-number, radix);
+        putc('-', serialonly);
+        printf_unsigned(-number, radix, serialonly);
     }
-    else printf_unsigned(number, radix);
+    else printf_unsigned(number, radix, serialonly);
 }
 
 #define PRINTF_STATE_NORMAL         0
@@ -164,11 +165,8 @@ void printf_signed(long long number, int radix)
 #define PRINTF_LENGTH_LONG          3
 #define PRINTF_LENGTH_LONG_LONG     4
 
-void printf(const char* fmt, ...)
+void printf_core(bool serialonly, va_list args, const char* fmt, ...)
 {
-    va_list args;
-    va_start(args, fmt);
-
     int state = PRINTF_STATE_NORMAL;
     int length = PRINTF_LENGTH_DEFAULT;
     int radix = 10;
@@ -184,7 +182,7 @@ void printf(const char* fmt, ...)
                 {
                     case '%':   state = PRINTF_STATE_LENGTH;
                                 break;
-                    default:    putc(*fmt);
+                    default:    putc(*fmt, serialonly);
                                 break;
                 }
                 break;
@@ -224,14 +222,14 @@ void printf(const char* fmt, ...)
             PRINTF_STATE_SPEC_:
                 switch (*fmt)
                 {
-                    case 'c':   putc((char)va_arg(args, int));
+                    case 'c':   putc((char)va_arg(args, int), serialonly);
                                 break;
 
                     case 's':   
-                                puts(va_arg(args, const char*));
+                                puts(va_arg(args, const char*), serialonly);
                                 break;
 
-                    case '%':   putc('%');
+                    case '%':   putc('%', serialonly);
                                 break;
 
                     case 'd':
@@ -261,13 +259,13 @@ void printf(const char* fmt, ...)
                         {
                         case PRINTF_LENGTH_SHORT_SHORT:
                         case PRINTF_LENGTH_SHORT:
-                        case PRINTF_LENGTH_DEFAULT:     printf_signed(va_arg(args, int), radix);
+                        case PRINTF_LENGTH_DEFAULT:     printf_signed(va_arg(args, int), radix, serialonly);
                                                         break;
 
-                        case PRINTF_LENGTH_LONG:        printf_signed(va_arg(args, long), radix);
+                        case PRINTF_LENGTH_LONG:        printf_signed(va_arg(args, long), radix, serialonly);
                                                         break;
 
-                        case PRINTF_LENGTH_LONG_LONG:   printf_signed(va_arg(args, long long), radix);
+                        case PRINTF_LENGTH_LONG_LONG:   printf_signed(va_arg(args, long long), radix, serialonly);
                                                         break;
                         }
                     }
@@ -277,13 +275,13 @@ void printf(const char* fmt, ...)
                         {
                         case PRINTF_LENGTH_SHORT_SHORT:
                         case PRINTF_LENGTH_SHORT:
-                        case PRINTF_LENGTH_DEFAULT:     printf_unsigned(va_arg(args, unsigned int), radix);
+                        case PRINTF_LENGTH_DEFAULT:     printf_unsigned(va_arg(args, unsigned int), radix, serialonly);
                                                         break;
                                                         
-                        case PRINTF_LENGTH_LONG:        printf_unsigned(va_arg(args, unsigned  long), radix);
+                        case PRINTF_LENGTH_LONG:        printf_unsigned(va_arg(args, unsigned  long), radix, serialonly);
                                                         break;
 
-                        case PRINTF_LENGTH_LONG_LONG:   printf_unsigned(va_arg(args, unsigned  long long), radix);
+                        case PRINTF_LENGTH_LONG_LONG:   printf_unsigned(va_arg(args, unsigned  long long), radix, serialonly);
                                                         break;
                         }
                     }
@@ -300,7 +298,19 @@ void printf(const char* fmt, ...)
 
         fmt++;
     }
+}
 
+void printf(const char* fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    printf_core(false, args, fmt);
+    va_end(args);
+}
+
+void printf_serial( const char* fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    printf_core(true, args, fmt);
     va_end(args);
 }
 
@@ -308,11 +318,11 @@ void print_buffer(const char* msg, const void* buffer, uint32_t count)
 {
     const uint8_t* u8Buffer = (const uint8_t*)buffer;
     
-    puts(msg);
+    puts(msg, false);
     for (uint16_t i = 0; i < count; i++)
     {
-        putc(g_HexChars[u8Buffer[i] >> 4]);
-        putc(g_HexChars[u8Buffer[i] & 0xF]);
+        putc(g_HexChars[u8Buffer[i] >> 4], false);
+        putc(g_HexChars[u8Buffer[i] & 0xF], false);
     }
-    puts("\n");
+    puts("\n", false);
 }
