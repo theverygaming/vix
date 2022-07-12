@@ -18,6 +18,6 @@ pid_t sys_fork() {
     return syscall(2, 0, 0, 0, 0, 0, 0);
 }
 
-void sys_execve(const char* filename, const char *const *argv, const char *const *envp) {
+void sys_execve(const char* filename, char** argv, const char *const *envp) {
     syscall(11, filename, argv, envp, 0, 0, 0);
 }
