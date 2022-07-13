@@ -1,7 +1,7 @@
 #include "types.h"
 #include "stdlib.h"
 
-extern void main(int argc, char* argv[], char* envp[]);
+extern int main(int argc, char* argv[], char* envp[]);
 
 static void create_charptrptr(char* in, char** out) {
     size_t count = 0;
