@@ -32,10 +32,10 @@ static size_t create_charptrptr_count(char* in) {
     return count;
 }
 
-void _startc(int argc, char* argv[], char* envp_str) {
+int _startc(int argc, char* argv[], char* envp_str) {
     size_t count = create_charptrptr_count(envp_str);
     char* envp[count+1];
     create_charptrptr(envp_str, envp);
     envp[count] = 0;
-    main(argc, argv, envp);
+    return main(argc, argv, envp);
 }
