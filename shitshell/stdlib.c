@@ -9,11 +9,12 @@ void* memcpy(void* dest, const void* src, size_t n) {
 }
 
 int memcmp(const void* ptr1, const void* ptr2, size_t num) {
-    uint8_t* c1 = (char*)ptr1;
-    uint8_t* c2 = (char*)ptr2;
+    uint8_t* c1 = (uint8_t*)ptr1;
+    uint8_t* c2 = (uint8_t*)ptr2;
     while(num--) {
         if(*c1++ != *c2++) { return c1[-1] < c2[-1] ? -1 : 1; }
     }
+    return 0;
 }
 
 int strcmp(const char* str1, const char* str2) {
@@ -80,8 +81,7 @@ size_t sscanf(const char* str, const char* fmt, ...) {
                     memcpy(fmtcut, fmt + 1, cspn);
                     fmtcut[cspn] = '\0';
                     
-                    size_t len = strlen(fmt);
-                    size_t cpcnt = strstr(&str[instrcnt], fmtcut);
+                    size_t cpcnt = (size_t)strstr(&str[instrcnt], fmtcut);
                     if(!cpcnt) { return items_filled; }
                     cpcnt -= (size_t)&str[instrcnt];
                     char* arg = va_arg(args, char*);
