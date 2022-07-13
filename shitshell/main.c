@@ -28,8 +28,33 @@ int str_remove_until(char* out, const char* strin, char c) {
     return 0;
 }
 
-void create_charptrptr(char* in, char** out, size_t in_maxlen) {
+void create_charptrptr(char* in, char** out) {
+    size_t count = 0;
+    while(1) {
+        size_t strl = strlen(in);
+        if(strl != 0) {
+            out[count] = in;
+            count++;
+            in += strl;
+            continue;
+        }
+        break;
+    }
+    
+}
 
+size_t create_charptrptr_count(char* in) {
+    size_t count = 0;
+    while(1) {
+        size_t strl = strlen(in);
+        if(strl != 0) {
+            count++;
+            in += strl;
+            continue;
+        }
+        break;
+    }
+    return count;
 }
 
 char input_buf[100];
@@ -38,20 +63,25 @@ char args_buf[100];
 
 char* args_ptr[100];
 
-int main(int argc, char* argv[], char** envp) {
+int main(int argc, char* argv[], char* envpx) {
     while(1) {
-        while(envp) {
-            sys_write(1, envp, strlen(envp));
+        size_t count = create_charptrptr_count(envpx);
+        char** envp[count];
+        create_charptrptr(envpx, envp);
+        while(0) {
+            sys_write(1, envpx, strlen(envp));
             sys_write(1, "\n", 1);
-            envp++;
+            //envp++;
         }
+        sys_write(1, envp[0], 5);
+        sys_write(1, "\n", 1);
         sys_write(1, "# ", 2);
         sys_read(1, input_buf, sizeof(input_buf));
         replace_char(input_buf, sizeof(input_buf), '\n', '\0');
         str_remove_until(args_buf, input_buf, ' ');
         replace_char(args_buf, sizeof(args_buf), ' ', '\0');
         //sys_write(1, args_buf, sizeof(args_buf));
-        create_charptrptr(args_buf, args_ptr, sizeof(args_buf));
+        //create_charptrptr(args_buf, args_ptr, sizeof(args_buf));
         sys_write(1, args_ptr[0], 100);
         pid_t forked = 1;
         if(!forked) {
