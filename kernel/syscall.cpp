@@ -40,7 +40,7 @@ void syscall::syscallHandler(isr::Registers* regs) {
     }
     else if(regs->eax == 2) { // sys_fork
         DEBUG_PRINTF("syscall: sys_fork\n");
-        multitasking::process* newprocess = multitasking::fork_process(currentProcess, regs->eip);
+        multitasking::process* newprocess = multitasking::fork_current_process();
         newprocess->registerContext.eax = 0;
         current_context->eax = newprocess->pid;
     }

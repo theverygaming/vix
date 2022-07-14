@@ -19,13 +19,8 @@ void init_empty_stack(void* stackadr, void* codeadr) {
     stack[0] = (uint32_t)codeadr; // EIP
     stack[1] = 8; // CS?
     stack[2] = 1 << 9; // EFLAGS, set interrupt bit
-    /*stack[3] = (uint32_t)0xFFFFFFFF; // cause a page fault
-    stack[4] = 8; // CS?
-    stack[5] = 1 << 9; // EFLAGS, set interrupt bit*/
     stack[3] = 0; // argc
-    stack[4] = 0; // NULL
-    stack[5] = 0; // envp
-    stack[6] = 0; // NULL
+    stack[4] = 0; // argv
 }
 
 int initcounter = 0;
@@ -34,7 +29,7 @@ multitasking::process* multitasking::getCurrentProcess() {
     return &processes[currentProcess];
 }
 
-multitasking::process* multitasking::fork_process(multitasking::process* process, uint32_t process_eip) {
+multitasking::process* multitasking::fork_current_process() {
     int freeProcess = -1;
     for(int i = 0; i < 10; i++) {
         if(!processes[i].running) {
@@ -43,36 +38,24 @@ multitasking::process* multitasking::fork_process(multitasking::process* process
         }
     }
     if(freeProcess == -1) { return nullptr; }
-    memcpy((char*)&processes[freeProcess], (char*)process, sizeof(process));
-    zeroPageRange(processes[freeProcess].pages);
+
     for(int i = 0; i < PROCESS_MAX_PAGE_RANGES; i++) {
-        if(process->pages[i].pages != 0) {
-            void* physadr = memalloc::page::phys_malloc(process->pages[i].pages);
-            processes[freeProcess].pages[i].pages = process->pages[i].pages;
+        if(processes[currentProcess].pages[i].pages != 0) {
+            void* physadr = memalloc::page::phys_malloc(processes[currentProcess].pages[i].pages);
+            processes[freeProcess].pages[i].pages = processes[currentProcess].pages[i].pages;
             processes[freeProcess].pages[i].phys_base = (uint32_t)physadr;
-            processes[freeProcess].pages[i].virt_base = process->pages[i].virt_base;
+            processes[freeProcess].pages[i].virt_base = processes[currentProcess].pages[i].virt_base;
             for(int j = 0; j < processes[freeProcess].pages[i].pages; j++) {
-                paging::copyPhysPage((void*)processes[freeProcess].pages[i].phys_base + (j * 0x1000), (void*)process->pages[i].phys_base + (j * 0x1000));
+                paging::copyPhysPage((void*)processes[freeProcess].pages[i].phys_base + (j * 0x1000), (void*)processes[currentProcess].pages[i].phys_base + (j * 0x1000));
             }
         }
         else {
-            process->pages[i] = {0, 0, 0};
+            processes[freeProcess].pages[i] = {0, 0, 0};
         }
     }
     processes[freeProcess].priority = 0;
     processes[freeProcess].pid = freeProcess;
-    memcpy((char*)&processes[freeProcess].registerContext, (char*)&process->registerContext, sizeof(multitasking::context));
-    process_pagerange before_pages[PROCESS_MAX_PAGE_RANGES];
-    createPageRange(before_pages);
-    unsetPageRange(before_pages);
-    setPageRange(processes[freeProcess].pages);
-    uint32_t* esp = (uint32_t*)process->registerContext.esp;
-    esp[2] = 1 << 9; // EFLAGS, set interrupt bit
-    esp[1] = 8; // CS?
-    esp[0] = process_eip;
-    process->registerContext.esp -= 3;
-    unsetPageRange(processes[freeProcess].pages);
-    setPageRange(before_pages);
+    memcpy((char*)&processes[freeProcess].registerContext, (char*)current_context, sizeof(multitasking::context)); // gotta be very careful here to get the current context. The context in the process array is outdated while it is running.
     processes[freeProcess].running = true;
     printf("forked -> new PID: %u\n", processes[freeProcess].pid);
     return &processes[freeProcess];
@@ -85,7 +68,7 @@ void multitasking::killCurrentProcess() {
 }
 
 void multitasking::create_task(void* stackadr, void* codeadr, process_pagerange* pagerange) {
-    stackadr -= (4 * 7); // init_empty_stack has to build the stack up
+    stackadr -= (4 * 5); // init_empty_stack has to build the stack up
     init_empty_stack(stackadr, codeadr);
     for(uint32_t i = 0; i < 10; i++) {
         if(!processes[i].running) {
