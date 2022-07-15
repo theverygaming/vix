@@ -13,12 +13,22 @@ int processCounter = 0;
 bool processSwitchingEnabled = true;
 
 void init_empty_stack(void* stackadr, void* codeadr) {
+    char argstr[] = "/bin/busybox\0sh"; // size: 16 bytes
+    memcpy((char*)stackadr + (4 * 10) + sizeof(argstr), argstr, sizeof(argstr));
+    
     uint32_t* stack = (uint32_t*)stackadr;
+
     stack[0] = (uint32_t)codeadr; // EIP
     stack[1] = 8; // CS?
     stack[2] = 1 << 9; // EFLAGS, set interrupt bit
-    stack[3] = 0; // argc
-    stack[4] = 0; // argv
+    stack[3] = 2; // argc
+
+    stack[4] = ((uint32_t)stackadr) + (4 * 5); // argv pointer
+    stack[5] = ((uint32_t)stackadr) + (4 * 10) + sizeof(argstr); // argv string pointer
+    stack[6] = ((uint32_t)stackadr) + (4 * 10) + sizeof(argstr)+13; // argv string pointer
+    stack[7] = 0; // argv null termination
+    stack[8] = 0; // envp null termination
+    stack[9] = 0; // envp null termination
 }
 
 bool init = true;
@@ -66,7 +76,7 @@ void multitasking::killCurrentProcess() {
 }
 
 void multitasking::create_task(void* stackadr, void* codeadr, process_pagerange* pagerange) {
-    stackadr -= (4 * 5); // init_empty_stack has to build the stack up
+    stackadr -= (4 * 13); // init_empty_stack has to build the stack up
     init_empty_stack(stackadr, codeadr);
     for(uint32_t i = 0; i < MAX_PROCESSES; i++) {
         if(!processes[i].running) {
