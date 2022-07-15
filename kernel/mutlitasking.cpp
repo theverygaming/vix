@@ -6,9 +6,7 @@
 
 multitasking::context *current_context = (multitasking::context*)(KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET);
 
-multitasking::process processes[10] = {0, {0, 0, 0, 0, 0, 0, 0, 0}, 0, false}; 
-
-int counter = 0;
+multitasking::process processes[MAX_PROCESSES] = {0, {0, 0, 0, 0, 0, 0, 0, 0}, 0, false}; 
 
 int currentProcess = 0;
 int processCounter = 0;
@@ -23,7 +21,7 @@ void init_empty_stack(void* stackadr, void* codeadr) {
     stack[4] = 0; // argv
 }
 
-int initcounter = 0;
+bool init = true;
 
 multitasking::process* multitasking::getCurrentProcess() {
     return &processes[currentProcess];
@@ -31,7 +29,7 @@ multitasking::process* multitasking::getCurrentProcess() {
 
 multitasking::process* multitasking::fork_current_process() {
     int freeProcess = -1;
-    for(int i = 0; i < 10; i++) {
+    for(int i = 0; i < MAX_PROCESSES; i++) {
         if(!processes[i].running) {
             freeProcess = i;
             break;
@@ -70,11 +68,12 @@ void multitasking::killCurrentProcess() {
 void multitasking::create_task(void* stackadr, void* codeadr, process_pagerange* pagerange) {
     stackadr -= (4 * 5); // init_empty_stack has to build the stack up
     init_empty_stack(stackadr, codeadr);
-    for(uint32_t i = 0; i < 10; i++) {
+    for(uint32_t i = 0; i < MAX_PROCESSES; i++) {
         if(!processes[i].running) {
             processes[i] = {i, {0, 0, 0, 0, 0, 0, (uint32_t)stackadr, 0}, 0, false};
             memcpy((char*)processes[i].pages, (char*)pagerange, sizeof(process_pagerange) * PROCESS_MAX_PAGE_RANGES);
             processes[i].running = true;
+            processes[i].priority = 100;
             break;
         }
     }
@@ -85,14 +84,9 @@ void multitasking::setProcessSwitching(bool state) {
 }
 
 void multitasking::interruptTrigger() {
-    if(initcounter < 200) {
-        initcounter++;
-        return;
-    }
-    
-    if(counter == 0) {
+    if(init) {
         // set all process space to zero
-        for(int i = 0; i < 10; i++) {
+        for(int i = 0; i < MAX_PROCESSES; i++) {
             processes[i] = {0, {0, 0, 0, 0, 0, 0, 0, 0}, 0, false};
             for(int j = 0; j < PROCESS_MAX_PAGE_RANGES; j++) {
                 processes[i].pages[j] = {0, 0, 0};
@@ -101,13 +95,14 @@ void multitasking::interruptTrigger() {
         processes[0] = {0, {0, 0, 0, 0, 0, 0, 0, 0}, 0, true};
         memcpy((char*)&processes[0].registerContext, (char*)current_context, sizeof(context));
         createPageRange(processes[0].pages);
-        counter = 19;
         currentProcess = 0;
+        init = false;
         printf("---Multitasking enabled---\n");
     }
-    memcpy((char*)&processes[currentProcess].registerContext, (char*)current_context, sizeof(context)); // Save current process context
+
+    
     int runningProcesses = 0;
-    for(int i = 0; i < 10; i++) {
+    for(int i = 0; i < MAX_PROCESSES; i++) {
         if(processes[i].running) {
             runningProcesses++;
         }
@@ -117,8 +112,9 @@ void multitasking::interruptTrigger() {
         asm("hlt");
     }
     if(!processes[currentProcess].running) {
-        for(int i = 0; i < 10; i++) {
+        for(int i = 0; i < MAX_PROCESSES; i++) {
                 if(processes[i].running && currentProcess != i) {
+                    memcpy((char*)&processes[currentProcess].registerContext, (char*)current_context, sizeof(context)); // Save current process context
                     memcpy((char*)current_context, (char*)&processes[i].registerContext, sizeof(context));
                     //createPageRange(processes[currentProcess].pages);
                     unsetPageRange(processes[currentProcess].pages);
@@ -133,8 +129,9 @@ void multitasking::interruptTrigger() {
         if(runningProcesses > 1) { // is it even possible to switch?
             int start = currentProcess;
             if(currentProcess == runningProcesses - 1) { start = 0; }
-            for(int i = start; i < 10; i++) {
+            for(int i = start; i < MAX_PROCESSES; i++) {
                 if(processes[i].running && currentProcess != i) {
+                    memcpy((char*)&processes[currentProcess].registerContext, (char*)current_context, sizeof(context)); // Save current process context
                     memcpy((char*)current_context, (char*)&processes[i].registerContext, sizeof(context));
                     //createPageRange(processes[currentProcess].pages);
                     unsetPageRange(processes[currentProcess].pages);
@@ -147,7 +144,6 @@ void multitasking::interruptTrigger() {
         processCounter = 0;
     }
     processCounter++;
-    counter++;
 }
 
 bool multitasking::createPageRange(process_pagerange* range, uint32_t max_address) {

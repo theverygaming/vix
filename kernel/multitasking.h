@@ -4,6 +4,7 @@
 #include "../config.h"
 
 #define PROCESS_MAX_PAGE_RANGES 20
+#define MAX_PROCESSES 20000
 
 namespace multitasking
 {
