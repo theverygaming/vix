@@ -41,8 +41,13 @@ void syscall::syscallHandler(isr::Registers* regs) {
     else if(regs->eax == 2) { // sys_fork
         DEBUG_PRINTF("syscall: sys_fork\n");
         multitasking::process* newprocess = multitasking::fork_current_process();
-        newprocess->registerContext.eax = 0;
-        current_context->eax = newprocess->pid;
+        if(newprocess) {
+            newprocess->registerContext.eax = 0;
+            current_context->eax = newprocess->pid;
+        }
+        else {
+            current_context->eax = -1; // this is probably the wrong return value
+        }
     }
     else if(regs->eax == 11) { // sys_execve
         DEBUG_PRINTF("syscall: sys_execve\n");
@@ -50,5 +55,6 @@ void syscall::syscallHandler(isr::Registers* regs) {
     }
     else {
         DEBUG_PRINTF("Unknown syscall %u\n", regs->eax);
+        current_context->eax = -1; // return error - once again not the right return code
     }
 }

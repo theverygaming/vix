@@ -62,24 +62,23 @@ void run_cmd(char** cmd, char** argv) {
 }
 
 int main(int argc, char* argv[], char* envp[]) {
+    sys_write(1, "envp:\n", 6);
+    size_t cntr = 0;
+    while (envp[cntr]) {
+        sys_write(1, envp[cntr], strlen(envp[cntr]));
+        sys_write(1, "\n", 1);
+        cntr++;
+    }
+    sys_write(1, "argv:\n", 6);
+    for (int i = 0; i < argc; i++) {
+        sys_write(1, argv[i], strlen(argv[i]));
+        sys_write(1, "\n", 1);
+    }
+
     sys_write(1, "welcome to the shitshell:tm:\n", 29);
     char input_buf[100];
     char args_buf[100];
     while(1) {
-        sys_write(1, "envp:\n", 6);
-        size_t cntr = 0;
-        while(envp[cntr]) {
-            sys_write(1, envp[cntr], strlen(envp[cntr]));
-            sys_write(1, "\n", 1);
-            cntr++;
-        }
-        sys_write(1, "argv:\n", 6);
-        for(int i = 0; i < argc; i++) {
-            sys_write(1, argv[i], strlen(argv[i]));
-            sys_write(1, "\n", 1);
-        }
-
-
         sys_write(1, "# ", 2);
         sys_read(1, input_buf, sizeof(input_buf));
         replace_char(input_buf, sizeof(input_buf), '\n', '\0');

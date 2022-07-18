@@ -8,6 +8,13 @@ void* memcpy(void* dest, const void* src, size_t n) {
 	return dest;
 }
 
+void* memset(void* ptr, int value, size_t num) {
+    int* dest = (int*)ptr;
+	while (num--)
+		*dest++ = value;
+	return dest;
+}
+
 int memcmp(const void* ptr1, const void* ptr2, size_t num) {
     uint8_t* c1 = (uint8_t*)ptr1;
     uint8_t* c2 = (uint8_t*)ptr2;
