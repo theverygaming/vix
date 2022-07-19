@@ -35,20 +35,30 @@ extern "C" uint32_t i686_ISR_Handler(isr::Registers* regs) {
         printf("Error code: 0x%p\n", regs->error);
         printf("eax: 0x%p ebx: 0x%p ecx: 0x%p edx: 0x%p\nesi: 0x%p edi: 0x%p esp: 0x%p ebp: 0x%p eip: 0x%p\n", regs->eax, regs->ebx, regs->ecx, regs->edx, regs->esi, regs->edi, regs->esp, regs->ebp, regs->eip);
         printf("Killing current process\n");
-        multitasking::killCurrentProcess();
         debug::stack_trace(10, regs->ebp);
+        if(multitasking::isProcessSwitchingEnabled()) {
+            multitasking::killCurrentProcess();
+        }
+        else {
+            debug::debug_loop();
+        }
     }
     else if(regs->interrupt == 8 || regs->interrupt == 18) {
         printf("---RIP---\nException #%lu, cannot recover\n", regs->interrupt);
         printf("eax: 0x%p ebx: 0x%p ecx: 0x%p edx: 0x%p\nesi: 0x%p edi: 0x%p esp: 0x%p ebp: 0x%p eip: 0x%p\n", regs->eax, regs->ebx, regs->ecx, regs->edx, regs->esi, regs->edi, regs->esp, regs->ebp, regs->eip);
-        asm("hlt");
+        debug::debug_loop();
     }
     else {
         printf("Exception #%lu\n", regs->interrupt);
         printf("eax: 0x%p ebx: 0x%p ecx: 0x%p edx: 0x%p\nesi: 0x%p edi: 0x%p esp: 0x%p ebp: 0x%p eip: 0x%p\n", regs->eax, regs->ebx, regs->ecx, regs->edx, regs->esi, regs->edi, regs->esp, regs->ebp, regs->eip);
         printf("Killing current process\n");
-        multitasking::killCurrentProcess();
         debug::stack_trace(10, regs->ebp);
+        if(multitasking::isProcessSwitchingEnabled()) {
+            multitasking::killCurrentProcess();
+        }
+        else {
+            debug::debug_loop();
+        }
     }
     return regs->intStackLocation;
 }

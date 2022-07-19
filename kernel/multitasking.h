@@ -4,7 +4,7 @@
 #include "../config.h"
 
 #define PROCESS_MAX_PAGE_RANGES 20
-#define MAX_PROCESSES 20000
+#define MAX_PROCESSES 100
 
 namespace multitasking
 {
@@ -33,6 +33,7 @@ namespace multitasking
         process_pagerange pages[PROCESS_MAX_PAGE_RANGES];
     } process;
 
+    bool isProcessSwitchingEnabled();
     void killCurrentProcess();
     void interruptTrigger();
     void create_task(void* stackadr, void* codeadr, process_pagerange* pagerange);

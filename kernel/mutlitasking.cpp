@@ -6,11 +6,15 @@
 
 multitasking::context *current_context = (multitasking::context*)(KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET);
 
-multitasking::process processes[MAX_PROCESSES] = {0, {0, 0, 0, 0, 0, 0, 0, 0}, 0, false}; 
+multitasking::process processes[MAX_PROCESSES]; 
 
 int currentProcess = 0;
 int processCounter = 0;
-bool processSwitchingEnabled = true;
+bool processSwitchingEnabled = false;
+
+bool multitasking::isProcessSwitchingEnabled() {
+    return processSwitchingEnabled;
+}
 
 void init_empty_stack(void* stackadr, void* codeadr) {
     char argstr[] = "/bin/busybox\0sh"; // size: 16 bytes
@@ -108,6 +112,7 @@ void multitasking::interruptTrigger() {
         currentProcess = 0;
         init = false;
         printf("---Multitasking enabled---\n");
+        processSwitchingEnabled = true;
     }
 
     
