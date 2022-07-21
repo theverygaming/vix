@@ -6,4 +6,5 @@
 
 namespace debug {
     void stack_trace(uint32_t maxLength, uint32_t ebp);
+    void debug_loop();
 }

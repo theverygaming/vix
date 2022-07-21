@@ -63,6 +63,8 @@ void paging::initpaging()
 
     loadPageDirectory(page_directory);
     enablePaging();
+    pagetables = (uint32_t(*)[1024])KERNEL_VIRT_ADDRESS + PAGE_TABLES_OFFSET;
+    page_directory = (uint32_t*)KERNEL_VIRT_ADDRESS + PAGE_DIRECTORY_OFFSET;
 }
 
 void paging::create_pagetable_entry(int tablenum, int entrynum, void* address, bool global, bool cache_disabled, bool write_through, enum page_priv priv, enum page_perms perms, bool present) {

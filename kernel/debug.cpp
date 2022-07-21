@@ -12,3 +12,14 @@ void debug::stack_trace(uint32_t maxLength, uint32_t ebp) {
         ebp = *((uint32_t*)ebp);
     }
 }
+
+void debug::debug_loop() {
+    printf("DETH\n");
+    for(int y = 0; y < 25; y++) {
+        for(int x = 0; x < 80; x++) {
+            putcolor(x, y, 0x1F);
+        }
+    }
+
+    while(1);
+}

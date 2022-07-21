@@ -58,6 +58,37 @@ do_e820:
 	ret
 
 
+activate_a20:
+	; once again, copypasted from wiki.osdev.org
+	mov     ax,2403h                ;--- A20-Gate Support ---
+	int     15h
+	jb      .a20_ns                  ;INT 15h is not supported
+	cmp     ah,0
+	jnz     .a20_ns                  ;INT 15h is not supported
+
+	mov     ax,2402h                ;--- A20-Gate Status ---
+	int     15h
+	jb      .a20_failed              ;couldn't get status
+	cmp     ah,0
+	jnz     .a20_failed              ;couldn't get status
+ 
+	cmp     al,1
+	jz      .a20_activated           ;A20 is already activated
+ 
+	mov     ax,2401h                ;--- A20-Gate Activate ---
+	int     15h
+	jb      .a20_failed              ;couldn't activate the gate
+	cmp     ah,0
+	jnz     .a20_failed              ;couldn't activate the gate
+	jmp .a20_activated
+.a20_ns:
+	jmp infiniteloop
+.a20_failed:
+	jmp infiniteloop
+.a20_activated:
+	ret
+
+
 init:
 mov ax, 0x07C0 ; Initialization
 mov ds, ax
@@ -75,6 +106,7 @@ int 0x10
 
 pusha
 call do_e820
+call activate_a20
 popa
 
 
@@ -127,6 +159,18 @@ mov esp, 0x9F000
 
 jmp dword 0x8:0x1000
 
+print_char: ; character in al
+pusha
+mov ah, 0x0E ; teletype output
+mov bh, 0
+int 0x10
+popa
+ret
+
+infiniteloop:
+cli
+hlt
+jmp infiniteloop
 
 ; Variables
 boot_device db 0
