@@ -24,7 +24,7 @@ namespace hdd::ata_pio
         if (inb(io_base + 0x04) || inb(io_base + 0x05)) {
             return device;
         }
-        while (true) {
+        for (int j = 0; j < 1000000; j++) {
             char status = inb(io_base + 0x07);
             if (status & (1 << 0)) {
                 return device;
@@ -43,8 +43,8 @@ namespace hdd::ata_pio
                 device.dev_okay = true;
                 return device;
             }
-            return device;
         }
+        return device;
     }
 
     static void ide_400ns_delay(uint16_t io) {
