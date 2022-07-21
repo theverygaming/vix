@@ -22,7 +22,7 @@ int check_a20() {
 }
 
 void deth_loop() {
-    while(1) {
+    while(true) {
         asm volatile("cli");
         asm volatile("hlt");
     }

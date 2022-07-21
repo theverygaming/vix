@@ -21,5 +21,5 @@ void debug::debug_loop() {
         }
     }
 
-    while(1);
+    while(true);
 }

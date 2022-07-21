@@ -5,7 +5,7 @@ extern int main(int argc, char* argv[], char* envp[]);
 
 static void create_charptrptr(char* in, char** out) {
     size_t count = 0;
-    while(1) {
+    while(true) {
         size_t strl = strlen(in);
         if(strl != 0) {
             out[count] = in;
@@ -20,7 +20,7 @@ static void create_charptrptr(char* in, char** out) {
 
 static size_t create_charptrptr_count(char* in) {
     size_t count = 0;
-    while(1) {
+    while(true) {
         size_t strl = strlen(in);
         if(strl != 0) {
             count++;

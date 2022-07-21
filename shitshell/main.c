@@ -2,6 +2,8 @@
 #include "syscall.h"
 #include "stdlib.h"
 
+bool shell_running = true;
+
 static void replace_char(char* str, size_t len,  char c, char r) {
     while(len--) {
         if(*str == c) {
@@ -22,7 +24,7 @@ static int str_remove_until(char* out, const char* strin, char c) {
             continue;
         }
         if(*strin == c) { remove = false; }
-        *strin++;
+        strin++;
     }
     if(remove) { return -1; }
     return 0;
@@ -30,7 +32,7 @@ static int str_remove_until(char* out, const char* strin, char c) {
 
 static void create_charptrptr(char* in, char** out) {
     size_t count = 0;
-    while(1) {
+    while(true) {
         size_t strl = strlen(in);
         if(strl != 0) {
             out[count] = in;
@@ -45,7 +47,7 @@ static void create_charptrptr(char* in, char** out) {
 
 static size_t create_charptrptr_count(char* in) {
     size_t count = 0;
-    while(1) {
+    while(true) {
         size_t strl = strlen(in);
         if(strl != 0) {
             count++;
@@ -78,7 +80,7 @@ int main(int argc, char* argv[], char* envp[]) {
     sys_write(1, "welcome to the shitshell:tm:\n", 29);
     char input_buf[100];
     char args_buf[100];
-    while(1) {
+    while(shell_running) {
         sys_write(1, "# ", 2);
         sys_read(1, input_buf, sizeof(input_buf));
         replace_char(input_buf, sizeof(input_buf), '\n', '\0');
@@ -91,7 +93,7 @@ int main(int argc, char* argv[], char* envp[]) {
             sys_write(1, "execve failed!\n", 15);
             return 1; // execve failed
         }
-        while(1);
+        for(uint32_t i = 0; i < 0xFFFFFF; i++) {}
         sys_waitpid(forked, 0, 0);
     }
 

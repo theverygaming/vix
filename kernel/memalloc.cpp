@@ -18,7 +18,7 @@ uint8_t phys_memoryBitmap[PHYS_BITMAP_LEN]; // each block is two bits, the first
 uint8_t kernel_memoryBitmap[KERNEL_BITMAP_LEN];
 
 
-uint8_t bitset(uint8_t* byte, uint8_t bitnum, uint8_t value) {
+void bitset(uint8_t* byte, uint8_t bitnum, uint8_t value) {
     *byte ^= (-value ^ *byte) & (1 << bitnum); 
 }
 

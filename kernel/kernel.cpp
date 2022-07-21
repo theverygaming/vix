@@ -113,7 +113,7 @@ void kernelstart()
   //printf("initialized paging\n");
   //__asm("int $35");
   int counter = 0;
-    while(1) {
+    while(true) {
       //cpubasics::sleep(10);
       *((unsigned char *)((KERNEL_VIRT_ADDRESS + VIDMEM_OFFSET) + 2 * 70 + 160 * 0)) = counter / 20;
       //printf("HAI ");

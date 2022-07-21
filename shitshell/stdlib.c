@@ -25,7 +25,7 @@ int memcmp(const void* ptr1, const void* ptr2, size_t num) {
 }
 
 int strcmp(const char* str1, const char* str2) {
-    while(1) {
+    while(true) {
         if((*str1 == 0) && (*str2 == 0)) { return 0; }
         else if(*str1 != *str2) { return *str1 - *str2; }
         str1++;

@@ -3,8 +3,7 @@
 namespace hdd::ata_pio
 {
     hdd::ata_pio::atadevice_t cmd_identify(enum hdd::ata_pio::controller_e controller, enum hdd::ata_pio::drive_e drive) {
-        hdd::ata_pio::atadevice_t device;
-        device.dev_okay = false;
+        hdd::ata_pio::atadevice_t device = {false, ""};
         uint16_t io_base = controller; // 0x1F0 controller 1, 0x170 controller 2
         uint16_t drv = drive;          // 0xA0 master, 0xB0 slave
         outb(io_base + 0x06, drv);     // HDD selection
@@ -14,37 +13,37 @@ namespace hdd::ata_pio
         outb(io_base + 0x05, 0);
 
         outb(io_base + 0x07, 0xEC);
-        if (inb(0x1F7)) {
-            uint32_t i = 0;
-            while (inb(io_base + 0x07) & (1 << 7)) {
-                i++;
-                if (i > 1000000) {
-                    break;
-                }
-            } // this loop is kinda bad, could possibly get stuck?
-            if (inb(io_base + 0x04) || inb(io_base + 0x05)) {
+        if (!inb(0x1F7)) {
+            return device;
+        }
+        for (int i = 0; i < 1000000; i++) {
+            if (inb(io_base + 0x07) & (1 << 7)) {
+                break;
+            }
+        }
+        if (inb(io_base + 0x04) || inb(io_base + 0x05)) {
+            return device;
+        }
+        while (true) {
+            char status = inb(io_base + 0x07);
+            if (status & (1 << 0)) {
                 return device;
             }
-            while (1) {
-                char status = inb(io_base + 0x07);
-                if (status & (1 << 0)) {
-                    return device;
+            if (status & (1 << 3)) {
+                uint16_t buffer[256];
+                for (int i = 0; i < 256; i++) {
+                    buffer[i] = inw(io_base);
                 }
-                if (status & (1 << 3)) {
-                    uint16_t buffer[256];
-                    for (int i = 0; i < 256; i++) {
-                        buffer[i] = inw(io_base);
-                    }
-                    // The fuck IDE?
-                    for (int i = 0; i < 40; i += 2) {
-                        device.name[i] = ((char*)&buffer)[i + 54 + 1];
-                        device.name[i + 1] = ((char*)&buffer)[i + 54];
-                    }
-                    device.name[41] = 0;
-                    device.dev_okay = true;
-                    return device;
+                // The fuck IDE?
+                for (int i = 0; i < 40; i += 2) {
+                    device.name[i] = ((char *)&buffer)[i + 54 + 1];
+                    device.name[i + 1] = ((char *)&buffer)[i + 54];
                 }
+                device.name[41] = 0;
+                device.dev_okay = true;
+                return device;
             }
+            return device;
         }
     }
 

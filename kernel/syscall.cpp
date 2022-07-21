@@ -11,8 +11,6 @@ void syscall::syscallHandler(isr::Registers* regs) {
     multitasking::context *current_context = (multitasking::context*)(KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET); // return values using this
     if(regs->eax == 1) { // sys_exit
         DEBUG_PRINTF("syscall: sys_exit code: %d\n", regs->ebx);
-        register uint32_t esp asm("esp");
-        printf("esp: %p\n", esp);
         multitasking::killCurrentProcess();
     }
     else if(regs->eax == 4) { // sys_write
