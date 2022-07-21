@@ -52,13 +52,16 @@ do_e820:
 	clc			; there is "jc" on end of list to this point, so the carry must be cleared
 	ret
 .failed:
+	mov bx, noe820
+	call puts
+	jmp infiniteloop
 	mov ax, 0
 	mov [mmap_ent], ax
 	stc			; "function unsupported" error exit
 	ret
 
 
-activate_a20:
+activate_a20: ; trashes some registers
 	; once again, copypasted from wiki.osdev.org
 	mov     ax,2403h                ;--- A20-Gate Support ---
 	int     15h
@@ -82,9 +85,14 @@ activate_a20:
 	jnz     .a20_failed              ;couldn't activate the gate
 	jmp .a20_activated
 .a20_ns:
-	jmp infiniteloop
 .a20_failed:
-	jmp infiniteloop
+	; at this point, we'll try everything we can to enable it and just hope for the best...
+	in al,0xee ; try 0xee
+
+	; fast A20 -- should work on everything since the IBM PS/2
+	in al, 0x92
+	or al, 2
+	out 0x92, al
 .a20_activated:
 	ret
 
@@ -118,7 +126,7 @@ push es
 mov ax, LD_ADDRESS
 mov es, ax
 mov bx, 0
-mov ah, 0x02 ; Load the kernel
+mov ah, 0x02 ; load stage 2
 mov al, KRN_SIZE
 mov ch, 0x00
 mov cl, FST_SECTOR
@@ -159,18 +167,30 @@ mov esp, 0x9F000
 
 jmp dword 0x8:0x1000
 
-print_char: ; character in al
-pusha
-mov ah, 0x0E ; teletype output
-mov bh, 0
-int 0x10
-popa
-ret
+putc: ; character in al
+	push ax
+	push bx
+	mov ah, 0x0E ; teletype output
+	mov bh, 0
+	int 0x10
+	pop bx
+	pop ax
+	ret
+
+puts: ; input: bx->pointer to null-terminated string, output: bx->pointer to null termination
+	cmp byte [bx], 0
+	je .end
+	mov al, byte [bx]
+	call putc
+	inc bx
+	jmp puts
+.end:
+	ret
 
 infiniteloop:
-cli
-hlt
-jmp infiniteloop
+	cli
+	hlt
+	jmp infiniteloop
 
 ; Variables
 boot_device db 0
@@ -185,6 +205,9 @@ gdtend:
 
 gdtptr:
     dw 0
+
+; strings
+noe820 db "no e820",0x0a, 0x0d, 0x0
 
 times 510-($-$$) db 144 ; NOP until 510 bytes
 dw 0xAA55 ; Bootloader signature
