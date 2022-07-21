@@ -45,10 +45,6 @@ void stage2start(void) {
         printf("Jumping to kernel\n");
         uint32_t sp_adr = KERNEL_VIRT_ADDRESS + KERNEL_START_STACK_POINTER_OFFSET;
         uint32_t kerneladr = KERNEL_VIRT_ADDRESS;
-        printf("boutta jump to kernel\n");
-        printf("first uint32_t of kernel: 0x%p\n", *((uint32_t*)(KERNEL_VIRT_ADDRESS + 1)));
-        for(uint32_t i = 0; i < 0xFFFFFFF; i++) {}
-        printf("jump NOW");
         asm volatile("" : : "a"(sp_adr));
         asm("mov %eax, %esp");
         asm volatile("" : : "a"(kerneladr));
