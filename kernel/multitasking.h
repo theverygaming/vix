@@ -44,4 +44,5 @@ namespace multitasking
     void setPageRange(process_pagerange* range);
     void unsetPageRange(process_pagerange* range);
     void zeroPageRange(process_pagerange* range);
+    void printPageRange(process_pagerange* range);
 }

@@ -87,7 +87,7 @@ void multitasking::create_task(void* stackadr, void* codeadr, process_pagerange*
             processes[i] = {i, {0, 0, 0, 0, 0, 0, (uint32_t)stackadr, 0}, 0, false};
             memcpy((char*)processes[i].pages, (char*)pagerange, sizeof(process_pagerange) * PROCESS_MAX_PAGE_RANGES);
             processes[i].running = true;
-            processes[i].priority = 100;
+            processes[i].priority = 0;
             break;
         }
     }
@@ -228,5 +228,13 @@ void multitasking::unsetPageRange(process_pagerange* range) {
 void multitasking::zeroPageRange(process_pagerange* range) {
     for(int i = 0; i < PROCESS_MAX_PAGE_RANGES; i++) {
         range[i] = {0,0,0};
+    }
+}
+
+void multitasking::printPageRange(process_pagerange* range) {
+    for(int i = 0; i < PROCESS_MAX_PAGE_RANGES; i++) {
+        if(range[i].pages != 0) {
+            printf("pb: 0x%p vb: 0x%p pages: %u\n", range[i].phys_base, range[i].virt_base, range[i].pages);
+        }
     }
 }
