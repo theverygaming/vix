@@ -113,9 +113,9 @@ double sin(double x) {
     float xf = (float)x;
     float* xfp = &xf;
     asm volatile (
-    "fld (%0)\n\t" // load into ST(0)
+    "flds (%0)\n\t" // load into ST(0)
     "fsin\n\t"
-    "fstp (%1)\n\t" // pop off ST(0)
+    "fstps (%1)\n\t" // pop off ST(0)
     : "=r" (xfp)
     : "r" (xfp));
     return (double)xf;
@@ -125,9 +125,9 @@ double cos(double x) {
     float xf = (float)x;
     float* xfp = &xf;
     asm volatile (
-    "fld (%0)\n\t" // load into ST(0)
+    "flds (%0)\n\t" // load into ST(0)
     "fcos\n\t"
-    "fstp (%1)\n\t" // pop off ST(0)
+    "fstps (%1)\n\t" // pop off ST(0)
     : "=r" (xfp)
     : "r" (xfp));
     return (double)xf;
