@@ -1,0 +1,4 @@
+[submodule "shitshell"]
+	path = shitshell
+	url = https://github.com/theverygaming/shitshell
+	branch = main
