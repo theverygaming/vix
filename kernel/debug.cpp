@@ -2,6 +2,7 @@
 #include "stdio.h"
 #include "paging.h"
 #include "drivers/serial.h"
+#include "../config.h"
 
 void debug::stack_trace(uint32_t maxLength, uint32_t ebp) {
     printf("Stack trace:\n");
@@ -28,4 +29,9 @@ void debug::debug_loop() {
 void debug::breakpoint(int line, char* file) {
     printf_serial("Breakpoint hit in %s at line %d\nPress any key to continue\n", file, line);
     drivers::serial::getc();
+}
+
+void debug::visual_dbg(char c) {
+    *((char *)((KERNEL_VIRT_ADDRESS + VIDMEM_OFFSET) + 2 * 70 + 160 * 0)) = c;
+    for(uint32_t i = 0; i < 0xFFFFFFF; i++) {}
 }

@@ -63,7 +63,9 @@ void kernelstart()
   //clrscr();
   //paging::clearPageTables((void*)0x0, 6);
   //register uint32_t esp asm("esp");
-	printf("\n\n\n\n");
+  for(uint32_t i = 0; i < 0xFFFFFFF; i++) {}
+  clrscr();
+  drivers::serial::init();
   printf("hewwo\n");
   register uint32_t esp asm("esp");
   printf("esp: %p\n", esp);
@@ -74,7 +76,6 @@ void kernelstart()
   memalloc::page::kernel_alloc((void*)(KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET), 245);
   cpubasics::cpuinit();
   drivers::keyboard::init();
-  drivers::serial::init();
   isr::RegisterHandler(0x80, syscall::syscallHandler);
   //for(uint32_t i = 0; i < 0xFFFFFFF; i++) {}
   elf::load_program((void*)(KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET));
