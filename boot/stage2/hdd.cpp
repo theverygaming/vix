@@ -13,17 +13,21 @@ namespace hdd::ata_pio
         outb(io_base + 0x05, 0);
 
         outb(io_base + 0x07, 0xEC);
+
         if (!inb(0x1F7)) {
             return device;
         }
+
         for (int i = 0; i < 1000000; i++) {
-            if (inb(io_base + 0x07) & (1 << 7)) {
+            if (!(inb(io_base + 0x07) & (1 << 7))) {
                 break;
             }
         }
+
         if (inb(io_base + 0x04) || inb(io_base + 0x05)) {
             return device;
         }
+        
         for (int j = 0; j < 1000000; j++) {
             char status = inb(io_base + 0x07);
             if (status & (1 << 0)) {
@@ -146,7 +150,7 @@ namespace hdd::ata_pio
 
 namespace hdd::generic
 {
-    genericDrive_t alldrives[4] = {false, genericDrive_t::GENERIC_DRIVE_NONE, 0, 0};
+    genericDrive_t alldrives[10]{};
 
     void scanDrives() {
         for (int i = 0; i < sizeof(alldrives) / sizeof(genericDrive_t); i++) {

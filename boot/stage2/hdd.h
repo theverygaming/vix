@@ -28,7 +28,7 @@
 namespace hdd {
     namespace generic {
         typedef struct __genericDrive_t {
-            bool alive;
+            bool alive = false;
             enum __drivetype {
                 GENERIC_DRIVE_NONE = -1,
                 GENERIC_DRIVE_ATAPIO = 0,
@@ -38,14 +38,14 @@ namespace hdd {
             uint64_t devinfo1;
             uint64_t devinfo2;
         } genericDrive_t;
-        extern genericDrive_t alldrives[4];
+        extern genericDrive_t alldrives[10];
         void scanDrives();
         int readDrive(void *buf, uint64_t lba, uint16_t sectors, hdd::generic::genericDrive_t drive);
     }
 
     namespace ata_pio {
         typedef struct __atadevice_t {
-            bool dev_okay;
+            bool dev_okay = false;
 	        char name[41];
         } atadevice_t;
         enum controller_e {
