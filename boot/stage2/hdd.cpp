@@ -3,7 +3,7 @@
 namespace hdd::ata_pio
 {
     hdd::ata_pio::atadevice_t cmd_identify(enum hdd::ata_pio::controller_e controller, enum hdd::ata_pio::drive_e drive) {
-        hdd::ata_pio::atadevice_t device = {false, ""};
+        hdd::ata_pio::atadevice_t device = {false};
         uint16_t io_base = controller; // 0x1F0 controller 1, 0x170 controller 2
         uint16_t drv = drive;          // 0xA0 master, 0xB0 slave
         outb(io_base + 0x06, drv);     // HDD selection

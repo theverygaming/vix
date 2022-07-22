@@ -43,3 +43,9 @@ void drivers::serial::putc(char c) {
             break;
     }
 }
+
+char drivers::serial::getc() {
+    if(!serial_enabled) { return '\0'; }
+    while(!(inb(SERIAL_PORT + 5) & 1));
+    return inb(SERIAL_PORT);
+}
