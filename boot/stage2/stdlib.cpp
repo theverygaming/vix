@@ -1,5 +1,5 @@
 #include "stdlib.h"
-char* memcpy(char* dst, char* src, int n)
+char* memcpy(char* dst, const char* src, int n)
 {
 	char* p = dst;
 	while (n--)

@@ -118,7 +118,7 @@ void paging::clearPageTables(void* virtAddress, uint32_t pagecount) {
     }
 }
 
-bool paging::is_readable(void* virtualaddr) {
+bool paging::is_readable(const void* virtualaddr) {
     uint32_t pdindex = (uint32_t)virtualaddr >> 22;
     uint32_t ptindex = (uint32_t)virtualaddr >> 12 & 0x03FF;
     return check_pagetable_entry_present(pdindex, ptindex);

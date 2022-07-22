@@ -18,7 +18,6 @@ void elf::load_program(void* ELF_baseadr) {
         return;
     }
     for (int i = 0; i < header.e_phnum; i++) {
-        uint32_t addr;
         memcpy((char*)&pHeader, (char*)ELF_baseadr + header.e_phoff + (header.e_phentsize * i), sizeof(pHeader));
         printf("section: align: 0x%p vaddr->0x%p sizef->0x%p sizem->0x%p\n", pHeader.p_align, pHeader.p_vaddr, pHeader.p_filesz, pHeader.p_memsz);
         if(pHeader.p_type != 1) {
@@ -32,7 +31,6 @@ void elf::load_program(void* ELF_baseadr) {
         }
     }
 
-    uint32_t virt_baseadr = min;
     uint32_t pagecount = ((max - min) / 4096) + 5;
     
     multitasking::process_pagerange pageranges[PROCESS_MAX_PAGE_RANGES];
@@ -40,14 +38,11 @@ void elf::load_program(void* ELF_baseadr) {
         pageranges[i] = {0,0,0};
     }
 
-    void* initial_physadr = memalloc::page::phys_malloc(pagecount);
-    pageranges[0] = { (uint32_t)initial_physadr, virt_baseadr, pagecount };
+    pageranges[0] = { (uint32_t)memalloc::page::phys_malloc(pagecount), min, pagecount };
     multitasking::setPageRange(pageranges);
     
     printf("---Program Headers---\n");
     for (int i = 0; i < header.e_phnum; i++) {
-
-        uint32_t addr;
         memcpy((char*)&pHeader, (char*)ELF_baseadr + header.e_phoff + (header.e_phentsize * i), sizeof(pHeader));
         
         printf("section: align: 0x%p vaddr->0x%p sizef->0x%p sizem->0x%p\n", pHeader.p_align, pHeader.p_vaddr, pHeader.p_filesz, pHeader.p_memsz);

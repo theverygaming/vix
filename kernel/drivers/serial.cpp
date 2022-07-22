@@ -35,12 +35,10 @@ static int is_tx_empty() {
 
 void drivers::serial::putc(char c) {
     if(!serial_enabled) { return; }
-    while(is_tx_empty == 0);
+    while(is_tx_empty() == 0);
     outb(SERIAL_PORT, c);
-    switch(c) {
-        case '\n':
-            outb(SERIAL_PORT, '\r');
-            break;
+    if(c == '\n') {
+        outb(SERIAL_PORT, '\r');
     }
 }
 

@@ -31,16 +31,4 @@ namespace elf {
         uint32_t p_flags;
         uint32_t p_align; // alignment
     } ElfProgramHeader;
-
-    enum ElfSegmentType {
-        PT_NULL,
-        PT_LOAD,
-        PT_DYNAMIC,
-        PT_INTERP,
-        PT_NOTE,
-        PT_SHLIB,
-        PT_PHDR,
-        PT_LOPROC = 0x70000000, // reserved
-        PT_HIPROC = 0x7FFFFFFF  // reserved
-    };
 }

@@ -67,7 +67,7 @@ void kernelstart()
   printf("hewwo\n");
   register uint32_t esp asm("esp");
   printf("esp: %p\n", esp);
-  memorymap::initMemoryMap((void*)0x7C00 + 0x7000, (void*)0x7C00 + (0x7004));
+  memorymap::initMemoryMap((void*)0x7C00 + 0x7000, (void*)0x7C00 + 0x7004);
   paging::clearPageTables((void*)0x0, KERNEL_VIRT_ADDRESS / 4096);
   memalloc::page::phys_init(memorymap::map_entries, memorymap::map_entrycount);
   memalloc::page::kernel_init();

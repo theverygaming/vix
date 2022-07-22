@@ -2,7 +2,7 @@
 #include "stdio.h"
 #include "paging.h"
 
-char* memcpy(char* dst, char* src, int n)
+char* memcpy(char* dst, const char* src, int n)
 {
 	char* p = dst;
 	while (n--)
@@ -10,7 +10,7 @@ char* memcpy(char* dst, char* src, int n)
 	return p;
 }
 
-char* s_memcpy(char* dst, char* src, int n)
+char* s_memcpy(char* dst, const char* src, int n)
 {
 	char* p = dst;
 	while (n--) { // this could be made a lot faster
