@@ -55,12 +55,6 @@ void paging::initpaging()
     }
     map_page((void*)0xB8000, (void*)(KERNEL_VIRT_ADDRESS + VIDMEM_OFFSET)); // Video memory
     
-    // 0x4C4C000 -> 4690 sectors -> ~587 pages
-    for(int i = 0; i < 587; i++) {
-        map_page((void*)(KERNEL_PHYS_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET) + (i * 0x1000), (void*)(KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET) + (i * 0x1000));
-    }
-    
-
     loadPageDirectory(page_directory);
     enablePaging();
     pagetables = (uint32_t(*)[1024])KERNEL_VIRT_ADDRESS + PAGE_TABLES_OFFSET;

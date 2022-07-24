@@ -9,7 +9,7 @@
 #include "debug.h"
 #include "memalloc.h"
 
-isr::intHandler *handlers = (isr::intHandler*)(KERNEL_VIRT_ADDRESS + ISR_HANDLER_OFFSET);
+isr::intHandler handlers[256];
 
 extern "C" uint32_t i686_ISR_Handler(isr::Registers* regs) {
     if(handlers[regs->interrupt] != NULL) { handlers[regs->interrupt](regs); }
