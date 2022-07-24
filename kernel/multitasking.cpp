@@ -49,6 +49,7 @@ multitasking::process *multitasking::fork_current_process() {
             break;
         }
     }
+    
     if (freeProcess == -1) {
         return nullptr;
     }
@@ -56,6 +57,10 @@ multitasking::process *multitasking::fork_current_process() {
     for (int i = 0; i < PROCESS_MAX_PAGE_RANGES; i++) {
         if (processes[currentProcess].pages[i].pages != 0) {
             void *physadr = memalloc::page::phys_malloc(processes[currentProcess].pages[i].pages);
+            if(!physadr) { 
+                printf("could not allocate memory for fork!\n");
+                return nullptr; 
+            }
             processes[freeProcess].pages[i].pages = processes[currentProcess].pages[i].pages;
             processes[freeProcess].pages[i].phys_base = (uint32_t)physadr;
             processes[freeProcess].pages[i].virt_base = processes[currentProcess].pages[i].virt_base;
@@ -79,6 +84,7 @@ multitasking::process *multitasking::fork_current_process() {
 void multitasking::killCurrentProcess() {
     processes[currentProcess].running = false;
     printf("Killed PID %u\n", processes[currentProcess].pid);
+    freePageRange(processes[currentProcess].pages);
     interruptTrigger();
 }
 
@@ -230,6 +236,14 @@ void multitasking::unsetPageRange(process_pagerange *range) {
 void multitasking::zeroPageRange(process_pagerange *range) {
     for (int i = 0; i < PROCESS_MAX_PAGE_RANGES; i++) {
         range[i] = {0, 0, 0};
+    }
+}
+
+void multitasking::freePageRange(process_pagerange *range) {
+    for (int i = 0; i < PROCESS_MAX_PAGE_RANGES; i++) {
+        if (range[i].pages > 0) {
+            memalloc::page::phys_free((void*)range[i].phys_base);
+        }
     }
 }
 
