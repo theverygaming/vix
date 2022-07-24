@@ -4,7 +4,7 @@
 #define KERNEL_CODE_SIZE (2048 * 512) // must be divisible by 4096 and 512
 
 // directory size: 4096 bytes(ends 0x1001000)
-// tables size: (1024 * 1024 *) bytes
+// tables size: (1024 * 1024 * 4) bytes
 #define PAGE_DIRECTORY_OFFSET 0x100000
 #define PAGE_TABLES_OFFSET PAGE_DIRECTORY_OFFSET + (1024 * 4)
 
