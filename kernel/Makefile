@@ -37,4 +37,5 @@ kernel: kernel.ocpp $(OBJECTS_ASM) $(OBJECTS_CPP)
 	nasm -f elf -o $@ $^ 
 
 clean:
-	rm -f kernel *.oasm *.ocpp *.o
+	rm -f kernel
+	find . \( -name '*.oasm' -o -name '*.ocpp' \) -type f -delete
