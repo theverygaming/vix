@@ -1,8 +1,7 @@
-name: sonar
+name: Build
 on: [push, pull_request]
 jobs:
-  build:
-    name: Build
+  sonar:
     runs-on: ubuntu-latest
     env:
       SONAR_SCANNER_VERSION: 4.7.0.2747
@@ -39,14 +38,26 @@ jobs:
       - name: Run build-wrapper
         run: |
           build-wrapper-linux-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} make clean all
-      - name: save image
-        uses:  actions/upload-artifact@v2
-        with:
-            name: image
-            path: ${{runner.workspace}}/shitOS/shitOS_app.img
       - name: Run sonar-scanner
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           sonar-scanner --define sonar.host.url="${{ env.SONAR_SERVER_URL }}" --define sonar.cfamily.build-wrapper-output="${{ env.BUILD_WRAPPER_OUT_DIR }}"
+  build-image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install nasm gcc-multilib g++-multilib
+      - name: compile
+        run: cd $GITHUB_WORKSPACE && make
+
+      - name: upload image
+        uses:  actions/upload-artifact@v2
+        with:
+            name: image
+            path: ${{runner.workspace}}/shitOS/shitOS_app.img 
