@@ -63,7 +63,7 @@ void kernelstart()
   //clrscr();
   //paging::clearPageTables((void*)0x0, 6);
   //register uint32_t esp asm("esp");
-  for(uint32_t i = 0; i < 0xFFFFFFF; i++) {}
+  for(uint32_t i = 0; i < 0xFFFFFF; i++) {}
   clrscr();
   drivers::serial::init();
   printf("hewwo\n");
@@ -77,7 +77,6 @@ void kernelstart()
   cpubasics::cpuinit();
   drivers::keyboard::init();
   isr::RegisterHandler(0x80, syscall::syscallHandler);
-  //for(uint32_t i = 0; i < 0xFFFFFFF; i++) {}
   elf::load_program((void*)(KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET));
   memalloc::page::kernel_free((void*)(KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET));
   

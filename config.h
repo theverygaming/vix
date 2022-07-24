@@ -1,5 +1,5 @@
 #define KERNEL_VIRT_ADDRESS 0xC0000000
-#define KERNEL_PHYS_ADDRESS 0x1F0000 // 0xF00000 // lets ignore the ISA memory hole, the PC's we run on are not that old anyway right?
+#define KERNEL_PHYS_ADDRESS 0x1EA000 // lets ignore the ISA memory hole, the PC's we run on are not that old anyway right?
 
 #define KERNEL_CODE_SIZE (2048 * 512) // must be divisible by 4096 and 512
 
@@ -20,5 +20,5 @@
 #define KERNEL_START_STACK_POINTER_OFFSET 0xE4F000 // stack grows downwards
 #define KERNEL_ISR_STACK_POINTER_OFFSET 0xF49000
 
-#define KERNEL_FREE_AREA_BEGIN_OFFSET 0x1F50000 // TODO: investigate why 0xF50000 causes stage2 to triplefault
-#define KERNEL_MEMORY_END_OFFSET 0x28DA000
+#define KERNEL_FREE_AREA_BEGIN_OFFSET 0xF50000
+#define KERNEL_MEMORY_END_OFFSET 0x1500000
