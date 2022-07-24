@@ -34,7 +34,7 @@ BreakBeforeBraces: Custom
 
 ColumnLimit: 200
 
-PointerAlignment: Left
+PointerAlignment: Right
 
 AllowShortBlocksOnASingleLine: Empty
 AllowShortFunctionsOnASingleLine: Empty

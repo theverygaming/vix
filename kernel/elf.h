@@ -2,7 +2,7 @@
 #include "types.h"
 
 namespace elf {
-    void load_program(void* ELF_baseadr);
+    void load_program(void *ELF_baseadr);
 
     typedef struct ElfHeader {
         unsigned char e_ident[16]; // should start with [0x7f 'E' 'L' 'F']

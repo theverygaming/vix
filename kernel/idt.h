@@ -1,10 +1,8 @@
 #pragma once
 #include <stdint.h>
 
-namespace idt
-{
-    typedef enum
-    {
+namespace idt {
+    typedef enum {
         IDT_FLAG_GATE_TASK = 0x5,
         IDT_FLAG_GATE_16BIT_INT = 0x6,
         IDT_FLAG_GATE_16BIT_TRAP = 0x7,

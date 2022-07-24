@@ -1,14 +1,13 @@
 #include "cpubasics.h"
+#include "../config.h"
 #include "gdt.h"
 #include "idt.h"
 #include "isr.h"
-#include <cstddef>
-#include "stdio.h"
 #include "multitasking.h"
-#include "../config.h"
+#include "stdio.h"
+#include <cstddef>
 
-void init_pic(void)
-{
+void init_pic(void) {
     /* Initialisation de ICW1 */
     outb(0x20, 0x11);
     outb(0xA0, 0x11);
@@ -30,11 +29,9 @@ void init_pic(void)
     outb(0xA1, 0x0);
 }
 
+// void (*clockHandlers[256])();
 
-//void (*clockHandlers[256])();
-
-void set_pit_freq(int hz)
-{
+void set_pit_freq(int hz) {
     int divisor = 1193180 / hz; /* Calculate our divisor */
     outb(0x43, 0x36);           /* Set our command byte 0x36 */
     outb(0x40, divisor & 0xFF); /* Set low byte of divisor */
@@ -44,20 +41,15 @@ void set_pit_freq(int hz)
 int ticks = 0;
 int count = 1;
 
-void cpubasics::sleep(int ms)
-{
+void cpubasics::sleep(int ms) {
     ticks = 0;
     count = 1;
-    while (ticks < ms)
-    {
-    }
+    while (ticks < ms) {}
     ticks = 0;
 }
 
-void isr_clock_int()
-{
-    if (count == 1)
-    {
+void isr_clock_int() {
+    if (count == 1) {
         ticks++;
     }
     *((unsigned char *)((KERNEL_VIRT_ADDRESS + VIDMEM_OFFSET) + 2 * 79 + 160 * 0)) = ticks / 20;
@@ -82,15 +74,14 @@ void cpubasics::DeregisterClockHandler(int number) {
     clockHandlers[number] = NULL;
 }*/
 
-void cpubasics::cpuinit()
-{
-    //gdt::i686_GDT_Initialize();
+void cpubasics::cpuinit() {
+    // gdt::i686_GDT_Initialize();
     idt::i686_IDT_Initialize();
     isr::i686_ISR_Initialize();
     init_pic();
     set_pit_freq(1000);
     isr::RegisterHandler(32, clockHandler);
-    //RegisterClockHandler(0, isr_clock_int);
+    // RegisterClockHandler(0, isr_clock_int);
     outb(0x21, 0b00000000); // Enable all IRQ's
     outb(0xA1, 0b00000000);
     asm("sti");

@@ -1,6 +1,6 @@
 #include "isrs.h"
-#include "idt.h"
 #include "gdt.h"
+#include "idt.h"
 
 extern "C" void i686_ISR0();
 extern "C" void i686_ISR1();
@@ -259,8 +259,7 @@ extern "C" void i686_ISR253();
 extern "C" void i686_ISR254();
 extern "C" void i686_ISR255();
 
-void isrs::i686_ISR_InitializeGates()
-{
+void isrs::i686_ISR_InitializeGates() {
     idt::i686_IDT_SetGate(0, (void *)&i686_ISR0, i686_GDT_CODE_SEGMENT, idt::IDT_FLAG_RING0 | idt::IDT_FLAG_GATE_32BIT_INT);
     idt::i686_IDT_SetGate(1, (void *)&i686_ISR1, i686_GDT_CODE_SEGMENT, idt::IDT_FLAG_RING0 | idt::IDT_FLAG_GATE_32BIT_INT);
     idt::i686_IDT_SetGate(2, (void *)&i686_ISR2, i686_GDT_CODE_SEGMENT, idt::IDT_FLAG_RING0 | idt::IDT_FLAG_GATE_32BIT_INT);

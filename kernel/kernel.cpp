@@ -60,16 +60,16 @@ void kernelstart() {
     clrscr();
     drivers::serial::init();
     printf("hewwo\n");
-    memorymap::initMemoryMap((void*)0x7C00 + 0x7000, (void*)0x7C00 + 0x7004);
-    paging::clearPageTables((void*)0x0, KERNEL_VIRT_ADDRESS / 4096);
+    memorymap::initMemoryMap((void *)0x7C00 + 0x7000, (void *)0x7C00 + 0x7004);
+    paging::clearPageTables((void *)0x0, KERNEL_VIRT_ADDRESS / 4096);
     memalloc::page::phys_init(memorymap::map_entries, memorymap::map_entrycount);
     memalloc::page::kernel_init();
-    memalloc::page::kernel_alloc((void*)(KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET), 245);
+    memalloc::page::kernel_alloc((void *)(KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET), 245);
     cpubasics::cpuinit();
     drivers::keyboard::init();
     isr::RegisterHandler(0x80, syscall::syscallHandler);
-    elf::load_program((void*)(KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET));
-    memalloc::page::kernel_free((void*)(KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET));
+    elf::load_program((void *)(KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET));
+    memalloc::page::kernel_free((void *)(KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET));
 
     for (int i = 0; i < 18; i++) {
         for (int j = 0; j < 13; j++) {
@@ -93,7 +93,7 @@ void kernelstart() {
 
     int counter = 0;
     while (true) {
-        *((unsigned char*)((KERNEL_VIRT_ADDRESS + VIDMEM_OFFSET) + 2 * 70 + 160 * 0)) = counter / 20;
+        *((unsigned char *)((KERNEL_VIRT_ADDRESS + VIDMEM_OFFSET) + 2 * 70 + 160 * 0)) = counter / 20;
         counter++;
         if (counter == 1000) {
             counter = 0;

@@ -1,7 +1,6 @@
 #include "hdd.h"
 
-namespace hdd::ata_pio
-{
+namespace hdd::ata_pio {
     hdd::ata_pio::atadevice_t cmd_identify(enum hdd::ata_pio::controller_e controller, enum hdd::ata_pio::drive_e drive) {
         hdd::ata_pio::atadevice_t device = {false};
         uint16_t io_base = controller; // 0x1F0 controller 1, 0x170 controller 2
@@ -27,7 +26,7 @@ namespace hdd::ata_pio
         if (inb(io_base + 0x04) || inb(io_base + 0x05)) {
             return device;
         }
-        
+
         for (int j = 0; j < 1000000; j++) {
             char status = inb(io_base + 0x07);
             if (status & (1 << 0)) {
@@ -60,13 +59,17 @@ namespace hdd::ata_pio
         ide_400ns_delay(io);
     retry:;
         uint8_t status = inb(io + 0x07);
-        if (status & 0x80) { goto retry; }
+        if (status & 0x80) {
+            goto retry;
+        }
     retry2:
         status = inb(io + 0x07);
         if (status & 0x01) {
             printf("ERR set, device failure!\n");
         }
-        if (!(status & 0x08)) { goto retry2; }
+        if (!(status & 0x08)) {
+            goto retry2;
+        }
         return;
     }
 
@@ -140,16 +143,14 @@ namespace hdd::ata_pio
         return baseindex + indx;
     }
 
-    void generic_read(void *buf, uint64_t lba, uint16_t sectors, hdd::generic::genericDrive_t drive)
-    {
+    void generic_read(void *buf, uint64_t lba, uint16_t sectors, hdd::generic::genericDrive_t drive) {
         enum controller_e controller = (controller_e)drive.devinfo1;
         enum drive_e drv = (drive_e)drive.devinfo2;
         ata_read(buf, lba, sectors, controller, drv);
     }
 }
 
-namespace hdd::generic
-{
+namespace hdd::generic {
     genericDrive_t alldrives[10]{};
 
     void scanDrives() {
@@ -163,7 +164,9 @@ namespace hdd::generic
     }
 
     int readDrive(void *buf, uint64_t lba, uint16_t sectors, genericDrive_t drive) {
-        if (!drive.alive) { return 1; }
+        if (!drive.alive) {
+            return 1;
+        }
         if (drive.drivetype == genericDrive_t::GENERIC_DRIVE_ATAPIO) {
             hdd::ata_pio::generic_read(buf, lba, sectors, drive);
         }

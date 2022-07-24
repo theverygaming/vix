@@ -1,13 +1,12 @@
 #pragma once
+#include "../config.h"
 #include "paging.h"
 #include "types.h"
-#include "../config.h"
 
 #define PROCESS_MAX_PAGE_RANGES 20
 #define MAX_PROCESSES 100
 
-namespace multitasking
-{
+namespace multitasking {
     typedef struct {
         uint32_t eax;
         uint32_t ebx;
@@ -36,13 +35,13 @@ namespace multitasking
     bool isProcessSwitchingEnabled();
     void killCurrentProcess();
     void interruptTrigger();
-    void create_task(void* stackadr, void* codeadr, process_pagerange* pagerange);
-    process* getCurrentProcess();
-    process* fork_current_process();
+    void create_task(void *stackadr, void *codeadr, process_pagerange *pagerange);
+    process *getCurrentProcess();
+    process *fork_current_process();
     void setProcessSwitching(bool state);
-    bool createPageRange(process_pagerange* range, uint32_t max_address = KERNEL_VIRT_ADDRESS);
-    void setPageRange(process_pagerange* range);
-    void unsetPageRange(process_pagerange* range);
-    void zeroPageRange(process_pagerange* range);
-    void printPageRange(process_pagerange* range);
+    bool createPageRange(process_pagerange *range, uint32_t max_address = KERNEL_VIRT_ADDRESS);
+    void setPageRange(process_pagerange *range);
+    void unsetPageRange(process_pagerange *range);
+    void zeroPageRange(process_pagerange *range);
+    void printPageRange(process_pagerange *range);
 }
