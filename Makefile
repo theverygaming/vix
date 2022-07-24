@@ -1,17 +1,11 @@
 all: img
 
-img: bootsect kernelbruh shitshellbruh
+img:
+	$(MAKE) -C boot
+	$(MAKE) -C kernel
+	$(MAKE) -C shitshell
 	cat boot/boot kernel/kernel /dev/zero | dd of=shitOS.img bs=512 count=2048
 	cat shitOS.img shitshell/shitshell /dev/zero | dd of=shitOS_app.img bs=512 count=6738
-
-bootsect:
-	$(MAKE) -C boot
-
-kernelbruh:
-	$(MAKE) -C kernel
-
-shitshellbruh:
-	$(MAKE) -C shitshell
 
 clean:
 	rm -f shitOS.img shitOS_app.img *.o
