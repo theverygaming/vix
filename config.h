@@ -1,24 +1,24 @@
 #define KERNEL_VIRT_ADDRESS 0xC0000000
-#define KERNEL_PHYS_ADDRESS 0x01CA5000
+#define KERNEL_PHYS_ADDRESS 0x1EA000 // lets ignore the ISA memory hole, the PC's we run on are not that old anyway right?
+
+#define KERNEL_CODE_SIZE (2048 * 512) // must be divisible by 4096 and 512
 
 // directory size: 4096 bytes(ends 0x1001000)
-// tables size: 4194304 bytes
-#define PAGE_DIRECTORY_OFFSET 0x1000000
+// tables size: (1024 * 1024 *) bytes
+#define PAGE_DIRECTORY_OFFSET 0x100000
 #define PAGE_TABLES_OFFSET PAGE_DIRECTORY_OFFSET + (1024 * 4)
 
 // location where ISR stores registers, size: 32 bytes 
 //could be moved a bit
-#define REGISTER_STORE_OFFSET 0x1401FE0
+#define REGISTER_STORE_OFFSET 0x502000
+
+#define GDT_OFFSET 0x502020
 
 // 80 * 25 * 2 = 4000 bytes, will be 4096 bytes bc it's paged
-#define VIDMEM_OFFSET 0x1402000
+#define VIDMEM_OFFSET 0x503000
 
-#define ISR_HANDLER_OFFSET 0x1403000 // TODO: add size
+#define KERNEL_START_STACK_POINTER_OFFSET 0xE4F000 // stack grows downwards
+#define KERNEL_ISR_STACK_POINTER_OFFSET 0xF49000
 
-#define KERNEL_START_STACK_POINTER_OFFSET 0x2109000 // stack grows downwards
-#define KERNEL_ISR_STACK_POINTER_OFFSET 0x211D000
-
-#define GDT_OFFSET 0x211D000
-
-#define KERNEL_FREE_AREA_BEGIN_OFFSET 0x211E000
-#define KERNEL_MEMORY_END_OFFSET 0x5F5E000
+#define KERNEL_FREE_AREA_BEGIN_OFFSET 0xF50000
+#define KERNEL_MEMORY_END_OFFSET 0x1500000

@@ -4,8 +4,8 @@
 #include "stdlib.h"
 #include "../config.h"
 
-uint32_t (*pagetables)[1024] = (uint32_t(*)[1024])KERNEL_VIRT_ADDRESS + PAGE_TABLES_OFFSET;
-uint32_t *page_directory = (uint32_t*)KERNEL_VIRT_ADDRESS + PAGE_DIRECTORY_OFFSET;
+uint32_t (*pagetables)[1024] = (uint32_t(*)[1024])(KERNEL_VIRT_ADDRESS + PAGE_TABLES_OFFSET);
+uint32_t *page_directory = (uint32_t*)(KERNEL_VIRT_ADDRESS + PAGE_DIRECTORY_OFFSET);
 
 extern "C" void loadPageDirectory(uint32_t* address);
 extern "C" void enablePaging();
