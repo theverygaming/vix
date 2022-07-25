@@ -37,6 +37,7 @@ namespace multitasking {
     void interruptTrigger();
     void create_task(void *stackadr, void *codeadr, process_pagerange *pagerange);
     process *getCurrentProcess();
+    void waitForProcess(int pid);
     process *fork_current_process();
     void setProcessSwitching(bool state);
     bool createPageRange(process_pagerange *range, uint32_t max_address = KERNEL_VIRT_ADDRESS);

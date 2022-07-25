@@ -41,6 +41,12 @@ multitasking::process *multitasking::getCurrentProcess() {
     return &processes[currentProcess];
 }
 
+void multitasking::waitForProcess(int pid) {
+    if (pid < MAX_PROCESSES) {
+        while (processes[pid].running) {}
+    }
+}
+
 multitasking::process *multitasking::fork_current_process() {
     int freeProcess = -1;
     for (int i = 0; i < MAX_PROCESSES; i++) {

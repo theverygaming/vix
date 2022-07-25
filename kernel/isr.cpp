@@ -113,10 +113,14 @@ void isr::DeregisterHandler(int handler) {
 }
 
 extern "C" void *isr_alloc_stack() {
-    return memalloc::page::kernel_malloc(100) + (100 * 4096); // return top of range
+    void *mem = memalloc::page::kernel_malloc(100);
+    if(mem == 0) {
+        printf("could not allocate memory for syscall!\n");
+        debug::debug_loop();
+    }
+    return mem + (100 * 4096);
 }
 
 extern "C" void isr_free_stack(void *stackadr) {
-    // we get top of range
     memalloc::page::kernel_free(stackadr - (100 * 4096));
 }

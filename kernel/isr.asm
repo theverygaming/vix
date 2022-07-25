@@ -57,7 +57,7 @@ isr_common:
     push eax
     push ebx
     push ecx
-    cmp dword [esp + (4 * 9)], 0x80 ; only do malloc for syscalls
+    cmp dword [esp + (4 * 12)], 0x80 ; only do malloc for syscalls
     jne .isnosys
     call isr_alloc_stack ; returns allocated address in eax
     jmp .idfk
