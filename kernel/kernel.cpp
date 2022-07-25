@@ -1,10 +1,3 @@
-void kernelstart();
-
-// this will be loaded first at boot
-void _start(void) {
-    kernelstart();
-}
-
 #include "../config.h"
 #include "cpubasics.h"
 #include "drivers/keyboard.h"
@@ -20,6 +13,13 @@ void _start(void) {
 #include "stdio.h"
 #include "stdlib.h"
 #include "syscall.h"
+#include "drivers/pci.h"
+
+void kernelstart();
+
+void _start(void) {
+    kernelstart();
+}
 
 // very important arrays definitely
 uint8_t zerotwo[18][13] = {
@@ -68,8 +68,9 @@ void kernelstart() {
     cpubasics::cpuinit();
     drivers::keyboard::init();
     isr::RegisterHandler(0x80, syscall::syscallHandler);
-    elf::load_program((void *)(KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET));
+    //elf::load_program((void *)(KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET));
     memalloc::page::kernel_free((void *)(KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET));
+    drivers::pci::init();
 
     for (int i = 0; i < 18; i++) {
         for (int j = 0; j < 13; j++) {
