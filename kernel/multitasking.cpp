@@ -17,22 +17,22 @@ bool multitasking::isProcessSwitchingEnabled() {
 }
 
 void init_empty_stack(void *stackadr, void *codeadr) {
-    char argstr[] = "/bin/busybox\0sh"; // size: 16 bytes
-    memcpy((char *)stackadr + (4 * 10) + sizeof(argstr), argstr, sizeof(argstr));
+    char argstr[] = "./shitshell";
 
     uint32_t *stack = (uint32_t *)stackadr;
+    memcpy((char *)&stack[10], argstr, sizeof(argstr));
 
     stack[0] = (uint32_t)codeadr; // EIP
     stack[1] = 8;                 // CS?
     stack[2] = 1 << 9;            // EFLAGS, set interrupt bit
-    stack[3] = 2;                 // argc
+    stack[3] = 1;                 // argc
 
-    stack[4] = ((uint32_t)stackadr) + (4 * 5);                        // argv pointer
-    stack[5] = ((uint32_t)stackadr) + (4 * 10) + sizeof(argstr);      // argv string pointer
-    stack[6] = ((uint32_t)stackadr) + (4 * 10) + sizeof(argstr) + 13; // argv string pointer
-    stack[7] = 0;                                                     // argv null termination
-    stack[8] = 0;                                                     // envp null termination
-    stack[9] = 0;                                                     // envp null termination
+    stack[4] = (uint32_t)&stack[5];  // argv pointer
+    stack[5] = (uint32_t)&stack[10]; // argv string pointer
+    stack[6] = 0;                    // argv null termination
+    stack[7] = 0;                    // envp null termination
+    stack[8] = 0;                    // envp null termination
+    stack[9] = 0;                    // envp null termination
 }
 
 bool init = true;
@@ -49,7 +49,7 @@ multitasking::process *multitasking::fork_current_process() {
             break;
         }
     }
-    
+
     if (freeProcess == -1) {
         return nullptr;
     }
@@ -57,9 +57,9 @@ multitasking::process *multitasking::fork_current_process() {
     for (int i = 0; i < PROCESS_MAX_PAGE_RANGES; i++) {
         if (processes[currentProcess].pages[i].pages != 0) {
             void *physadr = memalloc::page::phys_malloc(processes[currentProcess].pages[i].pages);
-            if(!physadr) { 
+            if (!physadr) {
                 printf("could not allocate memory for fork!\n");
-                return nullptr; 
+                return nullptr;
             }
             processes[freeProcess].pages[i].pages = processes[currentProcess].pages[i].pages;
             processes[freeProcess].pages[i].phys_base = (uint32_t)physadr;
@@ -242,7 +242,7 @@ void multitasking::zeroPageRange(process_pagerange *range) {
 void multitasking::freePageRange(process_pagerange *range) {
     for (int i = 0; i < PROCESS_MAX_PAGE_RANGES; i++) {
         if (range[i].pages > 0) {
-            memalloc::page::phys_free((void*)range[i].phys_base);
+            memalloc::page::phys_free((void *)range[i].phys_base);
         }
     }
 }
