@@ -4,7 +4,7 @@
 
 /* direct read/write functions */
 static uint32_t pciConfigRead32(uint8_t bus, uint8_t slot, uint8_t function, uint8_t offset) {
-    uint32_t address = (((uint32_t)bus) << 16) | (((uint32_t)slot) << 11) | (((uint32_t)function) << 8) | (offset & 0xFC) | ((uint32_t)0x80000000);
+    uint32_t address = (((uint32_t)bus) << 16) | (((uint32_t)slot) << 11) | (((uint32_t)function) << 8) | (offset & 0xFC) | (0x80000000);
     outl(0xCF8, address);
     return inl(0xCFC);
 }
@@ -101,29 +101,25 @@ static pciHeader0x0_t read0x0Header(uint8_t bus, uint8_t slot, uint8_t function)
 }
 
 /* might get rid of this depending on how useful it is */
-static bool isMultiFunction(generic_pciHeader_t *header) {
-    return (bool)(header->headerType & (1 << 7));
+static bool isMultiFunction(generic_pciHeader_t header) {
+    return (bool)(header.headerType & (1 << 7));
 }
 
 /* header type */
-typedef enum { HEADER_TYPE_0x0, HEADER_TYPE_PCI_PCI_BRIDGE, HEADER_TYPE_PCI_CARDBUS_BRIDGE, HEADER_TYPE_NONE } pciHeaderType;
-static pciHeaderType getHeaderType(generic_pciHeader_t *header) {
-    switch (header->headerType & 0b01111111) {
+enum class pciHeaderType { HEADER_TYPE_0x0, HEADER_TYPE_PCI_PCI_BRIDGE, HEADER_TYPE_PCI_CARDBUS_BRIDGE, HEADER_TYPE_NONE };
+static pciHeaderType getHeaderType(generic_pciHeader_t header) {
+    switch (header.headerType & 0b01111111) {
     case 0x0:
-        return HEADER_TYPE_0x0;
-        break;
+        return pciHeaderType::HEADER_TYPE_0x0;
 
     case 0x1:
-        return HEADER_TYPE_PCI_PCI_BRIDGE;
-        break;
+        return pciHeaderType::HEADER_TYPE_PCI_PCI_BRIDGE;
 
     case 0x2:
-        return HEADER_TYPE_PCI_CARDBUS_BRIDGE;
-        break;
+        return pciHeaderType::HEADER_TYPE_PCI_CARDBUS_BRIDGE;
 
     default:
-        return HEADER_TYPE_NONE;
-        break;
+        return pciHeaderType::HEADER_TYPE_NONE;
     }
 }
 
@@ -143,6 +139,7 @@ void drivers::pci::init() {
                        (uint32_t)pciHeader.deviceID);
                 printf("PCI - %p:%p.%p -> type: 0x%p 0x%p vendor: 0x%p device: 0x%p\n", (uint32_t)bus, (uint32_t)device, (uint32_t)function, (uint32_t)pciHeader.classID, (uint32_t)pciHeader.subclass, (uint32_t)pciHeader.vendorID, (uint32_t)pciHeader.deviceID);
                 if (isMultiFunction(&pciHeader)) {
+                if (isMultiFunction(pciHeader)) {
                     for (function = 1; function < 8; function++) {
                         generic_pciHeader_t pciHeader = readGenericHeader(bus, device, function);
                         if (pciHeader.vendorID != 0xFFFF) {
