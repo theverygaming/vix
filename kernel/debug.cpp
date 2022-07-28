@@ -24,8 +24,7 @@ void debug::debug_loop() {
         }
     }
 
-    while (true)
-        ;
+    while (true) {}
 }
 
 void debug::breakpoint(int line, char *file) {

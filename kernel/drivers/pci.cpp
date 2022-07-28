@@ -17,7 +17,8 @@ static uint8_t pciConfigRead08(uint8_t bus, uint8_t slot, uint8_t function, uint
     return (uint8_t)((pciConfigRead32(bus, slot, function, offset) >> (offset * 8)) & 0xFF);
 }
 
-/* pci header functions */
+/* pci header structs */
+
 typedef struct {
     uint16_t deviceID;
     uint16_t vendorID;
@@ -33,6 +34,25 @@ typedef struct {
     uint8_t cacheLineSize;
 } generic_pciHeader_t;
 
+typedef struct {
+    uint32_t BAR0;
+    uint32_t BAR1;
+    uint32_t BAR2;
+    uint32_t BAR3;
+    uint32_t BAR4;
+    uint32_t BAR5;
+    uint32_t cardbusCISptr;
+    uint16_t subsystemID;
+    uint16_t subsystemVendorID;
+    uint32_t expansionROMbaseAddress;
+    uint8_t capabilitiesPtr;
+    uint8_t maxLatency;
+    uint8_t minGrant;
+    uint8_t interruptPin;
+    uint8_t interruptLine;
+} pciHeader0x0_t;
+
+/* pci header functions */
 static generic_pciHeader_t readGenericHeader(uint8_t bus, uint8_t slot, uint8_t function) {
     /*
      * +----------+--------+----------+------------+--------------+---------------+
@@ -60,9 +80,51 @@ static generic_pciHeader_t readGenericHeader(uint8_t bus, uint8_t slot, uint8_t 
     return pciheader;
 }
 
+static pciHeader0x0_t read0x0Header(uint8_t bus, uint8_t slot, uint8_t function) {
+    pciHeader0x0_t header;
+    header.BAR0 = pciConfigRead32(bus, slot, function, 16);
+    header.BAR1 = pciConfigRead32(bus, slot, function, 20);
+    header.BAR2 = pciConfigRead32(bus, slot, function, 24);
+    header.BAR3 = pciConfigRead32(bus, slot, function, 28);
+    header.BAR4 = pciConfigRead32(bus, slot, function, 32);
+    header.BAR5 = pciConfigRead32(bus, slot, function, 36);
+    header.cardbusCISptr = pciConfigRead32(bus, slot, function, 40);
+    header.subsystemVendorID = pciConfigRead16(bus, slot, function, 44);
+    header.subsystemID = pciConfigRead16(bus, slot, function, 46);
+    header.expansionROMbaseAddress = pciConfigRead32(bus, slot, function, 48);
+    header.capabilitiesPtr = pciConfigRead08(bus, slot, function, 52);
+    header.interruptLine = pciConfigRead08(bus, slot, function, 60);
+    header.interruptPin = pciConfigRead08(bus, slot, function, 61);
+    header.minGrant = pciConfigRead08(bus, slot, function, 62);
+    header.maxLatency = pciConfigRead08(bus, slot, function, 63);
+    return header;
+}
+
 /* might get rid of this depending on how useful it is */
 static bool isMultiFunction(generic_pciHeader_t *header) {
     return (bool)(header->headerType & (1 << 7));
+}
+
+/* header type */
+typedef enum { HEADER_TYPE_0x0, HEADER_TYPE_PCI_PCI_BRIDGE, HEADER_TYPE_PCI_CARDBUS_BRIDGE, HEADER_TYPE_NONE } pciHeaderType;
+static pciHeaderType getHeaderType(generic_pciHeader_t *header) {
+    switch (header->headerType & 0b01111111) {
+    case 0x0:
+        return HEADER_TYPE_0x0;
+        break;
+
+    case 0x1:
+        return HEADER_TYPE_PCI_PCI_BRIDGE;
+        break;
+
+    case 0x2:
+        return HEADER_TYPE_PCI_CARDBUS_BRIDGE;
+        break;
+
+    default:
+        return HEADER_TYPE_NONE;
+        break;
+    }
 }
 
 void drivers::pci::init() {
@@ -71,11 +133,27 @@ void drivers::pci::init() {
             uint8_t function = 0;
             generic_pciHeader_t pciHeader = readGenericHeader(bus, device, function);
             if (pciHeader.vendorID != 0xFFFF) {
+                printf("PCI - %p:%p.%p -> type: 0x%p 0x%p vendor: 0x%p device: 0x%p\n",
+                       (uint32_t)bus,
+                       (uint32_t)device,
+                       (uint32_t)function,
+                       (uint32_t)pciHeader.classID,
+                       (uint32_t)pciHeader.subclass,
+                       (uint32_t)pciHeader.vendorID,
+                       (uint32_t)pciHeader.deviceID);
                 printf("PCI - %p:%p.%p -> type: 0x%p 0x%p vendor: 0x%p device: 0x%p\n", (uint32_t)bus, (uint32_t)device, (uint32_t)function, (uint32_t)pciHeader.classID, (uint32_t)pciHeader.subclass, (uint32_t)pciHeader.vendorID, (uint32_t)pciHeader.deviceID);
                 if (isMultiFunction(&pciHeader)) {
                     for (function = 1; function < 8; function++) {
                         generic_pciHeader_t pciHeader = readGenericHeader(bus, device, function);
                         if (pciHeader.vendorID != 0xFFFF) {
+                            printf("PCI - %p:%p.%p -> type: 0x%p 0x%p vendor: 0x%p device: 0x%p\n",
+                                   (uint32_t)bus,
+                                   (uint32_t)device,
+                                   (uint32_t)function,
+                                   (uint32_t)pciHeader.classID,
+                                   (uint32_t)pciHeader.subclass,
+                                   (uint32_t)pciHeader.vendorID,
+                                   (uint32_t)pciHeader.deviceID);
                             printf("PCI - %p:%p.%p -> type: 0x%p 0x%p vendor: 0x%p device: 0x%p\n", (uint32_t)bus, (uint32_t)device, (uint32_t)function, (uint32_t)pciHeader.classID, (uint32_t)pciHeader.subclass, (uint32_t)pciHeader.vendorID, (uint32_t)pciHeader.deviceID);
                         }
                     }
