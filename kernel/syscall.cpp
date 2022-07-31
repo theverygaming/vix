@@ -23,6 +23,7 @@ void syscall::syscallHandler(isr::Registers *regs) {
         string[regs->edx] = '\0';
         memcpy(string, (char *)regs->ecx, regs->edx);
         printf("%s", string);
+        current_context->eax = regs->edx; // return number of written bytes
     } else if (regs->eax == 3) { // sys_read
         DEBUG_PRINTF("syscall: sys_read\n");
 

@@ -45,6 +45,10 @@ void multitasking::waitForProcess(int pid) {
     }
 }
 
+void multitasking::refresh_current_process_pagerange() {
+    createPageRange(processes[currentProcess].pages);
+}
+
 multitasking::process *multitasking::fork_current_process() {
     int freeProcess = -1;
     for (int i = 0; i < MAX_PROCESSES; i++) {
