@@ -5,7 +5,7 @@ HIGHER_HALF = 0xC0000000;
 
 MEMORY
   {
-    ram (rwx) : org = 0xC0000000, l = 1M
+    ram (rwx) : org = 0xC0000000, l = 1500K
   }
 
 SECTIONS {
