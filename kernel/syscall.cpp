@@ -6,392 +6,392 @@
 
 /* syscall arguments correspond to registers eax, ebx, ecx, edx, esi, edi and ebp */
 
-uint32_t (*syscall_table[385])(uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) = {
-    0,
+uint32_t (*syscall_table[385])(int *, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) = {
+    nullptr,
     &sys_exit,
     &sys_fork,
     &sys_read,
     &sys_write, /* 4   */
-    0,
-    0,
+    nullptr,
+    nullptr,
     &sys_waitpid,
-    0,
-    0, /* 9  */
-    0,
+    nullptr,
+    nullptr, /* 9  */
+    nullptr,
     &sys_execve,
-    0,
-    0,
-    0, /* 14  */
-    0,
-    0,
-    0,
-    0,
-    0, /* 19  */
-    0,
-    0,
-    0,
-    0,
-    0, /* 24  */
-    0,
-    0,
-    0,
-    0,
-    0, /* 29  */
-    0,
-    0,
-    0,
-    0,
-    0, /* 34  */
-    0,
-    0,
-    0,
-    0,
-    0, /* 39  */
-    0,
-    0,
-    0,
-    0,
-    0, /* 44  */
-    0,
-    0,
-    0,
-    0,
-    0, /* 49  */
-    0,
-    0,
-    0,
-    0,
-    0, /* 54  */
-    0,
-    0,
-    0,
-    0,
-    0, /* 59  */
-    0,
-    0,
-    0,
-    0,
-    0, /* 64  */
-    0,
-    0,
-    0,
-    0,
-    0, /* 69  */
-    0,
-    0,
-    0,
-    0,
-    0, /* 74  */
-    0,
-    0,
-    0,
-    0,
-    0, /* 79  */
-    0,
-    0,
-    0,
-    0,
-    0, /* 84  */
-    0,
-    0,
-    0,
-    0,
-    0, /* 89  */
+    nullptr,
+    nullptr,
+    nullptr, /* 14  */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 19  */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 24  */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 29  */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 34  */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 39  */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 44  */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 49  */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 54  */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 59  */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 64  */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 69  */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 74  */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 79  */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 84  */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 89  */
     &sys_mmap,
-    0,
-    0,
-    0,
-    0, /* 94  */
-    0,
-    0,
-    0,
-    0,
-    0, /* 99 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 104 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 109 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 114 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 119 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 124 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 129 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 134 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 139 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 144 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 149 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 154 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 159 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 164 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 169 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 174 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 179 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 184 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 189 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 194 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 94  */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 99 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 104 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 109 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 114 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 119 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 124 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 129 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 134 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 139 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 144 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 149 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 154 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 159 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 164 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 169 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 174 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 179 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 184 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 189 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 194 */
     &sys_stat64,
-    0,
-    0,
-    0,
+    nullptr,
+    nullptr,
+    nullptr,
     &sys_getuid32, /* 199 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 204 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 209 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 214 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 219 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 224 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 229 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 234 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 239 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 244 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 249 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 254 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 259 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 264 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 269 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 274 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 279 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 284 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 289 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 294 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 299 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 304 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 309 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 314 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 319 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 324 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 329 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 334 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 339 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 344 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 349 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 354 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 359 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 364 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 369 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 374 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 379 */
-    0,
-    0,
-    0,
-    0,
-    0, /* 384 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 204 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 209 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 214 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 219 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 224 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 229 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 234 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 239 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 244 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 249 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 254 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 259 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 264 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 269 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 274 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 279 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 284 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 289 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 294 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 299 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 304 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 309 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 314 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 319 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 324 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 329 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 334 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 339 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 344 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 349 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 354 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 359 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 364 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 369 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 374 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 379 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 384 */
 };
 
 void syscall::syscallHandler(isr::Registers *regs) {
@@ -403,6 +403,9 @@ void syscall::syscallHandler(isr::Registers *regs) {
         return;
     }
     DEBUG_PRINTF("calling syscall %u\n", regs->eax);
-
-    current_context->eax = syscall_table[regs->eax](regs->eax, regs->ebx, regs->ecx, regs->edx, regs->esi, regs->edi, regs->ebp);
+    int syscall_ret;
+    uint32_t returnval = syscall_table[regs->eax](&syscall_ret, regs->eax, regs->ebx, regs->ecx, regs->edx, regs->esi, regs->edi, regs->ebp);
+    if(syscall_ret > 0) {
+        current_context->eax = returnval;
+    }
 }

@@ -7,12 +7,15 @@
 #include "stdio.h"
 #include "stdlib.h"
 
-uint32_t sys_exit(uint32_t, uint32_t exit_code, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_exit(int *syscall_ret, uint32_t, uint32_t exit_code, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
+    *syscall_ret = 0;
     DEBUG_PRINTF("syscall: sys_exit code: %d\n", exit_code);
     multitasking::killCurrentProcess();
+    return 0;
 }
 
-uint32_t sys_fork(uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_fork(int *syscall_ret, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
+    *syscall_ret = 1;
     DEBUG_PRINTF("syscall: sys_fork\n");
     multitasking::process *newprocess = multitasking::fork_current_process();
     if (newprocess) {
@@ -23,7 +26,8 @@ uint32_t sys_fork(uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, ui
     }
 }
 
-uint32_t sys_read(uint32_t, uint32_t fd, uint32_t _buf, uint32_t count, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_read(int *syscall_ret, uint32_t, uint32_t fd, uint32_t _buf, uint32_t count, uint32_t, uint32_t, uint32_t) {
+    *syscall_ret = 1;
     char *buf = (char *)_buf;
     DEBUG_PRINTF("syscall: sys_read\n");
 
@@ -41,7 +45,8 @@ uint32_t sys_read(uint32_t, uint32_t fd, uint32_t _buf, uint32_t count, uint32_t
     return readCharacters;
 }
 
-uint32_t sys_write(uint32_t, uint32_t fd, uint32_t _buf, uint32_t count, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_write(int *syscall_ret, uint32_t, uint32_t fd, uint32_t _buf, uint32_t count, uint32_t, uint32_t, uint32_t) {
+    *syscall_ret = 1;
     char *buf = (char *)_buf;
 
     DEBUG_PRINTF("syscall: sys_write count: %u\n", count);
@@ -55,7 +60,8 @@ uint32_t sys_write(uint32_t, uint32_t fd, uint32_t _buf, uint32_t count, uint32_
     return count; // return number of written bytes
 }
 
-uint32_t sys_waitpid(uint32_t, uint32_t pid, uint32_t _stat_addr, uint32_t _options, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_waitpid(int *syscall_ret, uint32_t, uint32_t pid, uint32_t _stat_addr, uint32_t _options, uint32_t, uint32_t, uint32_t) {
+    *syscall_ret = 1;
     int *stat_addr = (int *)_stat_addr;
     int options = (uint32_t)_options;
 
@@ -71,17 +77,21 @@ uint32_t sys_waitpid(uint32_t, uint32_t pid, uint32_t _stat_addr, uint32_t _opti
 
     asm("cli");
     memcpy((char *)current_context, (char *)&tempContextStore, sizeof(multitasking::context));
+    return 0; // TODO: fix return value
 }
 
-uint32_t sys_execve(uint32_t, uint32_t _filename, uint32_t _argv, uint32_t _envp, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_execve(int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _argv, uint32_t _envp, uint32_t, uint32_t, uint32_t) {
+    *syscall_ret = 0;
     const char *filename = (const char *)_filename;
     const char *const *argv = (const char *const *)_argv;
     const char *const *envp = (const char *const *)_envp;
     DEBUG_PRINTF("syscall: sys_execve\n");
     printf("%s\n", filename);
+    return 0;
 }
 
-uint32_t sys_mmap(uint32_t, uint32_t mmap_struct_ptr, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_mmap(int *syscall_ret, uint32_t, uint32_t mmap_struct_ptr, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
+    *syscall_ret = 1;
     DEBUG_PRINTF("syscall: sys_mmap !! unstable\n");
     typedef struct {
         void *start;
@@ -106,13 +116,16 @@ uint32_t sys_mmap(uint32_t, uint32_t mmap_struct_ptr, uint32_t, uint32_t, uint32
     return (uint32_t)alloc_adr;
 }
 
-uint32_t sys_stat64(uint32_t, uint32_t _filename, uint32_t _statbuf, uint32_t, uint32_t, uint32_t, uint32_t) {
-    const char* filename = (const char*)_filename;
+uint32_t sys_stat64(int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _statbuf, uint32_t, uint32_t, uint32_t, uint32_t) {
+    *syscall_ret = 1;
+    const char *filename = (const char *)_filename;
     DEBUG_PRINTF("syscall: sys_stat64\n");
     printf("%s\n", filename);
+    return -1; // TODO: fix up return value
 }
 
-uint32_t sys_getuid32(uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_getuid32(int *syscall_ret, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
+    *syscall_ret = 1;
     DEBUG_PRINTF("syscall: sys_getuid32\n");
     return 0; // with the current state of the system we are always root
 }
