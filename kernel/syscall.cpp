@@ -1,77 +1,408 @@
 #include "syscall.h"
 #include "../config.h"
 #include "debug.h"
-#include "drivers/keyboard.h"
 #include "multitasking.h"
-#include "paging.h"
-#include "stdio.h"
-#include "stdlib.h"
+#include "syscalls.h"
+
+/* syscall arguments correspond to registers eax, ebx, ecx, edx, esi, edi and ebp */
+
+uint32_t (*syscall_table[385])(uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) = {
+    0,
+    &sys_exit,
+    &sys_fork,
+    &sys_read,
+    &sys_write, /* 4   */
+    0,
+    0,
+    &sys_waitpid,
+    0,
+    0, /* 9  */
+    0,
+    &sys_execve,
+    0,
+    0,
+    0, /* 14  */
+    0,
+    0,
+    0,
+    0,
+    0, /* 19  */
+    0,
+    0,
+    0,
+    0,
+    0, /* 24  */
+    0,
+    0,
+    0,
+    0,
+    0, /* 29  */
+    0,
+    0,
+    0,
+    0,
+    0, /* 34  */
+    0,
+    0,
+    0,
+    0,
+    0, /* 39  */
+    0,
+    0,
+    0,
+    0,
+    0, /* 44  */
+    0,
+    0,
+    0,
+    0,
+    0, /* 49  */
+    0,
+    0,
+    0,
+    0,
+    0, /* 54  */
+    0,
+    0,
+    0,
+    0,
+    0, /* 59  */
+    0,
+    0,
+    0,
+    0,
+    0, /* 64  */
+    0,
+    0,
+    0,
+    0,
+    0, /* 69  */
+    0,
+    0,
+    0,
+    0,
+    0, /* 74  */
+    0,
+    0,
+    0,
+    0,
+    0, /* 79  */
+    0,
+    0,
+    0,
+    0,
+    0, /* 84  */
+    0,
+    0,
+    0,
+    0,
+    0, /* 89  */
+    &sys_mmap,
+    0,
+    0,
+    0,
+    0, /* 94  */
+    0,
+    0,
+    0,
+    0,
+    0, /* 99 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 104 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 109 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 114 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 119 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 124 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 129 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 134 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 139 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 144 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 149 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 154 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 159 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 164 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 169 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 174 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 179 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 184 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 189 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 194 */
+    &sys_stat64,
+    0,
+    0,
+    0,
+    &sys_getuid32, /* 199 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 204 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 209 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 214 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 219 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 224 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 229 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 234 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 239 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 244 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 249 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 254 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 259 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 264 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 269 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 274 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 279 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 284 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 289 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 294 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 299 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 304 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 309 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 314 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 319 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 324 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 329 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 334 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 339 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 344 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 349 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 354 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 359 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 364 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 369 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 374 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 379 */
+    0,
+    0,
+    0,
+    0,
+    0, /* 384 */
+};
 
 void syscall::syscallHandler(isr::Registers *regs) {
-    multitasking::process *currentProcess = multitasking::getCurrentProcess();                                       // never use this to modify registers, it will not work
-    multitasking::context *current_context = (multitasking::context *)(KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET); // return values using this
-    
-    if (regs->eax == 1) {                                                                                            // sys_exit
-        DEBUG_PRINTF("syscall: sys_exit code: %d\n", regs->ebx);
-        multitasking::killCurrentProcess();
-    } else if (regs->eax == 4) { // sys_write
-        DEBUG_PRINTF("syscall: sys_write\n");
-        if (!paging::is_readable((void *)regs->ecx + regs->edx) || regs->edx > 100) {
-            return;
-        }
-        char string[regs->edx + 1];
-        string[regs->edx] = '\0';
-        memcpy(string, (char *)regs->ecx, regs->edx);
-        printf("%s", string);
-        current_context->eax = regs->edx; // return number of written bytes
-    } else if (regs->eax == 3) { // sys_read
-        DEBUG_PRINTF("syscall: sys_read\n");
+    multitasking::context *current_context = (multitasking::context *)(KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET);
 
-        int bufStart = drivers::keyboard::bufferlocation;
-        while (drivers::keyboard::bufferlocation - bufStart < (int)regs->edx) {
-            drivers::keyboard::manualRead();
-            if (drivers::keyboard::buffer[drivers::keyboard::bufferlocation] == '\n') {
-                break;
-            }
-        }
-        uint32_t readCharacters = drivers::keyboard::bufferlocation - bufStart;
-
-        drivers::keyboard::bufferlocation = -1;
-        s_memcpy((char *)regs->ecx, &drivers::keyboard::buffer[bufStart + 1], readCharacters);
-        current_context->eax = readCharacters;
-    } else if (regs->eax == 2) { // sys_fork
-        DEBUG_PRINTF("syscall: sys_fork\n");
-        multitasking::process *newprocess = multitasking::fork_current_process();
-        if (newprocess) {
-            newprocess->registerContext.eax = 0;
-            current_context->eax = newprocess->pid;
-        } else {
-            current_context->eax = -1; // this is probably the wrong return value
-        }
-    } else if (regs->eax == 11) { // sys_execve
-        DEBUG_PRINTF("syscall: sys_execve\n");
-        printf("%s\n", regs->ebx);
-    } else if (regs->eax == 199) { // getuid32
-        DEBUG_PRINTF("syscall: getuid32\n");
-        current_context->eax = 0;
-    } else if (regs->eax == 195) { // stat64
-        DEBUG_PRINTF("syscall: sys_stat64\n");
-        printf("%s\n", regs->ebx);
-    } else if (regs->eax == 7) { // sys_waitpid
-        DEBUG_PRINTF("syscall: sys_waitpid - PID: %d\n", regs->ebx);
-
-        multitasking::context tempContextStore;
-        memcpy((char *)&tempContextStore, (char *)current_context, sizeof(multitasking::context));
-
-        asm("sti"); // TODO: figure out why this crashes when kernel memory runs out
-
-        multitasking::waitForProcess(regs->ebx);
-
-        asm("cli");
-        memcpy((char *)current_context, (char *)&tempContextStore, sizeof(multitasking::context));
-
-    } else {
-        DEBUG_PRINTF("Unknown syscall %u\n", regs->eax);
-        current_context->eax = -1; // return error - once again not the right return code
+    if (syscall_table[regs->eax] == nullptr) {
+        DEBUG_PRINTF("syscall %u not found\n", regs->eax);
+        current_context->eax = -1; // TODO: return correct error code
+        return;
     }
+    DEBUG_PRINTF("calling syscall %u\n", regs->eax);
+
+    current_context->eax = syscall_table[regs->eax](regs->eax, regs->ebx, regs->ecx, regs->edx, regs->esi, regs->edi, regs->ebp);
 }

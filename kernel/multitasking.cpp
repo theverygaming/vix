@@ -17,10 +17,12 @@ bool multitasking::isProcessSwitchingEnabled() {
 }
 
 void init_empty_stack(void *stackadr, void *codeadr) {
-    char argstr[] = "./shitshell";
+    char argstr[] = "./busybox";
+    char argstr2[] = "sh";
 
     uint32_t *stack = (uint32_t *)stackadr;
-    memcpy((char *)&stack[20], argstr, 12);
+    memcpy((char *)&stack[20], argstr, sizeof(argstr));
+    memcpy((char *)&stack[20+sizeof(argstr)], argstr2, sizeof(argstr2));
 
     stack[0] = (uint32_t)codeadr; // EIP
     stack[1] = 8;                 // CS?
@@ -28,9 +30,10 @@ void init_empty_stack(void *stackadr, void *codeadr) {
     stack[3] = 1;                 // argc
 
     stack[4] = (uint32_t)&stack[20]; // argv pointer
-    stack[5] = 0;                    // argv null termination
+    stack[5] = (uint32_t)&stack[20+sizeof(argstr)];                    // argv null termination
     stack[6] = 0;                    // envp pointer
     stack[7] = 0;                    // envp null termination
+    stack[8] = 0;                    // envp null termination
 }
 
 bool init = true;

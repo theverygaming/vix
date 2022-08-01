@@ -1,6 +1,8 @@
 #define KERNEL_VIRT_ADDRESS 0xC0000000
 #define KERNEL_PHYS_ADDRESS 0x1EA000 // lets ignore the ISA memory hole, the PC's we run on are not that old anyway right?
 
+#define KERNEL_CODE_SIZE 0x200000
+
 // directory size: 4096 bytes(ends 0x1001000)
 // tables size: (1024 * 1024 * 4) bytes
 #define PAGE_DIRECTORY_OFFSET 0x200000

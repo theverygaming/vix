@@ -36,7 +36,7 @@ void stage2start(void) {
     }
     paging::initpaging();
     gdt::i686_GDT_Initialize();
-    memset((char *)KERNEL_VIRT_ADDRESS, 0, 2097152); // make 100% sure kernel .bss is zero
+    memset((char *)KERNEL_VIRT_ADDRESS, 0, KERNEL_CODE_SIZE); // make 100% sure kernel .bss is zero
     printf("Searching for hard drives\n");
     hdd::generic::scanDrives();
     if (hdd::generic::alldrives[0].alive) {
