@@ -190,7 +190,7 @@ uint32_t (*syscall_table[385])(int *, uint32_t, uint32_t, uint32_t, uint32_t, ui
     nullptr,
     nullptr,
     nullptr,
-    nullptr,
+    &sys_getcwd,
     nullptr, /* 184 */
     nullptr,
     nullptr,
@@ -402,7 +402,7 @@ void syscall::syscallHandler(isr::Registers *regs) {
         current_context->eax = -1; // TODO: return correct error code
         return;
     }
-    DEBUG_PRINTF("calling syscall %u\n", regs->eax);
+    // DEBUG_PRINTF("calling syscall %u\n", regs->eax);
     int syscall_ret;
     uint32_t returnval = syscall_table[regs->eax](&syscall_ret, regs->eax, regs->ebx, regs->ecx, regs->edx, regs->esi, regs->edi, regs->ebp);
     if(syscall_ret > 0) {
