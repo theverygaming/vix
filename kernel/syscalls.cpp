@@ -92,7 +92,7 @@ uint32_t sys_execve(int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _ar
 
 uint32_t sys_mmap(int *syscall_ret, uint32_t, uint32_t mmap_struct_ptr, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
-    DEBUG_PRINTF("syscall: sys_mmap !! unstable\n");
+    DEBUG_PRINTF("syscall: sys_mmap -- unstable\n");
     typedef struct {
         void *start;
         uint32_t length;
@@ -114,6 +114,17 @@ uint32_t sys_mmap(int *syscall_ret, uint32_t, uint32_t mmap_struct_ptr, uint32_t
     multitasking::refresh_current_process_pagerange();
 
     return (uint32_t)alloc_adr;
+}
+
+uint32_t sys_getcwd(int *syscall_ret, uint32_t, uint32_t _buf, uint32_t size, uint32_t, uint32_t, uint32_t, uint32_t) {
+    *syscall_ret = 1;
+    char *buf = (char*)_buf;
+    DEBUG_PRINTF("syscall: sys_getcwd\n");
+    if(size < 11) {
+        return 0;
+    }
+    memcpy(buf, "/home/user", 11);
+    return 11;
 }
 
 uint32_t sys_stat64(int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _statbuf, uint32_t, uint32_t, uint32_t, uint32_t) {
