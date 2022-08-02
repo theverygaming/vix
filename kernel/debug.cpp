@@ -33,6 +33,6 @@ void debug::breakpoint(int line, char *file) {
 }
 
 void debug::visual_dbg(char c) {
-    *((char *)((KERNEL_VIRT_ADDRESS + VIDMEM_OFFSET) + 2 * 70 + 160 * 0)) = c;
+    *((volatile char *)((KERNEL_VIRT_ADDRESS + VIDMEM_OFFSET) + 2 * 70 + 160 * 0)) = c;
     for (uint32_t i = 0; i < 0xFFFFFFF; i++) {}
 }

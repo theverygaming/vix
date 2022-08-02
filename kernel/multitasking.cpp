@@ -143,7 +143,7 @@ void multitasking::interruptTrigger() {
     }
     if (runningProcesses == 0) {
         printf("PANIK: All processes died. Halting system\n");
-        asm("hlt");
+        asm volatile("hlt");
     }
     if (!processes[currentProcess].running) {
         for (int i = 0; i < MAX_PROCESSES; i++) {
@@ -222,6 +222,7 @@ bool multitasking::createPageRange(process_pagerange *range, uint32_t max_addres
         }
     }
     memcpy((char *)range, (char *)prange, PROCESS_MAX_PAGE_RANGES * sizeof(process_pagerange));
+    return true;
 }
 
 void multitasking::setPageRange(process_pagerange *range) {

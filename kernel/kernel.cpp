@@ -94,7 +94,7 @@ void kernelstart() {
 
     int counter = 0;
     while (true) {
-        *((unsigned char *)((KERNEL_VIRT_ADDRESS + VIDMEM_OFFSET) + 2 * 70 + 160 * 0)) = counter / 20;
+        *((unsigned volatile char *)((KERNEL_VIRT_ADDRESS + VIDMEM_OFFSET) + 2 * 70 + 160 * 0)) = counter / 20;
         counter++;
         if (counter == 1000) {
             counter = 0;

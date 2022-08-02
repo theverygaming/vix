@@ -71,11 +71,11 @@ uint32_t sys_waitpid(int *syscall_ret, uint32_t, uint32_t pid, uint32_t _stat_ad
     multitasking::context tempContextStore;
     memcpy((char *)&tempContextStore, (char *)current_context, sizeof(multitasking::context));
 
-    asm("sti"); // TODO: figure out why this crashes when kernel memory runs out
+    asm volatile("sti"); // TODO: figure out why this crashes when kernel memory runs out
 
     multitasking::waitForProcess(pid);
 
-    asm("cli");
+    asm volatile("cli");
     memcpy((char *)current_context, (char *)&tempContextStore, sizeof(multitasking::context));
     return 0; // TODO: fix return value
 }

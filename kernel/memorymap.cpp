@@ -14,7 +14,7 @@ void memorymap::initMemoryMap(void *countadr, void *mapadr) {
     MemMapEntry MemMap[count];
     if (count > E820_MAX_ENTRIES) {
         printf("%d e820 entries, E820_MAX_ENTRIES too low(%d), go change it bruh\n", count, E820_MAX_ENTRIES);
-        asm("hlt");
+        asm volatile("hlt");
     }
     map_entrycount = count;
     memcpy((char *)&map_entries, (char *)entries, count * sizeof(*map_entries));

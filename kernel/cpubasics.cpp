@@ -52,7 +52,7 @@ void isr_clock_int() {
     if (count == 1) {
         ticks++;
     }
-    *((unsigned char *)((KERNEL_VIRT_ADDRESS + VIDMEM_OFFSET) + 2 * 79 + 160 * 0)) = ticks / 20;
+    *((unsigned volatile char *)((KERNEL_VIRT_ADDRESS + VIDMEM_OFFSET) + 2 * 79 + 160 * 0)) = ticks / 20;
 }
 
 void clockHandler(isr::Registers *gaming) {
@@ -84,5 +84,5 @@ void cpubasics::cpuinit() {
     // RegisterClockHandler(0, isr_clock_int);
     outb(0x21, 0b00000000); // Enable all IRQ's
     outb(0xA1, 0b00000000);
-    asm("sti");
+    asm volatile("sti");
 }
