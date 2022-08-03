@@ -1,5 +1,6 @@
 #include "../config.h"
 #include "cpubasics.h"
+#include "cpuid.h"
 #include "drivers/keyboard.h"
 #include "drivers/pci.h"
 #include "drivers/serial.h"
@@ -11,6 +12,7 @@
 #include "memorymap.h"
 #include "multitasking.h"
 #include "paging.h"
+#include "simd.h"
 #include "stdio.h"
 #include "stdlib.h"
 #include "syscall.h"
@@ -68,6 +70,8 @@ void kernelstart() {
     cpubasics::cpuinit();
     drivers::keyboard::init();
     isr::RegisterHandler(0x80, syscall::syscallHandler);
+    cpuid::printFeatures();
+    simd::enableSSE();
     elf::load_program((void *)(KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET));
     memalloc::page::kernel_free((void *)(KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET));
     // drivers::pci::init();

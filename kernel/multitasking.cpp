@@ -27,7 +27,7 @@ void init_empty_stack(void *stackadr, void *codeadr) {
     stack[0] = (uint32_t)codeadr; // EIP
     stack[1] = 8;                 // CS?
     stack[2] = 1 << 9;            // EFLAGS, set interrupt bit
-    stack[3] = 1;                 // argc
+    stack[3] = 2;                 // argc
 
     stack[4] = (uint32_t)&stack[20]; // argv pointer
     stack[5] = (uint32_t)&stack[20+sizeof(argstr)];                    // argv null termination
