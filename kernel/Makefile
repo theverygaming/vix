@@ -1,33 +1,21 @@
 CC = g++
-CFLAGS = -nostdlib -Wall -m32 -march=i386 -fno-pie -fno-stack-protector -ffreestanding -fno-exceptions -O3
+CFLAGS = -nostdlib -Wall -m32 -march=i386 -fno-pie -fno-stack-protector -ffreestanding -fno-exceptions -O3 -I.
 
-HEADERS_CPP = $(wildcard *.h) \
-			$(wildcard */*.h) \
-			$(wildcard */*/*.h) \
-			$(wildcard */*/*/*.h)
+HEADERS_CPP = $(wildcard *.h **/*.h)
 
-SOURCES_CPP = $(wildcard *.cpp) \
-			$(wildcard */*.cpp) \
-			$(wildcard */*/*.cpp) \
-			$(wildcard */*/*/*.cpp)
+SOURCES_CPP = $(wildcard *.cpp **/*.cpp)
 
 OBJECTS_CPP = $(patsubst %.cpp, %.ocpp, $(SOURCES_CPP))
 
-HEADERS_ASM = $(wildcard *.inc) \
-			  $(wildcard */*.inc) \
-			  $(wildcard */*/*.inc) \
-			  $(wildcard */*/*/*.inc)
+HEADERS_ASM = $(wildcard *.inc **/*.inc)
 
-SOURCES_ASM = $(wildcard *.asm) \
-			  $(wildcard */*.asm) \
-			  $(wildcard */*/*.asm) \
-			  $(wildcard */*/*/*.asm)
+SOURCES_ASM = $(wildcard *.asm **/*.asm)
 
 OBJECTS_ASM = $(patsubst %.asm, %.oasm, $(SOURCES_ASM))
 
 all: kernel
 
-kernel: kernel.ocpp $(OBJECTS_ASM) $(OBJECTS_CPP)
+kernel: $(OBJECTS_ASM) $(OBJECTS_CPP)
 	ld -m elf_i386 --oformat binary -T linker.ld -nostdlib $^ -o $@
 
 %.ocpp: %.cpp $(HEADERS_CPP)

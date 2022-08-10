@@ -11,6 +11,10 @@ MEMORY
 SECTIONS {
 	. = HIGHER_HALF;
 
+	.entry ALIGN(PAGE) : AT(ADDR(.entry) - HIGHER_HALF) {
+		*(.entry)
+	}>ram
+
 	.text ALIGN(PAGE) : AT(ADDR(.text) - HIGHER_HALF) {
 		*(.text)
 		*(.eh_frame)

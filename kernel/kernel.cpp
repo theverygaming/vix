@@ -1,9 +1,6 @@
 #include "../config.h"
 #include "cpubasics.h"
 #include "cpuid.h"
-#include "drivers/keyboard.h"
-#include "drivers/pci.h"
-#include "drivers/serial.h"
 #include "elf.h"
 #include "gdt.h"
 #include "idt.h"
@@ -16,10 +13,13 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "syscall.h"
+#include <drivers/keyboard.h>
+#include <drivers/pci.h>
+#include <drivers/serial.h>
 
 void kernelstart();
 
-void _start(void) {
+void __attribute__((section(".entry"))) _start(void) {
     kernelstart();
 }
 
