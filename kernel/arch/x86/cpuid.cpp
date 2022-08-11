@@ -32,16 +32,18 @@ void cpuid::printFeatures() {
     char vendor[13];
     vendor[12] = '\0';
     get_vendorstring(vendor);
-    printf("vendor: %s\n", vendor);
+    printf("CPU vendor: %s\n", vendor);
 
     printf("checking features(EDX)\n");
     char EDXfeatures[32][8] = {"FPU", "VME",   "DE",  "PSE",     "TSC", "MSR", "PAE",  "MCE", "CX8",  "APIC", "???",  "SEP", "MTRR", "PGE", "MCA",  "CMOV",
                                "PAT", "PSE36", "PSN", "CLFLUSH", "???", "DS",  "ACPI", "MMX", "FXSR", "SSE",  "SSE2", "SS",  "HTT",  "TM",  "IA64", "PBE"};
     int unused, featuresEDX;
     CPUID_MACRO(1, unused, unused, unused, featuresEDX);
+    printf("CPU Features: ");
     for (int i = 0; i < 32; i++) {
         if (featuresEDX & (1 << i)) {
-            printf("CPU has %s\n", EDXfeatures[i]);
+            printf("%s ", EDXfeatures[i]);
         }
     }
+    printf("\n");
 }

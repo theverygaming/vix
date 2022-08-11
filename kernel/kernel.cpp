@@ -62,6 +62,7 @@ void kernelstart() {
     clrscr();
     drivers::serial::init();
     printf("hewwo\n");
+    printf("shitOS built %s %s\n", __DATE__, __TIME__);
     memorymap::initMemoryMap((void *)0x7C00 + 0x7000, (void *)0x7C00 + 0x7004);
     paging::clearPageTables((void *)0x0, KERNEL_VIRT_ADDRESS / 4096);
     memalloc::page::phys_init(memorymap::map_entries, memorymap::map_entrycount);
