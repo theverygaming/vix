@@ -1,4 +1,4 @@
-#include "cpubasics.h"
+#include <arch/x86/cpubasics.h>
 #include "types.h"
 
 #include "../config.h"

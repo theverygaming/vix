@@ -1,7 +1,8 @@
 #include "debug.h"
 #include "../config.h"
 #include "drivers/serial.h"
-#include "paging.h"
+#include <arch/arch.h>
+#include INCLUDE_ARCH(paging.h)
 #include "stdio.h"
 
 void debug::stack_trace(uint32_t maxLength, uint32_t ebp) {

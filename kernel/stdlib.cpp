@@ -1,5 +1,5 @@
 #include "stdlib.h"
-#include "paging.h"
+#include <arch/x86/paging.h>
 #include "stdio.h"
 
 char *memcpy(char *dst, const char *src, int n) {

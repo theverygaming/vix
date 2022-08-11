@@ -1,10 +1,9 @@
 #include "cpubasics.h"
-#include "../config.h"
-#include "gdt.h"
-#include "idt.h"
-#include "isr.h"
-#include "multitasking.h"
-#include "stdio.h"
+#include <../config.h>
+#include <arch/x86/idt.h>
+#include <arch/x86/isr.h>
+#include <multitasking.h>
+#include <stdio.h>
 #include <cstddef>
 
 void init_pic(void) {

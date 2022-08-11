@@ -1,5 +1,5 @@
 #include "multitasking.h"
-#include "cpubasics.h"
+#include <arch/x86/cpubasics.h>
 #include "memalloc.h"
 #include "stdio.h"
 #include "stdlib.h"

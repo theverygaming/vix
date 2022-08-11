@@ -3,7 +3,8 @@
 #include "drivers/keyboard.h"
 #include "memalloc.h"
 #include "multitasking.h"
-#include "paging.h"
+#include <arch/arch.h>
+#include INCLUDE_ARCH(paging.h)
 #include "stdio.h"
 #include "stdlib.h"
 

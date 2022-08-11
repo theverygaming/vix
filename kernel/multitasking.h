@@ -1,6 +1,6 @@
 #pragma once
 #include "../config.h"
-#include "paging.h"
+#include <arch/x86/paging.h>
 #include "types.h"
 
 #define PROCESS_MAX_PAGE_RANGES 20

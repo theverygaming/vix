@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../types.h"
-#include "../cpubasics.h"
+#include <types.h>
+#include <arch/x86/cpubasics.h>
 
 
 namespace drivers::serial {

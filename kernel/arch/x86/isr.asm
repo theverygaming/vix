@@ -24,7 +24,7 @@ i686_ISR%1:
 
 %endmacro
 
-%include "isrs.inc"
+%include "arch/x86/isrs.inc"
 
 %include "../config.inc"
 

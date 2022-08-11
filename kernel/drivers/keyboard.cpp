@@ -1,7 +1,7 @@
 #include "keyboard.h"
-#include "../isr.h"
+#include <arch/x86/isr.h>
 #include "../stdio.h"
-#include "../cpubasics.h"
+#include <arch/x86/cpubasics.h>
 
 namespace drivers::keyboard {
     char buffer[100];

@@ -1,6 +1,5 @@
 #include "cpuid.h"
-#include "stdio.h"
-#include <cpuid.h>
+#include <stdio.h>
 
 #define CPUID_MACRO(level, a, b, c, d)                                                                                                                                                                 \
     __asm__("xchg{l}\t{%%}ebx, %1\n\t"                                                                                                                                                                 \

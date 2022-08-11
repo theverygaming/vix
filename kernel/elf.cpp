@@ -1,7 +1,7 @@
 #include "elf.h"
 #include "memalloc.h"
 #include "multitasking.h"
-#include "paging.h"
+#include <arch/x86/paging.h>
 #include "stdio.h"
 #include "stdlib.h"
 
