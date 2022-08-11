@@ -1,6 +1,6 @@
 #include "syscalls.h"
 #include "debug.h"
-#include "drivers/keyboard.h"
+#include <arch/x86/drivers/keyboard.h>
 #include "memalloc.h"
 #include "multitasking.h"
 #include <arch/arch.h>

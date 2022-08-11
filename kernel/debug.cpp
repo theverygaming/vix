@@ -1,6 +1,6 @@
 #include "debug.h"
 #include "../config.h"
-#include "drivers/serial.h"
+#include <arch/x86/drivers/serial.h>
 #include <arch/arch.h>
 #include INCLUDE_ARCH(paging.h)
 #include "stdio.h"

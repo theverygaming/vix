@@ -13,9 +13,9 @@
 #include INCLUDE_ARCH(cpuid.h)
 #include INCLUDE_ARCH(simd.h)
 #include INCLUDE_ARCH(cpubasics.h)
-#include <drivers/keyboard.h>
-#include <drivers/pci.h>
-#include <drivers/serial.h>
+#include <arch/x86/drivers/keyboard.h>
+#include <arch/x86/drivers/pci.h>
+#include <arch/x86/drivers/serial.h>
 
 void kernelstart();
 

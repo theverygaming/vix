@@ -1,6 +1,6 @@
 #include "pci.h"
 #include <arch/x86/cpubasics.h>
-#include "../stdio.h"
+#include <stdio.h>
 
 /* direct read/write functions */
 static uint32_t pciConfigRead32(uint8_t bus, uint8_t slot, uint8_t function, uint8_t offset) {

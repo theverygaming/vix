@@ -2,7 +2,7 @@
 #include "types.h"
 
 #include "../config.h"
-#include "drivers/serial.h"
+#include <arch/x86/drivers/serial.h>
 #include <cstdarg>
 #include <stdbool.h>
 
