@@ -69,7 +69,7 @@ isr_common:
     mov ebx, esp ; source
     add ebx, 12
     mov ecx, 16 ; size
-    call memcpy32
+    call memcpy32f
     pop ecx
     pop ebx
     pop eax
@@ -103,27 +103,21 @@ isr_common:
     sti
     iret
 
-
-
-
-; in the future change this to simply use rep movs because S P E E D
-memcpy32: ; Arguments: eax->dest, ebx->source, ecx->element count in 32bits
-    push eax
-    push ebx
+memcpy32f: ; Arguments: eax->dest, ebx->source, ecx->element count in 32bits
     push ecx
-    push edx
-.cp:
-    dec ecx
-    cmp ecx, -1 ; if ecx = -1 we copied everything
-    je .end
-    mov edx, [ebx]
-    mov [eax], edx
-    add eax, 4 ; add 4 bytes to dest & source
-    add ebx, 4
-    jmp .cp
-.end:
-    pop edx
+    push esi
+    push edi
+
+    pushfd ; push eflags
+    cld ; clear direction flag
+
+    mov esi, ebx ; source
+    mov edi, eax ; dest
+    rep movsd
+
+    popfd ; pop eflags
+
+    pop edi
+    pop esi
     pop ecx
-    pop ebx
-    pop eax
     ret
