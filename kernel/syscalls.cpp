@@ -1,9 +1,9 @@
 #include "syscalls.h"
 #include "debug.h"
-#include <arch/x86/drivers/keyboard.h>
 #include "memalloc.h"
 #include "multitasking.h"
 #include <arch/arch.h>
+#include <arch/x86/drivers/keyboard.h>
 #include INCLUDE_ARCH(paging.h)
 #include "stdio.h"
 #include "stdlib.h"
@@ -117,11 +117,31 @@ uint32_t sys_mmap(int *syscall_ret, uint32_t, uint32_t mmap_struct_ptr, uint32_t
     return (uint32_t)alloc_adr;
 }
 
+uint32_t sys_uname(int *syscall_ret, uint32_t, uint32_t _old_utsname, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
+    *syscall_ret = 1;
+    struct sys_uname_utsname {
+        char sysname[65];
+        char nodename[65];
+        char release[65];
+        char version[65];
+        char machine[65];
+        char domainname[65];
+    };
+    struct sys_uname_utsname *unamestruct = (struct sys_uname_utsname *)_old_utsname;
+    memcpy(unamestruct->sysname, "shitOS", 7);
+    memcpy(unamestruct->nodename, "h", 2);
+    memcpy(unamestruct->release, "69.42-funny", 12);
+    memcpy(unamestruct->version, "#69.42", 7);
+    memcpy(unamestruct->machine, "x86", 4);
+    memcpy(unamestruct->domainname, "(none)", 7);
+    return 0;
+}
+
 uint32_t sys_getcwd(int *syscall_ret, uint32_t, uint32_t _buf, uint32_t size, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
-    char *buf = (char*)_buf;
+    char *buf = (char *)_buf;
     DEBUG_PRINTF("syscall: sys_getcwd\n");
-    if(size < 11) {
+    if (size < 11) {
         return 0;
     }
     memcpy(buf, "/home/user", 11);

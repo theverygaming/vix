@@ -129,7 +129,7 @@ uint32_t (*syscall_table[385])(int *, uint32_t, uint32_t, uint32_t, uint32_t, ui
     nullptr, /* 119 */
     nullptr,
     nullptr,
-    nullptr,
+    &sys_uname,
     nullptr,
     nullptr, /* 124 */
     nullptr,
