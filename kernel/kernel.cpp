@@ -1,6 +1,6 @@
 #include "../config.h"
 #include "elf.h"
-#include "memalloc.h"
+#include <memory_alloc/memalloc.h>
 #include "memorymap.h"
 #include "multitasking.h"
 #include "stdio.h"

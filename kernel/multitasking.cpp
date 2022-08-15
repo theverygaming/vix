@@ -1,6 +1,6 @@
 #include "multitasking.h"
 #include <arch/x86/cpubasics.h>
-#include "memalloc.h"
+#include <memory_alloc/memalloc.h>
 #include "stdio.h"
 #include "stdlib.h"
 

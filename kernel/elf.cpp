@@ -1,5 +1,5 @@
 #include "elf.h"
-#include "memalloc.h"
+#include <memory_alloc/memalloc.h>
 #include "multitasking.h"
 #include <arch/x86/paging.h>
 #include "stdio.h"
