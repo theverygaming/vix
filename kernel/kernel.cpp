@@ -1,6 +1,5 @@
 #include "../config.h"
 #include "elf.h"
-#include <memory_alloc/memalloc.h>
 #include "memorymap.h"
 #include "multitasking.h"
 #include "stdio.h"
@@ -10,6 +9,7 @@
 #include <arch/x86/idt.h>
 #include <arch/x86/isr.h>
 #include <arch/x86/paging.h>
+#include <memory_alloc/memalloc.h>
 #include INCLUDE_ARCH(cpuid.h)
 #include INCLUDE_ARCH(simd.h)
 #include INCLUDE_ARCH(cpubasics.h)
@@ -19,8 +19,14 @@
 
 void kernelstart();
 
-extern "C" void __attribute__((section(".entry"))) _start(void) {
+extern "C" void __attribute__((section(".entry"))) _start(uint8_t a1, uint32_t a2) {
+    size_t sp;
+    asm volatile("mov %%esp, %0" : "=a"(sp) :);
+    if (sp < KERNEL_VIRT_ADDRESS) {
+        return;
+    }
     kernelstart();
+    while (true) {}
 }
 
 // very important arrays definitely

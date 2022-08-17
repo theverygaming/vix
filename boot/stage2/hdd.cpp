@@ -154,7 +154,7 @@ namespace hdd::generic {
     genericDrive_t alldrives[10]{};
 
     void scanDrives() {
-        for (int i = 0; i < sizeof(alldrives) / sizeof(genericDrive_t); i++) {
+        for (uint32_t i = 0; i < sizeof(alldrives) / sizeof(genericDrive_t); i++) {
             alldrives[i] = {false, genericDrive_t::GENERIC_DRIVE_NONE, 0, 0};
         }
         if (hdd::ata_pio::generic_get_drives(-1, sizeof(alldrives) / sizeof(genericDrive_t), alldrives) < 0) {
@@ -170,5 +170,6 @@ namespace hdd::generic {
         if (drive.drivetype == genericDrive_t::GENERIC_DRIVE_ATAPIO) {
             hdd::ata_pio::generic_read(buf, lba, sectors, drive);
         }
+        return 0;
     }
 }

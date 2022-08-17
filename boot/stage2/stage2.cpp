@@ -46,10 +46,11 @@ void stage2start(void) {
         printf("Jumping to kernel\n");
         uint32_t sp_adr = KERNEL_VIRT_ADDRESS + KERNEL_START_STACK_POINTER_OFFSET;
         uint32_t kerneladr = KERNEL_VIRT_ADDRESS;
-        asm volatile("" : : "a"(sp_adr));
-        asm volatile("mov %eax, %esp");
-        asm volatile("" : : "a"(kerneladr));
-        asm volatile("jmpl %eax");
+        asm volatile("mov %0, %%esp" : : "a"(sp_adr));
+        ((void(*)(uint8_t, uint32_t))kerneladr)(69, 42069);
+        clrscr();
+        printf("the mf kernel returned??? well, that's not good\n");
+        deth_loop();
     } else {
         printf("no IDE hdd found. go get one\nSystem halted\n");
         deth_loop();

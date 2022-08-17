@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -nostdlib -Wall -m32 -march=i386 -fno-pie -fno-stack-protector -ffreestanding
+CFLAGS = -nostdlib -m32 -march=i386 -fno-pie -fno-stack-protector -ffreestanding -fno-exceptions -Wall -Wno-pointer-arith
 
 all: 
 	@$(MAKE) stage2
