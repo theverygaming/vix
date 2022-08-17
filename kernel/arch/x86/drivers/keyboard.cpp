@@ -46,7 +46,7 @@ char kbd_US [128] =
 char readkbdchar() {
     char keycode = inb(0x60);
     if(keycode > 0) {
-      return kbd_US[keycode];
+      return kbd_US[(unsigned char)keycode];
     }
     return -1;
 }

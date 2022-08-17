@@ -1,9 +1,9 @@
 #include "syscalls.h"
 #include "debug.h"
-#include <memory_alloc/memalloc.h>
 #include "multitasking.h"
 #include <arch/arch.h>
 #include <arch/x86/drivers/keyboard.h>
+#include <memory_alloc/memalloc.h>
 #include INCLUDE_ARCH(paging.h)
 #include "stdio.h"
 #include "stdlib.h"
@@ -54,7 +54,8 @@ uint32_t sys_write(int *syscall_ret, uint32_t, uint32_t fd, uint32_t _buf, uint3
     if (!paging::is_readable(buf + count)) {
         return -1; // TODO: proper return value
     }
-    char string[count + 1];
+    // char string[count + 1];
+    char *string = (char *)__builtin_alloca((count + 1));
     string[count] = '\0';
     memcpy(string, buf, count);
     printf("%s", string);
@@ -63,8 +64,8 @@ uint32_t sys_write(int *syscall_ret, uint32_t, uint32_t fd, uint32_t _buf, uint3
 
 uint32_t sys_waitpid(int *syscall_ret, uint32_t, uint32_t pid, uint32_t _stat_addr, uint32_t _options, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
-    int *stat_addr = (int *)_stat_addr;
-    int options = (uint32_t)_options;
+    // int *stat_addr = (int *)_stat_addr;
+    // int options = (uint32_t)_options;
 
     DEBUG_PRINTF("syscall: sys_waitpid - PID: %d\n", pid);
 
@@ -84,8 +85,8 @@ uint32_t sys_waitpid(int *syscall_ret, uint32_t, uint32_t pid, uint32_t _stat_ad
 uint32_t sys_execve(int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _argv, uint32_t _envp, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 0;
     const char *filename = (const char *)_filename;
-    const char *const *argv = (const char *const *)_argv;
-    const char *const *envp = (const char *const *)_envp;
+    // const char *const *argv = (const char *const *)_argv;
+    // const char *const *envp = (const char *const *)_envp;
     DEBUG_PRINTF("syscall: sys_execve\n");
     printf("%s\n", filename);
     return 0;

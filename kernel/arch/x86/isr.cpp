@@ -39,6 +39,9 @@ extern "C" uint32_t i686_ISR_Handler(isr::Registers *regs) {
         if (reserved) {
             printf("reserved ");
         }
+        if(id) {
+            printf("instruction-fetch ");
+        }
         printf(") at 0x%p\n", fault_address);
         printf("Error code: 0x%p\n", regs->error);
         printf("eax: 0x%p ebx: 0x%p ecx: 0x%p edx: 0x%p\nesi: 0x%p edi: 0x%p esp: 0x%p ebp: 0x%p eip: 0x%p\n",

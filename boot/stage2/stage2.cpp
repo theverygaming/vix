@@ -1,6 +1,6 @@
 void stage2start(void);
 
-void _start(void) {
+extern "C" void __attribute__((section(".entry"))) _start(void) {
     stage2start();
 }
 

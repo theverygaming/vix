@@ -3,8 +3,8 @@
 #include <cstdarg>
 #include <stdbool.h>
 
-const unsigned SCREEN_WIDTH = 80;
-const unsigned SCREEN_HEIGHT = 25;
+#define SCREEN_WIDTH 80
+#define SCREEN_HEIGHT 25
 const uint8_t DEFAULT_COLOR = 0x7;
 
 uint8_t *g_ScreenBuffer = (uint8_t *)0xB8000;

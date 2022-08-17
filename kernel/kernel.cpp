@@ -19,7 +19,7 @@
 
 void kernelstart();
 
-void __attribute__((section(".entry"))) _start(void) {
+extern "C" void __attribute__((section(".entry"))) _start(void) {
     kernelstart();
 }
 

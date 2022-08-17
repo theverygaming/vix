@@ -1,4 +1,4 @@
-ENTRY(main)
+ENTRY(_start)
 
 PAGE = 0x1000;
 HIGHER_HALF = 0xC0000000;

@@ -75,7 +75,7 @@ multitasking::process *multitasking::fork_current_process() {
             processes[freeProcess].pages[i].pages = processes[currentProcess].pages[i].pages;
             processes[freeProcess].pages[i].phys_base = (uint32_t)physadr;
             processes[freeProcess].pages[i].virt_base = processes[currentProcess].pages[i].virt_base;
-            for (int j = 0; j < processes[freeProcess].pages[i].pages; j++) {
+            for (uint32_t j = 0; j < processes[freeProcess].pages[i].pages; j++) {
                 paging::copyPhysPage((void *)processes[freeProcess].pages[i].phys_base + (j * 0x1000), (void *)processes[currentProcess].pages[i].phys_base + (j * 0x1000));
             }
         } else {
@@ -229,7 +229,7 @@ void multitasking::setPageRange(process_pagerange *range) {
     for (int i = 0; i < PROCESS_MAX_PAGE_RANGES; i++) {
         if (range[i].pages > 0) {
             // printf("map range v: 0x%p p: 0x%p len: %u\n", range[i].virt_base, range[i].phys_base, range[i].pages);
-            for (int j = 0; j < range[i].pages; j++) {
+            for (uint32_t j = 0; j < range[i].pages; j++) {
                 paging::map_page((void *)(range[i].phys_base + (j * 0x1000)), (void *)(range[i].virt_base + (j * 0x1000)));
             }
         }

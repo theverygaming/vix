@@ -1,11 +1,12 @@
 all:
-	$(MAKE) stage1
-	$(MAKE) -C stage2
-	cat stage1 stage2/stage2 > boot
+	@$(MAKE) stage1
+	@$(MAKE) --no-print-directory -C stage2
+	@cat stage1 stage2/stage2 > boot
 
 stage1: stage1.asm
-	nasm $< -f bin -o $@
+	@echo "-> compiling boot/$<"
+	@nasm $< -f bin -o $@
 
 clean:
-	rm -f boot stage1 *.oasm *.ocpp *.o
-	$(MAKE) -C stage2 clean
+	@rm -f boot stage1 *.oasm *.ocpp *.o
+	@$(MAKE) --no-print-directory -C stage2 clean

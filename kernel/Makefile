@@ -16,14 +16,16 @@ OBJECTS_ASM = $(patsubst %.asm, %.oasm, $(SOURCES_ASM))
 all: kernel
 
 kernel: $(OBJECTS_ASM) $(OBJECTS_CPP)
-	ld -m elf_i386 --oformat binary -T linker.ld -nostdlib $^ -o $@
+	@ld -m elf_i386 --oformat binary -T linker.ld -nostdlib $^ -o $@
 
 %.ocpp: %.cpp $(HEADERS_CPP)
-	$(CC) $(CFLAGS) -c $< -o $@
+	@echo "-> compiling kernel/$<"
+	@$(CC) $(CFLAGS) -c $< -o $@
 
 %.oasm: %.asm
-	nasm -f elf -o $@ $^ 
+	@echo "-> compiling kernel/$<"
+	@nasm -f elf -o $@ $< 
 
 clean:
-	rm -f kernel
-	find . \( -name '*.oasm' -o -name '*.ocpp' \) -type f -delete
+	@rm -f kernel
+	@find . \( -name '*.oasm' -o -name '*.ocpp' \) -type f -delete
