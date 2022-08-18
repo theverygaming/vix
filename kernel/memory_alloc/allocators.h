@@ -1,6 +1,5 @@
 #pragma once
 #include <types.h>
-#include <stdlib.h>
 
 namespace memalloc::allocators {
     template <uint32_t max_block_count, size_t block_size> class block_alloc {
@@ -38,9 +37,21 @@ namespace memalloc::allocators {
             return (void *)((block * block_size));
         }
 
-        void free(void *address) {
-            uint32_t block = ((uint32_t)address) / block_size;
-            int counter = 0;
+        /* if this returns a different address the user is expected to copy the data if it returns unsuccessful the allocated memory is kept as it was before */
+        void *realloc(void *offset_adr, uint32_t blockcount, bool *successful) {
+            uint32_t old_block_size;
+            p_memmap_check_allocated_block_size(((uint32_t)offset_adr) / block_size, &old_block_size);
+            free(offset_adr);
+            void *newptr = malloc(blockcount, successful);
+            if (!*successful) {
+                alloc(offset_adr, old_block_size);
+                return offset_adr;
+            }
+            return newptr;
+        }
+
+        void free(void *offset_adr) {
+            uint32_t block = ((uint32_t)offset_adr) / block_size;
             uint8_t allocated;
             uint8_t marker = 0;
             while (!marker) {
@@ -50,7 +61,6 @@ namespace memalloc::allocators {
                     break;
                 }
                 block++;
-                counter++;
             }
         }
 
@@ -59,6 +69,12 @@ namespace memalloc::allocators {
         uint8_t allocator_bitmap[(max_block_count / (8 / 2)) + 1]; // + 1 in case max_block_count is not divisible by 4, could otherwise end up with a too small bitmap
 
         void p_get_memmap_entry(uint32_t block, uint8_t *allocated, uint8_t *marker) {
+            if (block >= max_block_count) {
+                // mark as allocated
+                *allocated = 1;
+                *marker = 1;
+                return;
+            }
             void *address = (void *)(block * block_size);
             uint32_t index = (uint32_t)address / block_size;
             uint32_t offset = ((uint32_t)address & ((block_size * (8 / 2)) - 1)) >> 12;
@@ -67,6 +83,9 @@ namespace memalloc::allocators {
         }
 
         void p_set_memmap_entry(uint32_t block, uint8_t allocated, uint8_t marker) {
+            if (block >= max_block_count) {
+                return;
+            }
             void *address = (void *)(block * block_size);
             uint32_t index = (uint32_t)address / block_size;
             uint32_t offset = ((uint32_t)address & ((block_size * (8 / 2)) - 1)) >> 12;
@@ -77,6 +96,9 @@ namespace memalloc::allocators {
         bool p_check_blocks_free(uint32_t block, uint32_t blockcount) {
             uint8_t allocated, marker;
             for (uint32_t i = block; i < block + blockcount; i++) {
+                if (i >= max_block_count) {
+                    return false;
+                }
                 p_get_memmap_entry(i, &allocated, &marker);
                 if (allocated) {
                     return false;
@@ -106,6 +128,25 @@ namespace memalloc::allocators {
                 }
             }
             return false;
+        }
+
+        void p_memmap_check_allocated_block_size(uint32_t block, uint32_t *blocksize) {
+            uint32_t counter = 0;
+            uint8_t allocated;
+            uint8_t marker = 0;
+            while (!marker) {
+                if (block >= max_block_count) {
+                    *blocksize = counter;
+                    return;
+                }
+                p_get_memmap_entry(block, &allocated, &marker);
+                if (!allocated) {
+                    break;
+                }
+                block++;
+                counter++;
+            }
+            *blocksize = counter;
         }
 
         /* helper functions */

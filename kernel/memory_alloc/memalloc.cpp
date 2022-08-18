@@ -84,6 +84,20 @@ void memalloc::page::kernel_alloc(void *adr, uint32_t blockcount) {
     kernelalloc.alloc(adr, blockcount);
 }
 
+void *memalloc::page::kernel_realloc(void *adr, uint32_t blocks) {
+    void *oldptr = adr;
+    adr -= KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET;
+    bool success;
+    void *newptr = kernelalloc.realloc(adr, blocks, &success) + KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET;
+    if (oldptr != newptr && success) {
+        memcpy((char *)newptr, (char *)oldptr, blocks * PAGE_SIZE);
+    }
+    if (!success) {
+        return nullptr;
+    }
+    return newptr;
+}
+
 void memalloc::page::kernel_free(void *adr) {
     adr -= KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET;
     kernelalloc.free(adr);
