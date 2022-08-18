@@ -28,7 +28,7 @@ namespace multitasking {
         uint32_t pid;
         context registerContext;
         uint8_t priority;
-        bool running;
+        volatile bool running;
         process_pagerange pages[PROCESS_MAX_PAGE_RANGES];
     } process;
 
