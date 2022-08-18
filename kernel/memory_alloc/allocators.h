@@ -43,7 +43,7 @@ namespace memalloc::allocators {
             p_memmap_check_allocated_block_size(((uint32_t)offset_adr) / block_size, &old_block_size);
             free(offset_adr);
             void *newptr = malloc(blockcount, successful);
-            if (!*successful) {
+            if (!(*successful)) {
                 alloc(offset_adr, old_block_size);
                 return offset_adr;
             }
@@ -75,9 +75,8 @@ namespace memalloc::allocators {
                 *marker = 1;
                 return;
             }
-            void *address = (void *)(block * block_size);
-            uint32_t index = (uint32_t)address / block_size;
-            uint32_t offset = ((uint32_t)address & ((block_size * (8 / 2)) - 1)) >> 12;
+            uint32_t index = block / 4;
+            uint32_t offset = block % 4;
             *allocated = bitget(allocator_bitmap[index], offset * 2);
             *marker = bitget(allocator_bitmap[index], (offset * 2) + 1);
         }
@@ -86,9 +85,8 @@ namespace memalloc::allocators {
             if (block >= max_block_count) {
                 return;
             }
-            void *address = (void *)(block * block_size);
-            uint32_t index = (uint32_t)address / block_size;
-            uint32_t offset = ((uint32_t)address & ((block_size * (8 / 2)) - 1)) >> 12;
+            uint32_t index = block / 4;
+            uint32_t offset = block % 4;
             bitset(&allocator_bitmap[index], offset * 2, allocated);
             bitset(&allocator_bitmap[index], (offset * 2) + 1, marker);
         }
