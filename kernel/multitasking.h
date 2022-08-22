@@ -32,6 +32,7 @@ namespace multitasking {
         process_pagerange pages[PROCESS_MAX_PAGE_RANGES];
     } process;
 
+    void initMultitasking();
     bool isProcessSwitchingEnabled();
     void killCurrentProcess();
     void interruptTrigger();

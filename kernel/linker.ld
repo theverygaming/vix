@@ -25,6 +25,10 @@ SECTIONS {
 	}>ram
 
 	.data ALIGN(PAGE) : AT(ADDR(.data) - HIGHER_HALF) {
+		START_CONSTRUCTORS = .;
+    	KEEP(*( .init_array ));
+    	KEEP(*(SORT_BY_INIT_PRIORITY( .init_array.* )));
+    	END_CONSTRUCTORS = .;
 		*(.data)
 	}>ram
 

@@ -1,16 +1,35 @@
 #include "multitasking.h"
-#include <arch/x86/cpubasics.h>
-#include <memory_alloc/memalloc.h>
 #include "stdio.h"
 #include "stdlib.h"
+#include <arch/x86/cpubasics.h>
+#include <memory_alloc/memalloc.h>
 
 multitasking::context *current_context = (multitasking::context *)(KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET);
 
 multitasking::process processes[MAX_PROCESSES];
 
-int currentProcess = 0;
-int processCounter = 0;
-bool processSwitchingEnabled = false;
+static int currentProcess = 0;
+static int processTimeShareCounter = 0;
+static bool processSwitchingEnabled = false;
+
+static bool uninitialized = true;
+
+void multitasking::initMultitasking() {
+    // set all process space to zero
+    for (int i = 0; i < MAX_PROCESSES; i++) {
+        processes[i] = {0, {0, 0, 0, 0, 0, 0, 0, 0}, 0, false};
+        for (int j = 0; j < PROCESS_MAX_PAGE_RANGES; j++) {
+            processes[i].pages[j] = {0, 0, 0};
+        }
+    }
+    processes[0] = {0, {0, 0, 0, 0, 0, 0, 0, 0}, 0, true};
+    memcpy((char *)&processes[0].registerContext, (char *)current_context, sizeof(context));
+    createPageRange(processes[0].pages);
+    currentProcess = 0;
+    printf("---Multitasking enabled---\n");
+    processSwitchingEnabled = true;
+    uninitialized = false;
+}
 
 bool multitasking::isProcessSwitchingEnabled() {
     return processSwitchingEnabled;
@@ -22,21 +41,19 @@ void init_empty_stack(void *stackadr, void *codeadr) {
 
     uint32_t *stack = (uint32_t *)stackadr;
     memcpy((char *)&stack[20], argstr, sizeof(argstr));
-    memcpy((char *)&stack[20+sizeof(argstr)], argstr2, sizeof(argstr2));
+    memcpy((char *)&stack[20 + sizeof(argstr)], argstr2, sizeof(argstr2));
 
     stack[0] = (uint32_t)codeadr; // EIP
     stack[1] = 8;                 // CS?
     stack[2] = 1 << 9;            // EFLAGS, set interrupt bit
     stack[3] = 2;                 // argc
 
-    stack[4] = (uint32_t)&stack[20]; // argv pointer
-    stack[5] = (uint32_t)&stack[20+sizeof(argstr)];                    // argv null termination
-    stack[6] = 0;                    // envp pointer
-    stack[7] = 0;                    // envp null termination
-    stack[8] = 0;                    // envp null termination
+    stack[4] = (uint32_t)&stack[20];                  // argv pointer
+    stack[5] = (uint32_t)&stack[20 + sizeof(argstr)]; // argv null termination
+    stack[6] = 0;                                     // envp pointer
+    stack[7] = 0;                                     // envp null termination
+    stack[8] = 0;                                     // envp null termination
 }
-
-bool init = true;
 
 multitasking::process *multitasking::getCurrentProcess() {
     return &processes[currentProcess];
@@ -118,21 +135,8 @@ void multitasking::setProcessSwitching(bool state) {
 }
 
 void multitasking::interruptTrigger() {
-    if (init) {
-        // set all process space to zero
-        for (int i = 0; i < MAX_PROCESSES; i++) {
-            processes[i] = {0, {0, 0, 0, 0, 0, 0, 0, 0}, 0, false};
-            for (int j = 0; j < PROCESS_MAX_PAGE_RANGES; j++) {
-                processes[i].pages[j] = {0, 0, 0};
-            }
-        }
-        processes[0] = {0, {0, 0, 0, 0, 0, 0, 0, 0}, 0, true};
-        memcpy((char *)&processes[0].registerContext, (char *)current_context, sizeof(context));
-        createPageRange(processes[0].pages);
-        currentProcess = 0;
-        init = false;
-        printf("---Multitasking enabled---\n");
-        processSwitchingEnabled = true;
+    if (uninitialized) {
+        return;
     }
 
     int runningProcesses = 0;
@@ -158,7 +162,7 @@ void multitasking::interruptTrigger() {
             }
         }
     }
-    if (processCounter > processes[currentProcess].priority && processSwitchingEnabled) {
+    if (processTimeShareCounter > processes[currentProcess].priority && processSwitchingEnabled) {
         // Priority exceeded, now we have to switch process
         if (runningProcesses > 1) { // is it even possible to switch?
             int start = currentProcess;
@@ -177,9 +181,9 @@ void multitasking::interruptTrigger() {
                 }
             }
         }
-        processCounter = 0;
+        processTimeShareCounter = 0;
     }
-    processCounter++;
+    processTimeShareCounter++;
 }
 
 bool multitasking::createPageRange(process_pagerange *range, uint32_t max_address) {

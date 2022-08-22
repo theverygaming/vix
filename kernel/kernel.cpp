@@ -16,6 +16,7 @@
 #include <arch/x86/drivers/keyboard.h>
 #include <arch/x86/drivers/pci.h>
 #include <arch/x86/drivers/serial.h>
+#include "cpp.h"
 
 void kernelstart();
 
@@ -75,6 +76,8 @@ void kernelstart() {
     memalloc::page::kernel_init();
     memalloc::page::kernel_alloc((void *)(KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET), 245);
     cpubasics::cpuinit();
+    cpp_init();
+    multitasking::initMultitasking();
     drivers::keyboard::init();
     isr::RegisterHandler(0x80, syscall::syscallHandler);
     cpuid::printFeatures();
