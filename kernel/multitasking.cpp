@@ -166,9 +166,11 @@ void multitasking::interruptTrigger() {
         // Priority exceeded, now we have to switch process
         if (runningProcesses > 1) { // is it even possible to switch?
             int start = currentProcess;
-            if (currentProcess == runningProcesses - 1) {
+            if (currentProcess == runningProcesses - 1) { // is this the last process in the processes array?
                 start = 0;
             }
+            bruh:
+            int oldProcess = currentProcess;
             for (int i = start; i < MAX_PROCESSES; i++) {
                 if (processes[i].running && currentProcess != i) {
                     memcpy((char *)&processes[currentProcess].registerContext, (char *)current_context, sizeof(context)); // Save current process context
@@ -179,6 +181,10 @@ void multitasking::interruptTrigger() {
                     currentProcess = i;
                     break;
                 }
+            }
+            if(oldProcess == currentProcess) {
+                start = 0;
+                goto bruh; // this will get stuck at some point, temporary fix
             }
         }
         processTimeShareCounter = 0;
