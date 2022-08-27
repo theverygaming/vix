@@ -15,3 +15,6 @@ boot/stage1
 shitshell/shitshell
 shitOS_app.img
 startup/startup
+kernel_shitshell.bin
+kernel.bin
+shitOS.iso
