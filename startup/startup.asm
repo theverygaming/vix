@@ -39,11 +39,19 @@ global _start
 extern startup_cpp
 _start:
     mov esp, KERNEL_PHYS_ADDRESS + KERNEL_START_STACK_POINTER_OFFSET
+    cmp eax, 0x36D76289
+    jne .multiboot_issue
+    push ebx ; multiboot 2 info structure pointer
     call startup_cpp
     mov eax, kernelcall
     call puts
+    pop ebx ; multiboot 2 info structure pointer
     mov esp, KERNEL_VIRT_ADDRESS + KERNEL_START_STACK_POINTER_OFFSET
+    push ebx ; multiboot 2 info structure pointer
     call KERNEL_VIRT_ADDRESS
+.multiboot_issue:
+    mov eax, multiboot_issue
+    call puts
 .die:
     cli
     hlt
@@ -115,3 +123,4 @@ putc_vidmem: ; char in al
 section .data
 vidmemCharCounter dd 0
 kernelcall db "calling kernel",0x0A, 0x0D, 0x0
+multiboot_issue db "multiboot issue",0x0A, 0x0D, 0x0
