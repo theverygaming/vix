@@ -34,18 +34,19 @@ void stage2start(void) {
         printf("Couldn't enable A20 -- unable to start kernel like this\nRIP\n");
         deth_loop();
     }
-    paging::initpaging();
-    gdt::i686_GDT_Initialize();
-    memset((char *)KERNEL_VIRT_ADDRESS, 0, KERNEL_CODE_SIZE); // make 100% sure kernel .bss is zero
+    //paging::initpaging();
+    //gdt::i686_GDT_Initialize();
+    memset((char *)KERNEL_LOADER_PHYS_ADDRESS, 0, KERNEL_CODE_SIZE); // make 100% sure kernel .bss is zero
     printf("Searching for hard drives\n");
     hdd::generic::scanDrives();
     if (hdd::generic::alldrives[0].alive) {
         printf("Trying to load data from HDD...\n");
-        hdd::generic::readDrive((void *)KERNEL_VIRT_ADDRESS, 21, 2027, hdd::generic::alldrives[0]);
-        hdd::generic::readDrive((void *)(KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET), 2048, 5690, hdd::generic::alldrives[0]);
+        hdd::generic::readDrive((void *)KERNEL_LOADER_PHYS_ADDRESS, 21, 2027, hdd::generic::alldrives[0]);
+        hdd::generic::readDrive((void *)(KERNEL_LOADER_PHYS_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET), 2048, 5690, hdd::generic::alldrives[0]);
         printf("Jumping to kernel\n");
-        uint32_t sp_adr = KERNEL_VIRT_ADDRESS + KERNEL_START_STACK_POINTER_OFFSET;
-        uint32_t kerneladr = KERNEL_VIRT_ADDRESS;
+        uint32_t sp_adr = KERNEL_LOADER_PHYS_ADDRESS + KERNEL_START_STACK_POINTER_OFFSET;
+        uint32_t kerneladr = KERNEL_LOADER_PHYS_ADDRESS;
+        clrscr();
         asm volatile("mov %0, %%esp" : : "a"(sp_adr));
         ((void(*)(uint8_t, uint32_t))kerneladr)(69, 42069);
         clrscr();

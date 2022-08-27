@@ -1,12 +1,13 @@
 #define KERNEL_VIRT_ADDRESS 0xC0000000
 #define KERNEL_PHYS_ADDRESS 0x1EA000 // lets ignore the ISA memory hole, the PC's we run on are not that old anyway right?
+#define KERNEL_LOADER_PHYS_ADDRESS (KERNEL_PHYS_ADDRESS - 0x10000)
 
 #define KERNEL_CODE_SIZE 0x200000
 
 // directory size: 4096 bytes(ends 0x1001000)
 // tables size: (1024 * 1024 * 4) bytes
 #define PAGE_DIRECTORY_OFFSET 0x200000
-#define PAGE_TABLES_OFFSET PAGE_DIRECTORY_OFFSET + (1024 * 4)
+#define PAGE_TABLES_OFFSET (PAGE_DIRECTORY_OFFSET + (1024 * 4))
 
 // location where ISR stores registers, size: 32 bytes 
 //could be moved a bit

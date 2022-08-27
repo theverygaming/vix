@@ -14,3 +14,4 @@ boot/stage2/stage2
 boot/stage1
 shitshell/shitshell
 shitOS_app.img
+startup/startup
