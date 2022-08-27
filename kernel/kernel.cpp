@@ -81,7 +81,7 @@ void kernelstart(void *multiboot2_info_ptr) {
     paging::clearPageTables((void *)0x0, KERNEL_VIRT_ADDRESS / 4096);
     memalloc::page::phys_init(memorymap::map_entries, memorymap::map_entrycount);
     memalloc::page::kernel_init();
-    memalloc::page::kernel_alloc((void *)(KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET), 245);
+    memalloc::page::kernel_alloc((void *)(KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET), 704);
     cpubasics::cpuinit();
     cpp_init();
     multitasking::initMultitasking();
