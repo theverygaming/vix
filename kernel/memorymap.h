@@ -1,7 +1,7 @@
 #pragma once
 #include "types.h"
 
-#define MEMMAP_MAX_ENTRIES 20
+#define MEMMAP_MAX_ENTRIES 40
 
 namespace memorymap {
     void initMemoryMap(void *mapadr, int entrycount);
