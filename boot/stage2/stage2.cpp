@@ -5,9 +5,7 @@ extern "C" void __attribute__((section(".entry"))) _start(void) {
 }
 
 #include "../../config.h"
-#include "gdt.h"
 #include "hdd.h"
-#include "paging.h"
 #include "stdio.h"
 #include "stdlib.h"
 
@@ -34,8 +32,6 @@ void stage2start(void) {
         printf("Couldn't enable A20 -- unable to start kernel like this\nRIP\n");
         deth_loop();
     }
-    //paging::initpaging();
-    //gdt::i686_GDT_Initialize();
     memset((char *)KERNEL_LOADER_PHYS_ADDRESS, 0, KERNEL_CODE_SIZE); // make 100% sure kernel .bss is zero
     printf("Searching for hard drives\n");
     hdd::generic::scanDrives();

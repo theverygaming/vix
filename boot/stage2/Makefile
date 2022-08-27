@@ -5,7 +5,7 @@ all:
 	@$(MAKE) stage2
 	@dd status=none if=/dev/zero of=stage2 bs=1 count=1 seek=10239
 
-stage2: stage2.ocpp gdt.oasm gdt.ocpp paging.ocpp paging.oasm stdio.ocpp hdd.ocpp stdlib.ocpp
+stage2: stage2.ocpp stdio.ocpp stdlib.ocpp hdd.ocpp
 	@ld -m elf_i386 --oformat binary -T linker.ld -nostdlib $^ -o $@
 
 %.ocpp: %.cpp
