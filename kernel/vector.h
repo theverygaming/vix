@@ -1,4 +1,5 @@
 #include <memory_alloc/memalloc.h>
+#include <panic.h>
 
 template <class T> class vector {
 public:
@@ -12,11 +13,11 @@ public:
         memalloc::single::kfree(_pointer);
     }
 
-    T operator[](int i) {
-        if (i < _capacity) {
-            return _pointer[i];
+    T &operator[](int i) {
+        if (i >= _capacity) {
+            KERNEL_PANIC("out of bounds vector access");
         }
-        return 0;
+        return _pointer[i];
     }
 
     int capacity() {

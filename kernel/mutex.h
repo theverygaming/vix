@@ -1,3 +1,4 @@
+#pragma once
 #include <panic.h>
 
 class mutex {

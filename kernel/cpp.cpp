@@ -15,7 +15,6 @@ extern "C" constructor START_CONSTRUCTORS;
 extern "C" constructor END_CONSTRUCTORS;
 
 void cpp_init() {
-    
     for (constructor *i = &START_CONSTRUCTORS; i < &END_CONSTRUCTORS; i++) {
         (*i)();
     }
