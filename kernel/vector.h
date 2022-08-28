@@ -1,5 +1,5 @@
 #include <memory_alloc/memalloc.h>
-#include <panic.h>
+#include <debug.h>
 
 template <class T> class vector {
 public:
@@ -14,9 +14,7 @@ public:
     }
 
     T &operator[](int i) {
-        if (i >= _capacity) {
-            KERNEL_PANIC("out of bounds vector access");
-        }
+        assertm(i < _capacity, "out of bounds vector access");
         return _pointer[i];
     }
 
