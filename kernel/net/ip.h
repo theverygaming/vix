@@ -12,13 +12,12 @@ namespace net::ip {
         uint8_t Protocol;
         uint16_t header_checksum;
         uint8_t source_address[4];
-        uint8_t dest_address[4];
+        uint8_t destination_address[4];
 
         uint8_t options[40];
 
-        uint32_t data_len;
-        uint8_t data[65515]; // is this correct?
-    } ipv4_header;
+        uint32_t data_start_offset;
+    } ipv4_packet_t;
 
-    ipv4_header parse_ipv4_packet(void *data, size_t len);
+    void parse_ipv4_packet(void *data, size_t len);
 }
