@@ -81,7 +81,7 @@ void cpubasics::cpuinit() {
     set_pit_freq(1000);
     isr::RegisterHandler(32, clockHandler);
     // RegisterClockHandler(0, isr_clock_int);
-    outb(0x21, 0b11111100); // Enable IRQ 0 and 1
+    outb(0x21, 0b11111000); // Enable IRQ 0, 1 and 2
     outb(0xA1, 0b11111111);
     asm volatile("sti");
 }

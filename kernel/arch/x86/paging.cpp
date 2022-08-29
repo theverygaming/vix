@@ -93,6 +93,15 @@ void *paging::get_physaddr(void *virtualaddr) {
     return (void *)(pagetables[pdindex][ptindex] & 0xFFFFF000);
 }
 
+void *paging::get_physaddr_unaligned(void *virtualaddr) {
+    uint64_t misalignment = ((uint64_t)virtualaddr) % 4096;
+    unsigned long pdindex = (unsigned long)virtualaddr >> 22;
+    unsigned long ptindex = (unsigned long)virtualaddr >> 12 & 0x03FF;
+
+    // TODO: check if entry is actually present
+    return (void *)((pagetables[pdindex][ptindex] & 0xFFFFF000) + misalignment);
+}
+
 void invlpg(void *virtaddrx) {
     uint32_t virtaddr = (uint32_t)virtaddrx;
     asm volatile("invlpg (%0)" ::"r"(virtaddr) : "memory");
