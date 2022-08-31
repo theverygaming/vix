@@ -68,7 +68,6 @@ void fs::filesystems::roramfs::deinit() {
 
 void fs::filesystems::roramfs::mountInVFS() {
     struct fs::vfs::vfs_mountpoint mountpoint = {.uid = 0, .gid = 0, .fsize = &fsize, .fload = &fload, .fptr = &fptr};
-    printf("filecount: %d\n", fsheader.filecount);
     strcpy(mountpoint.mountpath, "/ramfs/");
     fs::vfs::mount(mountpoint);
 }

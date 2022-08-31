@@ -17,8 +17,10 @@
 #include <arch/x86/drivers/keyboard.h>
 #include <arch/x86/drivers/pci.h>
 #include <arch/x86/drivers/serial.h>
-#include <panic.h>
+#include <fs/roramfs.h>
+#include <fs/vfs.h>
 #include <multiboot2.h>
+#include <panic.h>
 
 void kernelstart(void *multiboot2_info_ptr);
 
@@ -68,7 +70,13 @@ void kernelstart(void *multiboot2_info_ptr) {
     isr::RegisterHandler(0x80, syscall::syscallHandler);
     cpuid::printFeatures();
     simd::enableSSE();
-    elf::load_program((void *)(KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET));
+    fs::filesystems::roramfs::init((void *)(KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET));
+    fs::filesystems::roramfs::mountInVFS();
+    void *elfptr = nullptr;
+    if (fs::vfs::fptr("/ramfs/shitshell", &elfptr)) {
+        elf::load_program(elfptr);
+    }
+    // elf::load_program((void *)(KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET));
     memalloc::page::kernel_free((void *)(KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET));
     // drivers::pci::init();
     for (int i = 0; i < 9; i++) {
