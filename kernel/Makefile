@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -I. -O3 -nostdlib -m32 -march=i386 -fno-pie -fno-stack-protector -ffreestanding -fno-exceptions -Wall -Wextra -Wno-pointer-arith
+CFLAGS = -I. -O3 -nostdlib -m32 -march=i386 -fno-pie -mno-red-zone -fno-stack-protector -ffreestanding -fno-exceptions -Wall -Wextra -Wno-pointer-arith -Wno-unused-parameter
 
 HEADERS_CPP = $(shell find . -name "*.h") # fuck it, lets just do this..
 
