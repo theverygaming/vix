@@ -22,18 +22,6 @@
 #include <multiboot2.h>
 #include <panic.h>
 
-void kernelstart(void *multiboot2_info_ptr);
-
-extern "C" void __attribute__((section(".entry"))) _start(void *multiboot2_info_ptr) {
-    size_t sp;
-    asm volatile("mov %%esp, %0" : "=a"(sp) :);
-    if (sp < KERNEL_VIRT_ADDRESS) {
-        return;
-    }
-    kernelstart(multiboot2_info_ptr);
-    while (true) {}
-}
-
 // very important array definitely
 uint8_t franxxlogo[9][18] = {
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 4, 0},
@@ -48,18 +36,8 @@ uint8_t franxxlogo[9][18] = {
 };
 
 void kernelstart(void *multiboot2_info_ptr) {
-    for (uint32_t i = 0; i < 0xFFFFFF; i++) {}
-    clrscr();
-    drivers::serial::init();
     printf("hewwo\n");
     printf("shitOS built %s %s\n", __DATE__, __TIME__);
-    if ((size_t)multiboot2_info_ptr & 7) {
-        KERNEL_PANIC("multiboot2 info structure is not aligned, something is wrong here");
-    }
-    int memMap_count = 0;
-    void *memMap = multiboot2::findMemMap(multiboot2_info_ptr, &memMap_count);
-    memorymap::initMemoryMap(memMap, memMap_count);
-    paging::clearPageTables((void *)0x0, KERNEL_VIRT_ADDRESS / 4096);
     memalloc::page::phys_init(memorymap::map_entries, memorymap::map_entrycount);
     memalloc::page::kernel_init();
     memalloc::page::kernel_alloc((void *)(KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET), 704);

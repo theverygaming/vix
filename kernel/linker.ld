@@ -1,4 +1,4 @@
-ENTRY(_start)
+ENTRY(_kentry)
 
 PAGE = 0x1000;
 HIGHER_HALF = 0xC0000000;
