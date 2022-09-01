@@ -37,6 +37,7 @@ namespace multitasking {
     void killCurrentProcess();
     void interruptTrigger();
     void create_task(void *stackadr, void *codeadr, process_pagerange *pagerange);
+    void replace_task(void *stackadr, void *codeadr, process_pagerange *pagerange, int replacePid);
     process *getCurrentProcess();
     void waitForProcess(int pid);
     void refresh_current_process_pagerange();

@@ -130,6 +130,24 @@ void multitasking::create_task(void *stackadr, void *codeadr, process_pagerange 
     }
 }
 
+void multitasking::replace_task(void *stackadr, void *codeadr, process_pagerange *pagerange, int replacePid) {
+    processes[replacePid].running = false;
+    if(currentProcess == replacePid) {
+        unsetPageRange(processes[replacePid].pages);
+    }
+    // TODO: free old process memory
+    stackadr -= (4 * 40); // init_empty_stack has to build the stack up
+    init_empty_stack(stackadr, codeadr);
+    processes[replacePid] = {replacePid, {0, 0, 0, 0, 0, 0, (uint32_t)stackadr, 0}, 0, false};
+    memcpy((char *)processes[replacePid].pages, (char *)pagerange, sizeof(process_pagerange) * PROCESS_MAX_PAGE_RANGES);
+    processes[replacePid].running = true;
+    processes[replacePid].priority = 0;
+
+    if(currentProcess == replacePid) {
+        setPageRange(processes[replacePid].pages);
+    }
+}
+
 void multitasking::setProcessSwitching(bool state) {
     processSwitchingEnabled = state;
 }

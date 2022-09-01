@@ -18,3 +18,5 @@ startup/startup
 kernel_shitshell.bin
 kernel.bin
 shitOS.iso
+roramfs_create
+roramfs.fs

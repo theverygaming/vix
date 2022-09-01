@@ -5,7 +5,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 
-void elf::load_program(void *ELF_baseadr) {
+void elf::load_program(void *ELF_baseadr, bool replace_task, int replace_pid) {
     ElfHeader header;
     ElfProgramHeader pHeader;
 
@@ -39,6 +39,10 @@ void elf::load_program(void *ELF_baseadr) {
     }
 
     pageranges[0] = {(uint32_t)memalloc::page::phys_malloc(pagecount), min, pagecount};
+    multitasking::process_pagerange old_pageranges[PROCESS_MAX_PAGE_RANGES];
+    if(!replace_task) {
+        multitasking::createPageRange(old_pageranges);
+    }
     multitasking::setPageRange(pageranges);
 
     printf("---Program Headers---\n");
@@ -67,6 +71,13 @@ void elf::load_program(void *ELF_baseadr) {
 
     printf("Entry point: 0x%p\n", header.e_entry);
 
-    multitasking::create_task((void *)(max + (4096 * 4)), (void *)header.e_entry, pageranges);
+    if(replace_task) {
+        multitasking::replace_task((void *)(max + (4096 * 4)), (void *)header.e_entry, pageranges, replace_pid);
+    } else {
+        multitasking::create_task((void *)(max + (4096 * 4)), (void *)header.e_entry, pageranges);
+    }
     multitasking::unsetPageRange(pageranges);
+    if(!replace_task) {
+        multitasking::setPageRange(old_pageranges);
+    }
 }

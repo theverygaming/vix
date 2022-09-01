@@ -3,6 +3,8 @@
 #include "multitasking.h"
 #include <arch/arch.h>
 #include <arch/x86/drivers/keyboard.h>
+#include <fs/vfs.h>
+#include <elf.h>
 #include <memory_alloc/memalloc.h>
 #include INCLUDE_ARCH(paging.h)
 #include "stdio.h"
@@ -84,12 +86,16 @@ uint32_t sys_waitpid(int *syscall_ret, uint32_t, uint32_t pid, uint32_t _stat_ad
 
 uint32_t sys_execve(int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _argv, uint32_t _envp, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 0;
-    const char *filename = (const char *)_filename;
+    char *filename = (char *)_filename;
     // const char *const *argv = (const char *const *)_argv;
     // const char *const *envp = (const char *const *)_envp;
-    DEBUG_PRINTF("syscall: sys_execve\n");
-    printf("%s\n", filename);
-    return 0;
+    DEBUG_PRINTF("syscall: sys_execve -> %s\n", filename);
+    void *elfptr;
+    if (fs::vfs::fptr(filename, &elfptr)) {
+        elf::load_program(elfptr, true, multitasking::getCurrentProcess()->pid);
+        return 0;
+    }
+    return -1;
 }
 
 uint32_t sys_mmap(int *syscall_ret, uint32_t, uint32_t mmap_struct_ptr, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
