@@ -1,4 +1,4 @@
-#include "simd.h"
+#include <arch/x86/simd.h>
 #include <arch/x86/cpuid.h>
 #include <stdio.h>
 

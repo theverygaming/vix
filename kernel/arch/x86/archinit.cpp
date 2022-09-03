@@ -1,5 +1,5 @@
-#include "archinit.h"
-#include <../config.h>
+#include <arch/x86/archinit.h>
+#include <config.h>
 #include <arch/x86/paging.h>
 #include <memorymap.h>
 #include <multiboot2.h>

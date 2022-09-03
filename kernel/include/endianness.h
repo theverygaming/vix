@@ -1,5 +1,5 @@
 #pragma once
-#include <../config.h>
+#include <config.h>
 #include <types.h>
 
 #if (CONFIG_ENDIAN_BIG == 0)

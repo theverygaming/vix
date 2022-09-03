@@ -1,5 +1,5 @@
 #pragma once
-#include <../config.h>
+#include <config.h>
 #define ARCH_EXPAND(x) x
 
 #define ARCH_CONCAT_INCLUDE(a, b) ARCH_EXPAND(<arch/)ARCH_EXPAND(a)ARCH_EXPAND(/)ARCH_EXPAND(b)ARCH_EXPAND(>)

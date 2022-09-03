@@ -1,5 +1,5 @@
-#include "gdt.h"
-#include <../config.h>
+#include <arch/x86/gdt.h>
+#include <config.h>
 #include <stdlib.h>
 #include <stdint.h>
 

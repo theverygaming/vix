@@ -1,5 +1,5 @@
-#include "cpubasics.h"
-#include <../config.h>
+#include <arch/x86/cpubasics.h>
+#include <config.h>
 #include <arch/x86/idt.h>
 #include <arch/x86/isr.h>
 #include <multitasking.h>

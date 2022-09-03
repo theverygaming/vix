@@ -1,5 +1,5 @@
 #pragma once
-#include "../kernel/types.h"
+#include "../kernel/include/types.h"
 
 namespace paging {
     void initpaging();

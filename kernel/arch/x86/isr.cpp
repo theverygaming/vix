@@ -1,12 +1,12 @@
-#include "isr.h"
-#include "../config.h"
-#include "debug.h"
-#include "idt.h"
-#include "isrs.h"
+#include <arch/x86/isr.h>
+#include <config.h>
+#include <debug.h>
+#include <arch/x86/idt.h>
+#include <arch/x86/isrs.h>
 #include <memory_alloc/memalloc.h>
-#include "multitasking.h"
-#include "stdio.h"
-#include "stdlib.h"
+#include <multitasking.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <cstddef>
 
 isr::intHandler handlers[256];

@@ -1,6 +1,6 @@
-#include "isrs.h"
-#include "gdt.h"
-#include "idt.h"
+#include <arch/x86/isrs.h>
+#include <arch/x86/gdt.h>
+#include <arch/x86/idt.h>
 
 extern "C" void i686_ISR0();
 extern "C" void i686_ISR1();

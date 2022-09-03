@@ -1,7 +1,7 @@
 #include <arch/x86/cpubasics.h>
-#include "types.h"
+#include <types.h>
 
-#include "../config.h"
+#include <config.h>
 #include <arch/x86/drivers/serial.h>
 #include <cstdarg>
 #include <stdbool.h>

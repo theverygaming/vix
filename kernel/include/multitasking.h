@@ -1,5 +1,5 @@
 #pragma once
-#include "../config.h"
+#include <config.h>
 #include <arch/x86/paging.h>
 #include "types.h"
 

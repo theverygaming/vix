@@ -1,4 +1,4 @@
-#include "pci.h"
+#include <arch/x86/drivers/pci.h>
 #include <arch/x86/cpubasics.h>
 #include <stdio.h>
 

@@ -1,7 +1,7 @@
-#include "memalloc.h"
-#include "../config.h"
-#include "stdio.h"
-#include "stdlib.h"
+#include <memory_alloc/memalloc.h>
+#include <config.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <memory_alloc/allocators.h>
 
 #define PAGE_SIZE 4096

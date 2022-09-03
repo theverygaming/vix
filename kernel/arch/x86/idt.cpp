@@ -1,5 +1,5 @@
-#include "idt.h"
-#include "paging.h"
+#include <arch/x86/idt.h>
+#include <arch/x86/paging.h>
 #include <stdint.h>
 
 #define FLAG_SET(x, flag) x |= (flag)

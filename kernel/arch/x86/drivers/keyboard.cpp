@@ -1,4 +1,4 @@
-#include "keyboard.h"
+#include <arch/x86/drivers/keyboard.h>
 #include <arch/x86/isr.h>
 #include <stdio.h>
 #include <arch/x86/cpubasics.h>

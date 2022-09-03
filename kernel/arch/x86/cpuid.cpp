@@ -1,4 +1,4 @@
-#include "cpuid.h"
+#include <arch/x86/cpuid.h>
 #include <stdio.h>
 
 #define CPUID_MACRO(level, a, b, c, d)                                                                                                                                                                 \

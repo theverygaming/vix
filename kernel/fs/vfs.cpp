@@ -1,4 +1,4 @@
-#include "vfs.h"
+#include <fs/vfs.h>
 #include <fs/path.h>
 #include <mutex.h>
 #include <vector.h>

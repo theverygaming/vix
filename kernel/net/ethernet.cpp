@@ -1,4 +1,4 @@
-#include "ethernet.h"
+#include <net/ethernet.h>
 #include <endianness.h>
 #include <net/ip.h>
 #include <stdio.h>

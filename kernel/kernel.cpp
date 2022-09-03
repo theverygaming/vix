@@ -1,10 +1,10 @@
-#include "../config.h"
-#include "elf.h"
-#include "memorymap.h"
-#include "multitasking.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "syscall.h"
+#include <config.h>
+#include <elf.h>
+#include <memorymap.h>
+#include <multitasking.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <syscall.h>
 #include <arch/arch.h>
 #include <arch/x86/idt.h>
 #include <arch/x86/isr.h>
@@ -13,7 +13,7 @@
 #include INCLUDE_ARCH(cpuid.h)
 #include INCLUDE_ARCH(simd.h)
 #include INCLUDE_ARCH(cpubasics.h)
-#include "cpp.h"
+#include <cpp.h>
 #include <arch/x86/drivers/keyboard.h>
 #include <arch/x86/drivers/pci.h>
 #include <arch/x86/drivers/serial.h>

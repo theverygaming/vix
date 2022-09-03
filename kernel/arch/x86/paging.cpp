@@ -1,5 +1,5 @@
-#include "paging.h"
-#include "../config.h"
+#include <arch/x86/paging.h>
+#include <config.h>
 #include "stdio.h"
 #include "stdlib.h"
 #include <cmath>

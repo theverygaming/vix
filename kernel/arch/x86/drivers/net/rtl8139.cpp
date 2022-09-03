@@ -1,4 +1,4 @@
-#include "rtl8139.h"
+#include <arch/x86/drivers/net/rtl8139.h>
 #include <arch/x86/cpubasics.h>
 #include <arch/x86/drivers/pci.h>
 #include <arch/x86/isr.h>

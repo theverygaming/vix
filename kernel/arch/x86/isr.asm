@@ -26,7 +26,7 @@ i686_ISR%1:
 
 %include "arch/x86/isrs.inc"
 
-%include "../config.inc"
+%include "include/config.inc"
 
 isr_common:
     cli

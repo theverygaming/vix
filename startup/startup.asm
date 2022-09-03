@@ -1,5 +1,5 @@
 [BITS 32]
-%include "../config.inc"
+%include "../kernel/include/config.inc"
 section .entry
 align 8
 header_start:
