@@ -13,9 +13,9 @@ SOURCES_ASM = $(shell find . -name "*.asm")
 
 OBJECTS_ASM = $(patsubst %.asm, %.oasm, $(SOURCES_ASM))
 
-all: kernel
+all: kernel.bin
 
-kernel: $(OBJECTS_ASM) $(OBJECTS_CPP)
+kernel.bin: $(OBJECTS_ASM) $(OBJECTS_CPP)
 	@ld -m elf_i386 --oformat binary -T linker.ld -nostdlib $^ -o $@
 
 %.ocpp: %.cpp $(HEADERS_CPP)
@@ -27,5 +27,5 @@ kernel: $(OBJECTS_ASM) $(OBJECTS_CPP)
 	@nasm -f elf -o $@ $< 
 
 clean:
-	@rm -f kernel
+	@rm -f kernel.bin
 	@find . \( -name '*.oasm' -o -name '*.ocpp' \) -type f -delete
