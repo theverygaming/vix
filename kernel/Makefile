@@ -1,5 +1,5 @@
 all:
-	@g++ scripts/shbuild.cpp -o scripts/shbuild.o
+	@g++ scripts/shbuild.cpp -o scripts/shbuild.o -Wall
 	@scripts/shbuild.o shbuild
   
 

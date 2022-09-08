@@ -1,13 +1,1 @@
-ifvardef objs 1
-print objs defined!
-
-ifvardef CURRENTPATH 3
-varappend_tx objsx kmalloc.ocpp br.ocpp memalloc.ocpp
-varprefix_tx objsx VARINSERT(CURRENTPATH)
-varappend objs objsx
-
-shellcmd echo "hello VARINSERT(objs)"
-print hello world!
-
-ifvardef objs 1
-print objs defined!
+varappend_tx_prefix objs VARINSERT(CURRENTPATH) kmalloc.ocpp memalloc.ocpp

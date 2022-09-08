@@ -1,14 +1,7 @@
-// comment test
-include "main/shbuild" // comment test
+// since shconfig is still not a thing we have to define the config here
+varset_tx CONFIG_ARCH x86
 
-printf building
-
-arraylength objs arrlen
-ifvarisnot arrlen 0 5
-getarrindex objs arrlen arrayobject
-
-print compiling -> VARINSERT(arrayobject)
-shellcmd g++ -Iinclude -O3 -nostdlib -m32 -march=i386 -fno-pie -mno-red-zone -fno-stack-protector -ffreestanding -fno-exceptions -Wall -Wextra -Wno-pointer-arith -Wno-unused-parameter -c $< -o VARINSERT(arrayobject)
-
-subtract arrlen 1
-jump 7
+include "main/shbuild"
+include "net/shbuild"
+include "fs/shbuild"
+include "arch/VARINSERT(CONFIG_ARCH)/shbuild"

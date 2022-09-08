@@ -1,3 +1,0 @@
-mainmenu "shitOS $(ARCH) $(KERNELVERSION) kernel config"
-
-source "main/Kconfig"

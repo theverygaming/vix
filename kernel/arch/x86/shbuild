@@ -1,0 +1,2 @@
+include "drivers/shbuild"
+varappend_tx_prefix objs VARINSERT(CURRENTPATH) archinit.ocpp cpubasics.ocpp cpuid.ocpp gdt.oasm gdt.ocpp idt.oasm idt.ocpp isr.oasm isr.ocpp isrs.ocpp paging.oasm paging.ocpp simd.oasm simd.ocpp
