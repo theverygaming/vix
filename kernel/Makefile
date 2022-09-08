@@ -2,6 +2,9 @@ all:
 	@g++ scripts/shbuild.cpp -o scripts/shbuild.o -Wall
 	@scripts/shbuild.o shbuild
   
+config: 
+	@$(MAKE) -C scripts/shconfig
+	@scripts/shconfig/shconfig shconfig
 
 clean:
 	@rm -f kernel.bin

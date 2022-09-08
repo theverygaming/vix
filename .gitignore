@@ -20,3 +20,4 @@ kernel.bin
 shitOS.iso
 roramfs_create
 roramfs.fs
+kernel/scripts/shconfig/shconfig

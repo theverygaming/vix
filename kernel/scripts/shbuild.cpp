@@ -144,13 +144,18 @@ void processFile(std::string filename) {
     while (currentLine < lines.size()) {
         std::string line = lines[currentLine];
 
-        //  remove comments
+        // remove comments
         if (line.find("//") != std::string::npos) {
             line.erase(line.find("//"), line.length());
         }
         if (line.length() == 0) {
             currentLine++;
             continue;
+        }
+
+        // remove trailing spaces
+        if (line.find_last_not_of(' ') != std::string::npos) {
+            line.erase(line.find_last_not_of(' ')+1);
         }
 
         // replace VARINSERT(variablename) --------------------------------------------------------------- TODO: make varinsert work with multiple statements on a single line

@@ -1,0 +1,8 @@
+presetconfigstring CONFIG_ARCH x86
+presetconfigbool CONFIG_E 1
+
+//include "arch/CONFINSERT(CONFIG_ARCH)/shconfig"
+//include "main/shconfig"
+setsubmenupath test/test/a
+addconfigbool CONFIG_BRUH test
+addconfigstring CONFIG_H test hello world what the dog doin
