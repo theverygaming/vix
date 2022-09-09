@@ -13,6 +13,6 @@ typedef struct {
     bool preset;
 } configoption_t;
 
-extern std::map<std::string, configoption_t> config_list;
+extern std::map<std::string, configoption_t> config_map;
 
 void processFile(std::string filename);

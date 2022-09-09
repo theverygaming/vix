@@ -108,7 +108,7 @@ inline void runcmd(std::string cmd) {
 
 std::string expandStrVector(std::vector<std::string> in) {
     std::string ret;
-    for (int i = 0; i < in.size(); i++) {
+    for (size_t i = 0; i < in.size(); i++) {
         ret.append(in[i] + " ");
     }
     return ret;
@@ -121,7 +121,7 @@ void processFile(std::string filename) {
     std::ifstream infile(filename);
     if (!infile.is_open()) {
         fprintf(stderr, "could not open file %s\n", filename.c_str());
-        throw std::runtime_error("could not find variable");
+        throw std::runtime_error("could not open file");
     }
 
     // get folder

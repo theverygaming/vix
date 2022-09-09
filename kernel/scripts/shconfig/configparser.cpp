@@ -61,7 +61,7 @@ void processFile(std::string filename) {
     std::ifstream infile(filename);
     if (!infile.is_open()) {
         fprintf(stderr, "could not open file %s\n", filename.c_str());
-        throw std::runtime_error("could not find variable");
+        throw std::runtime_error("could not open file");
     }
 
     // get folder
@@ -171,6 +171,10 @@ void processFile(std::string filename) {
             newcfg.submenu_path = currentConfig_submenupath;
             newcfg.conftype = config_type::CONFIG_BOOL;
             newcfg.info = "";
+            if(!((line.length() == 1) && ((line.find('0') != std::string::npos) || line.find('1') != std::string::npos))) {
+                fprintf(stderr, "%s:%zu -> bool issue\n", filename.c_str(), currentLine + 1);
+                throw std::runtime_error("syntax error");
+            }
             newcfg.content = line;
             setConfig(name, newcfg);
             currentLine++;

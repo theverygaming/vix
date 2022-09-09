@@ -1,3 +1,4 @@
+#include "configgen.h"
 #include "configparser.h"
 #include <cstdio>
 #include <cstdlib>
@@ -9,5 +10,6 @@ int main(int argc, char *argv[]) {
     }
 
     processFile(argv[1]);
+    genConfigHeader("include/generated/config.h");
     return 0;
 }
