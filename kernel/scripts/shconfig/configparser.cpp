@@ -181,6 +181,16 @@ void processFile(std::string filename) {
             continue;
         }
 
+        if (stringStartsWith(line, "setconfigoptions ")) {
+            line.replace(0, 17, "");
+            std::string name = line.substr(0, line.find(' '));
+            line.replace(0, line.find(' ') + 1, "");
+            config_map[name].conftype = config_type::CONFIG_OPTIONS;
+            config_map[name].choose_options = splitString(line, " ");
+            currentLine++;
+            continue;
+        }
+
         fprintf(stderr, "%s:%zu -> couldn't parse %s\n", filename.c_str(), currentLine + 1, line.c_str());
         throw std::runtime_error("syntax error");
     }

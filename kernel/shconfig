@@ -1,6 +1,6 @@
 presetconfigstring CONFIG_ARCH x86
+setconfigoptions CONFIG_TEST test1 test2 test3 test4 test5
 presetconfigbool CONFIG_E 1
-presetconfigbool CONFIG_EE 0
 
 include "arch/CONFINSERT(CONFIG_ARCH)/shconfig"
 include "main/shconfig"
