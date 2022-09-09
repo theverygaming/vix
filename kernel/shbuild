@@ -1,6 +1,3 @@
-// since shconfig is still not a thing we have to define the config here
-varset_tx CONFIG_ARCH x86
-
 include "main/shbuild"
 include "net/shbuild"
 include "fs/shbuild"

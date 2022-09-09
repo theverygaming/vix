@@ -1,6 +1,6 @@
 all: shconfig
 
-shconfig: shconfig.o configparser.o configgen.o
+shconfig: shconfig.o configparser.o configgen.o configask.o
 	@g++ $^ -o $@
 
 %.o: %.cpp

@@ -241,6 +241,43 @@ void processFile(std::string filename) {
     setVariable("CURRENTPATH", lastFolder);
 }
 
+void readConfigFile(std::string filename) {
+    std::ifstream infile(filename);
+    if (!infile.is_open()) {
+        fprintf(stderr, "could not open file %s\n", filename.c_str());
+        throw std::runtime_error("could not open file");
+    }
+
+    std::vector<std::string> lines;
+    {
+        std::string currentLine;
+        while (std::getline(infile, currentLine)) {
+            lines.push_back(currentLine);
+        }
+    }
+
+    size_t currentLine = 0;
+    while (currentLine < lines.size()) {
+        std::string line = lines[currentLine];
+        
+        // remove trailing spaces
+        if (line.find_last_not_of(' ') != std::string::npos) {
+            line.erase(line.find_last_not_of(' ')+1);
+        }
+
+        if(line.find(' ') == std::string::npos) {
+            currentLine++;
+            continue;
+        }
+
+        std::string name = line.substr(0, line.find(' '));
+        line.replace(0, line.find(' ') + 1, "");
+        setVariable(name, line);
+
+        currentLine++;
+    }
+}
+
 void build_cpp_gcc(std::string cxx, std::string cxxflags, std::string inputfile, std::string outputfile) {
     std::string command = cxx + " " + cxxflags + " -c " + inputfile + " -o " + outputfile;
     printf("%s %s\n", cxx.c_str(), inputfile.c_str());
@@ -276,7 +313,7 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "usage: %s shbuildfile\n", argv[0]);
         return 1;
     }
-
+    readConfigFile("config_gen");
     processFile(argv[1]);
     std::vector<std::string> objs = getVariable("objs");
     for (size_t i = 0; i < objs.size(); i++) {

@@ -4,6 +4,7 @@ all:
   
 config: 
 	@$(MAKE) -C scripts/shconfig
+	@mkdir -p include/generated/
 	@scripts/shconfig/shconfig shconfig
 
 clean:
