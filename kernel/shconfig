@@ -1,4 +1,3 @@
-presetconfigstring CONFIG_ARCH x86
 setconfigoptions CONFIG_TEST test1 test2 test3 test4 test5
 presetconfigbool CONFIG_E 1
 
@@ -9,4 +8,3 @@ include "fs/shconfig"
 
 setsubmenupath test/test/a
 addconfigbool CONFIG_BRUH test
-addconfigstring CONFIG_H test hello world what the dog doin

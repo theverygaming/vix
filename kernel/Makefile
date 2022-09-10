@@ -1,11 +1,16 @@
-all:
+all: config_gen
 	@g++ scripts/shbuild.cpp -o scripts/shbuild.o -Wall
 	@scripts/shbuild.o shbuild
   
 config: 
-	@$(MAKE) -C scripts/shconfig
+	@$(MAKE) --no-print-directory -C scripts/shconfig
 	@mkdir -p include/generated/
-	@scripts/shconfig/shconfig shconfig
+	@scripts/shconfig/shconfig -f shconfig -D CONFIG_ARCH x86
+
+config_gen:
+	@$(MAKE) --no-print-directory -C scripts/shconfig
+	@mkdir -p include/generated/
+	@scripts/shconfig/shconfig -g config_default -D CONFIG_ARCH x86
 
 clean:
 	@rm -f kernel.bin

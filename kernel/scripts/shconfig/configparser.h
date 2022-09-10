@@ -17,3 +17,4 @@ typedef struct {
 extern std::map<std::string, configoption_t> config_map;
 
 void processFile(std::string filename);
+void readConfigFile(std::string filename);

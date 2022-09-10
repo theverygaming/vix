@@ -133,7 +133,7 @@ void processFile(std::string filename) {
             continue;
         }
 
-        if (stringStartsWith(line, "addconfigstring ")) {
+        /*if (stringStartsWith(line, "addconfigstring ")) {
             line.replace(0, 16, "");
             std::string name = line.substr(0, line.find(' '));
             line.replace(0, line.find(' ') + 1, "");
@@ -145,7 +145,7 @@ void processFile(std::string filename) {
             setConfig(name, newcfg);
             currentLine++;
             continue;
-        }
+        }*/
 
         if (stringStartsWith(line, "presetconfigstring ")) {
             line.replace(0, 19, "");
@@ -171,7 +171,7 @@ void processFile(std::string filename) {
             newcfg.submenu_path = currentConfig_submenupath;
             newcfg.conftype = config_type::CONFIG_BOOL;
             newcfg.info = "";
-            if(!((line.length() == 1) && ((line.find('0') != std::string::npos) || line.find('1') != std::string::npos))) {
+            if (!((line.length() == 1) && ((line.find('0') != std::string::npos) || line.find('1') != std::string::npos))) {
                 fprintf(stderr, "%s:%zu -> bool issue\n", filename.c_str(), currentLine + 1);
                 throw std::runtime_error("syntax error");
             }
@@ -196,4 +196,43 @@ void processFile(std::string filename) {
     }
 
     lastFolder = savedFolder;
+}
+
+void readConfigFile(std::string filename) {
+    std::ifstream infile(filename);
+    if (!infile.is_open()) {
+        fprintf(stderr, "could not open file %s\n", filename.c_str());
+        throw std::runtime_error("could not open file");
+    }
+
+    std::vector<std::string> lines;
+    {
+        std::string currentLine;
+        while (std::getline(infile, currentLine)) {
+            lines.push_back(currentLine);
+        }
+    }
+
+    size_t currentLine = 0;
+    while (currentLine < lines.size()) {
+        std::string line = lines[currentLine];
+
+        // remove trailing spaces
+        if (line.find_last_not_of(' ') != std::string::npos) {
+            line.erase(line.find_last_not_of(' ') + 1);
+        }
+
+        if (line.find(' ') == std::string::npos) {
+            currentLine++;
+            continue;
+        }
+
+        std::string name = line.substr(0, line.find(' '));
+        line.replace(0, line.find(' ') + 1, "");
+        config_map[name].content = line;
+        config_map[name].preset = true;
+        config_map[name].conftype = config_type::CONFIG_STRING;
+
+        currentLine++;
+    }
 }
