@@ -13,10 +13,10 @@ int main(int argc, char *argv[]) {
 
     char *inputFile = nullptr;
     
-    bool gen_from_file = false;
+    char *genFile = nullptr;
 
     int opt;
-    while ((opt = getopt(argc, argv, "f:D:g")) != -1) {
+    while ((opt = getopt(argc, argv, "f:D:g:")) != -1) {
         switch (opt) {
         case 'D':
             if ((optind) < argc) {
@@ -30,12 +30,13 @@ int main(int argc, char *argv[]) {
             inputFile = optarg;
             break;
         case 'g':
-            gen_from_file = true;
+            genFile = optarg;
             break;
         }
     }
 
-    if(gen_from_file) {
+    if(genFile) {
+        readConfigFile(genFile);
         genConfigHeader("include/generated/config.h");
         genConfigFile("config_gen");
         return 0;
