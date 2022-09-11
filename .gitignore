@@ -14,7 +14,7 @@ boot/stage2/stage2
 boot/stage1
 shitshell/shitshell
 shitOS_app.img
-startup/startup
+startup/x86/startup
 kernel_shitshell.bin
 kernel.bin
 shitOS.iso
@@ -22,3 +22,4 @@ roramfs_create
 roramfs.fs
 kernel/scripts/shconfig/shconfig
 kernel/include/generated
+kernel/config_gen

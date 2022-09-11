@@ -4,8 +4,8 @@ export MAKE_ARCH
 all: img
 
 img:
-	@$(MAKE) --no-print-directory -C startup/$(MAKE_ARCH)
 	@$(MAKE) --no-print-directory -C kernel
+	@$(MAKE) --no-print-directory -C startup/$(MAKE_ARCH)
 	@$(MAKE) --no-print-directory -C shitshell
 	@cat startup/$(MAKE_ARCH)/startup kernel/kernel.bin /dev/zero | dd status=none iflag=fullblock of=kernel.bin bs=65536 count=246 # make the shitshell executable land right at KERNEL_FREE_AREA_BEGIN_OFFSET
 	@g++ roramfs_create.cpp -o roramfs_create
