@@ -1,6 +1,6 @@
 all: config_gen
-	@g++ scripts/shbuild.cpp -o scripts/shbuild.o -Wall
-	@scripts/shbuild.o shbuild
+	@g++ scripts/shbuild.cpp -o scripts/shbuild -Wall
+	@scripts/shbuild shbuild
   
 config: 
 	@$(MAKE) --no-print-directory -C scripts/shconfig
@@ -15,3 +15,8 @@ config_gen:
 clean:
 	@rm -f kernel.bin
 	@find . \( -name '*.oasm' -o -name '*.ocpp' -o -name '*.o' \) -type f -delete
+	@$(MAKE) --no-print-directory -C scripts/shconfig clean
+
+proper: clean
+	@rm -f config_gen
+	@rm -f scripts/shconfig/shbuild

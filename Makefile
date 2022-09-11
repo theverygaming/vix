@@ -1,9 +1,9 @@
-MAKE_ARCH := x86
+#MAKE_ARCH := x86
 export MAKE_ARCH
 
-all: img
+all: img-$(MAKE_ARCH)
 
-img:
+img-x86:
 	@$(MAKE) --no-print-directory -C kernel
 	@$(MAKE) --no-print-directory -C startup/$(MAKE_ARCH)
 	@$(MAKE) --no-print-directory -C shitshell
@@ -20,4 +20,9 @@ clean:
 	@rm -f shitOS.img shitOS_app.img *.o
 	@$(MAKE) --no-print-directory -C kernel clean
 	@$(MAKE) --no-print-directory -C startup/$(MAKE_ARCH) clean
+	@$(MAKE) --no-print-directory -C shitshell clean
+
+proper:
+	@$(MAKE) --no-print-directory -C kernel proper
+	@$(MAKE) --no-print-directory -C startup/$(MAKE_ARCH) proper
 	@$(MAKE) --no-print-directory -C shitshell clean

@@ -32,3 +32,5 @@ startup: $(OBJECTS_ASM) $(OBJECTS_CPP)
 clean:
 	@rm -f startup
 	@find . \( -name '*.oasm' -o -name '*.ocpp' \) -type f -delete
+
+proper: clean

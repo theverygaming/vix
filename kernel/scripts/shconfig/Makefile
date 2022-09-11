@@ -6,3 +6,6 @@ shconfig: shconfig.o configparser.o configgen.o configask.o
 %.o: %.cpp
 	@echo "-> compiling kernel/scripts/$^"
 	@g++ $^ -c -o $@ -Wall
+
+clean:
+	@rm -f shconfig
