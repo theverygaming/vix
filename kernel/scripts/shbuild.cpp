@@ -315,6 +315,9 @@ int main(int argc, char *argv[]) {
     }
     readConfigFile("config_gen");
     processFile(argv[1]);
+
+    std::string config_arch = getVariable("CONFIG_ARCH")[0];
+
     std::vector<std::string> objs = getVariable("objs");
     for (size_t i = 0; i < objs.size(); i++) {
         if (stringEndsWith(objs[i], ".ocpp")) {
@@ -342,7 +345,7 @@ int main(int argc, char *argv[]) {
         printf("unknown file type -> %s\n", objs[i].c_str());
         return 1;
     }
-    final_link("ld", "-nostdlib -m elf_i386 -z noexecstack", "linker.ld", expandStrVector(objs), "kernel.o");
+    final_link("ld", "-nostdlib -m elf_i386 -z noexecstack", "arch/" + config_arch + "/linker.ld", expandStrVector(objs), "kernel.o");
     final_objcopy("objcopy", "-O binary", "kernel.o", "kernel.bin");
 
     return 0;

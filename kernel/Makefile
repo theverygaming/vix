@@ -5,7 +5,7 @@ all: config_gen
 config: 
 	@$(MAKE) --no-print-directory -C scripts/shconfig
 	@mkdir -p include/generated/
-	@scripts/shconfig/shconfig -f shconfig -D CONFIG_ARCH x86
+	@scripts/shconfig/shconfig -f shconfig -D CONFIG_ARCH $(MAKE_ARCH)
 
 config_gen:
 	@$(MAKE) --no-print-directory -C scripts/shconfig
