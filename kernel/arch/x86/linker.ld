@@ -4,9 +4,9 @@ PAGE = 0x1000;
 HIGHER_HALF = 0xC0000000;
 
 MEMORY
-  {
-    ram (rwx) : org = 0xC0000000, l = 1500K
-  }
+{
+	ram (rwx) : org = 0xC0000000, l = 1500K
+}
 
 SECTIONS {
 	. = HIGHER_HALF;
@@ -38,4 +38,3 @@ SECTIONS {
 
 	KERNEL_SIZE = . - HIGHER_HALF;
 }
-
