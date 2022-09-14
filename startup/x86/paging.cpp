@@ -1,5 +1,5 @@
 #include "paging.h"
-#include "../../kernel/include/config.h"
+#include "../../kernel/include/arch/x86/archspecific.h"
 #include <cmath>
 
 uint32_t (*pagetables)[1024] = (uint32_t(*)[1024])(KERNEL_PHYS_ADDRESS + PAGE_TABLES_OFFSET);
@@ -82,7 +82,7 @@ void paging::initpaging() {
     for (int i = 0; i < 10000; i++) {
         map_page((void *)0 + (i * 0x1000), (void *)0 + (i * 0x1000));
     }
-    
+
     for (int i = 0; i < (KERNEL_MEMORY_END_OFFSET / 4096); i++) {
         map_page((void *)KERNEL_PHYS_ADDRESS + (i * 0x1000), (void *)KERNEL_VIRT_ADDRESS + (i * 0x1000));
     }

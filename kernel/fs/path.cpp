@@ -2,8 +2,6 @@
 #include <memory_alloc/memalloc.h>
 #include <stdlib.h>
 
-#include <stdio.h> // EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
-
 static void format_path(char *path) {
     // remove / at end if there is one
     size_t pathlen = strlen(path);

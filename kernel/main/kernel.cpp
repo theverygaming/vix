@@ -16,10 +16,8 @@
 #include <cpp.h>
 #include <arch/x86/drivers/keyboard.h>
 #include <arch/x86/drivers/pci.h>
-#include <arch/x86/drivers/serial.h>
 #include <fs/roramfs.h>
 #include <fs/vfs.h>
-#include <multiboot2.h>
 #include <panic.h>
 
 // very important array definitely
@@ -35,7 +33,7 @@ uint8_t franxxlogo[9][18] = {
     {1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 };
 
-void kernelstart(void *multiboot2_info_ptr) {
+void kernelstart() {
     printf("hewwo\n");
     printf("shitOS built %s %s\n", __DATE__, __TIME__);
     memalloc::page::phys_init(memorymap::map_entries, memorymap::map_entrycount);

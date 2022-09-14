@@ -1,119 +1,55 @@
-#include <arch/x86/cpubasics.h>
-#include <types.h>
-
 #include <config.h>
-#include <arch/x86/drivers/serial.h>
 #include <cstdarg>
+#include <mutex.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include <types.h>
+#include <vector.h>
 
-#define SCREEN_WIDTH 80
-#define SCREEN_HEIGHT 25
-const uint8_t DEFAULT_COLOR = 0x7;
+static void (*putc_function_ptr)(char c) = nullptr;
+static void (*putc_dbg_function_ptr)(char c) = nullptr;
 
-uint8_t *g_ScreenBuffer = (uint8_t *)(KERNEL_VIRT_ADDRESS + VIDMEM_OFFSET);
-int g_ScreenX = 0, g_ScreenY = 0;
-
-void putchr(int x, int y, char c) {
-    g_ScreenBuffer[2 * (y * SCREEN_WIDTH + x)] = c;
-}
-
-void putcolor(int x, int y, uint8_t color) {
-    g_ScreenBuffer[2 * (y * SCREEN_WIDTH + x) + 1] = color;
-}
-
-char getchr(int x, int y) {
-    return g_ScreenBuffer[2 * (y * SCREEN_WIDTH + x)];
-}
-
-uint8_t getcolor(int x, int y) {
-    return g_ScreenBuffer[2 * (y * SCREEN_WIDTH + x) + 1];
-}
-
-void setcursor(int x, int y) {
-    int pos = y * SCREEN_WIDTH + x;
-
-    outb(0x3D4, 0x0F);
-    outb(0x3D5, (uint8_t)(pos & 0xFF));
-    outb(0x3D4, 0x0E);
-    outb(0x3D5, (uint8_t)((pos >> 8) & 0xFF));
-}
-
-void clrscr() {
-    for (int y = 0; y < SCREEN_HEIGHT; y++)
-        for (int x = 0; x < SCREEN_WIDTH; x++) {
-            putchr(x, y, '\0');
-            putcolor(x, y, DEFAULT_COLOR);
-        }
-
-    g_ScreenX = 0;
-    g_ScreenY = 0;
-    setcursor(g_ScreenX, g_ScreenY);
-}
-
-void scrollback(int lines) {
-    for (int y = lines; y < SCREEN_HEIGHT; y++) {
-        for (int x = 0; x < SCREEN_WIDTH; x++) {
-            putchr(x, y - lines, getchr(x, y));
-            putcolor(x, y - lines, getcolor(x, y));
-        }
-    }
-
-    for (int y = SCREEN_HEIGHT - lines; y < SCREEN_HEIGHT; y++) {
-        for (int x = 0; x < SCREEN_WIDTH; x++) {
-            putchr(x, y, '\0');
-            putcolor(x, y, DEFAULT_COLOR);
-        }
-    }
-
-    g_ScreenY -= lines;
-}
-
-void putc(char c, bool serialonly) {
-    drivers::serial::putc(c);
-    if (serialonly) {
+void stdio::set_putc_function(void (*putc_function)(char c), bool debugonly) {
+    if (debugonly) {
+        putc_dbg_function_ptr = putc_function;
         return;
     }
-    switch (c) {
-    case '\n':
-        g_ScreenX = 0;
-        g_ScreenY++;
-        break;
-
-    case '\t':
-        for (int i = 0; i < 4 - (g_ScreenX % 4); i++)
-            putc(' ', false);
-        break;
-
-    case '\r':
-        g_ScreenX = 0;
-        break;
-
-    default:
-        putchr(g_ScreenX, g_ScreenY, c);
-        g_ScreenX++;
-        break;
-    }
-
-    if (g_ScreenX >= SCREEN_WIDTH) {
-        g_ScreenY++;
-        g_ScreenX = 0;
-    }
-    if (g_ScreenY >= SCREEN_HEIGHT)
-        scrollback(1);
-
-    setcursor(g_ScreenX, g_ScreenY);
+    putc_function_ptr = putc_function;
 }
 
-void puts(const char *str, bool serialonly) {
+void stdio::unset_putc_function(bool debugonly) {
+    if (debugonly) {
+        putc_dbg_function_ptr = nullptr;
+        return;
+    }
+    putc_function_ptr = nullptr;
+}
+
+void putc(char c, bool debugonly) {
+    // this is slow as fuck
+    if (putc_dbg_function_ptr != nullptr) {
+        putc_dbg_function_ptr(c);
+    }
+
+    if (debugonly) {
+        return;
+    }
+
+    if (putc_function_ptr != nullptr) {
+        putc_function_ptr(c);
+    }
+}
+
+void puts(const char *str, bool debugonly) {
     while (*str) {
-        putc(*str, serialonly);
+        putc(*str, debugonly);
         str++;
     }
 }
 
 const char g_HexChars[] = "0123456789abcdef";
 
-void printf_unsigned(uint32_t number, int radix, bool serialonly) // long long causes issue so using 32 bit unsigned
+void printf_unsigned(uint32_t number, int radix, bool debugonly) // long long causes issue so using 32 bit unsigned
 {
     char buffer[32];
     int pos = 0;
@@ -127,15 +63,15 @@ void printf_unsigned(uint32_t number, int radix, bool serialonly) // long long c
 
     // print number in reverse order
     while (--pos >= 0)
-        putc(buffer[pos], serialonly);
+        putc(buffer[pos], debugonly);
 }
 
-void printf_signed(long long number, int radix, bool serialonly) {
+void printf_signed(long long number, int radix, bool debugonly) {
     if (number < 0) {
-        putc('-', serialonly);
-        printf_unsigned(-number, radix, serialonly);
+        putc('-', debugonly);
+        printf_unsigned(-number, radix, debugonly);
     } else
-        printf_unsigned(number, radix, serialonly);
+        printf_unsigned(number, radix, debugonly);
 }
 
 #define PRINTF_STATE_NORMAL 0
@@ -150,7 +86,7 @@ void printf_signed(long long number, int radix, bool serialonly) {
 #define PRINTF_LENGTH_LONG 3
 #define PRINTF_LENGTH_LONG_LONG 4
 
-void printf_core(bool serialonly, va_list args, const char *fmt, ...) {
+void printf_core(bool debugonly, va_list args, const char *fmt, ...) {
     int state = PRINTF_STATE_NORMAL;
     int length = PRINTF_LENGTH_DEFAULT;
     int radix = 10;
@@ -165,7 +101,7 @@ void printf_core(bool serialonly, va_list args, const char *fmt, ...) {
                 state = PRINTF_STATE_LENGTH;
                 break;
             default:
-                putc(*fmt, serialonly);
+                putc(*fmt, debugonly);
                 break;
             }
             break;
@@ -205,15 +141,15 @@ void printf_core(bool serialonly, va_list args, const char *fmt, ...) {
         PRINTF_STATE_SPEC_:
             switch (*fmt) {
             case 'c':
-                putc((char)va_arg(args, int), serialonly);
+                putc((char)va_arg(args, int), debugonly);
                 break;
 
             case 's':
-                puts(va_arg(args, const char *), serialonly);
+                puts(va_arg(args, const char *), debugonly);
                 break;
 
             case '%':
-                putc('%', serialonly);
+                putc('%', debugonly);
                 break;
 
             case 'd':
@@ -254,15 +190,15 @@ void printf_core(bool serialonly, va_list args, const char *fmt, ...) {
                     case PRINTF_LENGTH_SHORT_SHORT:
                     case PRINTF_LENGTH_SHORT:
                     case PRINTF_LENGTH_DEFAULT:
-                        printf_signed(va_arg(args, int), radix, serialonly);
+                        printf_signed(va_arg(args, int), radix, debugonly);
                         break;
 
                     case PRINTF_LENGTH_LONG:
-                        printf_signed(va_arg(args, long), radix, serialonly);
+                        printf_signed(va_arg(args, long), radix, debugonly);
                         break;
 
                     case PRINTF_LENGTH_LONG_LONG:
-                        printf_signed(va_arg(args, long long), radix, serialonly);
+                        printf_signed(va_arg(args, long long), radix, debugonly);
                         break;
                     }
                 } else {
@@ -270,15 +206,15 @@ void printf_core(bool serialonly, va_list args, const char *fmt, ...) {
                     case PRINTF_LENGTH_SHORT_SHORT:
                     case PRINTF_LENGTH_SHORT:
                     case PRINTF_LENGTH_DEFAULT:
-                        printf_unsigned(va_arg(args, unsigned int), radix, serialonly);
+                        printf_unsigned(va_arg(args, unsigned int), radix, debugonly);
                         break;
 
                     case PRINTF_LENGTH_LONG:
-                        printf_unsigned(va_arg(args, unsigned long), radix, serialonly);
+                        printf_unsigned(va_arg(args, unsigned long), radix, debugonly);
                         break;
 
                     case PRINTF_LENGTH_LONG_LONG:
-                        printf_unsigned(va_arg(args, unsigned long long), radix, serialonly);
+                        printf_unsigned(va_arg(args, unsigned long long), radix, debugonly);
                         break;
                     }
                 }

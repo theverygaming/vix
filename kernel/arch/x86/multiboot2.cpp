@@ -1,4 +1,4 @@
-#include "multiboot2.h"
+#include <arch/x86/multiboot2.h>
 #include <panic.h>
 #include <stdio.h>
 #include <types.h>
@@ -9,10 +9,10 @@ typedef struct __attribute__((packed)) {
 } multiboot2_tag_t;
 
 static bool multiboot_find_tag(void *multiboot2_info_adr, uint32_t type, multiboot2_tag_t **tag_ptr) {
-    //uint32_t multiboot_size = *(uint32_t *)multiboot2_info_adr;
+    // uint32_t multiboot_size = *(uint32_t *)multiboot2_info_adr;
     multiboot2_tag_t *tag = (multiboot2_tag_t *)((char *)multiboot2_info_adr + (sizeof(uint32_t) * 2));
     while (!(tag->type == 0 && tag->size == 8)) {
-        //printf("found tag %u size: %u\n", tag->type, tag->size);
+        // printf("found tag %u size: %u\n", tag->type, tag->size);
         if (tag->type == type) {
             *tag_ptr = tag;
             return true;
