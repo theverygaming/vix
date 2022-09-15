@@ -2,7 +2,7 @@
 #include <config.h>
 #include <arch/x86/idt.h>
 #include <arch/x86/isr.h>
-#include <multitasking.h>
+#include <arch/x86/multitasking.h>
 #include <stdio.h>
 #include <cstddef>
 

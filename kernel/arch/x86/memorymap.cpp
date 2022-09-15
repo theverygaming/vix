@@ -1,6 +1,6 @@
-#include "memorymap.h"
-#include "stdio.h"
-#include "stdlib.h"
+#include <arch/x86/memorymap.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <debug.h>
 #include <panic.h>
 

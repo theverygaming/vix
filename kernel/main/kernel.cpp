@@ -1,10 +1,10 @@
 #include <config.h>
-#include <elf.h>
-#include <memorymap.h>
-#include <multitasking.h>
+#include <arch/x86/elf.h>
+#include <arch/x86/memorymap.h>
+#include <arch/x86/multitasking.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <syscall.h>
+#include <arch/x86/syscall.h>
 #include <arch/arch.h>
 #include <arch/x86/idt.h>
 #include <arch/x86/isr.h>

@@ -1,14 +1,14 @@
-#include "syscalls.h"
-#include "debug.h"
-#include "multitasking.h"
+#include <arch/x86/syscalls.h>
+#include <debug.h>
+#include <arch/x86/multitasking.h>
 #include <arch/arch.h>
 #include <arch/x86/drivers/keyboard.h>
 #include <fs/vfs.h>
-#include <elf.h>
+#include <arch/x86/elf.h>
 #include <memory_alloc/memalloc.h>
-#include INCLUDE_ARCH(paging.h)
-#include "stdio.h"
-#include "stdlib.h"
+#include <arch/x86/paging.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 uint32_t sys_exit(int *syscall_ret, uint32_t, uint32_t exit_code, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 0;

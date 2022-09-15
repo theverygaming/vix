@@ -1,6 +1,6 @@
 #pragma once
-#include "memorymap.h"
-#include "types.h"
+#include <arch/x86/memorymap.h>
+#include <types.h>
 
 namespace memalloc::page {
     void *phys_malloc(uint32_t blocks);

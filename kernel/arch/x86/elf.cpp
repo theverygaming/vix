@@ -1,9 +1,8 @@
-#include "elf.h"
+#include <arch/x86/elf.h>
 #include <memory_alloc/memalloc.h>
-#include "multitasking.h"
-#include <arch/x86/paging.h>
-#include "stdio.h"
-#include "stdlib.h"
+#include <arch/x86/multitasking.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 void elf::load_program(void *ELF_baseadr, bool replace_task, int replace_pid) {
     ElfHeader header;

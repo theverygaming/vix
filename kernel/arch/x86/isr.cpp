@@ -4,7 +4,7 @@
 #include <arch/x86/idt.h>
 #include <arch/x86/isrs.h>
 #include <memory_alloc/memalloc.h>
-#include <multitasking.h>
+#include <arch/x86/multitasking.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <cstddef>

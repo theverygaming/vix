@@ -5,7 +5,7 @@
 #include <arch/x86/paging.h>
 #include <config.h>
 #include <kernel.h>
-#include <memorymap.h>
+#include <arch/x86/memorymap.h>
 #include <panic.h>
 #include <stdio.h>
 
