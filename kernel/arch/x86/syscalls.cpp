@@ -44,7 +44,7 @@ uint32_t sys_read(int *syscall_ret, uint32_t, uint32_t fd, uint32_t _buf, uint32
     uint32_t readCharacters = drivers::keyboard::bufferlocation - bufStart;
 
     drivers::keyboard::bufferlocation = -1;
-    s_memcpy(buf, &drivers::keyboard::buffer[bufStart + 1], readCharacters);
+    memcpy(buf, &drivers::keyboard::buffer[bufStart + 1], readCharacters);
     return readCharacters;
 }
 

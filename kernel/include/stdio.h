@@ -12,3 +12,8 @@ void putcolor(int x, int y, uint8_t color); // TODO: create generic thingy for t
 void printf(const char *fmt, ...);
 void printf_serial(const char *fmt, ...);
 void print_buffer(const char *msg, const void *buffer, uint32_t count);
+
+typedef char* va_list;
+#define va_start(v,l)  __builtin_va_start((v),(l))
+#define va_arg		   __builtin_va_arg
+#define va_end		   __builtin_va_end

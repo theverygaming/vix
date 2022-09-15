@@ -1,10 +1,6 @@
 #include <config.h>
-#include <cstdarg>
-#include <mutex.h>
-#include <stdbool.h>
 #include <stdio.h>
 #include <types.h>
-#include <vector.h>
 
 static void (*putc_function_ptr)(char c) = nullptr;
 static void (*putc_dbg_function_ptr)(char c) = nullptr;

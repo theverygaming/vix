@@ -1,4 +1,4 @@
-#include "panic.h"
+#include <panic.h>
 #include <stdio.h>
 
 void panic::kernel_panic(const char *file, int line, const char *text) {
