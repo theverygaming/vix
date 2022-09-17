@@ -23,4 +23,5 @@ namespace drivers::textmode::text80x25 {
     void init();
     void putc(char c, color foreground = COLOR_GREY, color background = COLOR_BLACK);
     void putc(char c);
+    void delc();
 }

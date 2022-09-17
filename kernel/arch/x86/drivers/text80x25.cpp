@@ -106,3 +106,17 @@ void drivers::textmode::text80x25::putc(char c, color foreground, color backgrou
 void drivers::textmode::text80x25::putc(char c) {
     putc(c, COLOR_GREY, COLOR_BLACK);
 }
+
+void drivers::textmode::text80x25::delc() {
+    if (g_ScreenX == 0) {
+        if (g_ScreenY > 0) {
+            g_ScreenY -= 1;
+        }
+        g_ScreenX = SCREEN_WIDTH - 1;
+    } else if (g_ScreenX < SCREEN_WIDTH) {
+        g_ScreenX--;
+    }
+    putchr(g_ScreenX, g_ScreenY, '\0');
+    putcolor(g_ScreenX, g_ScreenY, DEFAULT_COLOR);
+    setcursor(g_ScreenX, g_ScreenY);
+}
