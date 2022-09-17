@@ -1,7 +1,7 @@
 #include <arch/x86/elf.h>
-#include <memory_alloc/memalloc.h>
 #include <arch/x86/multitasking.h>
-#include <stdio.h>
+#include <log.h>
+#include <memory_alloc/memalloc.h>
 #include <stdlib.h>
 
 void elf::load_program(void *ELF_baseadr, bool replace_task, int replace_pid) {
@@ -13,12 +13,11 @@ void elf::load_program(void *ELF_baseadr, bool replace_task, int replace_pid) {
     uint32_t max = 0;
     uint32_t min = 0xFFFFFFFF;
     if (header.e_phnum == 0) {
-        printf("Issue: no ELF headers\n");
+        LOG_DEBUG("Issue: no ELF headers\n");
         return;
     }
     for (int i = 0; i < header.e_phnum; i++) {
         memcpy((char *)&pHeader, (char *)ELF_baseadr + header.e_phoff + (header.e_phentsize * i), sizeof(pHeader));
-        printf("section: align: 0x%p vaddr->0x%p sizef->0x%p sizem->0x%p\n", pHeader.p_align, pHeader.p_vaddr, pHeader.p_filesz, pHeader.p_memsz);
         if (pHeader.p_type != 1) {
             continue;
         }
@@ -39,18 +38,18 @@ void elf::load_program(void *ELF_baseadr, bool replace_task, int replace_pid) {
 
     pageranges[0] = {(uint32_t)memalloc::page::phys_malloc(pagecount), min, pagecount};
     multitasking::process_pagerange old_pageranges[PROCESS_MAX_PAGE_RANGES];
-    if(!replace_task) {
+    if (!replace_task) {
         multitasking::createPageRange(old_pageranges);
     }
     multitasking::setPageRange(pageranges);
 
-    printf("---Program Headers---\n");
+    DEBUG_PRINTF("---Program Headers---\n");
     for (int i = 0; i < header.e_phnum; i++) {
         memcpy((char *)&pHeader, (char *)ELF_baseadr + header.e_phoff + (header.e_phentsize * i), sizeof(pHeader));
 
-        printf("section: align: 0x%p vaddr->0x%p sizef->0x%p sizem->0x%p\n", pHeader.p_align, pHeader.p_vaddr, pHeader.p_filesz, pHeader.p_memsz);
+        DEBUG_PRINTF("section: align: 0x%p vaddr->0x%p sizef->0x%p sizem->0x%p\n", pHeader.p_align, pHeader.p_vaddr, pHeader.p_filesz, pHeader.p_memsz);
         if (pHeader.p_type != 1) {
-            printf("ignoring section of type: 0x%p\n", pHeader.p_type);
+            DEBUG_PRINTF("ignoring section of type: 0x%p\n", pHeader.p_type);
             continue;
         }
 
@@ -64,19 +63,19 @@ void elf::load_program(void *ELF_baseadr, bool replace_task, int replace_pid) {
             min = pHeader.p_vaddr;
         }
     }
-    printf("max: %u\n", max);
-    printf("min: %u\n", min);
-    printf("Inital program memory size: %u\n", max - min);
+    DEBUG_PRINTF("max: %u\n", max);
+    DEBUG_PRINTF("min: %u\n", min);
+    DEBUG_PRINTF("Inital program memory size: %u\n", max - min);
 
-    printf("Entry point: 0x%p\n", header.e_entry);
+    DEBUG_PRINTF("Entry point: 0x%p\n", header.e_entry);
 
-    if(replace_task) {
+    if (replace_task) {
         multitasking::replace_task((void *)(max + (4096 * 4)), (void *)header.e_entry, pageranges, replace_pid);
     } else {
         multitasking::create_task((void *)(max + (4096 * 4)), (void *)header.e_entry, pageranges);
     }
     multitasking::unsetPageRange(pageranges);
-    if(!replace_task) {
+    if (!replace_task) {
         multitasking::setPageRange(old_pageranges);
     }
 }

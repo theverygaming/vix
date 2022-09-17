@@ -1,2 +1,2 @@
 include "memory_alloc/shbuild"
-varappend_tx_prefix objs VARINSERT(CURRENTPATH) cpp.ocpp debug.ocpp kernel.ocpp panic.ocpp stdio.ocpp stdlib.ocpp
+varappend_tx_prefix objs VARINSERT(CURRENTPATH) cpp.ocpp debug.ocpp kernel.ocpp panic.ocpp stdio.ocpp stdlib.ocpp log.ocpp

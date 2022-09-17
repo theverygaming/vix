@@ -69,7 +69,8 @@ void drivers::textmode::text80x25::init() {
     clrscr();
 }
 
-void drivers::textmode::text80x25::putc(char c) {
+void drivers::textmode::text80x25::putc(char c, color foreground, color background) {
+    uint8_t color = ((uint8_t)foreground & 0xF) | ((uint8_t)background << 4);
     switch (c) {
     case '\n':
         g_ScreenX = 0;
@@ -78,7 +79,7 @@ void drivers::textmode::text80x25::putc(char c) {
 
     case '\t':
         for (int i = 0; i < 4 - (g_ScreenX % 4); i++)
-            putc(' ');
+            putc(' ', foreground, background);
         break;
 
     case '\r':
@@ -86,6 +87,7 @@ void drivers::textmode::text80x25::putc(char c) {
         break;
 
     default:
+        putcolor(g_ScreenX, g_ScreenY, color);
         putchr(g_ScreenX, g_ScreenY, c);
         g_ScreenX++;
         break;
@@ -99,4 +101,8 @@ void drivers::textmode::text80x25::putc(char c) {
         scrollback(1);
 
     setcursor(g_ScreenX, g_ScreenY);
+}
+
+void drivers::textmode::text80x25::putc(char c) {
+    putc(c, COLOR_GREY, COLOR_BLACK);
 }

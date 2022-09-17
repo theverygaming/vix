@@ -1,12 +1,13 @@
-#include <arch/x86/syscalls.h>
-#include <debug.h>
-#include <arch/x86/multitasking.h>
 #include <arch/arch.h>
 #include <arch/x86/drivers/keyboard.h>
-#include <fs/vfs.h>
 #include <arch/x86/elf.h>
-#include <memory_alloc/memalloc.h>
+#include <arch/x86/multitasking.h>
 #include <arch/x86/paging.h>
+#include <arch/x86/syscalls.h>
+#include <debug.h>
+#include <fs/vfs.h>
+#include <log.h>
+#include <memory_alloc/memalloc.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -19,7 +20,7 @@ uint32_t sys_exit(int *syscall_ret, uint32_t, uint32_t exit_code, uint32_t, uint
 
 uint32_t sys_fork(int *syscall_ret, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
-    DEBUG_PRINTF("syscall: sys_fork\n");
+    LOG_INSANE("syscall: sys_fork\n");
     multitasking::process *newprocess = multitasking::fork_current_process();
     if (newprocess) {
         newprocess->registerContext.eax = 0;
@@ -32,7 +33,7 @@ uint32_t sys_fork(int *syscall_ret, uint32_t, uint32_t, uint32_t, uint32_t, uint
 uint32_t sys_read(int *syscall_ret, uint32_t, uint32_t fd, uint32_t _buf, uint32_t count, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     char *buf = (char *)_buf;
-    DEBUG_PRINTF("syscall: sys_read\n");
+    LOG_INSANE("syscall: sys_read\n");
 
     int bufStart = drivers::keyboard::bufferlocation;
     while (drivers::keyboard::bufferlocation - bufStart < (int)count) {
@@ -100,7 +101,7 @@ uint32_t sys_execve(int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _ar
 
 uint32_t sys_mmap(int *syscall_ret, uint32_t, uint32_t mmap_struct_ptr, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
-    DEBUG_PRINTF("syscall: sys_mmap -- unstable\n");
+    LOG_INSANE("syscall: sys_mmap -- unstable\n");
     typedef struct {
         void *start;
         uint32_t length;
@@ -112,7 +113,7 @@ uint32_t sys_mmap(int *syscall_ret, uint32_t, uint32_t mmap_struct_ptr, uint32_t
     mmap_args_t *args = (mmap_args_t *)mmap_struct_ptr;
 
     void *alloc_adr = (void *)0xB69420;
-    printf("mmap: program wants %u bytes\n", args->length);
+    DEBUG_PRINTF("mmap: program wants %u bytes\n", args->length);
 
     int pages = (args->length / 4096) + 1;
     void *map = memalloc::page::phys_malloc(pages);
@@ -147,7 +148,7 @@ uint32_t sys_uname(int *syscall_ret, uint32_t, uint32_t _old_utsname, uint32_t, 
 uint32_t sys_getcwd(int *syscall_ret, uint32_t, uint32_t _buf, uint32_t size, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     char *buf = (char *)_buf;
-    DEBUG_PRINTF("syscall: sys_getcwd\n");
+    LOG_INSANE("syscall: sys_getcwd\n");
     if (size < 11) {
         return 0;
     }
@@ -158,13 +159,13 @@ uint32_t sys_getcwd(int *syscall_ret, uint32_t, uint32_t _buf, uint32_t size, ui
 uint32_t sys_stat64(int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _statbuf, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     const char *filename = (const char *)_filename;
-    DEBUG_PRINTF("syscall: sys_stat64\n");
+    LOG_INSANE("syscall: sys_stat64\n");
     printf("%s\n", filename);
     return -1; // TODO: fix up return value
 }
 
 uint32_t sys_getuid32(int *syscall_ret, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
-    DEBUG_PRINTF("syscall: sys_getuid32\n");
+    LOG_INSANE("syscall: sys_getuid32\n");
     return 0; // with the current state of the system we are always root
 }

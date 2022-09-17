@@ -1,8 +1,9 @@
 #include <arch/x86/memorymap.h>
+#include <debug.h>
+#include <log.h>
+#include <panic.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <debug.h>
-#include <panic.h>
 
 namespace memorymap {
     SMAP_entry map_entries[MEMMAP_MAX_ENTRIES];
@@ -17,7 +18,7 @@ void memorymap::initMemoryMap(void *mapadr, int entrycount) {
     SMAP_entry *entries = (SMAP_entry *)mapadr;
     memcpy((char *)&map_entries, (char *)entries, entrycount * sizeof(*map_entries));
     MemMapEntry processed[entrycount];
-    char types[][20] = { "", "usable", "system reserved", "ACPI reclaim", "ACPI NVS" , "Memory error", "disabled", "Persistent"};
+    char types[][20] = {"", "usable", "system reserved", "ACPI reclaim", "ACPI NVS", "Memory error", "disabled", "Persistent"};
     for (int i = 0; i < entrycount; i++) {
         DEBUG_PRINTF("#%d -> base: %llu, length: %llu type: %u(%s)\n", i, entries[i].Base, entries[i].Length, entries[i].Type, types[entries[i].Type]);
         processed[i] = {entries[i].Base, entries[i].Base + entries[i].Length, entries[i].Type};
@@ -31,8 +32,9 @@ void memorymap::initMemoryMap(void *mapadr, int entrycount) {
         }
         totalMemory += processed[i].end - processed[i].start;
     }
-    printf("Total Memory: %uMB, usable memory: %uMB\n", (uint32_t)totalMemory / 1000000, (uint32_t)totalUsableMemory / 1000000);
-    if(totalUsableMemory > 0xFFFFFFFF) {
-        printf("^ about that... you have more memory than this, but i have no 64-bit divide function sooo we can't display it here\n");
+    DEBUG_PRINTF("Total Memory: %uMB, usable memory: %uMB\n", (uint32_t)totalMemory / 1000000, (uint32_t)totalUsableMemory / 1000000);
+    if (totalUsableMemory > 0xFFFFFFFF) {
+        DEBUG_PRINTF("^ about that... you have more memory than this, but i have no 64-bit divide function sooo we can't display it here\n");
     }
+    log::log_service("memorymap", "loaded");
 }

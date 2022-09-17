@@ -1,23 +1,25 @@
-#include <config.h>
-#include <arch/x86/elf.h>
-#include <arch/x86/memorymap.h>
-#include <arch/x86/multitasking.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <arch/x86/syscall.h>
 #include <arch/arch.h>
+#include <arch/x86/elf.h>
 #include <arch/x86/idt.h>
 #include <arch/x86/isr.h>
+#include <arch/x86/memorymap.h>
+#include <arch/x86/multitasking.h>
 #include <arch/x86/paging.h>
+#include <arch/x86/syscall.h>
+#include <config.h>
 #include <memory_alloc/memalloc.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include INCLUDE_ARCH(cpuid.h)
 #include INCLUDE_ARCH(simd.h)
 #include INCLUDE_ARCH(cpubasics.h)
-#include <cpp.h>
+#include INCLUDE_ARCH_GENERIC(textoutput.h)
 #include <arch/x86/drivers/keyboard.h>
 #include <arch/x86/drivers/pci.h>
+#include <cpp.h>
 #include <fs/roramfs.h>
 #include <fs/vfs.h>
+#include <log.h>
 #include <panic.h>
 
 // very important array definitely
@@ -34,8 +36,8 @@ uint8_t franxxlogo[9][18] = {
 };
 
 void kernelstart() {
-    printf("hewwo\n");
-    printf("shitOS built %s %s\n", __DATE__, __TIME__);
+    LOG_NORMAL("hewwo");
+    LOG_NORMAL("starting shitOS -- built " __DATE__ " " __TIME__);
     memalloc::page::phys_init(memorymap::map_entries, memorymap::map_entrycount);
     memalloc::page::kernel_init();
     memalloc::page::kernel_alloc((void *)(KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET), 704);

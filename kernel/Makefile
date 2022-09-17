@@ -19,4 +19,4 @@ clean:
 
 proper: clean
 	@rm -f config_gen
-	@rm -f scripts/shconfig/shbuild
+	@rm -f scripts/shbuild

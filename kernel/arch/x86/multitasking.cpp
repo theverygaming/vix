@@ -1,8 +1,9 @@
+#include <arch/x86/cpubasics.h>
 #include <arch/x86/multitasking.h>
+#include <log.h>
+#include <memory_alloc/memalloc.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <arch/x86/cpubasics.h>
-#include <memory_alloc/memalloc.h>
 
 multitasking::context *current_context = (multitasking::context *)(KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET);
 
@@ -26,7 +27,7 @@ void multitasking::initMultitasking() {
     memcpy((char *)&processes[0].registerContext, (char *)current_context, sizeof(context));
     createPageRange(processes[0].pages);
     currentProcess = 0;
-    printf("---Multitasking enabled---\n");
+    log::log_service("multitasking", "enabled");
     processSwitchingEnabled = true;
     uninitialized = false;
 }
@@ -132,7 +133,7 @@ void multitasking::create_task(void *stackadr, void *codeadr, process_pagerange 
 
 void multitasking::replace_task(void *stackadr, void *codeadr, process_pagerange *pagerange, int replacePid) {
     processes[replacePid].running = false;
-    if(currentProcess == replacePid) {
+    if (currentProcess == replacePid) {
         unsetPageRange(processes[replacePid].pages);
     }
     // TODO: free old process memory
@@ -143,7 +144,7 @@ void multitasking::replace_task(void *stackadr, void *codeadr, process_pagerange
     processes[replacePid].running = true;
     processes[replacePid].priority = 0;
 
-    if(currentProcess == replacePid) {
+    if (currentProcess == replacePid) {
         setPageRange(processes[replacePid].pages);
     }
 }
@@ -187,7 +188,7 @@ void multitasking::interruptTrigger() {
             if (currentProcess == runningProcesses - 1) { // is this the last process in the processes array?
                 start = 0;
             }
-            bruh:
+        bruh:
             int oldProcess = currentProcess;
             for (int i = start; i < MAX_PROCESSES; i++) {
                 if (processes[i].running && currentProcess != i) {
@@ -200,7 +201,7 @@ void multitasking::interruptTrigger() {
                     break;
                 }
             }
-            if(oldProcess == currentProcess) {
+            if (oldProcess == currentProcess) {
                 start = 0;
                 goto bruh; // this will get stuck at some point, temporary fix
             }

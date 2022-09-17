@@ -1,8 +1,8 @@
-#include <memory_alloc/memalloc.h>
 #include <config.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <log.h>
 #include <memory_alloc/allocators.h>
+#include <memory_alloc/memalloc.h>
+#include <stdlib.h>
 
 #define PAGE_SIZE 4096
 
@@ -20,7 +20,7 @@ void *memalloc::page::phys_malloc(uint32_t blockcount) {
     bool success = false;
     void *allocated = physalloc.malloc(blockcount, &success);
     if (!success) {
-        printf("memalloc::page::phys_malloc: memory full\n");
+        LOG_FATAL("page::phys_malloc: memory full");
         return nullptr;
     }
     return allocated;
@@ -41,7 +41,7 @@ void memalloc::page::phys_init(memorymap::SMAP_entry *e620_map, int e620_len) {
             end = (PHYS_BITMAP_BLOCK_COUNT - 1) * PAGE_SIZE;
         }
         if (start / PAGE_SIZE > PHYS_BITMAP_BLOCK_COUNT) {
-            printf("memalloc::page::phys_init: entry bigger than memory map\n");
+            LOG_DEBUG("page::phys_init: entry bigger than memory map");
             continue;
         }
         if (e620_map[i].Type == 1) {
@@ -56,7 +56,7 @@ void memalloc::page::phys_init(memorymap::SMAP_entry *e620_map, int e620_len) {
             end = (PHYS_BITMAP_BLOCK_COUNT - 1) * PAGE_SIZE;
         }
         if (start / PAGE_SIZE > PHYS_BITMAP_BLOCK_COUNT) {
-            printf("memalloc::page::phys_init: entry bigger than memory map\n");
+            LOG_DEBUG("page::phys_init: entry bigger than memory map");
             continue;
         }
         if (e620_map[i].Type > 1) {
@@ -73,7 +73,7 @@ void *memalloc::page::kernel_malloc(uint32_t blockcount) {
     bool success = false;
     void *allocated = kernelalloc.malloc(blockcount, &success);
     if (!success) {
-        printf("memalloc::page::kernel_malloc memory full\n");
+        LOG_FATAL("memalloc::page::kernel_malloc memory full");
         return nullptr;
     }
     return (void *)(allocated + KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET);

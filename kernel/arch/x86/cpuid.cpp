@@ -1,5 +1,5 @@
 #include <arch/x86/cpuid.h>
-#include <stdio.h>
+#include <log.h>
 
 #define CPUID_MACRO(level, a, b, c, d)                                                                                                                                                                 \
     __asm__("xchg{l}\t{%%}ebx, %1\n\t"                                                                                                                                                                 \
@@ -32,18 +32,18 @@ void cpuid::printFeatures() {
     char vendor[13];
     vendor[12] = '\0';
     get_vendorstring(vendor);
-    printf("CPU vendor: %s\n", vendor);
+    DEBUG_PRINTF("CPU vendor: %s\n", vendor);
 
-    printf("checking features(EDX)\n");
+    DEBUG_PRINTF("checking features(EDX)\n");
     char EDXfeatures[32][8] = {"FPU", "VME",   "DE",  "PSE",     "TSC", "MSR", "PAE",  "MCE", "CX8",  "APIC", "???",  "SEP", "MTRR", "PGE", "MCA",  "CMOV",
                                "PAT", "PSE36", "PSN", "CLFLUSH", "???", "DS",  "ACPI", "MMX", "FXSR", "SSE",  "SSE2", "SS",  "HTT",  "TM",  "IA64", "PBE"};
     int unused, featuresEDX;
     CPUID_MACRO(1, unused, unused, unused, featuresEDX);
-    printf("CPU Features: ");
+    DEBUG_PRINTF("CPU Features: ");
     for (int i = 0; i < 32; i++) {
         if (featuresEDX & (1 << i)) {
-            printf("%s ", EDXfeatures[i]);
+            DEBUG_PRINTF("%s ", EDXfeatures[i]);
         }
     }
-    printf("\n");
+    DEBUG_PRINTF("\n");
 }

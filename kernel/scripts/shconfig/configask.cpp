@@ -49,7 +49,7 @@ void configText() {
             continue;
         }
         if ((i->second.conftype == config_type::CONFIG_OPTIONS) && (i->second.choose_options.size() > 0)) {
-            printf("options %s\n", i->first.c_str());
+            printf("options %s => %s\n", i->first.c_str(), i->second.info.c_str());
             i->second.content = i->second.choose_options[text_chooseOptions(i->second.choose_options)];
             continue;
         }

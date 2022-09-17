@@ -191,6 +191,15 @@ void processFile(std::string filename) {
             continue;
         }
 
+        if (stringStartsWith(line, "addconfiginfo ")) {
+            line.replace(0, 14, "");
+            std::string name = line.substr(0, line.find(' '));
+            line.replace(0, line.find(' ') + 1, "");
+            config_map[name].info = line;
+            currentLine++;
+            continue;
+        }
+
         fprintf(stderr, "%s:%zu -> couldn't parse %s\n", filename.c_str(), currentLine + 1, line.c_str());
         throw std::runtime_error("syntax error");
     }

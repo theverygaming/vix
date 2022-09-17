@@ -1,10 +1,9 @@
 #include <fs/path.h>
 #include <fs/roramfs.h>
 #include <fs/vfs.h>
+#include <log.h>
 #include <stdlib.h>
 #include <types.h>
-
-#include <stdio.h>
 
 struct __attribute__((packed)) file_entry {
     char name[100];
@@ -59,7 +58,8 @@ static bool fptr(char *path, void **fileptr) {
 void fs::filesystems::roramfs::init(void *location) {
     locationptr = location;
     memcpy((char *)&fsheader, (char *)locationptr, sizeof(header));
-    printf("loaded roramfs - name: %s -- files: %d\n", fsheader.name, fsheader.filecount);
+    DEBUG_PRINTF("loaded roramfs - name: %s -- files: %d\n", fsheader.name, fsheader.filecount);
+    log::log_service("roramfs", "loaded");
 }
 
 void fs::filesystems::roramfs::deinit() {
