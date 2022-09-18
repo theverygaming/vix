@@ -1,10 +1,10 @@
 #include <arch/x86/cpubasics.h>
 #include <arch/x86/multitasking.h>
+#include <cppstd/vector.h>
 #include <log.h>
 #include <memory_alloc/memalloc.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <vector.h>
 
 multitasking::context *current_context = (multitasking::context *)(KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET);
 
@@ -38,11 +38,11 @@ bool multitasking::isProcessSwitchingEnabled() {
 }
 
 /* this function gets passed the top of stack, argv[] must be terminated with a null pointer | returns new stack pointer */
-static void *init_empty_stack(void *stackadr, void *codeadr, vector<char *> *argv) {
+static void *init_empty_stack(void *stackadr, void *codeadr, std::vector<char *> *argv) {
     // get argc
     int argc = argv->size();
 
-    if(argc < 1) {
+    if (argc < 1) {
         LOG_DEBUG("issue: argc too small");
     }
 
@@ -137,7 +137,7 @@ void multitasking::killCurrentProcess() {
     interruptTrigger();
 }
 
-void multitasking::create_task(void *stackadr, void *codeadr, process_pagerange *pagerange, vector<char *> *argv) {
+void multitasking::create_task(void *stackadr, void *codeadr, process_pagerange *pagerange, std::vector<char *> *argv) {
     process_pagerange old_pageranges[PROCESS_MAX_PAGE_RANGES];
     createPageRange(old_pageranges);
 
@@ -157,7 +157,7 @@ void multitasking::create_task(void *stackadr, void *codeadr, process_pagerange 
     setPageRange(old_pageranges);
 }
 
-void multitasking::replace_task(void *stackadr, void *codeadr, process_pagerange *pagerange, vector<char *> *argv, int replacePid) {
+void multitasking::replace_task(void *stackadr, void *codeadr, process_pagerange *pagerange, std::vector<char *> *argv, int replacePid) {
     /* kill old process */
     processes[replacePid].running = false;
     freePageRange(processes[replacePid].pages);

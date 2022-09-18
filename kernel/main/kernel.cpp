@@ -52,7 +52,7 @@ void kernelstart() {
     fs::filesystems::roramfs::mountInVFS();
     void *elfptr = nullptr;
     if (fs::vfs::fptr("/ramfs/shitshell", &elfptr)) {
-        vector<char *> args;
+        std::vector<char *> args;
         args.push_back("/ramfs/shitshell");
         elf::load_program(elfptr, &args);
     }

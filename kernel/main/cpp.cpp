@@ -40,3 +40,7 @@ void operator delete(void *p, size_t) {
 void operator delete[](void *p) {
     memalloc::single::kfree(p);
 }
+
+void operator delete[](void *p, size_t) {
+    memalloc::single::kfree(p);
+}

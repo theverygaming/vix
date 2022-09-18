@@ -1,12 +1,12 @@
-#include <fs/vfs.h>
+#include <cppstd/vector.h>
 #include <fs/path.h>
+#include <fs/vfs.h>
 #include <mutex.h>
-#include <vector.h>
 
 /* the VFS is just a list of mount points an their paths, this will have to be replaced with something a bit better at some point... */
 
 mutex mountpoint_lock;
-vector<struct fs::vfs::vfs_mountpoint> mountpoints;
+std::vector<struct fs::vfs::vfs_mountpoint> mountpoints;
 
 void fs::vfs::mount(struct vfs_mountpoint mount) {
     mountpoint_lock.lock();

@@ -93,7 +93,7 @@ uint32_t sys_execve(int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _ar
     DEBUG_PRINTF("syscall: sys_execve -> %s\n", filename);
     void *elfptr;
     if (fs::vfs::fptr(filename, &elfptr)) {
-        vector<char *> args;
+        std::vector<char *> args;
         // copy argv to vector
         int argc = 0;
         while (argv[argc] != nullptr) {

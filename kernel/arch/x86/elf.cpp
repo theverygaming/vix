@@ -1,11 +1,11 @@
 #include <arch/x86/elf.h>
 #include <arch/x86/multitasking.h>
+#include <cppstd/vector.h>
 #include <log.h>
 #include <memory_alloc/memalloc.h>
 #include <stdlib.h>
-#include <vector.h>
 
-void elf::load_program(void *ELF_baseadr, vector<char *> *argv, bool replace_task, int replace_pid) {
+void elf::load_program(void *ELF_baseadr, std::vector<char *> *argv, bool replace_task, int replace_pid) {
     ElfHeader header;
     ElfProgramHeader pHeader;
 
