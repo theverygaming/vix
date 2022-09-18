@@ -1,4 +1,5 @@
 #include <cpp.h>
+#include <memory_alloc/memalloc.h>
 #include <stdio.h>
 #include <types.h>
 
@@ -18,4 +19,24 @@ void cpp_init() {
     for (constructor *i = &START_CONSTRUCTORS; i < &END_CONSTRUCTORS; i++) {
         (*i)();
     }
+}
+
+void *operator new(size_t size) {
+    return memalloc::single::kmalloc(size);
+}
+
+void *operator new[](size_t size) {
+    return memalloc::single::kmalloc(size);
+}
+
+void operator delete(void *p) {
+    memalloc::single::kfree(p);
+}
+
+void operator delete(void *p, size_t) {
+    memalloc::single::kfree(p);
+}
+
+void operator delete[](void *p) {
+    memalloc::single::kfree(p);
 }

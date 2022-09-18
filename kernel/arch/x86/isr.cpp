@@ -1,21 +1,33 @@
-#include <arch/x86/isr.h>
-#include <config.h>
-#include <debug.h>
+#include <arch/x86/cpubasics.h>
 #include <arch/x86/idt.h>
+#include <arch/x86/isr.h>
 #include <arch/x86/isrs.h>
-#include <memory_alloc/memalloc.h>
 #include <arch/x86/multitasking.h>
+#include <config.h>
+#include <cstddef>
+#include <debug.h>
+#include <log.h>
+#include <memory_alloc/memalloc.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <cstddef>
 
 isr::intHandler handlers[256];
 
 extern "C" uint32_t i686_ISR_Handler(isr::Registers *regs) {
+    // is this a spurious IRQ?
+    if ((regs->interrupt == 39)) {
+        outb(0x20, 0x0b);
+        uint8_t reg = inb(0x20);
+        if (!((reg >> 7) & 0x1)) {
+            LOG_INSANE("Spurious interrupt!");
+            return regs->intStackLocation;
+        }
+    }
+
     if (handlers[regs->interrupt] != NULL) {
         handlers[regs->interrupt](regs);
     } else if (regs->interrupt >= 32) {
-        printf("No interrupt handler for #%lu!, ignoring\n", regs->interrupt);
+        DEBUG_PRINTF("No interrupt handler for #%lu!, ignoring\n", regs->interrupt);
     } else if (regs->interrupt == 14) {
         uint32_t fault_address;
         asm volatile("mov %%cr2, %0" : "=r"(fault_address)); // get address page fault occoured at
@@ -39,7 +51,7 @@ extern "C" uint32_t i686_ISR_Handler(isr::Registers *regs) {
         if (reserved) {
             printf("reserved ");
         }
-        if(id) {
+        if (id) {
             printf("instruction-fetch ");
         }
         printf(") at 0x%p\n", fault_address);
@@ -117,7 +129,7 @@ void isr::DeregisterHandler(int handler) {
 
 extern "C" void *isr_alloc_stack() {
     void *mem = memalloc::page::kernel_malloc(13);
-    if(mem == 0) {
+    if (mem == 0) {
         printf("could not allocate memory for syscall!\n");
         debug::debug_loop();
     }

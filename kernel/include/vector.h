@@ -1,4 +1,5 @@
 #pragma once
+#include <cpp.h>
 #include <debug.h>
 #include <memory_alloc/memalloc.h>
 
@@ -8,6 +9,19 @@ public:
         _capacity = 1;
         _size = 0;
         _pointer = (T *)memalloc::single::kmalloc(_capacity * sizeof(T));
+    }
+
+    vector(const vector &obj) {
+        _capacity = 1;
+        _size = 0;
+        _pointer = (T *)memalloc::single::kmalloc(_capacity * sizeof(T));
+        
+        
+        assureSize(obj._size);
+
+        for(int i = 0; i < obj._size; i++) {
+            new (&_pointer[i]) T(obj._pointer[i]); // placement new + call copy constructor
+        }
     }
 
     ~vector() {
@@ -42,18 +56,22 @@ public:
         reallocate(_size);
     }
 
-    void push_back(T val) {
+    void push_back(const T &val) {
         assureSize(_size + 1);
-        _pointer[_size - 1] = val;
+        new (&_pointer[_size - 1]) T(val); // placement new + call copy constructor
     }
 
     void pop_back() {
         if (_size > 0) {
+            _pointer[_size - 1].~T();
             _size--;
         }
     }
 
     void clear() {
+        for (int i = 0; i < _size; i++) {
+            _pointer[i].~T();
+        }
         _size = 0;
         reallocate(1);
     }
