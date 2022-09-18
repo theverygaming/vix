@@ -1,7 +1,8 @@
 #pragma once
-#include <config.h>
 #include <arch/x86/paging.h>
+#include <config.h>
 #include <types.h>
+#include <vector.h>
 
 #define PROCESS_MAX_PAGE_RANGES 20
 #define MAX_PROCESSES 100
@@ -36,8 +37,8 @@ namespace multitasking {
     bool isProcessSwitchingEnabled();
     void killCurrentProcess();
     void interruptTrigger();
-    void create_task(void *stackadr, void *codeadr, process_pagerange *pagerange);
-    void replace_task(void *stackadr, void *codeadr, process_pagerange *pagerange, int replacePid);
+    void create_task(void *stackadr, void *codeadr, process_pagerange *pagerange, vector<char *> *argv);
+    void replace_task(void *stackadr, void *codeadr, process_pagerange *pagerange, vector<char *> *argv, int replacePid);
     process *getCurrentProcess();
     void waitForProcess(int pid);
     void refresh_current_process_pagerange();

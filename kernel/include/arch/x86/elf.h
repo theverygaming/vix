@@ -1,8 +1,9 @@
 #pragma once
 #include <types.h>
+#include <vector.h>
 
 namespace elf {
-    void load_program(void *ELF_baseadr, bool replace_task = false, int replace_pid = 0);
+    void load_program(void *ELF_baseadr, vector<char *> *argv, bool replace_task = false, int replace_pid = 0);
 
     typedef struct ElfHeader {
         unsigned char e_ident[16]; // should start with [0x7f 'E' 'L' 'F']

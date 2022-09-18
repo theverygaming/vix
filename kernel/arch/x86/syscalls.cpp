@@ -88,12 +88,28 @@ uint32_t sys_waitpid(int *syscall_ret, uint32_t, uint32_t pid, uint32_t _stat_ad
 uint32_t sys_execve(int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _argv, uint32_t _envp, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 0;
     char *filename = (char *)_filename;
-    // const char *const *argv = (const char *const *)_argv;
+    const char *const *argv = (const char *const *)_argv;
     // const char *const *envp = (const char *const *)_envp;
     DEBUG_PRINTF("syscall: sys_execve -> %s\n", filename);
     void *elfptr;
     if (fs::vfs::fptr(filename, &elfptr)) {
-        elf::load_program(elfptr, true, multitasking::getCurrentProcess()->pid);
+        vector<char *> args;
+        // copy argv to vector
+        int argc = 0;
+        while (argv[argc] != nullptr) {
+            size_t len = strlen(argv[argc]) + 1;
+            char *ptr = (char *)memalloc::single::kmalloc(len);
+            memcpy(ptr, argv[argc], len);
+            args.push_back(ptr);
+            argc++;
+        }
+
+        elf::load_program(elfptr, &args, true, multitasking::getCurrentProcess()->pid);
+
+        // free memory used for strings
+        for (int i = 0; i < args.size(); i++) {
+            memalloc::single::kfree(args[i]);
+        }
         return 0;
     }
     return -1;

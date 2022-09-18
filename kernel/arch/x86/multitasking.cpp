@@ -4,6 +4,7 @@
 #include <memory_alloc/memalloc.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <vector.h>
 
 multitasking::context *current_context = (multitasking::context *)(KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET);
 
@@ -36,24 +37,43 @@ bool multitasking::isProcessSwitchingEnabled() {
     return processSwitchingEnabled;
 }
 
-void init_empty_stack(void *stackadr, void *codeadr) {
-    char argstr[] = "./busybox";
-    char argstr2[] = "sh";
+/* this function gets passed the top of stack, argv[] must be terminated with a null pointer | returns new stack pointer */
+static void *init_empty_stack(void *stackadr, void *codeadr, vector<char *> *argv) {
+    // get argc
+    int argc = argv->size();
+
+    if(argc < 1) {
+        LOG_DEBUG("issue: argc too small");
+    }
+
+    size_t total_size = 6 * 4; // eip, cs, eflags, argc, argv null termination and envp null termination
+
+    for (int i = 0; i < argc; i++) {
+        total_size += strlen((*argv)[i]) + 1;
+        total_size += 4; // pointer to arg
+    }
+    stackadr = ((char *)stackadr) - total_size;
 
     uint32_t *stack = (uint32_t *)stackadr;
-    memcpy((char *)&stack[20], argstr, sizeof(argstr));
-    memcpy((char *)&stack[20 + sizeof(argstr)], argstr2, sizeof(argstr2));
 
     stack[0] = (uint32_t)codeadr; // EIP
     stack[1] = 8;                 // CS?
     stack[2] = 1 << 9;            // EFLAGS, set interrupt bit
-    stack[3] = 2;                 // argc
+    stack[3] = argc;              // argc
 
-    stack[4] = (uint32_t)&stack[20];                  // argv pointer
-    stack[5] = (uint32_t)&stack[20 + sizeof(argstr)]; // argv null termination
-    stack[6] = 0;                                     // envp pointer
-    stack[7] = 0;                                     // envp null termination
-    stack[8] = 0;                                     // envp null termination
+    int nextindex = 4;
+    size_t string_pos = (6 * 4) + (argc * 4);
+
+    // build up argv
+    for (int i = 0; i < argc; i++) {
+        memcpy((char *)stackadr + string_pos, (*argv)[i], strlen((*argv)[i]) + 1);
+        stack[nextindex++] = (size_t)stackadr + string_pos;
+        string_pos += strlen((*argv)[i]) + 1;
+    }
+    stack[nextindex++] = 0; // argv null termination
+    stack[nextindex++] = 0; // envp null termination
+
+    return stackadr;
 }
 
 multitasking::process *multitasking::getCurrentProcess() {
@@ -106,20 +126,23 @@ multitasking::process *multitasking::fork_current_process() {
            (char *)current_context,
            sizeof(multitasking::context)); // gotta be very careful here to get the current context. The context in the process array is outdated while it is running.
     processes[freeProcess].running = true;
-    printf("forked -> new PID: %u\n", processes[freeProcess].pid);
+    DEBUG_PRINTF("forked -> new PID: %u\n", processes[freeProcess].pid);
     return &processes[freeProcess];
 }
 
 void multitasking::killCurrentProcess() {
     processes[currentProcess].running = false;
-    printf("Killed PID %u\n", processes[currentProcess].pid);
+    DEBUG_PRINTF("Killed PID %u\n", processes[currentProcess].pid);
     freePageRange(processes[currentProcess].pages);
     interruptTrigger();
 }
 
-void multitasking::create_task(void *stackadr, void *codeadr, process_pagerange *pagerange) {
-    stackadr -= (4 * 40); // init_empty_stack has to build the stack up
-    init_empty_stack(stackadr, codeadr);
+void multitasking::create_task(void *stackadr, void *codeadr, process_pagerange *pagerange, vector<char *> *argv) {
+    process_pagerange old_pageranges[PROCESS_MAX_PAGE_RANGES];
+    createPageRange(old_pageranges);
+
+    setPageRange(pagerange);
+    stackadr = init_empty_stack(stackadr, codeadr, argv);
     for (uint32_t i = 0; i < MAX_PROCESSES; i++) {
         if (!processes[i].running) {
             processes[i] = {i, {0, 0, 0, 0, 0, 0, (uint32_t)stackadr, 0}, 0, false};
@@ -129,24 +152,34 @@ void multitasking::create_task(void *stackadr, void *codeadr, process_pagerange 
             break;
         }
     }
+    unsetPageRange(pagerange);
+
+    setPageRange(old_pageranges);
 }
 
-void multitasking::replace_task(void *stackadr, void *codeadr, process_pagerange *pagerange, int replacePid) {
+void multitasking::replace_task(void *stackadr, void *codeadr, process_pagerange *pagerange, vector<char *> *argv, int replacePid) {
+    /* kill old process */
     processes[replacePid].running = false;
-    if (currentProcess == replacePid) {
-        unsetPageRange(processes[replacePid].pages);
-    }
-    // TODO: free old process memory
-    stackadr -= (4 * 40); // init_empty_stack has to build the stack up
-    init_empty_stack(stackadr, codeadr);
-    processes[replacePid] = {replacePid, {0, 0, 0, 0, 0, 0, (uint32_t)stackadr, 0}, 0, false};
-    memcpy((char *)processes[replacePid].pages, (char *)pagerange, sizeof(process_pagerange) * PROCESS_MAX_PAGE_RANGES);
-    processes[replacePid].running = true;
-    processes[replacePid].priority = 0;
+    freePageRange(processes[replacePid].pages);
+    interruptTrigger();
 
-    if (currentProcess == replacePid) {
-        setPageRange(processes[replacePid].pages);
+    process_pagerange old_pageranges[PROCESS_MAX_PAGE_RANGES];
+    createPageRange(old_pageranges);
+
+    setPageRange(pagerange);
+    stackadr = init_empty_stack(stackadr, codeadr, argv);
+    for (uint32_t i = 0; i < MAX_PROCESSES; i++) {
+        if (!processes[i].running) {
+            processes[i] = {i, {0, 0, 0, 0, 0, 0, (uint32_t)stackadr, 0}, 0, false};
+            memcpy((char *)processes[i].pages, (char *)pagerange, sizeof(process_pagerange) * PROCESS_MAX_PAGE_RANGES);
+            processes[i].running = true;
+            processes[i].priority = 0;
+            break;
+        }
     }
+    unsetPageRange(pagerange);
+
+    setPageRange(old_pageranges);
 }
 
 void multitasking::setProcessSwitching(bool state) {

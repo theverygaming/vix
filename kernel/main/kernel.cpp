@@ -52,7 +52,9 @@ void kernelstart() {
     fs::filesystems::roramfs::mountInVFS();
     void *elfptr = nullptr;
     if (fs::vfs::fptr("/ramfs/shitshell", &elfptr)) {
-        elf::load_program(elfptr);
+        vector<char *> args;
+        args.push_back("/ramfs/shitshell");
+        elf::load_program(elfptr, &args);
     }
     // elf::load_program((void *)(KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET));
     memalloc::page::kernel_free((void *)(KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET));

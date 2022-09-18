@@ -1,5 +1,6 @@
-#include <memory_alloc/memalloc.h>
+#pragma once
 #include <debug.h>
+#include <memory_alloc/memalloc.h>
 
 template <class T> class vector {
 public:
