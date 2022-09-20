@@ -1,6 +1,5 @@
 #pragma once
 #include <memory_alloc/memalloc.h>
-#include <arch/x86/multitasking.h>
 #include <stdlib.h>
 
 class thread {

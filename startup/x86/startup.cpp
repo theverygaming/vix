@@ -1,4 +1,4 @@
-#include "../../kernel/include/arch/x86/archspecific.h"
+#include "../../kernel/include/arch/x86/generic/archspecific.h"
 #include <gdt.h>
 #include <paging.h>
 #include <stdlib.h>

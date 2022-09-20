@@ -130,7 +130,7 @@ uint32_t (*syscall_table[385])(int *, uint32_t, uint32_t, uint32_t, uint32_t, ui
     nullptr,
     nullptr,
     &sys_uname,
-    nullptr,
+    &modify_ldt,
     nullptr, /* 124 */
     nullptr,
     nullptr,
@@ -250,7 +250,7 @@ uint32_t (*syscall_table[385])(int *, uint32_t, uint32_t, uint32_t, uint32_t, ui
     nullptr,
     nullptr,
     nullptr,
-    nullptr,
+    &set_thread_area,
     nullptr, /* 244 */
     nullptr,
     nullptr,

@@ -5,6 +5,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+typedef struct {
+    uint64_t start;
+    uint64_t end;
+    uint32_t type;
+} MemMapEntry;
+
 namespace memorymap {
     SMAP_entry map_entries[MEMMAP_MAX_ENTRIES];
     int map_entrycount = MEMMAP_MAX_ENTRIES;

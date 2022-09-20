@@ -1,5 +1,5 @@
 #include "paging.h"
-#include "../../kernel/include/arch/x86/archspecific.h"
+#include "../../kernel/include/arch/x86/generic/archspecific.h"
 #include <cmath>
 
 uint32_t (*pagetables)[1024] = (uint32_t(*)[1024])(KERNEL_PHYS_ADDRESS + PAGE_TABLES_OFFSET);

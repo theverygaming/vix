@@ -1,5 +1,5 @@
 #include "gdt.h"
-#include "../../kernel/include/arch/x86/archspecific.h"
+#include "../../kernel/include/arch/x86/generic/archspecific.h"
 #include <stdint.h>
 #include <stdlib.h>
 

@@ -1,11 +1,10 @@
 #pragma once
-#include <arch/x86/memorymap.h>
 #include <types.h>
 
 namespace memalloc::page {
     void *phys_malloc(uint32_t blocks);
     void phys_free(void *adr);
-    void phys_init(memorymap::SMAP_entry *e620_map, int e620_len);
+    void phys_init();
 
     void *kernel_malloc(uint32_t blocks);
     void *kernel_realloc(void *adr, uint32_t blocks);

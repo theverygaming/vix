@@ -67,7 +67,6 @@ extern "C" uint32_t i686_ISR_Handler(isr::Registers *regs) {
                regs->ebp,
                regs->eip);
         printf("Killing current process\n");
-        debug::stack_trace(10, regs->ebp);
         if (multitasking::isProcessSwitchingEnabled()) {
             multitasking::killCurrentProcess();
         } else {
@@ -99,7 +98,6 @@ extern "C" uint32_t i686_ISR_Handler(isr::Registers *regs) {
                regs->ebp,
                regs->eip);
         printf("Killing current process\n");
-        debug::stack_trace(10, regs->ebp);
         if (multitasking::isProcessSwitchingEnabled()) {
             multitasking::killCurrentProcess();
         } else {

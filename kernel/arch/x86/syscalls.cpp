@@ -161,6 +161,31 @@ uint32_t sys_uname(int *syscall_ret, uint32_t, uint32_t _old_utsname, uint32_t, 
     return 0;
 }
 
+uint32_t modify_ldt(int *syscall_ret, uint32_t, uint32_t _func, uint32_t _ptr, uint32_t bytecount, uint32_t, uint32_t, uint32_t) {
+    *syscall_ret = 1;
+    struct user_desc {
+        unsigned int entry_number;
+        unsigned int base_addr;
+        unsigned int limit;
+        unsigned int seg_32bit : 1;
+        unsigned int contents : 2;
+        unsigned int read_exec_only : 1;
+        unsigned int limit_in_pages : 1;
+        unsigned int seg_not_present : 1;
+        unsigned int useable : 1;
+    };
+    int func = (int)_func;
+    struct user_desc *ptr = (struct user_desc *)_ptr;
+    LOG_INSANE("syscall: modify_ldt\n");
+    DEBUG_PRINTF("func: %d ptr: 0x%p bytecount: %u\n", func, ptr, bytecount);
+    if(sizeof(user_desc) != bytecount) {
+        LOG_INSANE("sizeof(user_desc) != bytecount\n");
+        return -1;
+    }
+    DEBUG_PRINTF("entry_number: %u base_addr: 0x%p limit: %u seg_32bit: %u contents: %u read_exec_only: %u limit_in_pages: %u seg_not_present: %u useable: %u\n", ptr->entry_number, ptr->base_addr, ptr->limit, ptr->seg_32bit, ptr->contents, ptr->read_exec_only, ptr->limit_in_pages, ptr->seg_not_present, ptr->useable);
+    return -1; // unimplemented
+}
+
 uint32_t sys_getcwd(int *syscall_ret, uint32_t, uint32_t _buf, uint32_t size, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     char *buf = (char *)_buf;
@@ -184,4 +209,10 @@ uint32_t sys_getuid32(int *syscall_ret, uint32_t, uint32_t, uint32_t, uint32_t, 
     *syscall_ret = 1;
     LOG_INSANE("syscall: sys_getuid32\n");
     return 0; // with the current state of the system we are always root
+}
+
+uint32_t set_thread_area(int *syscall_ret, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
+    *syscall_ret = 1;
+    LOG_INSANE("syscall: set_thread_area\n");
+    return -1; // unimplemented
 }

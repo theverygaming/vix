@@ -1,5 +1,9 @@
 #pragma once
 
+/* required */
+
+/* custom */
+
 #define KERNEL_VIRT_ADDRESS 0xC0000000
 #define KERNEL_PHYS_ADDRESS 0x1EA000 // lets ignore the ISA memory hole, the PC's we run on are not that old anyway right?
 #define KERNEL_LOADER_PHYS_ADDRESS (KERNEL_PHYS_ADDRESS - 0x10000)

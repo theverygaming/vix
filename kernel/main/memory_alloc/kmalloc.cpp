@@ -1,10 +1,12 @@
-#include <memory_alloc/memalloc.h>
+#include <arch/arch.h>
+#include <config.h>
 #include <debug.h>
+#include <memory_alloc/memalloc.h>
+#include <panic.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <types.h>
-
-#define PAGE_SIZE 4096
+#include INCLUDE_ARCH_GENERIC(memory.h)
 
 static uint32_t heapPages = 0;
 
@@ -17,13 +19,13 @@ struct __attribute__((packed)) meminfo_t {
     bool free;
 };
 
-void init() {
+static void init() {
     heapPtr = memalloc::page::kernel_malloc(1); // ignore if this fails, if it does we will get a pagefault
     heapPages = 1;
-    *((meminfo_t *)heapPtr) = {.next = 0, .size = PAGE_SIZE - sizeof(meminfo_t), .free = true};
+    *((meminfo_t *)heapPtr) = {.next = 0, .size = ARCH_PAGE_SIZE - sizeof(meminfo_t), .free = true};
 }
 
-meminfo_t *findFreeArea(size_t size) {
+static meminfo_t *findFreeArea(size_t size) {
     meminfo_t *ptr = (meminfo_t *)heapPtr;
     while (true) {
         if (ptr->free && size <= ptr->size) {
@@ -37,13 +39,13 @@ meminfo_t *findFreeArea(size_t size) {
     return 0;
 }
 
-void createNewFreeAreas() {
+static void createNewFreeAreas() {
     meminfo_t *ptr = (meminfo_t *)heapPtr;
     while (true) {
         if (ptr->next == nullptr) {
             // check leftover space
             size_t offset = ((((char *)ptr) + sizeof(meminfo_t)) - ((char *)heapPtr)) + ptr->size;
-            size_t leftover = (heapPages * PAGE_SIZE) - offset;
+            size_t leftover = (heapPages * ARCH_PAGE_SIZE) - offset;
             meminfo_t *newptr = (meminfo_t *)(((char *)heapPtr) + offset);
 
             if (leftover > 0) {
@@ -57,7 +59,7 @@ void createNewFreeAreas() {
 }
 
 /* joins multiple small fragments after each other back together into one big one */
-int joinFreeAreas() {
+static int joinFreeAreas() {
     int counter = 0;
     meminfo_t *ptr = (meminfo_t *)heapPtr;
     while (true) {
@@ -93,8 +95,8 @@ void *memalloc::single::kmalloc(size_t size) {
         return ptrChar + sizeof(meminfo_t);
     } else {
         // so we have to allocate more memory
-        size_t pages = size / PAGE_SIZE;
-        size_t leftover = size % PAGE_SIZE;
+        size_t pages = size / ARCH_PAGE_SIZE;
+        size_t leftover = size % ARCH_PAGE_SIZE;
         if (pages != 0 && leftover > 0) {
             pages += 1;
         }
@@ -114,6 +116,7 @@ void *memalloc::single::kmalloc(size_t size) {
             return ptrChar + sizeof(meminfo_t);
         }
     }
+    KERNEL_PANIC("kmalloc failed!");
     return nullptr;
 }
 
@@ -163,8 +166,8 @@ void *memalloc::single::krealloc(void *ptr, size_t size) {
         return ptrChar + sizeof(meminfo_t);
     } else {
         // so we have to allocate more memory
-        size_t pages = size / PAGE_SIZE;
-        size_t leftover = size % PAGE_SIZE;
+        size_t pages = size / ARCH_PAGE_SIZE;
+        size_t leftover = size % ARCH_PAGE_SIZE;
         if (pages != 0 && leftover > 0) {
             pages += 1;
         }
@@ -191,5 +194,5 @@ void *memalloc::single::krealloc(void *ptr, size_t size) {
             return newptr;
         }
     }
-    return nullptr;
+    KERNEL_PANIC("krealloc failed!");
 }

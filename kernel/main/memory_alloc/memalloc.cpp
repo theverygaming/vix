@@ -1,26 +1,24 @@
+#include <arch/arch.h>
 #include <config.h>
 #include <log.h>
 #include <memory_alloc/allocators.h>
 #include <memory_alloc/memalloc.h>
+#include <panic.h>
 #include <stdlib.h>
+#include INCLUDE_ARCH_GENERIC(memory.h)
 
-#define PAGE_SIZE 4096
+#define PHYS_BITMAP_BLOCK_COUNT ARCH_PHYS_MAX_MEM / ARCH_PAGE_SIZE
 
-#define PHYS_MAX_MEM 4294963200
+#define KERNEL_PAGES ((ARCH_KERNEL_HEAP_END / ARCH_PAGE_SIZE) - (ARCH_KERNEL_HEAP_START / ARCH_PAGE_SIZE))
 
-#define PHYS_BITMAP_BLOCK_COUNT PHYS_MAX_MEM / PAGE_SIZE
-
-#define KERNEL_PAGES ((KERNEL_MEMORY_END_OFFSET / PAGE_SIZE) - (KERNEL_FREE_AREA_BEGIN_OFFSET / PAGE_SIZE))
-#define KERNEL_ALL_PAGES (KERNEL_MEMORY_END_OFFSET / PAGE_SIZE)
-
-static memalloc::allocators::block_alloc<PHYS_BITMAP_BLOCK_COUNT, PAGE_SIZE> physalloc;
-static memalloc::allocators::block_alloc<KERNEL_PAGES, PAGE_SIZE> kernelalloc;
+static memalloc::allocators::block_alloc<PHYS_BITMAP_BLOCK_COUNT, ARCH_PAGE_SIZE> physalloc;
+static memalloc::allocators::block_alloc<KERNEL_PAGES, ARCH_PAGE_SIZE> kernelalloc;
 
 void *memalloc::page::phys_malloc(uint32_t blockcount) {
     bool success = false;
     void *allocated = physalloc.malloc(blockcount, &success);
     if (!success) {
-        LOG_FATAL("page::phys_malloc: memory full");
+        KERNEL_PANIC("phys_malloc -> memory full");
         return nullptr;
     }
     return allocated;
@@ -30,67 +28,73 @@ void memalloc::page::phys_free(void *adr) {
     physalloc.free(adr);
 }
 
-void memalloc::page::phys_init(memorymap::SMAP_entry *e620_map, int e620_len) {
+void memalloc::page::phys_init() {
     physalloc.init();
     physalloc.markAllUsed();
-    // first set all the areas marked as usable
-    for (int i = 0; i < e620_len; i++) {
-        uint64_t start = e620_map[i].Base;
-        uint64_t end = (e620_map[i].Base + e620_map[i].Length);
-        if (end / PAGE_SIZE > PHYS_BITMAP_BLOCK_COUNT) {
-            end = (PHYS_BITMAP_BLOCK_COUNT - 1) * PAGE_SIZE;
+
+    arch::generic::memory::memory_map_entry entry;
+    int counter = 0;
+
+    // allocate all usable areas
+    while (arch::generic::memory::get_memory_map(&entry, counter)) {
+        size_t end_adr = entry.start_address + entry.size;
+        if ((end_adr / ARCH_PAGE_SIZE) > PHYS_BITMAP_BLOCK_COUNT) {
+            end_adr = (PHYS_BITMAP_BLOCK_COUNT)*ARCH_PAGE_SIZE;
         }
-        if (start / PAGE_SIZE > PHYS_BITMAP_BLOCK_COUNT) {
-            LOG_DEBUG("page::phys_init: entry bigger than memory map");
+        if ((entry.start_address / ARCH_PAGE_SIZE) > PHYS_BITMAP_BLOCK_COUNT) {
+            LOG_DEBUG("entry bigger than memory map");
+            counter++;
             continue;
         }
-        if (e620_map[i].Type == 1) {
-            physalloc.dealloc((void *)start, (end - start) / PAGE_SIZE);
+
+        if (entry.entry_type == arch::generic::memory::memory_map_entry::entry_type::MEMORY_RAM) {
+            physalloc.dealloc((void *)entry.start_address, (end_adr - entry.start_address) / ARCH_PAGE_SIZE);
         }
-    }
-    // now set all areas marked as unusable
-    for (int i = 0; i < e620_len; i++) {
-        uint64_t start = e620_map[i].Base;
-        uint64_t end = (e620_map[i].Base + e620_map[i].Length);
-        if (end / PAGE_SIZE > PHYS_BITMAP_BLOCK_COUNT) {
-            end = (PHYS_BITMAP_BLOCK_COUNT - 1) * PAGE_SIZE;
-        }
-        if (start / PAGE_SIZE > PHYS_BITMAP_BLOCK_COUNT) {
-            LOG_DEBUG("page::phys_init: entry bigger than memory map");
-            continue;
-        }
-        if (e620_map[i].Type > 1) {
-            physalloc.alloc((void *)start, (end - start) / PAGE_SIZE);
-        }
+        counter++;
     }
 
-    // mark all physical memory used by the kernel and bootloader as used
-    // TODO: can we just free the bootloader memory?
-    physalloc.alloc(nullptr, KERNEL_ALL_PAGES + (KERNEL_PHYS_ADDRESS / PAGE_SIZE));
+    // now mark all areas that are unusable as allocated. This has to be done to make sure that higher priority entires come first in case of overlaps
+    counter = 0;
+    while (arch::generic::memory::get_memory_map(&entry, counter)) {
+        size_t end_adr = entry.start_address + entry.size;
+        if ((end_adr / ARCH_PAGE_SIZE) > PHYS_BITMAP_BLOCK_COUNT) {
+            end_adr = (PHYS_BITMAP_BLOCK_COUNT)*ARCH_PAGE_SIZE;
+        }
+        if ((entry.start_address / ARCH_PAGE_SIZE) > PHYS_BITMAP_BLOCK_COUNT) {
+            LOG_DEBUG("entry bigger than memory map");
+            counter++;
+            continue;
+        }
+
+        if (entry.entry_type != arch::generic::memory::memory_map_entry::entry_type::MEMORY_RAM) {
+            physalloc.alloc((void *)entry.start_address, (end_adr - entry.start_address) / ARCH_PAGE_SIZE);
+        }
+        counter++;
+    }
 }
 
 void *memalloc::page::kernel_malloc(uint32_t blockcount) {
     bool success = false;
     void *allocated = kernelalloc.malloc(blockcount, &success);
     if (!success) {
-        LOG_FATAL("memalloc::page::kernel_malloc memory full");
+        KERNEL_PANIC("kernel_malloc -> memory full");
         return nullptr;
     }
-    return (void *)(allocated + KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET);
+    return (void *)(allocated + ARCH_KERNEL_HEAP_START);
 }
 
 void memalloc::page::kernel_alloc(void *adr, uint32_t blockcount) {
-    adr -= KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET;
+    adr -= ARCH_KERNEL_HEAP_START;
     kernelalloc.alloc(adr, blockcount);
 }
 
 void *memalloc::page::kernel_realloc(void *adr, uint32_t blocks) {
     void *oldptr = adr;
-    adr -= KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET;
+    adr -= ARCH_KERNEL_HEAP_START;
     bool success;
-    void *newptr = kernelalloc.realloc(adr, blocks, &success) + KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET;
+    void *newptr = kernelalloc.realloc(adr, blocks, &success) + ARCH_KERNEL_HEAP_START;
     if (oldptr != newptr && success) {
-        memcpy((char *)newptr, (char *)oldptr, blocks * PAGE_SIZE);
+        memcpy((char *)newptr, (char *)oldptr, blocks * ARCH_PAGE_SIZE);
     }
     if (!success) {
         return nullptr;
@@ -99,7 +103,7 @@ void *memalloc::page::kernel_realloc(void *adr, uint32_t blocks) {
 }
 
 void memalloc::page::kernel_free(void *adr) {
-    adr -= KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET;
+    adr -= ARCH_KERNEL_HEAP_START;
     kernelalloc.free(adr);
 }
 

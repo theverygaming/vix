@@ -4,10 +4,10 @@
 namespace isr {
     typedef struct {
         uint32_t intStackLocation;
-        u32 ds;
-        u32 edi, esi, ebp, kern_esp, ebx, edx, ecx, eax;
-        u32 interrupt, error;
-        u32 eip, cs, eflags, esp, ss; // stuff CPU pushed
+        uint32_t ds;
+        uint32_t edi, esi, ebp, kern_esp, ebx, edx, ecx, eax;
+        uint32_t interrupt, error;
+        uint32_t eip, cs, eflags, esp, ss; // stuff CPU pushed
     } __attribute__((packed)) Registers;
     typedef void (*intHandler)(Registers *regs);
 
