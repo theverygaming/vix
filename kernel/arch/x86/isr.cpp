@@ -4,7 +4,6 @@
 #include <arch/x86/isrs.h>
 #include <arch/x86/multitasking.h>
 #include <config.h>
-#include <cstddef>
 #include <debug.h>
 #include <log.h>
 #include <memory_alloc/memalloc.h>
@@ -24,7 +23,7 @@ extern "C" uint32_t i686_ISR_Handler(isr::Registers *regs) {
         }
     }
 
-    if (handlers[regs->interrupt] != NULL) {
+    if (handlers[regs->interrupt] != 0) {
         handlers[regs->interrupt](regs);
     } else if (regs->interrupt >= 32) {
         DEBUG_PRINTF("No interrupt handler for #%lu!, ignoring\n", regs->interrupt);
@@ -109,7 +108,7 @@ extern "C" uint32_t i686_ISR_Handler(isr::Registers *regs) {
 
 void isr::i686_ISR_Initialize() {
     for (int i = 0; i < 256; i++) {
-        handlers[i] = NULL;
+        handlers[i] = 0;
     }
     isrs::i686_ISR_InitializeGates();
     for (int i = 0; i < 256; i++) {
@@ -122,7 +121,7 @@ void isr::RegisterHandler(int handler, void (*_func)(Registers *regs)) {
 }
 
 void isr::DeregisterHandler(int handler) {
-    handlers[handler] = NULL;
+    handlers[handler] = 0;
 }
 
 extern "C" void *isr_alloc_stack() {

@@ -1,10 +1,9 @@
 #include <arch/x86/cpubasics.h>
-#include <config.h>
 #include <arch/x86/idt.h>
 #include <arch/x86/isr.h>
 #include <arch/x86/multitasking.h>
+#include <config.h>
 #include <stdio.h>
-#include <cstddef>
 
 void init_pic(void) {
     /* Initialisation de ICW1 */
