@@ -27,7 +27,7 @@ namespace arch::generic::memory {
             MEMORY_MIMO,   /* memory mapped devices */
             MEMORY_KERNEL, /* where the kernel code, bss etc. sits */
             MEMORY_RAM,    /* this is the ONLY memory type that may be accessed without prior precautions */
-        };
+        } entry_type;
     };
     /* call for each memory map entry, returns false when no more entires left -> n is a counter that starts with 0 */
     bool get_memory_map(struct memory_map_entry *entry, int n);

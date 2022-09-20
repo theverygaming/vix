@@ -155,7 +155,7 @@ void processFile(std::string filename) {
 
         // remove trailing spaces
         if (line.find_last_not_of(' ') != std::string::npos) {
-            line.erase(line.find_last_not_of(' ')+1);
+            line.erase(line.find_last_not_of(' ') + 1);
         }
 
         // replace VARINSERT(variablename) --------------------------------------------------------------- TODO: make varinsert work with multiple statements on a single line
@@ -259,13 +259,13 @@ void readConfigFile(std::string filename) {
     size_t currentLine = 0;
     while (currentLine < lines.size()) {
         std::string line = lines[currentLine];
-        
+
         // remove trailing spaces
         if (line.find_last_not_of(' ') != std::string::npos) {
-            line.erase(line.find_last_not_of(' ')+1);
+            line.erase(line.find_last_not_of(' ') + 1);
         }
 
-        if(line.find(' ') == std::string::npos) {
+        if (line.find(' ') == std::string::npos) {
             currentLine++;
             continue;
         }
@@ -302,12 +302,6 @@ void final_link(std::string ld, std::string ldflags, std::string linkerscript, s
     runcmd(command);
 }
 
-void final_objcopy(std::string objcopy, std::string objcopyflags, std::string input, std::string output) {
-    std::string command = objcopy + " " + objcopyflags + " " + input + " " + output;
-    printf("%s %s -> %s\n", objcopy.c_str(), input.c_str(), output.c_str());
-    runcmd(command);
-}
-
 int main(int argc, char *argv[]) {
     if (argc < 2) {
         fprintf(stderr, "usage: %s shbuildfile\n", argv[0]);
@@ -318,16 +312,20 @@ int main(int argc, char *argv[]) {
 
     std::string config_arch = getVariable("CONFIG_ARCH")[0];
 
+    std::string config_cxx = getVariable("CONFIG_CXX")[0];
+    std::string config_cxxflags = getVariable("CONFIG_CXXFLAGS")[0];
+
+    std::string config_ld = getVariable("CONFIG_LD")[0];
+    std::string config_ldflags = getVariable("CONFIG_LDFLAGS")[0];
+
+    std::string config_objcopycmd = getVariable("CONFIG_OBJCOPYCMD")[0];
+
     std::vector<std::string> objs = getVariable("objs");
     for (size_t i = 0; i < objs.size(); i++) {
         if (stringEndsWith(objs[i], ".ocpp")) {
             std::string sourcefile = stringReplaceEnd(objs[i], ".ocpp", ".cpp");
             if (doesFileNeedRebuild(sourcefile, objs[i])) {
-                build_cpp_gcc(
-                    "g++",
-                    "-Iinclude -O3 -nostdlib -m32 -march=i386 -fno-pie -mno-red-zone -fno-stack-protector -ffreestanding -fno-exceptions -Wall -Wextra -Wno-pointer-arith -Wno-unused-parameter",
-                    sourcefile,
-                    objs[i]);
+                build_cpp_gcc(config_cxx, config_cxxflags, sourcefile, objs[i]);
             } else {
                 printf("%s doesn't need to rebuild\n", objs[i].c_str());
             }
@@ -345,8 +343,8 @@ int main(int argc, char *argv[]) {
         printf("unknown file type -> %s\n", objs[i].c_str());
         return 1;
     }
-    final_link("ld", "-nostdlib -m elf_i386 -z noexecstack", "arch/" + config_arch + "/linker.ld", expandStrVector(objs), "kernel.o");
-    final_objcopy("objcopy", "-O binary", "kernel.o", "kernel.bin");
+    final_link(config_ld, config_ldflags, "arch/" + config_arch + "/linker.ld", expandStrVector(objs), "kernel.o");
+    runcmd(config_objcopycmd);
 
     return 0;
 }

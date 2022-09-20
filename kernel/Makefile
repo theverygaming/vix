@@ -10,7 +10,7 @@ config:
 config_gen:
 	@$(MAKE) --no-print-directory -C scripts/shconfig
 	@mkdir -p include/generated/
-	@scripts/shconfig/shconfig -g config_default
+	@scripts/shconfig/shconfig -g config_default_$(MAKE_ARCH)
 
 clean:
 	@rm -f kernel.bin

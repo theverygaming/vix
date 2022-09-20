@@ -1,0 +1,12 @@
+CONFIG_CXX g++
+CONFIG_CXXFLAGS -Iinclude -O3 -nostdlib -m32 -march=i386 -fno-pie -mno-red-zone -fno-stack-protector -ffreestanding -fno-exceptions -Wall -Wextra -Wno-pointer-arith -Wno-unused-parameter
+
+CONFIG_LD ld
+CONFIG_LDFLAGS -nostdlib -m elf_i386 -z noexecstack
+
+CONFIG_OBJCOPYCMD objcopy -O binary kernel.o kernel.bin
+
+
+CONFIG_ARCH x86
+CONFIG_ENDIAN_BIG 0
+CONFIG_LOGLEVEL 'N'
