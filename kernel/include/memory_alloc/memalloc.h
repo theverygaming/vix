@@ -2,6 +2,7 @@
 #include <types.h>
 
 namespace memalloc::page {
+    void phys_alloc(void *adr, uint32_t blockcount);
     void *phys_malloc(uint32_t blocks);
     void phys_free(void *adr);
     void phys_init();

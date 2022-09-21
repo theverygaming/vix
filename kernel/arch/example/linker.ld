@@ -1,5 +1,3 @@
-# arch-specific linker script could look something like this
-
 ENTRY(_kentry)
 
 PAGE = 0x1000;
@@ -27,7 +25,7 @@ SECTIONS {
 	}>ram
 
 	.data ALIGN(PAGE) : AT(ADDR(.data) - HIGHER_HALF) {
-		START_CONSTRUCTORS = .; # constructor stuff must be in the linker script
+		START_CONSTRUCTORS = .;
     	KEEP(*( .init_array ));
     	KEEP(*(SORT_BY_INIT_PRIORITY( .init_array.* )));
     	END_CONSTRUCTORS = .;

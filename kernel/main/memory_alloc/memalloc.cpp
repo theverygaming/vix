@@ -14,6 +14,10 @@
 static memalloc::allocators::block_alloc<PHYS_BITMAP_BLOCK_COUNT, ARCH_PAGE_SIZE> physalloc;
 static memalloc::allocators::block_alloc<KERNEL_PAGES, ARCH_PAGE_SIZE> kernelalloc;
 
+void memalloc::page::phys_alloc(void *adr, uint32_t blockcount) {
+    physalloc.alloc(adr, blockcount);
+}
+
 void *memalloc::page::phys_malloc(uint32_t blockcount) {
     bool success = false;
     void *allocated = physalloc.malloc(blockcount, &success);
