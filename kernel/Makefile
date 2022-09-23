@@ -14,7 +14,7 @@ config_gen:
 
 clean:
 	@rm -f kernel.bin
-	@find . \( -name '*.oasm' -o -name '*.ocpp' -o -name '*.o' \) -type f -delete
+	@find . \( -name '*.oasm' -o -name '*.ocpp' -o -name '*.o' -o -name '*.os' \) -type f -delete
 	@$(MAKE) --no-print-directory -C scripts/shconfig clean
 
 proper: clean

@@ -6,28 +6,12 @@ namespace std {
     template <class T> class vector {
     public:
         vector() {
-            uint64_t test1;
-            uint64_t *ptr = &test1;
-            for (int i = 0; i < 100; i++) {
-                testvalue += *ptr;
-                ptr--;
-            }
-            DEBUG_PRINTF("vector CONSTRUCT -> 0x%p\n", testvalue);
-
             _capacity = 1;
             _size = 0;
             _pointer = (T *)memalloc::single::kmalloc(_capacity * sizeof(T));
         }
 
         vector(const vector &obj) {
-            uint64_t test1;
-            uint64_t *ptr = &test1;
-            for (int i = 0; i < 100; i++) {
-                testvalue += *ptr;
-                ptr--;
-            }
-            DEBUG_PRINTF("vector COPY -> 0x%p\n", testvalue);
-
             _capacity = 1;
             _size = 0;
             _pointer = (T *)memalloc::single::kmalloc(_capacity * sizeof(T));
@@ -40,7 +24,6 @@ namespace std {
         }
 
         ~vector() {
-            DEBUG_PRINTF("vector DESTRUCT -> 0x%p\n", testvalue);
             memalloc::single::kfree(_pointer);
         }
 
@@ -111,7 +94,5 @@ namespace std {
             }
             _pointer = (T *)memalloc::single::krealloc(_pointer, _capacity * sizeof(T));
         }
-
-        uint32_t testvalue = 0;
     };
 }

@@ -11,11 +11,13 @@
  */
 #define ARCH_PAGE_SIZE 4096
 
+/* start address of physical memory, used by physical memory allocator */
+#define ARCH_PHYS_MEM_START 0
 /*
- * abosolute maximum PHYSICAL memory this architecture can possibly have in bytes(may be less but then code will not be able to use more than specified here)
+ * abosolute maximum PHYSICAL memory address this architecture can possibly have
  * this is used(together with ARCH_PAGE_SIZE) for example by kernel/main/memory_alloc/memalloc.cpp(the page allocator) for it's bitmap
  */
-#define ARCH_PHYS_MAX_MEM 4294967296
+#define ARCH_PHYS_MAX_MEM_ADR 4294967296
 
 namespace arch::generic::memory {
     /* memory map entry struct */

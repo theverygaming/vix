@@ -331,6 +331,15 @@ int main(int argc, char *argv[]) {
             }
             continue;
         }
+        if (stringEndsWith(objs[i], ".os")) {
+            std::string sourcefile = stringReplaceEnd(objs[i], ".os", ".s");
+            if (doesFileNeedRebuild(sourcefile, objs[i])) {
+                build_cpp_gcc(config_cxx, config_cxxflags, sourcefile, objs[i]);
+            } else {
+                printf("%s doesn't need to rebuild\n", objs[i].c_str());
+            }
+            continue;
+        }
         if (stringEndsWith(objs[i], ".oasm")) {
             std::string sourcefile = stringReplaceEnd(objs[i], ".oasm", ".asm");
             if (doesFileNeedRebuild(sourcefile, objs[i])) {

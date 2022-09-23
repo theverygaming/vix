@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include INCLUDE_ARCH_GENERIC(memory.h)
 
-#define PHYS_BITMAP_BLOCK_COUNT ARCH_PHYS_MAX_MEM / ARCH_PAGE_SIZE
+#define PHYS_BITMAP_BLOCK_COUNT ((ARCH_PHYS_MAX_MEM_ADR - ARCH_PHYS_MEM_START) / ARCH_PAGE_SIZE)
 
 #define KERNEL_PAGES ((ARCH_KERNEL_HEAP_END / ARCH_PAGE_SIZE) - (ARCH_KERNEL_HEAP_START / ARCH_PAGE_SIZE))
 
@@ -15,12 +15,13 @@ static memalloc::allocators::block_alloc<PHYS_BITMAP_BLOCK_COUNT, ARCH_PAGE_SIZE
 static memalloc::allocators::block_alloc<KERNEL_PAGES, ARCH_PAGE_SIZE> kernelalloc;
 
 void memalloc::page::phys_alloc(void *adr, uint32_t blockcount) {
-    physalloc.alloc(adr, blockcount);
+    physalloc.alloc(((uint8_t *)adr) - ARCH_PHYS_MEM_START, blockcount);
 }
 
 void *memalloc::page::phys_malloc(uint32_t blockcount) {
     bool success = false;
-    void *allocated = physalloc.malloc(blockcount, &success);
+    uint8_t *allocated = (uint8_t *)physalloc.malloc(blockcount, &success);
+    allocated += ARCH_PHYS_MEM_START;
     if (!success) {
         KERNEL_PANIC("phys_malloc -> memory full");
         return nullptr;
@@ -29,7 +30,7 @@ void *memalloc::page::phys_malloc(uint32_t blockcount) {
 }
 
 void memalloc::page::phys_free(void *adr) {
-    physalloc.free(adr);
+    physalloc.free(((uint8_t *)adr) - ARCH_PHYS_MEM_START);
 }
 
 void memalloc::page::phys_init() {
@@ -42,17 +43,15 @@ void memalloc::page::phys_init() {
     // allocate all usable areas
     while (arch::generic::memory::get_memory_map(&entry, counter)) {
         size_t end_adr = entry.start_address + entry.size;
-        if ((end_adr / ARCH_PAGE_SIZE) > PHYS_BITMAP_BLOCK_COUNT) {
-            end_adr = (PHYS_BITMAP_BLOCK_COUNT)*ARCH_PAGE_SIZE;
-        }
-        if ((entry.start_address / ARCH_PAGE_SIZE) > PHYS_BITMAP_BLOCK_COUNT) {
-            LOG_DEBUG("entry bigger than memory map");
-            counter++;
-            continue;
-        }
 
         if (entry.entry_type == arch::generic::memory::memory_map_entry::entry_type::MEMORY_RAM) {
-            physalloc.dealloc((void *)entry.start_address, (end_adr - entry.start_address) / ARCH_PAGE_SIZE);
+            size_t new_start_address = entry.start_address;
+            if (new_start_address < ARCH_PHYS_MAX_MEM_ADR) {
+                if (new_start_address < ARCH_PHYS_MEM_START) {
+                    new_start_address = ARCH_PHYS_MEM_START;
+                }
+                physalloc.dealloc((uint8_t *)new_start_address - ARCH_PHYS_MEM_START, (end_adr - entry.start_address) / ARCH_PAGE_SIZE);
+            }
         }
         counter++;
     }
@@ -61,17 +60,15 @@ void memalloc::page::phys_init() {
     counter = 0;
     while (arch::generic::memory::get_memory_map(&entry, counter)) {
         size_t end_adr = entry.start_address + entry.size;
-        if ((end_adr / ARCH_PAGE_SIZE) > PHYS_BITMAP_BLOCK_COUNT) {
-            end_adr = (PHYS_BITMAP_BLOCK_COUNT)*ARCH_PAGE_SIZE;
-        }
-        if ((entry.start_address / ARCH_PAGE_SIZE) > PHYS_BITMAP_BLOCK_COUNT) {
-            LOG_DEBUG("entry bigger than memory map");
-            counter++;
-            continue;
-        }
 
         if (entry.entry_type != arch::generic::memory::memory_map_entry::entry_type::MEMORY_RAM) {
-            physalloc.alloc((void *)entry.start_address, (end_adr - entry.start_address) / ARCH_PAGE_SIZE);
+            size_t new_start_address = entry.start_address;
+            if (new_start_address < ARCH_PHYS_MAX_MEM_ADR) {
+                if (new_start_address < ARCH_PHYS_MEM_START) {
+                    new_start_address = ARCH_PHYS_MEM_START;
+                }
+                physalloc.alloc((uint8_t *)entry.start_address - ARCH_PHYS_MEM_START, (end_adr - entry.start_address) / ARCH_PAGE_SIZE);
+            }
         }
         counter++;
     }
