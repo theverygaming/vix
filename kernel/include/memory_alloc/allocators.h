@@ -10,11 +10,11 @@ namespace memalloc::allocators {
         }
 
         void clear() {
-            memset(allocator_bitmap, 0, (max_block_count / (8 / 2)) + 1);
+            stdlib::memset(allocator_bitmap, 0, (max_block_count / (8 / 2)) + 1);
         }
 
         void markAllUsed() {
-            memset(allocator_bitmap, 0xFF, (max_block_count / (8 / 2)) + 1);
+            stdlib::memset(allocator_bitmap, 0xFF, (max_block_count / (8 / 2)) + 1);
         }
 
         void alloc(void *offset_adr, uint32_t blockcount) {

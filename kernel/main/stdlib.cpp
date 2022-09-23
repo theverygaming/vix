@@ -1,21 +1,21 @@
 #include <stdlib.h>
-#include <stdio.h>
 
-char *memcpy(char *dst, const char *src, int n) {
-    char *p = dst;
+void *stdlib::memcpy(void *dst, const void *src, size_t n) {
+    uint8_t *p = (uint8_t *)dst;
+    const uint8_t *src_u = (const uint8_t *)src;
     while (n--)
-        *dst++ = *src++;
-    return p;
+        *p++ = *src_u++;
+    return dst;
 }
 
-uint8_t *memset(uint8_t *dst, uint8_t value, uint32_t n) {
-    uint8_t *p = dst;
+void *stdlib::memset(void *ptr, int value, size_t n) {
+    uint8_t *p = (uint8_t *)ptr;
     while (n--)
-        *dst++ = value;
-    return p;
+        *p++ = (uint8_t)value;
+    return ptr;
 }
 
-int memcmp(const void *ptr1, const void *ptr2, size_t num) {
+int stdlib::memcmp(const void *ptr1, const void *ptr2, size_t num) {
     uint8_t *c1 = (uint8_t *)ptr1;
     uint8_t *c2 = (uint8_t *)ptr2;
     while (num--) {
@@ -26,7 +26,7 @@ int memcmp(const void *ptr1, const void *ptr2, size_t num) {
     return 0;
 }
 
-int strcmp(const char *str1, const char *str2) {
+int stdlib::strcmp(const char *str1, const char *str2) {
     while (*str1 && (*str1 == *str2)) {
         str1++;
         str2++;
@@ -34,7 +34,7 @@ int strcmp(const char *str1, const char *str2) {
     return *((const unsigned char *)str1) - *((const unsigned char *)str2);
 }
 
-size_t strlen(const char *str) {
+size_t stdlib::strlen(const char *str) {
     const char *str2 = str;
     while (*str2) {
         str2++;
@@ -42,7 +42,7 @@ size_t strlen(const char *str) {
     return (str2 - str);
 }
 
-char *strcpy(char *destination, const char *source) {
+char *stdlib::strcpy(char *destination, const char *source) {
     char *saved_dest = destination;
     while (*source) {
         *destination++ = *source++;
@@ -51,10 +51,10 @@ char *strcpy(char *destination, const char *source) {
     return saved_dest;
 }
 
-char *strstr(char *str1, char *str2) {
-    size_t str2len = strlen(str2);
+char *stdlib::strstr(char *str1, char *str2) {
+    size_t str2len = stdlib::strlen(str2);
     while (*str1) {
-        if (!memcmp(str1++, str2, str2len)) {
+        if (!stdlib::memcmp(str1++, str2, str2len)) {
             return str1 - 1;
         }
     }

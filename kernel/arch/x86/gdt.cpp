@@ -1,7 +1,7 @@
 #include <arch/x86/gdt.h>
 #include <config.h>
 #include <stdlib.h>
-#include <stdint.h>
+#include <types.h>
 
 typedef struct {
     uint16_t LimitLow;    // limit (bits 0-15)
@@ -52,7 +52,7 @@ typedef enum {
 #define GDT_LIMIT_LOW(limit) (limit & 0xFFFF)
 #define GDT_BASE_LOW(base) (base & 0xFFFF)
 #define GDT_BASE_MIDDLE(base) ((base >> 16) & 0xFF)
-#define GDT_FLAGS_LIMIT_HI(limit, flags) ((((limit) >> 16) & 0xF) | ((flags) & 0xF0))
+#define GDT_FLAGS_LIMIT_HI(limit, flags) ((((limit) >> 16) & 0xF) | ((flags)&0xF0))
 #define GDT_BASE_HIGH(base) ((base >> 24) & 0xFF)
 
 #define GDT_ENTRY(base, limit, access, flags)                                                                                                                                                          \
@@ -75,7 +75,7 @@ void gdt::i686_GDT_Initialize() {
 
     GDTDescriptor g_GDTDescriptor = {sizeof(g_GDT) - 1, (GDTEntry *)(KERNEL_VIRT_ADDRESS + GDT_OFFSET + sizeof(GDTDescriptor))};
 
-    memcpy((char *)(KERNEL_VIRT_ADDRESS + GDT_OFFSET), (char *)&g_GDTDescriptor, sizeof(GDTDescriptor));
-    memcpy((char *)(KERNEL_VIRT_ADDRESS + GDT_OFFSET + sizeof(GDTDescriptor)), (char *)&g_GDT, sizeof(g_GDT));
+    stdlib::memcpy((char *)(KERNEL_VIRT_ADDRESS + GDT_OFFSET), &g_GDTDescriptor, sizeof(GDTDescriptor));
+    stdlib::memcpy((char *)(KERNEL_VIRT_ADDRESS + GDT_OFFSET + sizeof(GDTDescriptor)), &g_GDT, sizeof(g_GDT));
     i686_GDT_Load((GDTDescriptor *)(KERNEL_VIRT_ADDRESS + GDT_OFFSET), i686_GDT_CODE_SEGMENT, i686_GDT_DATA_SEGMENT);
 }

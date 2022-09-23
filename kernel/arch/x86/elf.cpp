@@ -9,7 +9,7 @@ void elf::load_program(void *ELF_baseadr, std::vector<char *> *argv, bool replac
     ElfHeader header;
     ElfProgramHeader pHeader;
 
-    memcpy((char *)&header, (char *)ELF_baseadr, sizeof(ElfHeader));
+    stdlib::memcpy(&header, ELF_baseadr, sizeof(ElfHeader));
 
     uint32_t max = 0;
     uint32_t min = 0xFFFFFFFF;
@@ -18,7 +18,7 @@ void elf::load_program(void *ELF_baseadr, std::vector<char *> *argv, bool replac
         return;
     }
     for (int i = 0; i < header.e_phnum; i++) {
-        memcpy((char *)&pHeader, (char *)ELF_baseadr + header.e_phoff + (header.e_phentsize * i), sizeof(pHeader));
+        stdlib::memcpy(&pHeader, ((char*)ELF_baseadr) + header.e_phoff + (header.e_phentsize * i), sizeof(pHeader));
         if (pHeader.p_type != 1) {
             continue;
         }
@@ -44,7 +44,7 @@ void elf::load_program(void *ELF_baseadr, std::vector<char *> *argv, bool replac
 
     DEBUG_PRINTF("---Program Headers---\n");
     for (int i = 0; i < header.e_phnum; i++) {
-        memcpy((char *)&pHeader, (char *)ELF_baseadr + header.e_phoff + (header.e_phentsize * i), sizeof(pHeader));
+        stdlib::memcpy(&pHeader, ((char*)ELF_baseadr) + header.e_phoff + (header.e_phentsize * i), sizeof(pHeader));
 
         DEBUG_PRINTF("section: align: 0x%p vaddr->0x%p sizef->0x%p sizem->0x%p\n", pHeader.p_align, pHeader.p_vaddr, pHeader.p_filesz, pHeader.p_memsz);
         if (pHeader.p_type != 1) {
@@ -52,8 +52,8 @@ void elf::load_program(void *ELF_baseadr, std::vector<char *> *argv, bool replac
             continue;
         }
 
-        memset((uint8_t *)pHeader.p_vaddr, 0, pHeader.p_memsz);
-        memcpy((char *)pHeader.p_vaddr, (char *)ELF_baseadr + pHeader.p_offset, pHeader.p_filesz);
+        stdlib::memset((void *)pHeader.p_vaddr, 0, pHeader.p_memsz);
+        stdlib::memcpy((void *)pHeader.p_vaddr, ((char*)ELF_baseadr) + pHeader.p_offset, pHeader.p_filesz);
 
         if (pHeader.p_vaddr + pHeader.p_memsz > max) {
             max = pHeader.p_vaddr + pHeader.p_memsz;

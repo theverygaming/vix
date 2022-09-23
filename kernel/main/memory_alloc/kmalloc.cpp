@@ -159,7 +159,7 @@ void *memalloc::single::krealloc(void *ptr, size_t size) {
 
         void *newptr = ptrChar + sizeof(meminfo_t);
         if (newptr != ptr) {
-            memcpy((char *)newptr, (char *)ptr, oldSize);
+            stdlib::memcpy(newptr, ptr, oldSize);
         }
         memalloc::single::kfree(ptr);
 
@@ -187,7 +187,7 @@ void *memalloc::single::krealloc(void *ptr, size_t size) {
 
             void *newptr = ptrChar + sizeof(meminfo_t);
             if (newptr != ptr) {
-                memcpy((char *)newptr, (char *)ptr, oldSize);
+                stdlib::memcpy(newptr, ptr, oldSize);
             }
             memalloc::single::kfree(ptr);
 

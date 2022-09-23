@@ -25,7 +25,7 @@ void multitasking::initMultitasking() {
         }
     }
     processes[0] = {0, {0, 0, 0, 0, 0, 0, 0, 0}, 0, true};
-    memcpy((char *)&processes[0].registerContext, (char *)current_context, sizeof(context));
+    stdlib::memcpy(&processes[0].registerContext, current_context, sizeof(context));
     createPageRange(processes[0].pages);
     currentProcess = 0;
     log::log_service("multitasking", "enabled");
@@ -49,7 +49,7 @@ static void *init_empty_stack(void *stackadr, void *codeadr, std::vector<char *>
     size_t total_size = 6 * 4; // eip, cs, eflags, argc, argv null termination and envp null termination
 
     for (int i = 0; i < argc; i++) {
-        total_size += strlen((*argv)[i]) + 1;
+        total_size += stdlib::strlen((*argv)[i]) + 1;
         total_size += 4; // pointer to arg
     }
     stackadr = ((char *)stackadr) - total_size;
@@ -66,9 +66,9 @@ static void *init_empty_stack(void *stackadr, void *codeadr, std::vector<char *>
 
     // build up argv
     for (int i = 0; i < argc; i++) {
-        memcpy((char *)stackadr + string_pos, (*argv)[i], strlen((*argv)[i]) + 1);
+        stdlib::memcpy(((char *)stackadr) + string_pos, (*argv)[i], stdlib::strlen((*argv)[i]) + 1);
         stack[nextindex++] = (size_t)stackadr + string_pos;
-        string_pos += strlen((*argv)[i]) + 1;
+        string_pos += stdlib::strlen((*argv)[i]) + 1;
     }
     stack[nextindex++] = 0; // argv null termination
     stack[nextindex++] = 0; // envp null termination
@@ -122,9 +122,9 @@ multitasking::process *multitasking::fork_current_process() {
     }
     processes[freeProcess].priority = 0;
     processes[freeProcess].pid = freeProcess;
-    memcpy((char *)&processes[freeProcess].registerContext,
-           (char *)current_context,
-           sizeof(multitasking::context)); // gotta be very careful here to get the current context. The context in the process array is outdated while it is running.
+    stdlib::memcpy(&processes[freeProcess].registerContext,
+                   current_context,
+                   sizeof(multitasking::context)); // gotta be very careful here to get the current context. The context in the process array is outdated while it is running.
     processes[freeProcess].running = true;
     DEBUG_PRINTF("forked -> new PID: %u\n", processes[freeProcess].pid);
     return &processes[freeProcess];
@@ -146,7 +146,7 @@ void multitasking::create_task(void *stackadr, void *codeadr, process_pagerange 
     for (uint32_t i = 0; i < MAX_PROCESSES; i++) {
         if (!processes[i].running) {
             processes[i] = {i, {0, 0, 0, 0, 0, 0, (uint32_t)stackadr, 0}, 0, false};
-            memcpy((char *)processes[i].pages, (char *)pagerange, sizeof(process_pagerange) * PROCESS_MAX_PAGE_RANGES);
+            stdlib::memcpy(processes[i].pages, pagerange, sizeof(process_pagerange) * PROCESS_MAX_PAGE_RANGES);
             processes[i].running = true;
             processes[i].priority = 0;
             break;
@@ -171,7 +171,7 @@ void multitasking::replace_task(void *stackadr, void *codeadr, process_pagerange
     for (uint32_t i = 0; i < MAX_PROCESSES; i++) {
         if (!processes[i].running) {
             processes[i] = {i, {0, 0, 0, 0, 0, 0, (uint32_t)stackadr, 0}, 0, false};
-            memcpy((char *)processes[i].pages, (char *)pagerange, sizeof(process_pagerange) * PROCESS_MAX_PAGE_RANGES);
+            stdlib::memcpy(processes[i].pages, pagerange, sizeof(process_pagerange) * PROCESS_MAX_PAGE_RANGES);
             processes[i].running = true;
             processes[i].priority = 0;
             break;
@@ -204,8 +204,8 @@ void multitasking::interruptTrigger() {
     if (!processes[currentProcess].running) {
         for (int i = 0; i < MAX_PROCESSES; i++) {
             if (processes[i].running && currentProcess != i) {
-                memcpy((char *)&processes[currentProcess].registerContext, (char *)current_context, sizeof(context)); // Save current process context
-                memcpy((char *)current_context, (char *)&processes[i].registerContext, sizeof(context));
+                stdlib::memcpy(&processes[currentProcess].registerContext, current_context, sizeof(context)); // Save current process context
+                stdlib::memcpy(current_context, &processes[i].registerContext, sizeof(context));
                 // createPageRange(processes[currentProcess].pages);
                 unsetPageRange(processes[currentProcess].pages);
                 setPageRange(processes[i].pages);
@@ -225,8 +225,8 @@ void multitasking::interruptTrigger() {
             int oldProcess = currentProcess;
             for (int i = start; i < MAX_PROCESSES; i++) {
                 if (processes[i].running && currentProcess != i) {
-                    memcpy((char *)&processes[currentProcess].registerContext, (char *)current_context, sizeof(context)); // Save current process context
-                    memcpy((char *)current_context, (char *)&processes[i].registerContext, sizeof(context));
+                    stdlib::memcpy(&processes[currentProcess].registerContext, current_context, sizeof(context)); // Save current process context
+                    stdlib::memcpy(current_context, &processes[i].registerContext, sizeof(context));
                     // createPageRange(processes[currentProcess].pages);
                     unsetPageRange(processes[currentProcess].pages);
                     setPageRange(processes[i].pages);
@@ -283,7 +283,7 @@ bool multitasking::createPageRange(process_pagerange *range, uint32_t max_addres
             prange[i] = {0, 0, 0};
         }
     }
-    memcpy((char *)range, (char *)prange, PROCESS_MAX_PAGE_RANGES * sizeof(process_pagerange));
+    stdlib::memcpy(range, prange, PROCESS_MAX_PAGE_RANGES * sizeof(process_pagerange));
     return true;
 }
 

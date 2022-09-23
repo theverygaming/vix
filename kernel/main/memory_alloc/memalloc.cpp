@@ -98,7 +98,7 @@ void *memalloc::page::kernel_realloc(void *adr, uint32_t blocks) {
     bool success;
     void *newptr = kernelalloc.realloc(adr, blocks, &success) + ARCH_KERNEL_HEAP_START;
     if (oldptr != newptr && success) {
-        memcpy((char *)newptr, (char *)oldptr, blocks * ARCH_PAGE_SIZE);
+        stdlib::memcpy(newptr, oldptr, blocks * ARCH_PAGE_SIZE);
     }
     if (!success) {
         return nullptr;

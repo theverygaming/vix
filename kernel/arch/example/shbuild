@@ -1,1 +1,1 @@
-varappend_tx_prefix objs VARINSERT(CURRENTPATH) archinit.ocpp
+varappend_tx_prefix objs VARINSERT(CURRENTPATH) archinit.ocpp archdummy.ocpp

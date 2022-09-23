@@ -1,4 +1,5 @@
 #pragma once
+#include <types.h>
 
 /* needed for memory allocators -- VIRTUAL addresses -- must be aligned to ARCH_PAGE_SIZE */
 #define ARCH_KERNEL_HEAP_START 0x69

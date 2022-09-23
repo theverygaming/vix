@@ -27,7 +27,7 @@ namespace std {
             initString();
 
             assureSize(n);
-            memcpy(_pointer, s, n);
+            stdlib::memcpy(_pointer, s, n);
         }
 
         ~string() {
@@ -41,14 +41,14 @@ namespace std {
 
         string &operator=(const string &str) {
             assureSize(str._size);
-            memcpy(_pointer, str._pointer, str._size);
+            stdlib::memcpy(_pointer, str._pointer, str._size);
             return *this;
         }
 
         string &operator=(const char *s) {
-            size_t len = strlen(s);
+            size_t len = stdlib::strlen(s);
             assureSize(len);
-            memcpy(_pointer, s, len);
+            stdlib::memcpy(_pointer, s, len);
             return *this;
         }
 
@@ -75,20 +75,20 @@ namespace std {
 
         string &append(const string &str) {
             assureSize(_size + str._size);
-            memcpy(&_pointer[_size - str._size], str._pointer, str._size);
+            stdlib::memcpy(&_pointer[_size - str._size], str._pointer, str._size);
             return *this;
         }
 
         string &append(const char *s) {
-            size_t len = strlen(s);
+            size_t len = stdlib::strlen(s);
             assureSize(_size + len);
-            memcpy(&_pointer[_size - len], s, len);
+            stdlib::memcpy(&_pointer[_size - len], s, len);
             return *this;
         }
 
         string &append(const char *s, size_t n) {
             assureSize(_size + n);
-            memcpy(&_pointer[_size - n], s, n);
+            stdlib::memcpy(&_pointer[_size - n], s, n);
             return *this;
         }
 

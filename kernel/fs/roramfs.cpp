@@ -35,7 +35,7 @@ static bool fload(char *path, void *memloc) {
     struct file_entry *fileptr = (struct file_entry *)(((uint8_t *)locationptr) + sizeof(struct header));
     for (int i = 0; i < fsheader.filecount; i++) {
         if (fs::path::path_compare(fileptr->name, path)) {
-            memcpy((char *)memloc, (char *)(((uint8_t *)locationptr) + fileptr->offset), fileptr->size);
+            stdlib::memcpy(memloc, ((uint8_t *)locationptr) + fileptr->offset, fileptr->size);
             return true;
         }
         fileptr++;
@@ -57,7 +57,7 @@ static bool fptr(char *path, void **fileptr) {
 
 void fs::filesystems::roramfs::init(void *location) {
     locationptr = location;
-    memcpy((char *)&fsheader, (char *)locationptr, sizeof(header));
+    stdlib::memcpy(&fsheader, locationptr, sizeof(header));
     DEBUG_PRINTF("loaded roramfs - name: %s -- files: %d\n", fsheader.name, fsheader.filecount);
     log::log_service("roramfs", "loaded");
 }
@@ -68,6 +68,6 @@ void fs::filesystems::roramfs::deinit() {
 
 void fs::filesystems::roramfs::mountInVFS() {
     struct fs::vfs::vfs_mountpoint mountpoint = {.mountpath = {0}, .uid = 0, .gid = 0, .fsize = &fsize, .fload = &fload, .fptr = &fptr};
-    strcpy(mountpoint.mountpath, "/ramfs/");
+    stdlib::strcpy(mountpoint.mountpath, "/ramfs/");
     fs::vfs::mount(mountpoint);
 }

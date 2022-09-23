@@ -148,7 +148,7 @@ void paging::copyPhysPage(void *dest, void *src) {
     pagetables[0][1] = make_table_entry({.address = dest, .global = false, .cache_disabled = false, .write_through = false, .priv = SUPERVISOR, .perms = RW, .present = true});
     invlpg((void *)0);
     invlpg((void *)4096);
-    memcpy((char *)4096, (char *)0, 4096);
+    stdlib::memcpy((char *)4096, (char *)0, 4096);
     pagetables[0][0] = before1;
     pagetables[0][1] = before2;
     invlpg((void *)0);

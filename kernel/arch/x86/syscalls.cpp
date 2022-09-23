@@ -45,7 +45,7 @@ uint32_t sys_read(int *syscall_ret, uint32_t, uint32_t fd, uint32_t _buf, uint32
     uint32_t readCharacters = drivers::keyboard::bufferlocation - bufStart;
 
     drivers::keyboard::bufferlocation = -1;
-    memcpy(buf, &drivers::keyboard::buffer[bufStart + 1], readCharacters);
+    stdlib::memcpy(buf, &drivers::keyboard::buffer[bufStart + 1], readCharacters);
     return readCharacters;
 }
 
@@ -60,7 +60,7 @@ uint32_t sys_write(int *syscall_ret, uint32_t, uint32_t fd, uint32_t _buf, uint3
     // char string[count + 1];
     char *string = (char *)__builtin_alloca((count + 1));
     string[count] = '\0';
-    memcpy(string, buf, count);
+    stdlib::memcpy(string, buf, count);
     printf("%s", string);
     return count; // return number of written bytes
 }
@@ -74,14 +74,14 @@ uint32_t sys_waitpid(int *syscall_ret, uint32_t, uint32_t pid, uint32_t _stat_ad
 
     multitasking::context *current_context = (multitasking::context *)(KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET);
     multitasking::context tempContextStore;
-    memcpy((char *)&tempContextStore, (char *)current_context, sizeof(multitasking::context));
+    stdlib::memcpy(&tempContextStore, current_context, sizeof(multitasking::context));
 
     asm volatile("sti"); // TODO: figure out why this crashes when kernel memory runs out
 
     multitasking::waitForProcess(pid);
 
     asm volatile("cli");
-    memcpy((char *)current_context, (char *)&tempContextStore, sizeof(multitasking::context));
+    stdlib::memcpy(current_context, &tempContextStore, sizeof(multitasking::context));
     return 0; // TODO: fix return value
 }
 
@@ -97,9 +97,9 @@ uint32_t sys_execve(int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _ar
         // copy argv to vector
         int argc = 0;
         while (argv[argc] != nullptr) {
-            size_t len = strlen(argv[argc]) + 1;
+            size_t len = stdlib::strlen(argv[argc]) + 1;
             char *ptr = (char *)memalloc::single::kmalloc(len);
-            memcpy(ptr, argv[argc], len);
+            stdlib::memcpy(ptr, argv[argc], len);
             args.push_back(ptr);
             argc++;
         }
@@ -152,12 +152,12 @@ uint32_t sys_uname(int *syscall_ret, uint32_t, uint32_t _old_utsname, uint32_t, 
         char domainname[65];
     };
     struct sys_uname_utsname *unamestruct = (struct sys_uname_utsname *)_old_utsname;
-    memcpy(unamestruct->sysname, "shitOS", 7);
-    memcpy(unamestruct->nodename, "h", 2);
-    memcpy(unamestruct->release, "69.42-funny", 12);
-    memcpy(unamestruct->version, "#69.42", 7);
-    memcpy(unamestruct->machine, "x86", 4);
-    memcpy(unamestruct->domainname, "(none)", 7);
+    stdlib::memcpy(unamestruct->sysname, "shitOS", 7);
+    stdlib::memcpy(unamestruct->nodename, "h", 2);
+    stdlib::memcpy(unamestruct->release, "69.42-funny", 12);
+    stdlib::memcpy(unamestruct->version, "#69.42", 7);
+    stdlib::memcpy(unamestruct->machine, "x86", 4);
+    stdlib::memcpy(unamestruct->domainname, "(none)", 7);
     return 0;
 }
 
@@ -193,7 +193,7 @@ uint32_t sys_getcwd(int *syscall_ret, uint32_t, uint32_t _buf, uint32_t size, ui
     if (size < 11) {
         return 0;
     }
-    memcpy(buf, "/home/user", 11);
+    stdlib::memcpy(buf, "/home/user", 11);
     return 11;
 }
 
