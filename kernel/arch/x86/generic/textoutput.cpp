@@ -23,6 +23,7 @@ static inline drivers::textmode::text80x25::color translatecolor(arch::generic::
     case arch::generic::textoutput::color::COLOR_LIGHT_BLUE:
         return drivers::textmode::text80x25::COLOR_LIGHT_BLUE;
     }
+    return drivers::textmode::text80x25::COLOR_RED;
 }
 
 void arch::generic::textoutput::puts(const char *str, color foreground, color background) {

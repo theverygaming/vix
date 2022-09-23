@@ -17,18 +17,16 @@ static bool text_askYN() {
 }
 
 static int text_chooseOptions(std::vector<std::string> options) {
-    for (int i = 0; i < options.size(); i++) {
-        printf("%d - %s\n", i + 1, options[i].c_str());
+    for (size_t i = 0; i < options.size(); i++) {
+        printf("%lu - %s\n", i + 1, options[i].c_str());
     }
-    int chosen = 0;
+    size_t chosen = 0;
     std::string str;
     while ((chosen > options.size()) || (chosen < 1)) {
         std::getline(std::cin, str);
         try {
             chosen = std::stoi(str);
-        } catch (...) {
-            
-        }
+        } catch (...) {}
     }
     return chosen - 1;
 }

@@ -130,8 +130,9 @@ void unmap_page(void *virtualaddr) {
 }
 
 void paging::clearPageTables(void *virtAddress, uint32_t pagecount) {
+    uint8_t *virtAddress_p = (uint8_t *)virtAddress;
     for (uint32_t i = 0; i < pagecount; i++) {
-        unmap_page(virtAddress + (i * 0x1000));
+        unmap_page(virtAddress_p + (i * 0x1000));
     }
 }
 

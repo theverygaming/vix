@@ -81,21 +81,22 @@ void *memalloc::page::kernel_malloc(uint32_t blockcount) {
         KERNEL_PANIC("kernel_malloc -> memory full");
         return nullptr;
     }
-    return (void *)(allocated + ARCH_KERNEL_HEAP_START);
+    return ((uint8_t *)allocated) + ARCH_KERNEL_HEAP_START;
 }
 
 void memalloc::page::kernel_alloc(void *adr, uint32_t blockcount) {
-    adr -= ARCH_KERNEL_HEAP_START;
-    kernelalloc.alloc(adr, blockcount);
+    uint8_t *adr_p = (uint8_t *)adr;
+    adr_p -= ARCH_KERNEL_HEAP_START;
+    kernelalloc.alloc(adr_p, blockcount);
 }
 
 void *memalloc::page::kernel_realloc(void *adr, uint32_t blocks) {
-    void *oldptr = adr;
-    adr -= ARCH_KERNEL_HEAP_START;
+    uint8_t *adr_p = (uint8_t *)adr;
+    adr_p -= ARCH_KERNEL_HEAP_START;
     bool success;
-    void *newptr = kernelalloc.realloc(adr, blocks, &success) + ARCH_KERNEL_HEAP_START;
-    if (oldptr != newptr && success) {
-        stdlib::memcpy(newptr, oldptr, blocks * ARCH_PAGE_SIZE);
+    void *newptr = ((uint8_t *)kernelalloc.realloc(adr_p, blocks, &success)) + ARCH_KERNEL_HEAP_START;
+    if (adr != newptr && success) {
+        stdlib::memcpy(newptr, adr, blocks * ARCH_PAGE_SIZE);
     }
     if (!success) {
         return nullptr;
@@ -104,8 +105,9 @@ void *memalloc::page::kernel_realloc(void *adr, uint32_t blocks) {
 }
 
 void memalloc::page::kernel_free(void *adr) {
-    adr -= ARCH_KERNEL_HEAP_START;
-    kernelalloc.free(adr);
+    uint8_t *adr_p = (uint8_t *)adr;
+    adr_p -= ARCH_KERNEL_HEAP_START;
+    kernelalloc.free(adr_p);
 }
 
 void memalloc::page::kernel_init() {

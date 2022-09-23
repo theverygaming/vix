@@ -128,11 +128,11 @@ uint32_t sys_mmap(int *syscall_ret, uint32_t, uint32_t mmap_struct_ptr, uint32_t
     } mmap_args_t;
     mmap_args_t *args = (mmap_args_t *)mmap_struct_ptr;
 
-    void *alloc_adr = (void *)0xB69420;
+    uint8_t *alloc_adr = (uint8_t *)0xB69420;
     DEBUG_PRINTF("mmap: program wants %u bytes\n", args->length);
 
     int pages = (args->length / 4096) + 1;
-    void *map = memalloc::page::phys_malloc(pages);
+    uint8_t *map = (uint8_t *)memalloc::page::phys_malloc(pages);
     for (int i = 0; i < pages; i++) {
         paging::map_page(map + (i * 4096), alloc_adr + (i * 4096));
     }
@@ -174,15 +174,24 @@ uint32_t modify_ldt(int *syscall_ret, uint32_t, uint32_t _func, uint32_t _ptr, u
         unsigned int seg_not_present : 1;
         unsigned int useable : 1;
     };
-    int func = (int)_func;
-    struct user_desc *ptr = (struct user_desc *)_ptr;
+    // int func = (int)_func;
+    // struct user_desc *ptr = (struct user_desc *)_ptr;
     LOG_INSANE("syscall: modify_ldt\n");
     DEBUG_PRINTF("func: %d ptr: 0x%p bytecount: %u\n", func, ptr, bytecount);
-    if(sizeof(user_desc) != bytecount) {
+    if (sizeof(user_desc) != bytecount) {
         LOG_INSANE("sizeof(user_desc) != bytecount\n");
         return -1;
     }
-    DEBUG_PRINTF("entry_number: %u base_addr: 0x%p limit: %u seg_32bit: %u contents: %u read_exec_only: %u limit_in_pages: %u seg_not_present: %u useable: %u\n", ptr->entry_number, ptr->base_addr, ptr->limit, ptr->seg_32bit, ptr->contents, ptr->read_exec_only, ptr->limit_in_pages, ptr->seg_not_present, ptr->useable);
+    DEBUG_PRINTF("entry_number: %u base_addr: 0x%p limit: %u seg_32bit: %u contents: %u read_exec_only: %u limit_in_pages: %u seg_not_present: %u useable: %u\n",
+                 ptr->entry_number,
+                 ptr->base_addr,
+                 ptr->limit,
+                 ptr->seg_32bit,
+                 ptr->contents,
+                 ptr->read_exec_only,
+                 ptr->limit_in_pages,
+                 ptr->seg_not_present,
+                 ptr->useable);
     return -1; // unimplemented
 }
 

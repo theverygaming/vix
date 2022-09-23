@@ -17,7 +17,7 @@
  * abosolute maximum PHYSICAL memory address this architecture can possibly have
  * this is used(together with ARCH_PAGE_SIZE) for example by kernel/main/memory_alloc/memalloc.cpp(the page allocator) for it's bitmap
  */
-#define ARCH_PHYS_MAX_MEM_ADR 4294967296
+#define ARCH_PHYS_MAX_MEM_ADR 0xFFFFFFFF
 
 namespace arch::generic::memory {
     /* memory map entry struct */

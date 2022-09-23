@@ -114,7 +114,7 @@ multitasking::process *multitasking::fork_current_process() {
             processes[freeProcess].pages[i].phys_base = (uint32_t)physadr;
             processes[freeProcess].pages[i].virt_base = processes[currentProcess].pages[i].virt_base;
             for (uint32_t j = 0; j < processes[freeProcess].pages[i].pages; j++) {
-                paging::copyPhysPage((void *)processes[freeProcess].pages[i].phys_base + (j * 0x1000), (void *)processes[currentProcess].pages[i].phys_base + (j * 0x1000));
+                paging::copyPhysPage((uint8_t *)processes[freeProcess].pages[i].phys_base + (j * 0x1000), (uint8_t *)processes[currentProcess].pages[i].phys_base + (j * 0x1000));
             }
         } else {
             processes[freeProcess].pages[i] = {0, 0, 0};

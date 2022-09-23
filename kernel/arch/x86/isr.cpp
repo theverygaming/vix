@@ -130,9 +130,9 @@ extern "C" void *isr_alloc_stack() {
         printf("could not allocate memory for syscall!\n");
         debug::debug_loop();
     }
-    return mem + (13 * 4096);
+    return ((uint8_t *)mem) + (13 * 4096);
 }
 
 extern "C" void isr_free_stack(void *stackadr) {
-    memalloc::page::kernel_free(stackadr - (13 * 4096));
+    memalloc::page::kernel_free(((uint8_t *)stackadr) - (13 * 4096));
 }

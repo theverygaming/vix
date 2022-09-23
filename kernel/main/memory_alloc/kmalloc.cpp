@@ -195,4 +195,5 @@ void *memalloc::single::krealloc(void *ptr, size_t size) {
         }
     }
     KERNEL_PANIC("krealloc failed!");
+    return nullptr;
 }
