@@ -65,6 +65,19 @@ namespace memalloc::allocators {
             }
         }
 
+        size_t count_free_blocks() {
+            size_t count = 0;
+            for(size_t i = 0; i < max_block_count; i++) {
+                uint8_t allocated;
+                uint8_t marker;
+                p_get_memmap_entry(i, &allocated, &marker);
+                if(allocated == 0) {
+                    count++;
+                }
+            }
+            return count;
+        }
+
     private:
         /* each block is two bits, the first bit marks if the block is allocated or not, the second bit marks the end of a block */
         uint8_t allocator_bitmap[(max_block_count / (8 / 2)) + 1]; // + 1 in case max_block_count is not divisible by 4, could otherwise end up with a too small bitmap

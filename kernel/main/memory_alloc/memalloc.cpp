@@ -33,6 +33,10 @@ void memalloc::page::phys_free(void *adr) {
     physalloc.free(((uint8_t *)adr) - ARCH_PHYS_MEM_START);
 }
 
+size_t memalloc::page::phys_get_free_blocks() {
+    return physalloc.count_free_blocks();
+}
+
 void memalloc::page::phys_init() {
     physalloc.init();
     physalloc.markAllUsed();
@@ -108,6 +112,10 @@ void memalloc::page::kernel_free(void *adr) {
     uint8_t *adr_p = (uint8_t *)adr;
     adr_p -= ARCH_KERNEL_HEAP_START;
     kernelalloc.free(adr_p);
+}
+
+size_t memalloc::page::kernel_get_free_blocks() {
+    return kernelalloc.count_free_blocks();
 }
 
 void memalloc::page::kernel_init() {

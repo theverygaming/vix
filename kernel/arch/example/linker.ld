@@ -17,7 +17,6 @@ SECTIONS {
 
 	.text ALIGN(PAGE) : AT(ADDR(.text) - HIGHER_HALF) {
 		*(.text)
-		*(.eh_frame)
 	}>ram
 
 	.rodata ALIGN(PAGE) : AT(ADDR(.rodata) - HIGHER_HALF) {
