@@ -42,5 +42,5 @@ void memorymap::initMemoryMap(void *mapadr, int entrycount) {
     if (totalUsableMemory > 0xFFFFFFFF) {
         DEBUG_PRINTF("^ about that... you have more memory than this, but i have no 64-bit divide function sooo we can't display it here\n");
     }
-    log::log_service("memorymap", "loaded");
+    log::log_service("memorymap", "initialized");
 }

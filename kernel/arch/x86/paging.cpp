@@ -1,3 +1,4 @@
+#include <arch/x86/generic/memory.h>
 #include <arch/x86/paging.h>
 #include <config.h>
 #include <stdio.h>
@@ -93,7 +94,7 @@ void *paging::get_physaddr(void *virtualaddr) {
 }
 
 void *paging::get_physaddr_unaligned(void *virtualaddr) {
-    uint64_t misalignment = ((uint64_t)virtualaddr) % 4096;
+    uint64_t misalignment = ((uint64_t)virtualaddr) % ARCH_PAGE_SIZE;
     unsigned long pdindex = (unsigned long)virtualaddr >> 22;
     unsigned long ptindex = (unsigned long)virtualaddr >> 12 & 0x03FF;
 
@@ -148,10 +149,10 @@ void paging::copyPhysPage(void *dest, void *src) {
     pagetables[0][0] = make_table_entry({.address = src, .global = false, .cache_disabled = false, .write_through = false, .priv = SUPERVISOR, .perms = RW, .present = true});
     pagetables[0][1] = make_table_entry({.address = dest, .global = false, .cache_disabled = false, .write_through = false, .priv = SUPERVISOR, .perms = RW, .present = true});
     invlpg((void *)0);
-    invlpg((void *)4096);
-    stdlib::memcpy((char *)4096, (char *)0, 4096);
+    invlpg((void *)ARCH_PAGE_SIZE);
+    stdlib::memcpy((char *)ARCH_PAGE_SIZE, (char *)0, ARCH_PAGE_SIZE);
     pagetables[0][0] = before1;
     pagetables[0][1] = before2;
     invlpg((void *)0);
-    invlpg((void *)4096);
+    invlpg((void *)ARCH_PAGE_SIZE);
 }

@@ -1,4 +1,5 @@
 #include <arch/x86/cpubasics.h>
+#include <arch/x86/generic/memory.h>
 #include <arch/x86/idt.h>
 #include <arch/x86/isr.h>
 #include <arch/x86/isrs.h>
@@ -130,9 +131,9 @@ extern "C" void *isr_alloc_stack() {
         printf("could not allocate memory for syscall!\n");
         debug::debug_loop();
     }
-    return ((uint8_t *)mem) + (13 * 4096);
+    return ((uint8_t *)mem) + (13 * ARCH_PAGE_SIZE);
 }
 
 extern "C" void isr_free_stack(void *stackadr) {
-    memalloc::page::kernel_free(((uint8_t *)stackadr) - (13 * 4096));
+    memalloc::page::kernel_free(((uint8_t *)stackadr) - (13 * ARCH_PAGE_SIZE));
 }

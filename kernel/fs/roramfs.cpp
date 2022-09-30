@@ -59,7 +59,7 @@ void fs::filesystems::roramfs::init(void *location) {
     locationptr = location;
     stdlib::memcpy(&fsheader, locationptr, sizeof(header));
     DEBUG_PRINTF("loaded roramfs - name: %s -- files: %d\n", fsheader.name, fsheader.filecount);
-    log::log_service("roramfs", "loaded");
+    log::log_service("roramfs", "initialized");
 }
 
 void fs::filesystems::roramfs::deinit() {

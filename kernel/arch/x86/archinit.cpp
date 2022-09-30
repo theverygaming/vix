@@ -5,6 +5,8 @@
 #include <arch/x86/drivers/serial.h>
 #include <arch/x86/drivers/text80x25.h>
 #include <arch/x86/elf.h>
+#include <arch/x86/gdt.h>
+#include <arch/x86/generic/memory.h>
 #include <arch/x86/generic/startup.h>
 #include <arch/x86/isr.h>
 #include <arch/x86/memorymap.h>
@@ -22,7 +24,6 @@
 #include <stdio.h>
 
 static void kernelinit(void *multiboot2_info_ptr) {
-    for (uint32_t i = 0; i < 0xFFFFFF; i++) {}
     drivers::textmode::text80x25::init();
     stdio::set_putc_function(drivers::textmode::text80x25::putc);
     drivers::serial::init();
@@ -33,7 +34,8 @@ static void kernelinit(void *multiboot2_info_ptr) {
     int memMap_count = 0;
     void *memMap = multiboot2::findMemMap(multiboot2_info_ptr, &memMap_count);
     memorymap::initMemoryMap(memMap, memMap_count);
-    paging::clearPageTables((void *)0x0, KERNEL_VIRT_ADDRESS / 4096);
+    gdt::init();
+    paging::clearPageTables((void *)0x0, KERNEL_VIRT_ADDRESS / ARCH_PAGE_SIZE);
     kernelstart();
 }
 

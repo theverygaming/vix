@@ -1,6 +1,7 @@
 #include <arch/arch.h>
 #include <arch/x86/drivers/keyboard.h>
 #include <arch/x86/elf.h>
+#include <arch/x86/generic/memory.h>
 #include <arch/x86/multitasking.h>
 #include <arch/x86/paging.h>
 #include <arch/x86/syscalls.h>
@@ -131,10 +132,10 @@ uint32_t sys_mmap(int *syscall_ret, uint32_t, uint32_t mmap_struct_ptr, uint32_t
     uint8_t *alloc_adr = (uint8_t *)0xB69420;
     DEBUG_PRINTF("mmap: program wants %u bytes\n", args->length);
 
-    int pages = (args->length / 4096) + 1;
+    int pages = (args->length / ARCH_PAGE_SIZE) + 1;
     uint8_t *map = (uint8_t *)memalloc::page::phys_malloc(pages);
     for (int i = 0; i < pages; i++) {
-        paging::map_page(map + (i * 4096), alloc_adr + (i * 4096));
+        paging::map_page(map + (i * ARCH_PAGE_SIZE), alloc_adr + (i * ARCH_PAGE_SIZE));
     }
     multitasking::refresh_current_process_pagerange();
 

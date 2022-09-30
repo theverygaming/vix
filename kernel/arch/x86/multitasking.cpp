@@ -1,4 +1,5 @@
 #include <arch/x86/cpubasics.h>
+#include <arch/x86/generic/memory.h>
 #include <arch/x86/multitasking.h>
 #include <cppstd/vector.h>
 #include <log.h>
@@ -28,7 +29,7 @@ void multitasking::initMultitasking() {
     stdlib::memcpy(&processes[0].registerContext, current_context, sizeof(context));
     createPageRange(processes[0].pages);
     currentProcess = 0;
-    log::log_service("multitasking", "enabled");
+    log::log_service("multitasking", "initialized");
     processSwitchingEnabled = true;
     uninitialized = false;
 }
@@ -257,11 +258,11 @@ bool multitasking::createPageRange(process_pagerange *range, uint32_t max_addres
     bool invalidated = true;
 
     uint32_t page = 0;
-    for (; page < (max_address / 4096); page++) {
-        uint32_t virtadr = page * 4096;
+    for (; page < (max_address / ARCH_PAGE_SIZE); page++) {
+        uint32_t virtadr = page * ARCH_PAGE_SIZE;
         if (paging::is_readable((void *)virtadr)) {
             physAddress = (uint32_t)paging::get_physaddr((void *)virtadr);
-            if ((physAddress - 4096) != lastPhysAddress || invalidated) {
+            if ((physAddress - ARCH_PAGE_SIZE) != lastPhysAddress || invalidated) {
                 if (prange[prange_counter].pages != 0) {
                     prange_counter++;
                     if (prange_counter >= PROCESS_MAX_PAGE_RANGES) {

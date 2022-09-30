@@ -1,23 +1,24 @@
 #include <arch/x86/gdt.h>
 #include <config.h>
+#include <log.h>
 #include <stdlib.h>
 #include <types.h>
 
-typedef struct {
-    uint16_t LimitLow;    // limit (bits 0-15)
-    uint16_t BaseLow;     // base (bits 0-15)
-    uint8_t BaseMiddle;   // base (bits 16-23)
-    uint8_t Access;       // access
-    uint8_t FlagsLimitHi; // limit (bits 16-19) | flags
-    uint8_t BaseHigh;     // base (bits 24-31)
-} __attribute__((packed)) GDTEntry;
+struct __attribute__((packed)) gdtEntry {
+    uint16_t limitLow;       // limit (bits 0-15)
+    uint16_t baseLow;        // base (bits 0-15)
+    uint8_t baseMiddle;      // base (bits 16-23)
+    uint8_t access;          // access
+    uint8_t limitHigh_flags; // limit (bits 16-19) | flags
+    uint8_t baseHigh;        // base (bits 24-31)
+};
 
-typedef struct {
+struct __attribute__((packed)) gdtDescriptor {
     uint16_t Limit; // sizeof(gdt) - 1
-    GDTEntry *Ptr;  // address of GDT
-} __attribute__((packed)) GDTDescriptor;
+    struct gdtEntry *offset;
+};
 
-typedef enum {
+enum gdt_access {
     GDT_ACCESS_CODE_READABLE = 0x02,
     GDT_ACCESS_DATA_WRITEABLE = 0x02,
 
@@ -36,46 +37,44 @@ typedef enum {
     GDT_ACCESS_RING3 = 0x60,
 
     GDT_ACCESS_PRESENT = 0x80,
+};
 
-} GDT_ACCESS;
+enum gdt_flags {
+    GDT_FLAG_16BIT = 0x0, // no flags set
+    GDT_FLAG_32BIT = 0x4, // size flag set(32-bit protected mode segment)
+    GDT_FLAG_64BIT = 0x2, // long mode flag set
 
-typedef enum {
-    GDT_FLAG_64BIT = 0x20,
-    GDT_FLAG_32BIT = 0x40,
-    GDT_FLAG_16BIT = 0x00,
+    GDT_FLAG_GRANULARITY_1B = 0x0,
+    GDT_FLAG_GRANULARITY_4K = 0x8,
+};
 
-    GDT_FLAG_GRANULARITY_1B = 0x00,
-    GDT_FLAG_GRANULARITY_4K = 0x80,
-} GDT_FLAGS;
+static struct gdtEntry make_gdt_entry(uint32_t base, uint32_t limit, uint8_t access, uint8_t flags) {
+    struct gdtEntry entry;
+    stdlib::memset(&entry, 0, sizeof(struct gdtEntry));
 
-// Helper macros
-#define GDT_LIMIT_LOW(limit) (limit & 0xFFFF)
-#define GDT_BASE_LOW(base) (base & 0xFFFF)
-#define GDT_BASE_MIDDLE(base) ((base >> 16) & 0xFF)
-#define GDT_FLAGS_LIMIT_HI(limit, flags) ((((limit) >> 16) & 0xF) | ((flags)&0xF0))
-#define GDT_BASE_HIGH(base) ((base >> 24) & 0xFF)
+    entry.baseLow = base & 0xFFFF;
+    entry.baseMiddle = (base >> 16) & 0xFF;
+    entry.baseHigh = (base >> 24) & 0xFF;
 
-#define GDT_ENTRY(base, limit, access, flags)                                                                                                                                                          \
-    { GDT_LIMIT_LOW(limit), GDT_BASE_LOW(base), GDT_BASE_MIDDLE(base), access, GDT_FLAGS_LIMIT_HI(limit, flags), GDT_BASE_HIGH(base) }
+    entry.limitLow = limit & 0xFFFF;
+    entry.limitHigh_flags = (limit >> 16) & 0xF; // limit is 20 bits
 
-extern "C" void i686_GDT_Load(GDTDescriptor *descriptor, uint16_t codeSegment, uint16_t dataSegment);
+    entry.limitHigh_flags |= (flags << 4) & 0xF0;
 
-void gdt::i686_GDT_Initialize() {
-    GDTEntry g_GDT[] = {
-        // NULL descriptor
-        GDT_ENTRY(0, 0, 0, 0),
+    entry.access = access;
 
-        // Kernel 32-bit code segment
-        GDT_ENTRY(0, 0xFFFFF, GDT_ACCESS_PRESENT | GDT_ACCESS_RING0 | GDT_ACCESS_CODE_SEGMENT | GDT_ACCESS_CODE_READABLE, GDT_FLAG_32BIT | GDT_FLAG_GRANULARITY_4K),
+    return entry;
+}
 
-        // Kernel 32-bit data segment
-        GDT_ENTRY(0, 0xFFFFF, GDT_ACCESS_PRESENT | GDT_ACCESS_RING0 | GDT_ACCESS_DATA_SEGMENT | GDT_ACCESS_DATA_WRITEABLE, GDT_FLAG_32BIT | GDT_FLAG_GRANULARITY_4K),
+static gdtEntry gdtTable[3];
 
-    };
+extern "C" void GDT_load_32(struct gdtDescriptor *descriptor, uint16_t codeSegment, uint16_t dataSegment);
 
-    GDTDescriptor g_GDTDescriptor = {sizeof(g_GDT) - 1, (GDTEntry *)(KERNEL_VIRT_ADDRESS + GDT_OFFSET + sizeof(GDTDescriptor))};
-
-    stdlib::memcpy((char *)(KERNEL_VIRT_ADDRESS + GDT_OFFSET), &g_GDTDescriptor, sizeof(GDTDescriptor));
-    stdlib::memcpy((char *)(KERNEL_VIRT_ADDRESS + GDT_OFFSET + sizeof(GDTDescriptor)), &g_GDT, sizeof(g_GDT));
-    i686_GDT_Load((GDTDescriptor *)(KERNEL_VIRT_ADDRESS + GDT_OFFSET), i686_GDT_CODE_SEGMENT, i686_GDT_DATA_SEGMENT);
+void gdt::init() {
+    gdtTable[0] = make_gdt_entry(0, 0, 0, 0); // NULL descriptor
+    gdtTable[1] = make_gdt_entry(0, 0xFFFFF, GDT_ACCESS_PRESENT | GDT_ACCESS_RING0 | GDT_ACCESS_CODE_SEGMENT | GDT_ACCESS_CODE_READABLE, GDT_FLAG_32BIT | GDT_FLAG_GRANULARITY_4K);
+    gdtTable[2] = make_gdt_entry(0, 0xFFFFF, GDT_ACCESS_PRESENT | GDT_ACCESS_RING0 | GDT_ACCESS_DATA_SEGMENT | GDT_ACCESS_DATA_WRITEABLE, GDT_FLAG_32BIT | GDT_FLAG_GRANULARITY_4K);
+    struct gdtDescriptor descriptor = {sizeof(gdtTable) - 1, gdtTable};
+    GDT_load_32(&descriptor, i686_GDT_CODE_SEGMENT, i686_GDT_DATA_SEGMENT);
+    log::log_service("GDT", "initialized");
 }
