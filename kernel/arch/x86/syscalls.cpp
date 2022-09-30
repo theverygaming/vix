@@ -175,8 +175,8 @@ uint32_t modify_ldt(int *syscall_ret, uint32_t, uint32_t _func, uint32_t _ptr, u
         unsigned int seg_not_present : 1;
         unsigned int useable : 1;
     };
-    // int func = (int)_func;
-    // struct user_desc *ptr = (struct user_desc *)_ptr;
+    int func = (int)_func;
+    struct user_desc *ptr = (struct user_desc *)_ptr;
     LOG_INSANE("syscall: modify_ldt\n");
     DEBUG_PRINTF("func: %d ptr: 0x%p bytecount: %u\n", func, ptr, bytecount);
     if (sizeof(user_desc) != bytecount) {

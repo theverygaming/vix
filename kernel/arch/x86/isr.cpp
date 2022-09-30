@@ -1,9 +1,11 @@
 #include <arch/x86/cpubasics.h>
+#include <arch/x86/gdt.h>
 #include <arch/x86/generic/memory.h>
 #include <arch/x86/idt.h>
 #include <arch/x86/isr.h>
 #include <arch/x86/isrs.h>
 #include <arch/x86/multitasking.h>
+#include <arch/x86/tss.h>
 #include <config.h>
 #include <debug.h>
 #include <log.h>
@@ -14,6 +16,10 @@
 isr::intHandler handlers[256];
 
 extern "C" uint32_t i686_ISR_Handler(isr::Registers *regs) {
+    // TSS stuff
+    tss::tss_entry.ss0 = i686_GDT_DATA_SEGMENT;
+    tss::tss_entry.esp0 = KERNEL_VIRT_ADDRESS + KERNEL_ISR_STACK_POINTER_OFFSET;
+
     // is this a spurious IRQ?
     if ((regs->interrupt == 39)) {
         outb(0x20, 0x0b);
@@ -87,6 +93,7 @@ extern "C" uint32_t i686_ISR_Handler(isr::Registers *regs) {
         debug::debug_loop();
     } else {
         printf("Exception #%lu\n", regs->interrupt);
+        printf("Error code: 0x%p\n", regs->error);
         printf("eax: 0x%p ebx: 0x%p ecx: 0x%p edx: 0x%p\nesi: 0x%p edi: 0x%p esp: 0x%p ebp: 0x%p eip: 0x%p\n",
                regs->eax,
                regs->ebx,

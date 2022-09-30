@@ -125,8 +125,7 @@ void memalloc::single::kfree(void *ptr) {
     if (!info_ptr->free) {
         info_ptr->free = true;
     } else {
-        printf("waddafuck double free?\n");
-        debug::debug_loop();
+        KERNEL_PANIC("waddafuck double free?");
     }
 }
 

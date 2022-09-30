@@ -1,5 +1,6 @@
 #include <arch/x86/gdt.h>
-#include <config.h>
+#include <arch/x86/generic/archspecific.h>
+#include <arch/x86/tss.h>
 #include <log.h>
 #include <stdlib.h>
 #include <types.h>
@@ -29,7 +30,10 @@ enum gdt_access {
     GDT_ACCESS_DATA_SEGMENT = 0x10,
     GDT_ACCESS_CODE_SEGMENT = 0x18,
 
-    GDT_ACCESS_DESCRIPTOR_TSS = 0x00,
+    GDT_ACCESS_SYSTEM_SEGMENT = 0x0,
+
+    GDT_ACCESS_SYSTEM_DESCRIPTOR_TSS = 0x00,
+    GDT_ACCESS_SYSTEM_TYPE_TSS = 0x9, // 32-bit TSS (available)
 
     GDT_ACCESS_RING0 = 0x00,
     GDT_ACCESS_RING1 = 0x20,
@@ -66,15 +70,34 @@ static struct gdtEntry make_gdt_entry(uint32_t base, uint32_t limit, uint8_t acc
     return entry;
 }
 
-static gdtEntry gdtTable[3];
+static gdtEntry gdtTable[6];
 
 extern "C" void GDT_load_32(struct gdtDescriptor *descriptor, uint16_t codeSegment, uint16_t dataSegment);
 
 void gdt::init() {
     gdtTable[0] = make_gdt_entry(0, 0, 0, 0); // NULL descriptor
+
+    // kernel stuff
     gdtTable[1] = make_gdt_entry(0, 0xFFFFF, GDT_ACCESS_PRESENT | GDT_ACCESS_RING0 | GDT_ACCESS_CODE_SEGMENT | GDT_ACCESS_CODE_READABLE, GDT_FLAG_32BIT | GDT_FLAG_GRANULARITY_4K);
     gdtTable[2] = make_gdt_entry(0, 0xFFFFF, GDT_ACCESS_PRESENT | GDT_ACCESS_RING0 | GDT_ACCESS_DATA_SEGMENT | GDT_ACCESS_DATA_WRITEABLE, GDT_FLAG_32BIT | GDT_FLAG_GRANULARITY_4K);
+
+    // user
+    gdtTable[3] = make_gdt_entry(0, 0xC0000, GDT_ACCESS_PRESENT | GDT_ACCESS_RING3 | GDT_ACCESS_CODE_SEGMENT | GDT_ACCESS_CODE_READABLE, GDT_FLAG_32BIT | GDT_FLAG_GRANULARITY_4K);
+    gdtTable[4] = make_gdt_entry(0, 0xC0000, GDT_ACCESS_PRESENT | GDT_ACCESS_RING3 | GDT_ACCESS_DATA_SEGMENT | GDT_ACCESS_DATA_WRITEABLE, GDT_FLAG_32BIT | GDT_FLAG_GRANULARITY_4K);
+
+    // TSS -- this should be moved out of here...
+    gdtTable[5] = make_gdt_entry((size_t)&tss::tss_entry,
+                                 sizeof(struct tss::tss_protectedmode),
+                                 GDT_ACCESS_PRESENT | GDT_ACCESS_RING0 | GDT_ACCESS_SYSTEM_SEGMENT | GDT_ACCESS_SYSTEM_DESCRIPTOR_TSS | GDT_ACCESS_SYSTEM_TYPE_TSS,
+                                 GDT_FLAG_GRANULARITY_1B);
+    stdlib::memset(&tss::tss_entry, 0, sizeof(tss::tss_protectedmode));
+    tss::tss_entry.ss0 = i686_GDT_DATA_SEGMENT;
+    tss::tss_entry.esp0 = KERNEL_VIRT_ADDRESS + KERNEL_ISR_STACK_POINTER_OFFSET;
+
     struct gdtDescriptor descriptor = {sizeof(gdtTable) - 1, gdtTable};
     GDT_load_32(&descriptor, i686_GDT_CODE_SEGMENT, i686_GDT_DATA_SEGMENT);
     log::log_service("GDT", "initialized");
+
+    // load TSS
+    asm volatile("ltr %%ax" : : "a"(5 * 8));
 }

@@ -113,7 +113,7 @@ void paging::map_page(void *physaddr, void *virtualaddr) {
     uint32_t pTableIndex = (uint32_t)virtualaddr >> 12 & 0x03FF;
 
     bool do_invlpg = pagetables[pDirIndex][pTableIndex] & 0x1;
-    pagetables[pDirIndex][pTableIndex] = make_table_entry({.address = physaddr, .global = false, .cache_disabled = false, .write_through = false, .priv = SUPERVISOR, .perms = RW, .present = true});
+    pagetables[pDirIndex][pTableIndex] = make_table_entry({.address = physaddr, .global = false, .cache_disabled = false, .write_through = false, .priv = USER, .perms = RW, .present = true});
     if (do_invlpg) {
         invlpg(virtualaddr);
     }

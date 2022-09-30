@@ -17,6 +17,11 @@ namespace multitasking {
         uint32_t edi;
         uint32_t esp;
         uint32_t ebp;
+
+        uint16_t ds;
+        uint16_t es;
+        uint16_t fs;
+        uint16_t gs;
     } context;
 
     typedef struct {
@@ -30,6 +35,7 @@ namespace multitasking {
         context registerContext;
         uint8_t priority;
         volatile bool running;
+        enum class privilege {KERNEL, USER} privilege;
         process_pagerange pages[PROCESS_MAX_PAGE_RANGES];
     } process;
 

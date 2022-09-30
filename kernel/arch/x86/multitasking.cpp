@@ -1,11 +1,16 @@
 #include <arch/x86/cpubasics.h>
+#include <arch/x86/gdt.h>
 #include <arch/x86/generic/memory.h>
 #include <arch/x86/multitasking.h>
 #include <cppstd/vector.h>
+#include <debug.h>
 #include <log.h>
 #include <memory_alloc/memalloc.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#define USER_CODE_SEGMENT ((0x08 * 3) | 3)
+#define USER_DATA_SEGMENT ((0x08 * 4) | 3)
 
 multitasking::context *current_context = (multitasking::context *)(KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET);
 
@@ -20,12 +25,12 @@ static bool uninitialized = true;
 void multitasking::initMultitasking() {
     // set all process space to zero
     for (int i = 0; i < MAX_PROCESSES; i++) {
-        processes[i] = {0, {0, 0, 0, 0, 0, 0, 0, 0}, 0, false};
+        processes[i] = {0, {0, 0, 0, 0, 0, 0, 0, 0, USER_DATA_SEGMENT, USER_DATA_SEGMENT, USER_DATA_SEGMENT, USER_DATA_SEGMENT}, 0, false, process::privilege::USER};
         for (int j = 0; j < PROCESS_MAX_PAGE_RANGES; j++) {
             processes[i].pages[j] = {0, 0, 0};
         }
     }
-    processes[0] = {0, {0, 0, 0, 0, 0, 0, 0, 0}, 0, true};
+    processes[0] = {0, {0, 0, 0, 0, 0, 0, 0, 0, i686_GDT_DATA_SEGMENT, i686_GDT_DATA_SEGMENT, i686_GDT_DATA_SEGMENT, i686_GDT_DATA_SEGMENT}, 0, true, process::privilege::KERNEL};
     stdlib::memcpy(&processes[0].registerContext, current_context, sizeof(context));
     createPageRange(processes[0].pages);
     currentProcess = 0;
@@ -127,6 +132,7 @@ multitasking::process *multitasking::fork_current_process() {
                    current_context,
                    sizeof(multitasking::context)); // gotta be very careful here to get the current context. The context in the process array is outdated while it is running.
     processes[freeProcess].running = true;
+    processes[freeProcess].privilege = process::privilege::USER;
     DEBUG_PRINTF("forked -> new PID: %u\n", processes[freeProcess].pid);
     return &processes[freeProcess];
 }
@@ -146,9 +152,10 @@ void multitasking::create_task(void *stackadr, void *codeadr, process_pagerange 
     stackadr = init_empty_stack(stackadr, codeadr, argv);
     for (uint32_t i = 0; i < MAX_PROCESSES; i++) {
         if (!processes[i].running) {
-            processes[i] = {i, {0, 0, 0, 0, 0, 0, (uint32_t)stackadr, 0}, 0, false};
+            processes[i] = {i, {0, 0, 0, 0, 0, 0, (uint32_t)stackadr, 0, USER_DATA_SEGMENT, USER_DATA_SEGMENT, USER_DATA_SEGMENT, USER_DATA_SEGMENT}, 0, false, process::privilege::USER};
             stdlib::memcpy(processes[i].pages, pagerange, sizeof(process_pagerange) * PROCESS_MAX_PAGE_RANGES);
             processes[i].running = true;
+            processes[i].privilege = process::privilege::USER;
             processes[i].priority = 0;
             break;
         }
@@ -171,9 +178,10 @@ void multitasking::replace_task(void *stackadr, void *codeadr, process_pagerange
     stackadr = init_empty_stack(stackadr, codeadr, argv);
     for (uint32_t i = 0; i < MAX_PROCESSES; i++) {
         if (!processes[i].running) {
-            processes[i] = {i, {0, 0, 0, 0, 0, 0, (uint32_t)stackadr, 0}, 0, false};
+            processes[i] = {i, {0, 0, 0, 0, 0, 0, (uint32_t)stackadr, 0, USER_DATA_SEGMENT, USER_DATA_SEGMENT, USER_DATA_SEGMENT, USER_DATA_SEGMENT}, 0, false, process::privilege::USER};
             stdlib::memcpy(processes[i].pages, pagerange, sizeof(process_pagerange) * PROCESS_MAX_PAGE_RANGES);
             processes[i].running = true;
+            processes[i].privilege = process::privilege::USER;
             processes[i].priority = 0;
             break;
         }
@@ -199,8 +207,7 @@ void multitasking::interruptTrigger() {
         }
     }
     if (runningProcesses == 0) {
-        printf("PANIK: All processes died. Halting system\n");
-        asm volatile("hlt");
+        KERNEL_PANIC("all processes died");
     }
     if (!processes[currentProcess].running) {
         for (int i = 0; i < MAX_PROCESSES; i++) {
