@@ -2,7 +2,10 @@
 #include <cpp.h>
 #include <debug.h>
 #include <memory_alloc/memalloc.h>
+#include <stdlib.h>
+
 namespace std {
+    /* this is not threadsafe! */
     template <class T> class vector {
     public:
         vector() {
@@ -24,6 +27,9 @@ namespace std {
         }
 
         ~vector() {
+            for (size_t i = 0; i < _size; i++) {
+                _pointer[i].~T();
+            }
             memalloc::single::kfree(_pointer);
         }
 
@@ -63,6 +69,26 @@ namespace std {
         void pop_back() {
             if (_size > 0) {
                 _pointer[_size - 1].~T();
+                _size--;
+            }
+        }
+
+        void erase(size_t first, size_t last) { // TODO: have this not call the other erase function so it's faster
+            if (first > last) {
+                return;
+            }
+            size_t count = (last - first) + 1;
+            for (size_t i = 0; i < count; i++) {
+                erase(first);
+            }
+        }
+
+        void erase(size_t index) {
+            if (index < _size) {
+                _pointer[index].~T();
+                if ((index + 1) < _size) {
+                    stdlib::memmove(&_pointer[index], &_pointer[index + 1], (_size - (index + 1)) * sizeof(T));
+                }
                 _size--;
             }
         }

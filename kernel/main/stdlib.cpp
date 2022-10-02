@@ -26,6 +26,29 @@ int stdlib::memcmp(const void *ptr1, const void *ptr2, size_t num) {
     return 0;
 }
 
+void *stdlib::memmove(void *dest, const void *src, size_t n) {
+    uint8_t *_src = (uint8_t *)src;
+    uint8_t *_dest = (uint8_t *)dest;
+
+    if (_src == _dest) {
+        return dest;
+    }
+
+    if (_dest < _src) {
+        while (n) {
+            *_dest++ = *_src++;
+            n--;
+        }
+    } else {
+        while (n) {
+            n--;
+            _dest[n] = _src[n];
+        }
+    }
+
+    return dest;
+}
+
 int stdlib::strcmp(const char *str1, const char *str2) {
     while (*str1 && (*str1 == *str2)) {
         str1++;

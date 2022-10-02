@@ -18,7 +18,8 @@ void fs::vfs::unmount(char *mountpath) {
     mountpoint_lock.lock();
     for (int i = 0; i < mountpoints.size(); i++) {
         if (fs::path::path_compare(mountpath, mountpoints[i].mountpath)) {
-            // vector does not support this yet...
+            mountpoints.erase(i);
+            break;
         }
     }
     mountpoint_lock.unlock();
