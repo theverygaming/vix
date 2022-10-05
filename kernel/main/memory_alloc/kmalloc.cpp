@@ -107,23 +107,6 @@ static size_t joinFreeAreas() {
     return totalCounter;
 }
 
-/* gets the amount of entries  */
-static size_t getListCount() {
-    size_t counter = 0;
-    meminfo_t *ptr = heapListStart;
-    while (true) {
-        counter++;
-        if (ptr->next == nullptr) {
-            break;
-        }
-        if (ptr->next->prev != ptr) {
-            KERNEL_PANIC("invalid list");
-        }
-        ptr = ptr->next;
-    }
-    return counter;
-}
-
 static void expandHeap(size_t extra_size) {
     size_t pages = (extra_size + sizeof(meminfo_t)) / ARCH_PAGE_SIZE;
     size_t leftover = extra_size % ARCH_PAGE_SIZE;
@@ -143,7 +126,6 @@ void *memalloc::single::kmalloc(size_t size) {
     if (heapPages == 0) {
         init();
     }
-
     if (size == 0) {
         return nullptr;
     }
@@ -229,9 +211,7 @@ void memalloc::single::kfree(void *ptr) {
 
 void *memalloc::single::krealloc(void *ptr, size_t size) {
     joinFreeAreas();
-
     meminfo_t *infoPtr = (meminfo_t *)(((uint8_t *)ptr) - sizeof(meminfo_t));
-
     meminfo_t *llptr = findListMember(ptr);
 
     if (size < infoPtr->size) {
@@ -261,14 +241,19 @@ void *memalloc::single::krealloc(void *ptr, size_t size) {
         if (((uint8_t *)llptr->next) == (((uint8_t *)infoPtr) + infoPtr->size + sizeof(meminfo_t))) {
             if ((infoPtr->size + llptr->next->size) >= size + sizeof(meminfo_t)) {
                 size_t leftoverSize = (infoPtr->size + llptr->next->size) - (size + sizeof(meminfo_t));
+
                 meminfo_t *newPtr = (meminfo_t *)(((uint8_t *)ptr) + size);
+
                 newPtr->size = leftoverSize;
-                newPtr->next = llptr->next;
-                newPtr->prev = llptr;
+                newPtr->next = llptr->next->next;
                 if (newPtr->next != nullptr) {
                     newPtr->next->prev = newPtr;
                 }
+                newPtr->prev = llptr;
                 llptr->next = newPtr;
+
+                infoPtr->size = size;
+
                 return ptr;
             }
         }
@@ -277,7 +262,7 @@ void *memalloc::single::krealloc(void *ptr, size_t size) {
     // trying to resize failed so we'll malloc and copy instead
     void *newarea = kmalloc(size);
 
-    stdlib::memcpy(ptr, newarea, infoPtr->size);
+    stdlib::memcpy(newarea, ptr, infoPtr->size);
 
     kfree(ptr);
     return newarea;

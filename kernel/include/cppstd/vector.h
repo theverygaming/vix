@@ -33,8 +33,8 @@ namespace std {
             memalloc::single::kfree(_pointer);
         }
 
-        T &operator[](int i) {
-            assertm(i < _capacity, "out of bounds vector access");
+        T &operator[](size_t i) {
+            assertm(i < _size, "out of bounds vector access");
             return _pointer[i];
         }
 
@@ -51,11 +51,11 @@ namespace std {
             return *this;
         }
 
-        int capacity() {
+        size_t capacity() {
             return _capacity;
         }
 
-        int size() {
+        size_t size() {
             return _size;
         }
 
@@ -75,7 +75,7 @@ namespace std {
         }
 
         void push_back(const T &val) {
-            assureSize(_size + 1);
+            assureSize(_size + 1, 2);
             new (&_pointer[_size - 1]) T(val); // placement new + call copy constructor
         }
 
@@ -107,7 +107,7 @@ namespace std {
         }
 
         void clear() {
-            for (int i = 0; i < _size; i++) {
+            for (size_t i = 0; i < _size; i++) {
                 _pointer[i].~T();
             }
             _size = 0;
@@ -116,19 +116,19 @@ namespace std {
 
     private:
         T *_pointer = 0;
-        int _capacity = 0;
-        int _size = 0;
+        size_t _capacity = 0;
+        size_t _size = 0;
 
-        void assureSize(int n) {
+        void assureSize(size_t n, size_t preallocExtra = 0) {
             _size = n;
             if (_size > _capacity) {
-                reallocate(_size);
+                reallocate(_size + preallocExtra);
             }
         }
 
-        void reallocate(int capacity) {
+        void reallocate(size_t capacity) {
             _capacity = capacity;
-            if (_capacity <= 0) {
+            if (_capacity == 0) {
                 _capacity = 1;
             }
             _pointer = (T *)memalloc::single::krealloc(_pointer, _capacity * sizeof(T));
