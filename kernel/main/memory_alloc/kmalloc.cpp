@@ -12,10 +12,6 @@
  * Freelist allocator
  */
 
-/*
- * meminfo_t is used for the freelist
- */
-
 typedef struct meminfo_t meminfo_t;
 struct __attribute__((packed)) meminfo_t {
     meminfo_t *prev;
@@ -89,7 +85,7 @@ static size_t joinFreeAreas() {
     size_t counter = 0;
     meminfo_t *ptr = heapListStart;
     while (true) {
-        if ((ptr == nullptr) || (ptr->next == nullptr)) { // TODO: make sure this is fine
+        if ((ptr == nullptr) || (ptr->next == nullptr)) {
             if (counter == 0) {
                 break;
             }
@@ -121,7 +117,6 @@ static size_t getListCount() {
             break;
         }
         if (ptr->next->prev != ptr) {
-            printf("entry %u\n", counter + 1);
             KERNEL_PANIC("invalid list");
         }
         ptr = ptr->next;
@@ -153,7 +148,7 @@ void *memalloc::single::kmalloc(size_t size) {
         return nullptr;
     }
 
-    DEBUG_PRINTF("malloc join: %u list size: %u requested: %u\n", joinFreeAreas(), getListCount(), size);
+    joinFreeAreas();
 
     size_t neededSize = size + sizeof(meminfo_t);
 
@@ -180,7 +175,6 @@ void *memalloc::single::kmalloc(size_t size) {
             oldPrev->next = newptr;
         } else {
             // this is the start of the heap!
-            DEBUG_PRINTF("new heap start\n");
             heapListStart = newptr;
         }
 
@@ -205,7 +199,6 @@ void memalloc::single::kfree(void *ptr) {
     if (ptr == nullptr) {
         return;
     }
-    DEBUG_PRINTF("free\n");
 
     uint64_t *dfdetect = (uint64_t *)ptr;
     if (*dfdetect == 0xF1CFD26422FDDA53) {
@@ -217,7 +210,6 @@ void memalloc::single::kfree(void *ptr) {
 
     meminfo_t *llptr = findListMember(ptr);
     if (llptr == nullptr) { // we are at the start of the heap
-        DEBUG_PRINTF("start heap\n");
         infoPtr->prev = nullptr;
         infoPtr->next = heapListStart;
         heapListStart->prev = infoPtr;
@@ -231,29 +223,60 @@ void memalloc::single::kfree(void *ptr) {
     infoPtr->next = llptr->next;
     infoPtr->prev = llptr;
     llptr->next = infoPtr;
+
+    joinFreeAreas();
 }
 
 void *memalloc::single::krealloc(void *ptr, size_t size) {
-    DEBUG_PRINTF("realloc join: %u list size: %u requested: %u\n", joinFreeAreas(), getListCount(), size);
+    joinFreeAreas();
 
     meminfo_t *infoPtr = (meminfo_t *)(((uint8_t *)ptr) - sizeof(meminfo_t));
 
     meminfo_t *llptr = findListMember(ptr);
 
     if (size < infoPtr->size) {
-        KERNEL_PANIC("unimplemented");
+        meminfo_t *newPtr = (meminfo_t *)(((uint8_t *)ptr) + size);
+        // is adding a new element to the linked list worth it?
+        size_t leftoverSize = infoPtr->size - size;
+        if (leftoverSize > sizeof(meminfo_t)) {
+            newPtr->size = leftoverSize - sizeof(meminfo_t);
+            if (llptr == nullptr) {
+                newPtr->prev = nullptr;
+                newPtr->next = heapListStart;
+                heapListStart->prev = newPtr;
+                heapListStart = newPtr;
+                return ptr;
+            }
+            newPtr->prev = llptr;
+            newPtr->next = llptr->next;
+            llptr->next = newPtr;
+            if (newPtr->next != nullptr) {
+                newPtr->next->prev = newPtr;
+            }
+        }
+        return ptr;
     }
 
-    if (llptr != nullptr) {
+    if ((llptr != nullptr) && (llptr->next != nullptr)) {
         if (((uint8_t *)llptr->next) == (((uint8_t *)infoPtr) + infoPtr->size + sizeof(meminfo_t))) {
-            if ((infoPtr->size + llptr->size) >= size + sizeof(meminfo_t)) {
-                DEBUG_PRINTF("can realloc\n");
+            if ((infoPtr->size + llptr->next->size) >= size + sizeof(meminfo_t)) {
+                size_t leftoverSize = (infoPtr->size + llptr->next->size) - (size + sizeof(meminfo_t));
+                meminfo_t *newPtr = (meminfo_t *)(((uint8_t *)ptr) + size);
+                newPtr->size = leftoverSize;
+                newPtr->next = llptr->next;
+                newPtr->prev = llptr;
+                if (newPtr->next != nullptr) {
+                    newPtr->next->prev = newPtr;
+                }
+                llptr->next = newPtr;
+                return ptr;
             }
         }
     }
 
     // trying to resize failed so we'll malloc and copy instead
     void *newarea = kmalloc(size);
+
     stdlib::memcpy(ptr, newarea, infoPtr->size);
 
     kfree(ptr);
