@@ -7,7 +7,7 @@
 uint32_t (*pagetables)[1024] = (uint32_t(*)[1024])(KERNEL_VIRT_ADDRESS + PAGE_TABLES_OFFSET);
 uint32_t *page_directory = (uint32_t *)(KERNEL_VIRT_ADDRESS + PAGE_DIRECTORY_OFFSET);
 
-extern "C" void loadPageDirectory(uint32_t *address);
+extern "C" void loadPageDirectory(void *address);
 extern "C" void enablePaging();
 
 enum page_size { FOUR_KiB, FOUR_MB };
@@ -34,7 +34,7 @@ struct pagetableEntry {
     bool present;
 };
 
-uint32_t make_directory_entry(struct directoryEntry de) {
+static uint32_t make_directory_entry(struct directoryEntry de) {
     uint32_t entry = (uint32_t)de.address & 0xFFFFF000;
     entry |= de.pagesize << 7;
     entry |= de.cache_disabled << 4;
@@ -45,7 +45,7 @@ uint32_t make_directory_entry(struct directoryEntry de) {
     return entry;
 }
 
-uint32_t make_table_entry(struct pagetableEntry pe) {
+static uint32_t make_table_entry(struct pagetableEntry pe) {
     uint32_t entry = ((uint32_t)pe.address) & 0xFFFFF000;
     entry |= pe.global << 8;
     entry |= pe.cache_disabled << 6;
@@ -56,7 +56,13 @@ uint32_t make_table_entry(struct pagetableEntry pe) {
     return entry;
 }
 
-struct directoryEntry get_directory_entry(uint32_t directoryEntry) {
+static inline uint32_t change_table_address(uint32_t entry, void *address) {
+    uint32_t ret = ((uint32_t)address) & 0xFFFFF000;
+    ret |= entry & 0xFFF;
+    return ret;
+}
+
+static struct directoryEntry get_directory_entry(uint32_t directoryEntry) {
     struct directoryEntry entry;
     entry.address = (void *)(directoryEntry & 0xFFFFF000);
     entry.present = directoryEntry & 0x1;
@@ -69,7 +75,7 @@ struct directoryEntry get_directory_entry(uint32_t directoryEntry) {
     return entry;
 }
 
-struct pagetableEntry get_table_entry(uint32_t tableEntry) {
+static struct pagetableEntry get_table_entry(uint32_t tableEntry) {
     struct pagetableEntry entry;
     entry.address = (void *)(tableEntry & 0xFFFFF000);
     entry.present = tableEntry & 0x1;
@@ -83,6 +89,11 @@ struct pagetableEntry get_table_entry(uint32_t tableEntry) {
     entry.global = (tableEntry >> 8) & 0x1;
     // entry.available = (tableEntry >> 9) & 0x1;
     return entry;
+}
+
+static inline void invlpg(void *virtaddr) {
+    uint32_t _virtaddr = (uint32_t)virtaddr;
+    asm volatile("invlpg (%0)" ::"r"(_virtaddr) : "memory");
 }
 
 void *paging::get_physaddr(void *virtualaddr) {
@@ -102,38 +113,55 @@ void *paging::get_physaddr_unaligned(void *virtualaddr) {
     return (void *)((pagetables[pdindex][ptindex] & 0xFFFFF000) + misalignment);
 }
 
-void invlpg(void *virtaddrx) {
-    uint32_t virtaddr = (uint32_t)virtaddrx;
-    asm volatile("invlpg (%0)" ::"r"(virtaddr) : "memory");
-}
-
 // Both addresses have to be page-aligned!
-void paging::map_page(void *physaddr, void *virtualaddr) {
-    uint32_t pDirIndex = (uint32_t)virtualaddr >> 22;
-    uint32_t pTableIndex = (uint32_t)virtualaddr >> 12 & 0x03FF;
+void paging::map_page(void *physaddr, void *virtualaddr, size_t count, bool massflush) {
 
-    bool do_invlpg = pagetables[pDirIndex][pTableIndex] & 0x1;
-    pagetables[pDirIndex][pTableIndex] = make_table_entry({.address = physaddr, .global = false, .cache_disabled = false, .write_through = false, .priv = USER, .perms = RW, .present = true});
-    if (do_invlpg) {
-        invlpg(virtualaddr);
+    uint32_t entry = make_table_entry({.address = physaddr, .global = false, .cache_disabled = false, .write_through = false, .priv = USER, .perms = RW, .present = true});
+
+    uint32_t pDirIndex;
+    uint32_t pTableIndex;
+    bool do_invlpg;
+
+    for (size_t i = 0; i < count; i++) {
+        pDirIndex = (uint32_t)virtualaddr >> 22;
+        pTableIndex = (uint32_t)virtualaddr >> 12 & 0x03FF;
+        do_invlpg = (pagetables[pDirIndex][pTableIndex] & 0x1) && !massflush;
+
+        pagetables[pDirIndex][pTableIndex] = entry;
+        if (do_invlpg) {
+            invlpg(virtualaddr);
+        }
+
+        virtualaddr = ((uint8_t *)virtualaddr) + 4096;
+        physaddr = ((uint8_t *)physaddr) + 4096;
+
+        entry = change_table_address(entry, physaddr);
+    }
+
+    if (massflush) {
+        loadPageDirectory(get_physaddr(page_directory));
     }
 }
 
-void unmap_page(void *virtualaddr) {
-    uint32_t pDirIndex = (uint32_t)virtualaddr >> 22;
-    uint32_t pTableIndex = (uint32_t)virtualaddr >> 12 & 0x03FF;
+void paging::clearPageTables(void *virtualaddr, uint32_t pagecount, bool massflush) {
+    uint32_t pDirIndex;
+    uint32_t pTableIndex;
+    bool do_invlpg;
 
-    bool do_invlpg = pagetables[pDirIndex][pTableIndex] & 0x1;
-    pagetables[pDirIndex][pTableIndex] = 0;
-    if (do_invlpg) {
-        invlpg(virtualaddr);
+    for (size_t i = 0; i < pagecount; i++) {
+        pDirIndex = (uint32_t)virtualaddr >> 22;
+        pTableIndex = (uint32_t)virtualaddr >> 12 & 0x03FF;
+        do_invlpg = (pagetables[pDirIndex][pTableIndex] & 0x1) && !massflush;
+
+        pagetables[pDirIndex][pTableIndex] = 0;
+        if (do_invlpg) {
+            invlpg(virtualaddr);
+        }
+        virtualaddr = ((uint8_t *)virtualaddr) + 4096;
     }
-}
 
-void paging::clearPageTables(void *virtAddress, uint32_t pagecount) {
-    uint8_t *virtAddress_p = (uint8_t *)virtAddress;
-    for (uint32_t i = 0; i < pagecount; i++) {
-        unmap_page(virtAddress_p + (i * 0x1000));
+    if (massflush) {
+        loadPageDirectory(get_physaddr(page_directory));
     }
 }
 

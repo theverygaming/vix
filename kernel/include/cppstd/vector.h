@@ -38,6 +38,19 @@ namespace std {
             return _pointer[i];
         }
 
+        vector<T> &operator=(const vector<T> &obj) {
+            _capacity = 1;
+            _size = 0;
+            _pointer = (T *)memalloc::single::kmalloc(_capacity * sizeof(T));
+
+            assureSize(obj._size);
+
+            for (int i = 0; i < obj._size; i++) {
+                new (&_pointer[i]) T(obj._pointer[i]); // placement new + call copy constructor
+            }
+            return *this;
+        }
+
         int capacity() {
             return _capacity;
         }

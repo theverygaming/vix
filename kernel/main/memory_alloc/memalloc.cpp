@@ -103,6 +103,22 @@ void *memalloc::page::kernel_realloc(void *adr, uint32_t blocks) {
         stdlib::memcpy(newptr, adr, blocks * ARCH_PAGE_SIZE);
     }
     if (!success) {
+        KERNEL_PANIC("kernel_realloc -> memory full");
+        return nullptr;
+    }
+    return newptr;
+}
+
+void *memalloc::page::kernel_resize(void *adr, uint32_t blocks) {
+    uint8_t *adr_p = (uint8_t *)adr;
+    adr_p -= ARCH_KERNEL_HEAP_START;
+    bool success;
+    void *newptr = ((uint8_t *)kernelalloc.realloc(adr_p, blocks, &success)) + ARCH_KERNEL_HEAP_START;
+    if (adr != newptr && success) {
+        KERNEL_PANIC("unable to resize");
+    }
+    if (!success) {
+        KERNEL_PANIC("kernel_resize -> memory full");
         return nullptr;
     }
     return newptr;
