@@ -30,86 +30,59 @@ i686_ISR%1:
 
 isr_common:
     cli
-    ; we store all registers in a struct at KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET
-    mov [KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET], eax
-    mov [KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET + 4], ebx
-    mov [KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET + 8], ecx
-    mov [KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET + 12], edx
-    mov [KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET + 16], esi
-    mov [KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET + 20], edi
-    mov [KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET + 24], esp
-    mov [KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET + 28], ebp
-    mov [KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET + 32], ds
-    mov [KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET + 34], es
-    mov [KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET + 36], fs
-    mov [KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET + 38], gs
-    add dword [KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET + 24], 8
 
-    pusha
+    ; push old stack
+    push esp
+    add dword [esp], 8     ; remove error code and interrupt number
 
-    xor eax, eax
+    ; our stack now
+    ; esp_kernel, interrupt, error, eip, cs, eflags, esp_user, ss_user
+
+    ; do we have to swap stacks(are we coming from a user process?)
+    cmp esp, (KERNEL_VIRT_ADDRESS + KERNEL_ISR_STACK_POINTER_OFFSET) - (8 * 4)
+    je .noswitchstack
+
+    ; switch stack
+    push eax
+    push ebx
+    push ecx
+    mov ecx, 10
+    mov eax, (KERNEL_VIRT_ADDRESS + KERNEL_ISR_STACK_POINTER_OFFSET) - (10 * 4)
+    lea ebx, [esp + (3 * 4)]
+    call memcpy32f ; Arguments: eax->dest, ebx->source, ecx->element count in 32bits
+    pop ecx
+    pop ebx
+    pop eax
+    mov esp, (KERNEL_VIRT_ADDRESS + KERNEL_ISR_STACK_POINTER_OFFSET) - (10 * 4)
+
+.noswitchstack:
+
+    pusha               ; pushes in order: eax, ecx, edx, ebx, esp, ebp, esi, edi
+
+    xor eax, eax        ; push ds
     mov ax, ds
     push eax
 
-    mov ax, 0x10
+    mov ax, 0x10        ; use kernel data segment
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+    
+    push esp            ; pass pointer to stack to C, so we can access all the pushed information
+    call i686_ISR_Handler
+    add esp, 4
+
+    pop eax             ; restore old segment
     mov ds, ax
     mov es, ax
     mov fs, ax
     mov gs, ax
 
-    ; we want to switch to another stack location so we have to copy everything over to the new location
-    push eax
-    push ebx
-    push ecx
-    cmp dword [esp + (4 * 12)], 0x80 ; only do malloc for syscalls
-    jne .isnosys
-    call isr_alloc_stack ; returns allocated address in eax
-    jmp .idfk
-    .isnosys:
-    mov eax, KERNEL_VIRT_ADDRESS + KERNEL_ISR_STACK_POINTER_OFFSET - 64
-    .idfk:
-    mov edx, eax ; move returned value to edx, we will need it later
-    sub eax, 64 ; subtract 64 from returned address because we copy data to the new stack
-    mov ebx, esp ; source
-    add ebx, 12
-    mov ecx, 16 ; size
-    call memcpy32f
-    pop ecx
-    pop ebx
-    pop eax
-    
-    sub edx, 64
-    mov esp, edx
-    mov ebp, edx
-    add edx, 64
-    .skipmalloc:
-
-    push edx
-    push esp                ; pass pointer to stack to C
-    call i686_ISR_Handler
-
-    cmp dword [esp + (4 * 11)], 0x80
-    jne .skipfree
-    push eax
-    call isr_free_stack
-    .skipfree:
-    
-
-
-    mov eax, [KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET]
-    mov ebx, [KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET + 4]
-    mov ecx, [KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET + 8]
-    mov edx, [KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET + 12]
-    mov esi, [KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET + 16]
-    mov edi, [KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET + 20]
-    mov esp, [KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET + 24]
-    mov ebp, [KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET + 28]
-    mov ds, [KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET + 32]
-    mov es, [KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET + 34]
-    mov fs, [KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET + 36]
-    mov gs, [KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET + 38]
+    popa                ; pop what we pushed with pusha
+    pop esp
     sti
-    iret
+    iret                ; will pop: cs, eip, eflags, ss, esp
 
 memcpy32f: ; Arguments: eax->dest, ebx->source, ecx->element count in 32bits
     push ecx

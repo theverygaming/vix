@@ -17,7 +17,7 @@
 
 // location where ISR stores registers, size: 32 bytes
 // could be moved a bit
-#define REGISTER_STORE_OFFSET 0x602000
+// #define REGISTER_STORE_OFFSET 0x602000
 
 #define GDT_OFFSET 0x602020
 

@@ -15,10 +15,23 @@
 
 isr::intHandler handlers[256];
 
-extern "C" uint32_t i686_ISR_Handler(isr::Registers *regs) {
+extern "C" void i686_ISR_Handler(isr::registers *regs) {
     // TSS stuff
     tss::tss_entry.ss0 = i686_GDT_DATA_SEGMENT;
     tss::tss_entry.esp0 = KERNEL_VIRT_ADDRESS + KERNEL_ISR_STACK_POINTER_OFFSET;
+
+    // get current ring
+    uint16_t old_ring = regs->cs & 0x3;
+    uint16_t current_ring;
+    asm volatile("mov %%cs, %%ax" : "=a"(current_ring) :);
+    current_ring &= 0x3;
+
+    if (old_ring != current_ring) {
+        printf("interrupt ring switch! current ring: %u old ring: %u\n", (uint32_t)current_ring, (uint32_t)old_ring);
+        printf("current esp: 0x%p TSS esp: 0x%p\n", regs->esp_user, tss::tss_entry.esp);
+        KERNEL_PANIC("skill issue");
+    } else {
+    }
 
     // is this a spurious IRQ?
     if ((regs->interrupt == 39)) {
@@ -26,7 +39,7 @@ extern "C" uint32_t i686_ISR_Handler(isr::Registers *regs) {
         uint8_t reg = inb(0x20);
         if (!((reg >> 7) & 0x1)) {
             LOG_INSANE("Spurious interrupt!");
-            return regs->intStackLocation;
+            return;
         }
     }
 
@@ -69,12 +82,15 @@ extern "C" uint32_t i686_ISR_Handler(isr::Registers *regs) {
                regs->edx,
                regs->esi,
                regs->edi,
-               regs->esp,
+               regs->esp_user,
                regs->ebp,
                regs->eip);
+        if ((regs->eip >= KERNEL_VIRT_ADDRESS) && (regs->eip < KERNEL_VIRT_ADDRESS + KERNEL_MEMORY_END_OFFSET)) {
+            KERNEL_PANIC("kernel page fault");
+        }
         printf("Killing current process\n");
         if (multitasking::isProcessSwitchingEnabled()) {
-            multitasking::killCurrentProcess();
+            multitasking::killCurrentProcess(regs);
         } else {
             debug::debug_loop();
         }
@@ -87,7 +103,7 @@ extern "C" uint32_t i686_ISR_Handler(isr::Registers *regs) {
                regs->edx,
                regs->esi,
                regs->edi,
-               regs->esp,
+               regs->esp_user,
                regs->ebp,
                regs->eip);
         debug::debug_loop();
@@ -101,17 +117,20 @@ extern "C" uint32_t i686_ISR_Handler(isr::Registers *regs) {
                regs->edx,
                regs->esi,
                regs->edi,
-               regs->esp,
+               regs->esp_user,
                regs->ebp,
                regs->eip);
         printf("Killing current process\n");
         if (multitasking::isProcessSwitchingEnabled()) {
-            multitasking::killCurrentProcess();
+            multitasking::killCurrentProcess(regs);
         } else {
             debug::debug_loop();
         }
     }
-    return regs->intStackLocation;
+
+    if ((old_ring == current_ring)) {}
+
+    uint16_t new_ring = regs->cs & 0x3;
 }
 
 void isr::i686_ISR_Initialize() {
@@ -124,7 +143,7 @@ void isr::i686_ISR_Initialize() {
     }
 }
 
-void isr::RegisterHandler(int handler, void (*_func)(Registers *regs)) {
+void isr::RegisterHandler(int handler, void (*_func)(registers *regs)) {
     handlers[handler] = _func;
 }
 
@@ -133,14 +152,16 @@ void isr::DeregisterHandler(int handler) {
 }
 
 extern "C" void *isr_alloc_stack() {
-    void *mem = memalloc::page::kernel_malloc(13);
+    KERNEL_PANIC("unimplemented");
+    /*void *mem = memalloc::page::kernel_malloc(13);
     if (mem == 0) {
         printf("could not allocate memory for syscall!\n");
         debug::debug_loop();
     }
-    return ((uint8_t *)mem) + (13 * ARCH_PAGE_SIZE);
+    return ((uint8_t *)mem) + (13 * ARCH_PAGE_SIZE);*/
 }
 
 extern "C" void isr_free_stack(void *stackadr) {
-    memalloc::page::kernel_free(((uint8_t *)stackadr) - (13 * ARCH_PAGE_SIZE));
+    KERNEL_PANIC("unimplemented");
+    // memalloc::page::kernel_free(((uint8_t *)stackadr) - (13 * ARCH_PAGE_SIZE));
 }

@@ -2,5 +2,5 @@
 #include <arch/x86/isr.h>
 
 namespace syscall {
-    void syscallHandler(isr::Registers *regs);
+    void syscallHandler(isr::registers *regs);
 }

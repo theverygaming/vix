@@ -1,4 +1,5 @@
 #include <arch/x86/cpubasics.h>
+#include <arch/x86/drivers/rtc.h>
 #include <arch/x86/gdt.h>
 #include <arch/x86/generic/memory.h>
 #include <arch/x86/multitasking.h>
@@ -6,34 +7,29 @@
 #include <debug.h>
 #include <log.h>
 #include <memory_alloc/memalloc.h>
+#include <scheduler.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-#define USER_CODE_SEGMENT ((0x08 * 3) | 3)
-#define USER_DATA_SEGMENT ((0x08 * 4) | 3)
+static std::vector<multitasking::x86_process *> processes;
 
-multitasking::context *current_context = (multitasking::context *)(KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET);
+static schedulers::generic_scheduler_singlethread scheduler;
 
-multitasking::process processes[MAX_PROCESSES];
-
-static int currentProcess = 0;
-static int processTimeShareCounter = 0;
 static bool processSwitchingEnabled = false;
 
 static bool uninitialized = true;
 
-void multitasking::initMultitasking() {
-    // set all process space to zero
-    for (int i = 0; i < MAX_PROCESSES; i++) {
-        processes[i] = {0, {0, 0, 0, 0, 0, 0, 0, 0, USER_DATA_SEGMENT, USER_DATA_SEGMENT, USER_DATA_SEGMENT, USER_DATA_SEGMENT}, 0, false, process::privilege::USER};
-        for (int j = 0; j < PROCESS_MAX_PAGE_RANGES; j++) {
-            processes[i].pages[j] = {0, 0, 0};
-        }
+static pid_t pidCounter = 1;
+
+static void cpuidle() {
+    while (true) {
+        asm volatile("hlt");
     }
-    processes[0] = {0, {0, 0, 0, 0, 0, 0, 0, 0, i686_GDT_DATA_SEGMENT, i686_GDT_DATA_SEGMENT, i686_GDT_DATA_SEGMENT, i686_GDT_DATA_SEGMENT}, 0, true, process::privilege::KERNEL};
-    stdlib::memcpy(&processes[0].registerContext, current_context, sizeof(context));
-    createPageRange(processes[0].pages);
-    currentProcess = 0;
+}
+
+void multitasking::initMultitasking() {
+    scheduler.init((std::vector<schedulers::generic_process *> *)&processes);
+
     log::log_service("multitasking", "initialized");
     processSwitchingEnabled = true;
     uninitialized = false;
@@ -44,7 +40,7 @@ bool multitasking::isProcessSwitchingEnabled() {
 }
 
 /* this function gets passed the top of stack, argv[] must be terminated with a null pointer | returns new stack pointer */
-static void *init_empty_stack(void *stackadr, void *codeadr, std::vector<char *> *argv) {
+static void *init_empty_stack(void *stackadr, std::vector<char *> *argv, void *eip = 0, bool kernel = false) { // TODO: make kernel NOT the default
     // get argc
     int argc = argv->size();
 
@@ -52,23 +48,36 @@ static void *init_empty_stack(void *stackadr, void *codeadr, std::vector<char *>
         LOG_DEBUG("issue: argc too small");
     }
 
-    size_t total_size = 6 * 4; // eip, cs, eflags, argc, argv null termination and envp null termination
+    size_t basesize = 3; // argc, argv null termination and envp null termination
+    if (kernel) {
+        basesize = 6; // also eip, cs, eflags
+    }
+
+    size_t total_size = basesize * 4;
 
     for (int i = 0; i < argc; i++) {
         total_size += stdlib::strlen((*argv)[i]) + 1;
         total_size += 4; // pointer to arg
     }
+
     stackadr = ((char *)stackadr) - total_size;
 
     uint32_t *stack = (uint32_t *)stackadr;
 
-    stack[0] = (uint32_t)codeadr; // EIP
-    stack[1] = 8;                 // CS?
-    stack[2] = 1 << 9;            // EFLAGS, set interrupt bit
-    stack[3] = argc;              // argc
+    stack[0] = argc; // argc
+    stack[0] = 0;
 
-    int nextindex = 4;
-    size_t string_pos = (6 * 4) + (argc * 4);
+    int nextindex = 1;
+
+    if (kernel) {
+        stack[0] = (uint32_t)eip; // EIP
+        stack[1] = 8;             // CS?
+        stack[2] = 1 << 9;        // EFLAGS, set interrupt bit
+        stack[3] = argc;          // argc
+        nextindex = 4;
+    }
+
+    size_t string_pos = total_size + (argc * 4);
 
     // build up argv
     for (int i = 0; i < argc; i++) {
@@ -82,257 +91,264 @@ static void *init_empty_stack(void *stackadr, void *codeadr, std::vector<char *>
     return stackadr;
 }
 
-multitasking::process *multitasking::getCurrentProcess() {
-    return &processes[currentProcess];
-}
-
-void multitasking::waitForProcess(int pid) {
-    if (pid < MAX_PROCESSES) {
-        while (processes[pid].running) {}
-    }
-}
-
-void multitasking::refresh_current_process_pagerange() {
-    createPageRange(processes[currentProcess].pages);
-}
-
-multitasking::process *multitasking::fork_current_process() {
-    int freeProcess = -1;
-    for (int i = 0; i < MAX_PROCESSES; i++) {
-        if (!processes[i].running) {
-            freeProcess = i;
-            break;
+multitasking::x86_process *multitasking::getCurrentProcess() {
+    for (int i = 0; i < processes.size(); i++) {
+        if (processes[i]->state == schedulers::generic_process::state::RUNNING) {
+            return processes[i];
         }
     }
+    return nullptr;
+}
 
-    if (freeProcess == -1) {
-        return nullptr;
-    }
-
-    for (int i = 0; i < PROCESS_MAX_PAGE_RANGES; i++) {
-        if (processes[currentProcess].pages[i].pages != 0) {
-            void *physadr = memalloc::page::phys_malloc(processes[currentProcess].pages[i].pages);
-            if (!physadr) {
-                printf("could not allocate memory for fork!\n");
-                return nullptr;
-            }
-            processes[freeProcess].pages[i].pages = processes[currentProcess].pages[i].pages;
-            processes[freeProcess].pages[i].phys_base = (uint32_t)physadr;
-            processes[freeProcess].pages[i].virt_base = processes[currentProcess].pages[i].virt_base;
-            for (uint32_t j = 0; j < processes[freeProcess].pages[i].pages; j++) {
-                paging::copyPhysPage((uint8_t *)processes[freeProcess].pages[i].phys_base + (j * 0x1000), (uint8_t *)processes[currentProcess].pages[i].phys_base + (j * 0x1000));
-            }
-        } else {
-            processes[freeProcess].pages[i] = {0, 0, 0};
+static multitasking::x86_process *getProcessByPid(pid_t pid) {
+    for (int i = 0; i < processes.size(); i++) {
+        if (processes[i]->pid == pid) {
+            return processes[i];
         }
     }
-    processes[freeProcess].priority = 0;
-    processes[freeProcess].pid = freeProcess;
-    stdlib::memcpy(&processes[freeProcess].registerContext,
-                   current_context,
-                   sizeof(multitasking::context)); // gotta be very careful here to get the current context. The context in the process array is outdated while it is running.
-    processes[freeProcess].running = true;
-    processes[freeProcess].privilege = process::privilege::USER;
-    DEBUG_PRINTF("forked -> new PID: %u\n", processes[freeProcess].pid);
-    return &processes[freeProcess];
+    return nullptr;
 }
 
-void multitasking::killCurrentProcess() {
-    processes[currentProcess].running = false;
-    DEBUG_PRINTF("Killed PID %u\n", processes[currentProcess].pid);
-    freePageRange(processes[currentProcess].pages);
-    interruptTrigger();
+static multitasking::context isr2mt(isr::registers *regs) {
+    multitasking::context ret;
+    ret.eax = regs->eax;
+    ret.ebx = regs->ebx;
+    ret.ecx = regs->ecx;
+    ret.edx = regs->edx;
+
+    ret.edi = regs->edi;
+    ret.esi = regs->esi;
+
+    ret.ebp = regs->ebp;
+    ret.esp = regs->esp_kernel;
+
+    ret.eip = regs->eip;
+
+    ret.eflags = regs->eflags;
+
+    return ret;
 }
 
-void multitasking::create_task(void *stackadr, void *codeadr, process_pagerange *pagerange, std::vector<char *> *argv) {
-    process_pagerange old_pageranges[PROCESS_MAX_PAGE_RANGES];
-    createPageRange(old_pageranges);
+static isr::registers mt2isr(multitasking::context ctx) {
+    isr::registers ret;
+    ret.eax = ctx.eax;
+    ret.ebx = ctx.ebx;
+    ret.ecx = ctx.ecx;
+    ret.edx = ctx.edx;
 
+    ret.edi = ctx.edi;
+    ret.esi = ctx.esi;
+
+    ret.ebp = ctx.ebp;
+    ret.esp_kernel = ctx.esp;
+
+    ret.eip = ctx.eip;
+
+    ret.eflags = ctx.eflags;
+
+    return ret;
+}
+
+void multitasking::waitForProcess(int pid) {}
+
+void multitasking::refresh_current_process_pagerange() {}
+
+multitasking::x86_process *multitasking::fork_current_process(isr::registers *regs) {
+    x86_process *currentProcess = getCurrentProcess();
+    currentProcess->registerContext = isr2mt(regs);
+
+    x86_process *new_process = new x86_process;
+
+    new_process->pid = pidCounter++;
+    new_process->parent = currentProcess->pid;
+    new_process->state = schedulers::generic_process::state::RUNNABLE;
+    // new_process->registerContext = currentProcess->registerContext;
+
+    stdlib::memcpy(&new_process->registerContext, &currentProcess->registerContext, sizeof(context));
+
+    new_process->pages.reserve(currentProcess->pages.size());
+
+    for (size_t i = 0; i < currentProcess->pages.size(); i++) {
+        void *newadr = memalloc::page::phys_malloc(currentProcess->pages[i].pages);
+        if (!newadr) {
+            KERNEL_PANIC("could not allocate memory for fork"); // this shouldn't be a panic later on...
+        }
+        process_pagerange newPrange;
+        newPrange.pages = currentProcess->pages[i].pages;
+        newPrange.virt_base = currentProcess->pages[i].virt_base;
+        newPrange.phys_base = (size_t)newadr;
+        for (size_t j = 0; j < newPrange.pages; j++) {
+            paging::copyPhysPage((uint8_t *)newPrange.phys_base + (j * 0x1000), (uint8_t *)currentProcess->pages[i].phys_base + (j * 0x1000));
+        }
+        new_process->pages.push_back(newPrange);
+    }
+
+    processes.push_back(new_process);
+    DEBUG_PRINTF("forked %d -> new PID: %d\n", currentProcess->pid, new_process->pid);
+    return new_process;
+}
+
+void multitasking::killCurrentProcess(isr::registers *regs) {
+    x86_process *currentProcess = getCurrentProcess();
+    currentProcess->state = schedulers::generic_process::state::KILLED;
+    interruptTrigger(regs);
+}
+
+void multitasking::create_task(void *stackadr, void *codeadr, std::vector<process_pagerange> *pagerange, std::vector<char *> *argv, pid_t forced_pid) {
     setPageRange(pagerange);
-    stackadr = init_empty_stack(stackadr, codeadr, argv);
-    for (uint32_t i = 0; i < MAX_PROCESSES; i++) {
-        if (!processes[i].running) {
-            processes[i] = {i, {0, 0, 0, 0, 0, 0, (uint32_t)stackadr, 0, USER_DATA_SEGMENT, USER_DATA_SEGMENT, USER_DATA_SEGMENT, USER_DATA_SEGMENT}, 0, false, process::privilege::USER};
-            stdlib::memcpy(processes[i].pages, pagerange, sizeof(process_pagerange) * PROCESS_MAX_PAGE_RANGES);
-            processes[i].running = true;
-            processes[i].privilege = process::privilege::USER;
-            processes[i].priority = 0;
-            break;
-        }
-    }
-    unsetPageRange(pagerange);
 
-    setPageRange(old_pageranges);
+    stackadr = init_empty_stack(stackadr, argv, codeadr, true);
+
+    x86_process *kernel_process = new x86_process;
+    if (forced_pid != -1) {
+        kernel_process->pid = forced_pid;
+    } else {
+        kernel_process->pid = pidCounter++;
+    }
+    uint8_t *stack_1 = (uint8_t *)memalloc::single::kmalloc(100);
+
+    printf("stackadr: 0x%p\n", stackadr);
+
+    kernel_process->registerContext.esp = (uint32_t)stackadr;
+    kernel_process->registerContext.eip = (uint32_t)codeadr;
+    kernel_process->registerContext.eflags = 1 << 9;
+
+    kernel_process->pages = *pagerange;
+
+    processes.push_back(kernel_process);
+    unsetPageRange(pagerange);
 }
 
-void multitasking::replace_task(void *stackadr, void *codeadr, process_pagerange *pagerange, std::vector<char *> *argv, int replacePid) {
-    /* kill old process */
-    processes[replacePid].running = false;
-    freePageRange(processes[replacePid].pages);
-    interruptTrigger();
-
-    process_pagerange old_pageranges[PROCESS_MAX_PAGE_RANGES];
-    createPageRange(old_pageranges);
-
-    setPageRange(pagerange);
-    stackadr = init_empty_stack(stackadr, codeadr, argv);
-    for (uint32_t i = 0; i < MAX_PROCESSES; i++) {
-        if (!processes[i].running) {
-            processes[i] = {i, {0, 0, 0, 0, 0, 0, (uint32_t)stackadr, 0, USER_DATA_SEGMENT, USER_DATA_SEGMENT, USER_DATA_SEGMENT, USER_DATA_SEGMENT}, 0, false, process::privilege::USER};
-            stdlib::memcpy(processes[i].pages, pagerange, sizeof(process_pagerange) * PROCESS_MAX_PAGE_RANGES);
-            processes[i].running = true;
-            processes[i].privilege = process::privilege::USER;
-            processes[i].priority = 0;
-            break;
+void multitasking::replace_task(void *stackadr, void *codeadr, std::vector<process_pagerange> *pagerange, std::vector<char *> *argv, int replacePid) {
+    pid_t PID = -1;
+    size_t index = 0;
+    for (size_t i = 0; i < processes.size(); i++) {
+        if (processes[i]->pid == replacePid) {
+            PID = processes[i]->pid;
+            index = i;
         }
     }
-    unsetPageRange(pagerange);
-
-    setPageRange(old_pageranges);
+    if (PID == -1) {
+        return;
+    }
+    processes[index]->state = schedulers::generic_process::state::REPLACED;
+    create_task(stackadr, codeadr, pagerange, argv);
 }
 
 void multitasking::setProcessSwitching(bool state) {
     processSwitchingEnabled = state;
 }
 
-void multitasking::interruptTrigger() {
+uint64_t starttime = 0;
+
+int counter = 0;
+
+// fired every timer interrupt, may be called during an ISR to possibly force a process switch
+void multitasking::interruptTrigger(isr::registers *regs) {
     if (uninitialized) {
+        starttime = drivers::rtc::getunixtime();
+        counter = 0;
         return;
     }
 
-    int runningProcesses = 0;
-    for (int i = 0; i < MAX_PROCESSES; i++) {
-        if (processes[i].running) {
-            runningProcesses++;
+    if (counter % 30000 == 0) {
+        uint64_t currenttime = drivers::rtc::getunixtime();
+        uint64_t passedTime = currenttime - starttime;
+        DEBUG_PRINTF("timer passed: %u actual passed: %u\n", (uint32_t)(counter / 1000), (uint32_t)passedTime);
+    }
+
+    counter++;
+
+    bool switch_;
+    size_t switch_index;
+
+    bool old;
+    size_t old_index;
+
+    if (!scheduler.tick(&switch_, &switch_index, &old, &old_index)) {
+        KERNEL_PANIC("Scheduler error");
+    }
+
+    if (switch_) {
+        DEBUG_PRINTF("switching process\n");
+        if (old) {
+            processes[old_index]->registerContext = isr2mt(regs);
+            unsetPageRange(&processes[old_index]->pages);
         }
+
+        *regs = mt2isr(processes[switch_index]->registerContext);
+        setPageRange(&processes[switch_index]->pages);
+
+        DEBUG_PRINTF("switched process\n");
     }
-    if (runningProcesses == 0) {
-        KERNEL_PANIC("all processes died");
-    }
-    if (!processes[currentProcess].running) {
-        for (int i = 0; i < MAX_PROCESSES; i++) {
-            if (processes[i].running && currentProcess != i) {
-                stdlib::memcpy(&processes[currentProcess].registerContext, current_context, sizeof(context)); // Save current process context
-                stdlib::memcpy(current_context, &processes[i].registerContext, sizeof(context));
-                // createPageRange(processes[currentProcess].pages);
-                unsetPageRange(processes[currentProcess].pages);
-                setPageRange(processes[i].pages);
-                currentProcess = i;
-                break;
-            }
-        }
-    }
-    if (processTimeShareCounter > processes[currentProcess].priority && processSwitchingEnabled) {
-        // Priority exceeded, now we have to switch process
-        if (runningProcesses > 1) { // is it even possible to switch?
-            int start = currentProcess;
-            if (currentProcess == runningProcesses - 1) { // is this the last process in the processes array?
-                start = 0;
-            }
-        bruh:
-            int oldProcess = currentProcess;
-            for (int i = start; i < MAX_PROCESSES; i++) {
-                if (processes[i].running && currentProcess != i) {
-                    stdlib::memcpy(&processes[currentProcess].registerContext, current_context, sizeof(context)); // Save current process context
-                    stdlib::memcpy(current_context, &processes[i].registerContext, sizeof(context));
-                    // createPageRange(processes[currentProcess].pages);
-                    unsetPageRange(processes[currentProcess].pages);
-                    setPageRange(processes[i].pages);
-                    currentProcess = i;
-                    break;
-                }
-            }
-            if (oldProcess == currentProcess) {
-                start = 0;
-                goto bruh; // this will get stuck at some point, temporary fix
-            }
-        }
-        processTimeShareCounter = 0;
-    }
-    processTimeShareCounter++;
 }
 
-bool multitasking::createPageRange(process_pagerange *range, uint32_t max_address) {
-    process_pagerange prange[PROCESS_MAX_PAGE_RANGES];
-    for (int i = 0; i < PROCESS_MAX_PAGE_RANGES; i++) {
-        prange[i] = {0, 0, 0};
-    }
+bool multitasking::createPageRange(std::vector<process_pagerange> *range, uint32_t max_address) {
+    std::vector<process_pagerange> pages;
 
-    int prange_counter = 0;
+    size_t prange_counter = 0;
 
     uint32_t physAddress = 69420;
     uint32_t lastPhysAddress = 0;
     bool invalidated = true;
 
-    uint32_t page = 0;
-    for (; page < (max_address / ARCH_PAGE_SIZE); page++) {
+    for (uint32_t page = 0; page < (max_address / ARCH_PAGE_SIZE); page++) {
         uint32_t virtadr = page * ARCH_PAGE_SIZE;
         if (paging::is_readable((void *)virtadr)) {
             physAddress = (uint32_t)paging::get_physaddr((void *)virtadr);
             if ((physAddress - ARCH_PAGE_SIZE) != lastPhysAddress || invalidated) {
-                if (prange[prange_counter].pages != 0) {
-                    prange_counter++;
-                    if (prange_counter >= PROCESS_MAX_PAGE_RANGES) {
-                        return false;
-                    }
-                }
-                prange[prange_counter].phys_base = physAddress;
-                prange[prange_counter].virt_base = virtadr;
+                pages.push_back({0, 0, 0});
+                prange_counter = pages.size() - 1;
+                pages[prange_counter].phys_base = physAddress;
+                pages[prange_counter].virt_base = virtadr;
                 invalidated = false;
             }
-            prange[prange_counter].pages++;
+            pages[prange_counter].pages++;
             lastPhysAddress = physAddress;
         } else {
             invalidated = true;
         }
     }
-    for (int i = 0; i < PROCESS_MAX_PAGE_RANGES; i++) {
-        if (prange[i].pages == 0) {
-            prange[i] = {0, 0, 0};
+    for (int i = 0; i < pages.size(); i++) {
+        if (pages[i].pages == 0) {
+            pages.erase(i);
         }
     }
-    stdlib::memcpy(range, prange, PROCESS_MAX_PAGE_RANGES * sizeof(process_pagerange));
+    *range = pages;
     return true;
 }
 
-void multitasking::setPageRange(process_pagerange *range) {
-    for (int i = 0; i < PROCESS_MAX_PAGE_RANGES; i++) {
-        if (range[i].pages > 0) {
-            // printf("map range v: 0x%p p: 0x%p len: %u\n", range[i].virt_base, range[i].phys_base, range[i].pages);
-            for (uint32_t j = 0; j < range[i].pages; j++) {
-                paging::map_page((void *)(range[i].phys_base + (j * 0x1000)), (void *)(range[i].virt_base + (j * 0x1000)));
-            }
+void multitasking::setPageRange(std::vector<process_pagerange> *range) {
+    for (int i = 0; i < range->size(); i++) {
+        if ((*range)[i].pages > 0) {
+            size_t len = (*range)[i].pages;
+            void *virt = (void *)((*range)[i].virt_base);
+            void *phys = (void *)((*range)[i].phys_base);
+            paging::map_page(phys, virt, len, true);
         }
     }
 }
 
-void multitasking::unsetPageRange(process_pagerange *range) {
-    for (int i = 0; i < PROCESS_MAX_PAGE_RANGES; i++) {
-        if (range[i].pages > 0) {
-            // printf("clearing 0x%p -> pages: %u\n", (void*)(range[i].virt_base), range[i].pages);
-            paging::clearPageTables((void *)range[i].virt_base, range[i].pages);
+void multitasking::unsetPageRange(std::vector<process_pagerange> *range) {
+    for (int i = 0; i < range->size(); i++) {
+        if ((*range)[i].pages > 0) {
+            paging::clearPageTables((void *)(*range)[i].virt_base, (*range)[i].pages, true);
         }
     }
 }
 
-void multitasking::zeroPageRange(process_pagerange *range) {
-    for (int i = 0; i < PROCESS_MAX_PAGE_RANGES; i++) {
-        range[i] = {0, 0, 0};
-    }
-}
-
-void multitasking::freePageRange(process_pagerange *range) {
-    for (int i = 0; i < PROCESS_MAX_PAGE_RANGES; i++) {
-        if (range[i].pages > 0) {
-            memalloc::page::phys_free((void *)range[i].phys_base);
+void multitasking::freePageRange(std::vector<process_pagerange> *range) {
+    for (int i = 0; i < range->size(); i++) {
+        if ((*range)[i].pages > 0) {
+            memalloc::page::phys_free((void *)(*range)[i].phys_base);
         }
     }
 }
 
-void multitasking::printPageRange(process_pagerange *range) {
-    for (int i = 0; i < PROCESS_MAX_PAGE_RANGES; i++) {
-        if (range[i].pages != 0) {
-            printf("pb: 0x%p vb: 0x%p pages: %u\n", range[i].phys_base, range[i].virt_base, range[i].pages);
+void multitasking::printPageRange(std::vector<process_pagerange> *range) {
+    for (int i = 0; i < range->size(); i++) {
+        if ((*range)[i].pages != 0) {
+            printf("pb: 0x%p vb: 0x%p pages: %u\n", (*range)[i].phys_base, (*range)[i].virt_base, (*range)[i].pages);
         }
     }
 }

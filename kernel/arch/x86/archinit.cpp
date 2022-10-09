@@ -55,7 +55,6 @@ void arch::generic::startup::stage2_startup() {
 
 void arch::generic::startup::stage3_startup() {
     cpubasics::cpuinit();
-    multitasking::initMultitasking();
     drivers::keyboard::init();
     isr::RegisterHandler(0x80, syscall::syscallHandler);
     cpuid::printFeatures();
@@ -90,4 +89,5 @@ void arch::generic::startup::after_init() {
             putcolor(j + 63, i, franxxlogo[i][j] << 4 | 7);
         }
     }
+    multitasking::initMultitasking();
 }

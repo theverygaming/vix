@@ -53,7 +53,7 @@ void isr_clock_int() {
     *((unsigned volatile char *)((KERNEL_VIRT_ADDRESS + VIDMEM_OFFSET) + 2 * 79 + 160 * 0)) = ticks / 20;
 }
 
-void clockHandler(isr::Registers *gaming) {
+void clockHandler(isr::registers *regs) {
     /*for(int i = 0; i < 256; i++) {
         if(clockHandlers[i] != NULL) {
             clockHandlers[i]();
@@ -61,7 +61,7 @@ void clockHandler(isr::Registers *gaming) {
     }*/
     outb(0x20, 0x20);
     isr_clock_int();
-    multitasking::interruptTrigger();
+    multitasking::interruptTrigger(regs);
 }
 
 /*void cpubasics::RegisterClockHandler(int number, void (*_func)()) {

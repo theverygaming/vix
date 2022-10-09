@@ -75,7 +75,7 @@ static char readkbdchar() {
     return -1;
 }
 
-static void kbdIntHandler(isr::Registers *) {
+static void kbdIntHandler(isr::registers *) {
     char key = readkbdchar();
     if (key == '\b') {
         if (drivers::keyboard::bufferlocation > -1) {

@@ -33,15 +33,14 @@ void elf::load_program(void *ELF_baseadr, std::vector<char *> *argv, bool replac
 
     uint32_t pagecount = ((max - min) / ARCH_PAGE_SIZE) + 5;
 
-    multitasking::process_pagerange pageranges[PROCESS_MAX_PAGE_RANGES];
-    for (int i = 0; i < PROCESS_MAX_PAGE_RANGES; i++) {
-        pageranges[i] = {0, 0, 0};
-    }
+    std::vector<multitasking::process_pagerange> pageranges;
 
-    pageranges[0] = {(uint32_t)memalloc::page::phys_malloc(pagecount), min, pagecount};
-    multitasking::process_pagerange old_pageranges[PROCESS_MAX_PAGE_RANGES];
-    multitasking::createPageRange(old_pageranges);
-    multitasking::setPageRange(pageranges);
+    pageranges.push_back({(uint32_t)memalloc::page::phys_malloc(pagecount), min, pagecount});
+    multitasking::printPageRange(&pageranges);
+    
+    std::vector<multitasking::process_pagerange> old_pageranges;
+    multitasking::createPageRange(&old_pageranges);
+    multitasking::setPageRange(&pageranges);
 
     DEBUG_PRINTF("---Program Headers---\n");
     for (int i = 0; i < header.e_phnum; i++) {
@@ -69,12 +68,12 @@ void elf::load_program(void *ELF_baseadr, std::vector<char *> *argv, bool replac
 
     DEBUG_PRINTF("Entry point: 0x%p\n", header.e_entry);
 
-    multitasking::unsetPageRange(pageranges);
-    multitasking::setPageRange(old_pageranges);
+    multitasking::unsetPageRange(&pageranges);
+    multitasking::setPageRange(&old_pageranges);
 
     if (replace_task) {
-        multitasking::replace_task((void *)(max + (ARCH_PAGE_SIZE * 4)), (void *)header.e_entry, pageranges, argv, replace_pid);
+        multitasking::replace_task((void *)(max + (ARCH_PAGE_SIZE * 4)), (void *)header.e_entry, &pageranges, argv, replace_pid);
     } else {
-        multitasking::create_task((void *)(max + (ARCH_PAGE_SIZE * 4)), (void *)header.e_entry, pageranges, argv);
+        multitasking::create_task((void *)(max + (ARCH_PAGE_SIZE * 4)), (void *)header.e_entry, &pageranges, argv);
     }
 }

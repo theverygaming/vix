@@ -13,7 +13,7 @@ static uint8_t function;
 static uint16_t io_base;
 void *bufferptr = nullptr;
 
-static void irq_handler(isr::Registers *gaming) {
+static void irq_handler(isr::registers *gaming) {
     printf("got rtl8139 IRQ\n");
     outw(io_base + 0x3E, 0x5); // Interrupt Status - Clears the Rx OK bit, acknowledging a packet has been received, and is now in rx_buffer
     // outb(0x20, 0x20);

@@ -1,11 +1,10 @@
 #pragma once
+#include <arch/x86/isr.h>
 #include <arch/x86/paging.h>
 #include <config.h>
 #include <cppstd/vector.h>
+#include <scheduler.h>
 #include <types.h>
-
-#define PROCESS_MAX_PAGE_RANGES 20
-#define MAX_PROCESSES 100
 
 namespace multitasking {
     typedef struct {
@@ -22,6 +21,12 @@ namespace multitasking {
         uint16_t es;
         uint16_t fs;
         uint16_t gs;
+
+        uint16_t cs;
+        uint32_t eip;
+        uint32_t eflags; // can the user even touch these?
+        uint16_t ss;
+
     } context;
 
     typedef struct {
@@ -30,30 +35,26 @@ namespace multitasking {
         uint32_t pages;
     } process_pagerange;
 
-    typedef struct {
-        uint32_t pid;
+    class x86_process : public schedulers::generic_process {
+    public:
         context registerContext;
-        uint8_t priority;
-        volatile bool running;
-        enum class privilege {KERNEL, USER} privilege;
-        process_pagerange pages[PROCESS_MAX_PAGE_RANGES];
-    } process;
+        std::vector<process_pagerange> pages;
+    };
 
     void initMultitasking();
     bool isProcessSwitchingEnabled();
-    void killCurrentProcess();
-    void interruptTrigger();
-    void create_task(void *stackadr, void *codeadr, process_pagerange *pagerange, std::vector<char *> *argv);
-    void replace_task(void *stackadr, void *codeadr, process_pagerange *pagerange, std::vector<char *> *argv, int replacePid);
-    process *getCurrentProcess();
+    void killCurrentProcess(isr::registers *regs);
+    void interruptTrigger(isr::registers *regs);
+    void create_task(void *stackadr, void *codeadr, std::vector<process_pagerange> *pagerange, std::vector<char *> *argv, pid_t forced_pid = -1);
+    void replace_task(void *stackadr, void *codeadr, std::vector<process_pagerange> *pagerange, std::vector<char *> *argv, int replacePid);
+    x86_process *getCurrentProcess();
     void waitForProcess(int pid);
     void refresh_current_process_pagerange();
-    process *fork_current_process();
+    x86_process *fork_current_process(isr::registers *regs);
     void setProcessSwitching(bool state);
-    bool createPageRange(process_pagerange *range, uint32_t max_address = KERNEL_VIRT_ADDRESS);
-    void setPageRange(process_pagerange *range);
-    void unsetPageRange(process_pagerange *range);
-    void zeroPageRange(process_pagerange *range);
-    void freePageRange(process_pagerange *range);
-    void printPageRange(process_pagerange *range);
+    bool createPageRange(std::vector<process_pagerange> *range, uint32_t max_address = KERNEL_VIRT_ADDRESS);
+    void setPageRange(std::vector<process_pagerange> *range);
+    void unsetPageRange(std::vector<process_pagerange> *range);
+    void freePageRange(std::vector<process_pagerange> *range);
+    void printPageRange(std::vector<process_pagerange> *range);
 }

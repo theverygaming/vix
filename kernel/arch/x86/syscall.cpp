@@ -6,7 +6,7 @@
 
 /* syscall arguments correspond to registers eax, ebx, ecx, edx, esi, edi and ebp */
 
-uint32_t (*syscall_table[385])(int *, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) = {
+uint32_t (*syscall_table[385])(isr::registers *, int *, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) = {
     nullptr,
     &sys_exit,
     &sys_fork,
@@ -394,18 +394,17 @@ uint32_t (*syscall_table[385])(int *, uint32_t, uint32_t, uint32_t, uint32_t, ui
     nullptr, /* 384 */
 };
 
-void syscall::syscallHandler(isr::Registers *regs) {
-    multitasking::context *current_context = (multitasking::context *)(KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET);
+void syscall::syscallHandler(isr::registers *regs) {
 
     if (syscall_table[regs->eax] == nullptr) {
         DEBUG_PRINTF("syscall %u not found\n", regs->eax);
-        current_context->eax = -1; // TODO: return correct error code
+        regs->eax = -1; // TODO: return correct error code
         return;
     }
     // DEBUG_PRINTF("calling syscall %u\n", regs->eax);
     int syscall_ret;
-    uint32_t returnval = syscall_table[regs->eax](&syscall_ret, regs->eax, regs->ebx, regs->ecx, regs->edx, regs->esi, regs->edi, regs->ebp);
+    uint32_t returnval = syscall_table[regs->eax](regs, &syscall_ret, regs->eax, regs->ebx, regs->ecx, regs->edx, regs->esi, regs->edi, regs->ebp);
     if(syscall_ret > 0) {
-        current_context->eax = returnval;
+        regs->eax = returnval;
     }
 }

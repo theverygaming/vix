@@ -12,17 +12,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-uint32_t sys_exit(int *syscall_ret, uint32_t, uint32_t exit_code, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_exit(isr::registers *regs, int *syscall_ret, uint32_t, uint32_t exit_code, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 0;
     DEBUG_PRINTF("syscall: sys_exit code: %d\n", exit_code);
-    multitasking::killCurrentProcess();
+    multitasking::killCurrentProcess(regs);
     return 0;
 }
 
-uint32_t sys_fork(int *syscall_ret, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_fork(isr::registers *regs, int *syscall_ret, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     LOG_INSANE("syscall: sys_fork\n");
-    multitasking::process *newprocess = multitasking::fork_current_process();
+    multitasking::x86_process *newprocess = multitasking::fork_current_process(regs);
     if (newprocess) {
         newprocess->registerContext.eax = 0;
         return newprocess->pid;
@@ -31,7 +31,7 @@ uint32_t sys_fork(int *syscall_ret, uint32_t, uint32_t, uint32_t, uint32_t, uint
     }
 }
 
-uint32_t sys_read(int *syscall_ret, uint32_t, uint32_t fd, uint32_t _buf, uint32_t count, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_read(isr::registers *, int *syscall_ret, uint32_t, uint32_t fd, uint32_t _buf, uint32_t count, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     char *buf = (char *)_buf;
     LOG_INSANE("syscall: sys_read\n");
@@ -50,7 +50,7 @@ uint32_t sys_read(int *syscall_ret, uint32_t, uint32_t fd, uint32_t _buf, uint32
     return readCharacters;
 }
 
-uint32_t sys_write(int *syscall_ret, uint32_t, uint32_t fd, uint32_t _buf, uint32_t count, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_write(isr::registers *, int *syscall_ret, uint32_t, uint32_t fd, uint32_t _buf, uint32_t count, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     char *buf = (char *)_buf;
 
@@ -66,14 +66,14 @@ uint32_t sys_write(int *syscall_ret, uint32_t, uint32_t fd, uint32_t _buf, uint3
     return count; // return number of written bytes
 }
 
-uint32_t sys_waitpid(int *syscall_ret, uint32_t, uint32_t pid, uint32_t _stat_addr, uint32_t _options, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_waitpid(isr::registers *, int *syscall_ret, uint32_t, uint32_t pid, uint32_t _stat_addr, uint32_t _options, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     // int *stat_addr = (int *)_stat_addr;
     // int options = (uint32_t)_options;
 
     DEBUG_PRINTF("syscall: sys_waitpid - PID: %d\n", pid);
 
-    multitasking::context *current_context = (multitasking::context *)(KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET);
+    /*multitasking::context *current_context = (multitasking::context *)(KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET);
     multitasking::context tempContextStore;
     stdlib::memcpy(&tempContextStore, current_context, sizeof(multitasking::context));
 
@@ -82,11 +82,12 @@ uint32_t sys_waitpid(int *syscall_ret, uint32_t, uint32_t pid, uint32_t _stat_ad
     multitasking::waitForProcess(pid);
 
     asm volatile("cli");
-    stdlib::memcpy(current_context, &tempContextStore, sizeof(multitasking::context));
+    stdlib::memcpy(current_context, &tempContextStore, sizeof(multitasking::context));*/
+    KERNEL_PANIC("sys_waitpid unimplemented");
     return 0; // TODO: fix return value
 }
 
-uint32_t sys_execve(int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _argv, uint32_t _envp, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_execve(isr::registers *, int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _argv, uint32_t _envp, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 0;
     char *filename = (char *)_filename;
     const char *const *argv = (const char *const *)_argv;
@@ -116,7 +117,7 @@ uint32_t sys_execve(int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _ar
     return -1;
 }
 
-uint32_t sys_mmap(int *syscall_ret, uint32_t, uint32_t mmap_struct_ptr, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_mmap(isr::registers *, int *syscall_ret, uint32_t, uint32_t mmap_struct_ptr, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     LOG_INSANE("syscall: sys_mmap -- unstable\n");
     typedef struct {
@@ -142,7 +143,7 @@ uint32_t sys_mmap(int *syscall_ret, uint32_t, uint32_t mmap_struct_ptr, uint32_t
     return (uint32_t)alloc_adr;
 }
 
-uint32_t sys_uname(int *syscall_ret, uint32_t, uint32_t _old_utsname, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_uname(isr::registers *, int *syscall_ret, uint32_t, uint32_t _old_utsname, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     struct sys_uname_utsname {
         char sysname[65];
@@ -162,7 +163,7 @@ uint32_t sys_uname(int *syscall_ret, uint32_t, uint32_t _old_utsname, uint32_t, 
     return 0;
 }
 
-uint32_t modify_ldt(int *syscall_ret, uint32_t, uint32_t _func, uint32_t _ptr, uint32_t bytecount, uint32_t, uint32_t, uint32_t) {
+uint32_t modify_ldt(isr::registers *, int *syscall_ret, uint32_t, uint32_t _func, uint32_t _ptr, uint32_t bytecount, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     struct user_desc {
         unsigned int entry_number;
@@ -196,7 +197,7 @@ uint32_t modify_ldt(int *syscall_ret, uint32_t, uint32_t _func, uint32_t _ptr, u
     return -1; // unimplemented
 }
 
-uint32_t sys_getcwd(int *syscall_ret, uint32_t, uint32_t _buf, uint32_t size, uint32_t, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_getcwd(isr::registers *, int *syscall_ret, uint32_t, uint32_t _buf, uint32_t size, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     char *buf = (char *)_buf;
     LOG_INSANE("syscall: sys_getcwd\n");
@@ -207,7 +208,7 @@ uint32_t sys_getcwd(int *syscall_ret, uint32_t, uint32_t _buf, uint32_t size, ui
     return 11;
 }
 
-uint32_t sys_stat64(int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _statbuf, uint32_t, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_stat64(isr::registers *, int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _statbuf, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     const char *filename = (const char *)_filename;
     LOG_INSANE("syscall: sys_stat64\n");
@@ -215,13 +216,13 @@ uint32_t sys_stat64(int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _st
     return -1; // TODO: fix up return value
 }
 
-uint32_t sys_getuid32(int *syscall_ret, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_getuid32(isr::registers *, int *syscall_ret, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     LOG_INSANE("syscall: sys_getuid32\n");
     return 0; // with the current state of the system we are always root
 }
 
-uint32_t set_thread_area(int *syscall_ret, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
+uint32_t set_thread_area(isr::registers *, int *syscall_ret, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     LOG_INSANE("syscall: set_thread_area\n");
     return -1; // unimplemented
