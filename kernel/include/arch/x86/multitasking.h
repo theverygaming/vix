@@ -46,7 +46,7 @@ namespace multitasking {
     void killCurrentProcess(isr::registers *regs);
     void interruptTrigger(isr::registers *regs);
     void create_task(void *stackadr, void *codeadr, std::vector<process_pagerange> *pagerange, std::vector<char *> *argv, pid_t forced_pid = -1);
-    void replace_task(void *stackadr, void *codeadr, std::vector<process_pagerange> *pagerange, std::vector<char *> *argv, int replacePid);
+    void replace_task(void *stackadr, void *codeadr, std::vector<process_pagerange> *pagerange, std::vector<char *> *argv, int replacePid, isr::registers *regs);
     x86_process *getCurrentProcess();
     void waitForProcess(int pid);
     void refresh_current_process_pagerange();

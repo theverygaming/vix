@@ -207,8 +207,6 @@ void multitasking::create_task(void *stackadr, void *codeadr, std::vector<proces
     }
     uint8_t *stack_1 = (uint8_t *)memalloc::single::kmalloc(100);
 
-    printf("stackadr: 0x%p\n", stackadr);
-
     kernel_process->registerContext.esp = (uint32_t)stackadr;
     kernel_process->registerContext.eip = (uint32_t)codeadr;
     kernel_process->registerContext.eflags = 1 << 9;
@@ -219,7 +217,7 @@ void multitasking::create_task(void *stackadr, void *codeadr, std::vector<proces
     unsetPageRange(pagerange);
 }
 
-void multitasking::replace_task(void *stackadr, void *codeadr, std::vector<process_pagerange> *pagerange, std::vector<char *> *argv, int replacePid) {
+void multitasking::replace_task(void *stackadr, void *codeadr, std::vector<process_pagerange> *pagerange, std::vector<char *> *argv, int replacePid, isr::registers *regs) {
     pid_t PID = -1;
     size_t index = 0;
     for (size_t i = 0; i < processes.size(); i++) {
@@ -233,6 +231,7 @@ void multitasking::replace_task(void *stackadr, void *codeadr, std::vector<proce
     }
     processes[index]->state = schedulers::generic_process::state::REPLACED;
     create_task(stackadr, codeadr, pagerange, argv);
+    interruptTrigger(regs);
 }
 
 void multitasking::setProcessSwitching(bool state) {

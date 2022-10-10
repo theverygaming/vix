@@ -83,11 +83,11 @@ uint32_t sys_waitpid(isr::registers *, int *syscall_ret, uint32_t, uint32_t pid,
 
     asm volatile("cli");
     stdlib::memcpy(current_context, &tempContextStore, sizeof(multitasking::context));*/
-    KERNEL_PANIC("sys_waitpid unimplemented");
+    //KERNEL_PANIC("sys_waitpid unimplemented");
     return 0; // TODO: fix return value
 }
 
-uint32_t sys_execve(isr::registers *, int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _argv, uint32_t _envp, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_execve(isr::registers *regs, int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _argv, uint32_t _envp, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 0;
     char *filename = (char *)_filename;
     const char *const *argv = (const char *const *)_argv;
@@ -106,7 +106,7 @@ uint32_t sys_execve(isr::registers *, int *syscall_ret, uint32_t, uint32_t _file
             argc++;
         }
 
-        elf::load_program(elfptr, &args, true, multitasking::getCurrentProcess()->pid);
+        elf::load_program(elfptr, &args, true, multitasking::getCurrentProcess()->pid, regs);
 
         // free memory used for strings
         for (int i = 0; i < args.size(); i++) {

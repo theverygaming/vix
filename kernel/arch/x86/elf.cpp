@@ -6,7 +6,7 @@
 #include <memory_alloc/memalloc.h>
 #include <stdlib.h>
 
-void elf::load_program(void *ELF_baseadr, std::vector<char *> *argv, bool replace_task, int replace_pid) {
+void elf::load_program(void *ELF_baseadr, std::vector<char *> *argv, bool replace_task, int replace_pid, isr::registers *regs) {
     ElfHeader header;
     ElfProgramHeader pHeader;
 
@@ -36,7 +36,6 @@ void elf::load_program(void *ELF_baseadr, std::vector<char *> *argv, bool replac
     std::vector<multitasking::process_pagerange> pageranges;
 
     pageranges.push_back({(uint32_t)memalloc::page::phys_malloc(pagecount), min, pagecount});
-    multitasking::printPageRange(&pageranges);
     
     std::vector<multitasking::process_pagerange> old_pageranges;
     multitasking::createPageRange(&old_pageranges);
@@ -72,7 +71,7 @@ void elf::load_program(void *ELF_baseadr, std::vector<char *> *argv, bool replac
     multitasking::setPageRange(&old_pageranges);
 
     if (replace_task) {
-        multitasking::replace_task((void *)(max + (ARCH_PAGE_SIZE * 4)), (void *)header.e_entry, &pageranges, argv, replace_pid);
+        multitasking::replace_task((void *)(max + (ARCH_PAGE_SIZE * 4)), (void *)header.e_entry, &pageranges, argv, replace_pid, regs);
     } else {
         multitasking::create_task((void *)(max + (ARCH_PAGE_SIZE * 4)), (void *)header.e_entry, &pageranges, argv);
     }
