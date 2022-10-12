@@ -284,6 +284,12 @@ void build_cpp_gcc(std::string cxx, std::string cxxflags, std::string inputfile,
     runcmd(command);
 }
 
+void build_rust_rustc(std::string rustc, std::string rustcflags, std::string inputfile, std::string outputfile) {
+    std::string command = rustc + " " + rustcflags + " " + inputfile + " -o " + outputfile;
+    printf("%s %s\n", rustc.c_str(), inputfile.c_str());
+    runcmd(command);
+}
+
 void build_asm_nasm(std::string nasm, std::string nflags, std::string inputfile, std::string outputfile) {
     std::string command = nasm + " " + nflags + " " + inputfile + " -o " + outputfile;
     printf("%s %s\n", nasm.c_str(), inputfile.c_str());
@@ -314,6 +320,10 @@ int main(int argc, char *argv[]) {
 
     std::string config_cxx = getVariable("CONFIG_CXX")[0];
     std::string config_cxxflags = getVariable("CONFIG_CXXFLAGS")[0];
+
+    std::string config_rustc = getVariable("CONFIG_RUSTC")[0];
+    std::string config_rustcflags = getVariable("CONFIG_RUSTCFLAGS")[0];
+    std::string config_rustcflags_lib = getVariable("CONFIG_RUSTCFLAGS_LIB")[0];
 
     std::string config_ld = getVariable("CONFIG_LD")[0];
     std::string config_ldflags = getVariable("CONFIG_LDFLAGS")[0];
@@ -349,9 +359,28 @@ int main(int argc, char *argv[]) {
             }
             continue;
         }
+        if (stringEndsWith(objs[i], ".ors")) {
+            std::string sourcefile = stringReplaceEnd(objs[i], ".ors", ".rs");
+            if (doesFileNeedRebuild(sourcefile, objs[i])) {
+                build_rust_rustc(config_rustc, config_rustcflags, sourcefile, objs[i]);
+            } else {
+                printf("%s doesn't need to rebuild\n", objs[i].c_str());
+            }
+            continue;
+        }
+        if (stringEndsWith(objs[i], ".rlib")) {
+            std::string sourcefile = stringReplaceEnd(objs[i], ".rlib", ".rs");
+            if (doesFileNeedRebuild(sourcefile, objs[i])) {
+                build_rust_rustc(config_rustc, config_rustcflags_lib, sourcefile, objs[i]);
+            } else {
+                printf("%s doesn't need to rebuild\n", objs[i].c_str());
+            }
+            continue;
+        }
         printf("unknown file type -> %s\n", objs[i].c_str());
         return 1;
     }
+    std::sort(objs.begin(), objs.end()); // a very hacky way to keep libkernel.rlib at the end...
     final_link(config_ld, config_ldflags, "arch/" + config_arch + "/linker.ld", expandStrVector(objs), "kernel.o");
     runcmd(config_objcopycmd);
 

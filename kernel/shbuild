@@ -1,3 +1,4 @@
+include "rust/shbuild"
 include "main/shbuild"
 include "net/shbuild"
 include "fs/shbuild"

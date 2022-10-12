@@ -4,6 +4,8 @@
 *.ocpp
 *.oasm
 *.os
+*.ors
+*.rlib
 boot/boot
 kernel/kernel
 shitOS.img
@@ -26,3 +28,4 @@ kernel/include/generated
 kernel/config_gen
 kernel/scripts/shbuild
 startup/startup
+kernel/rust/bindings.rs
