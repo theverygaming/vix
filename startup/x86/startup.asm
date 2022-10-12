@@ -42,9 +42,23 @@ _start:
     cmp eax, 0x36D76289
     jne .multiboot_issue
     push ebx ; multiboot 2 info structure pointer
+
+    ; check for CPUID
+    pushfd
+    pushfd
+    xor dword [esp],0x00200000
+    popfd
+    pushfd
+    mov eax, [esp]
+    cmp eax, [esp+4]
+    je .no_cpuid
+    popfd
+    popfd
+
     call startup_cpp
     mov eax, kernelcall
     call puts
+
     pop ebx ; multiboot 2 info structure pointer
     mov esp, KERNEL_VIRT_ADDRESS + KERNEL_START_STACK_POINTER_OFFSET
     push ebx ; multiboot 2 info structure pointer
@@ -52,11 +66,17 @@ _start:
 .multiboot_issue:
     mov eax, multiboot_issue
     call puts
+    jmp .die
+.no_cpuid:
+    mov eax, cpuid_issue
+    call puts
+    jmp .die
 .die:
     cli
     hlt
     jmp .die
 
+section .text
 global puts_c
 puts_c: ; output: eax->pointer to null termination
     push ebp
@@ -124,3 +144,4 @@ section .data
 vidmemCharCounter dd 0
 kernelcall db "calling kernel",0x0A, 0x0D, 0x0
 multiboot_issue db "multiboot issue",0x0A, 0x0D, 0x0
+cpuid_issue db "cpuid required",0x0A, 0x0D, 0x0
