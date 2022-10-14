@@ -1,6 +1,7 @@
-#include <arch/x86/drivers/net/rtl8139.h>
 #include <arch/x86/cpubasics.h>
+#include <arch/x86/drivers/net/rtl8139.h>
 #include <arch/x86/drivers/pci.h>
+#include <arch/x86/drivers/pic_8259.h>
 #include <arch/x86/isr.h>
 #include <arch/x86/paging.h>
 #include <memory_alloc/memalloc.h>
@@ -12,11 +13,12 @@ static uint8_t device;
 static uint8_t function;
 static uint16_t io_base;
 void *bufferptr = nullptr;
+uint8_t irqline;
 
 static void irq_handler(isr::registers *gaming) {
     printf("got rtl8139 IRQ\n");
     outw(io_base + 0x3E, 0x5); // Interrupt Status - Clears the Rx OK bit, acknowledging a packet has been received, and is now in rx_buffer
-    // outb(0x20, 0x20);
+    drivers::pic::pic8259::eoi(drivers::pic::pic8259::irqToint(irqline));
 }
 
 static uint8_t reg_counter = 0;
@@ -26,9 +28,11 @@ void drivers::net::rtl8139::sendPacket(void *data, uint32_t len) {
      * registers are each 32 bits long, and are in I/O offsets 0x20, 0x24, 0x28 and 0x2C. The transmit status/command registers are also each 32 bits long and are in I/O offsets 0x10, 0x14, 0x18 and
      * 0x1C. Each pair of transmit start and status registers work together (i.e. registers 0x20 and 0x10 work together, 0x24 and 0x14 work together, etc.)
      */
-    if(reg_counter > 3) { reg_counter = 0; }
+    if (reg_counter > 3) {
+        reg_counter = 0;
+    }
     outl(io_base + 0x20 + (reg_counter * 4), (uint32_t)paging::get_physaddr_unaligned(data)); // transmit
-    outl(io_base + 0x10 + (reg_counter * 4), len); // status/command
+    outl(io_base + 0x10 + (reg_counter * 4), len);                                            // status/command
     reg_counter++;
 }
 
@@ -82,11 +86,9 @@ void drivers::net::rtl8139::init() {
 
     // enable RX and TX
     outb(io_base + 0x37, 0x0C);
-    drivers::pci::writeInterruptLine(bus, device, function, 2);
-
-    // send packet
-    outl(io_base + 0x20, (uint32_t)0xFFFF);
-    outl(io_base + 0x10, 100);
+    irqline = drivers::pci::getInterruptLine(bus, device, function);
+    printf("rtl8139 irq: %u\n", (uint32_t)irqline);
+    isr::RegisterHandler(drivers::pic::pic8259::irqToint(irqline), irq_handler);
 
     printf("rtl8139 init finished!\n");
 }

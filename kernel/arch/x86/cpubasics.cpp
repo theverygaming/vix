@@ -41,7 +41,7 @@ void cpubasics::cpuinit() {
     isr::i686_ISR_Initialize();
     drivers::pic::pic8259::init(32, 40);
     set_pit_freq(1000);
-    isr::RegisterHandler(32, clockHandler);
+    isr::RegisterHandler(drivers::pic::pic8259::irqToint(0), clockHandler);
     drivers::pic::pic8259::unmask_irq(0);
     asm volatile("sti");
 }

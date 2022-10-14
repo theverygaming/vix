@@ -1,5 +1,5 @@
-#include <arch/x86/drivers/pci.h>
 #include <arch/x86/cpubasics.h>
+#include <arch/x86/drivers/pci.h>
 #include <stdio.h>
 
 /* direct read/write functions */
@@ -25,14 +25,14 @@ void drivers::pci::pciConfigWrite32(uint8_t bus, uint8_t slot, uint8_t function,
 
 void drivers::pci::pciConfigWrite16(uint8_t bus, uint8_t slot, uint8_t function, uint8_t offset, uint16_t data) {
     uint32_t read = pciConfigRead32(bus, slot, function, offset);
-    read &=  ~(0xFFFF << ((offset % 4) * 8));
+    read &= ~(0xFFFF << ((offset % 4) * 8));
     read |= data << ((offset % 4) * 8);
     pciConfigWrite32(bus, slot, function, offset, read);
 }
 
 void drivers::pci::pciConfigWrite08(uint8_t bus, uint8_t slot, uint8_t function, uint8_t offset, uint8_t data) {
     uint32_t read = pciConfigRead32(bus, slot, function, offset);
-    read &=  ~(0xFF << ((offset % 4) * 8));
+    read &= ~(0xFF << ((offset % 4) * 8));
     read |= data << ((offset % 4) * 8);
     pciConfigWrite32(bus, slot, function, offset, read);
 }
@@ -226,11 +226,11 @@ bool drivers::pci::enableMastering(uint8_t bus, uint8_t device, uint8_t function
 }
 
 drivers::pci::bar_type drivers::pci::getBarType(uint8_t bus, uint8_t device, uint8_t function, uint8_t barnum) { // TODO: check memory layout
-    if(barnum > 5) {
+    if (barnum > 5) {
         return bar_type::BAR_TYPE_ERROR;
     }
     uint32_t BAR = drivers::pci::pciConfigRead32(bus, device, function, 16 + (barnum * 4));
-    if(BAR & 0x1) {
+    if (BAR & 0x1) {
         return bar_type::BAR_TYPE_IO;
     } else {
         return bar_type::BAR_TYPE_MEMORY;
@@ -238,13 +238,13 @@ drivers::pci::bar_type drivers::pci::getBarType(uint8_t bus, uint8_t device, uin
 }
 
 uint16_t drivers::pci::getBarIOAddress(uint8_t bus, uint8_t device, uint8_t function, uint8_t barnum) {
-    if(barnum > 5 || getBarType(bus, device, function, barnum) != bar_type::BAR_TYPE_IO) {
+    if (barnum > 5 || getBarType(bus, device, function, barnum) != bar_type::BAR_TYPE_IO) {
         return 0;
     }
     uint32_t BAR = drivers::pci::pciConfigRead32(bus, device, function, 16 + (barnum * 4));
     return (uint16_t)(BAR & 0xFFFFFFFC);
 }
 
-void drivers::pci::writeInterruptLine(uint8_t bus, uint8_t device, uint8_t function, uint8_t pin) {
-    pciConfigWrite08(bus, device, function, 60, pin);
+uint8_t drivers::pci::getInterruptLine(uint8_t bus, uint8_t device, uint8_t function) {
+    return pciConfigRead08(bus, device, function, 60);
 }

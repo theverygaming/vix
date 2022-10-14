@@ -63,4 +63,11 @@ namespace drivers::pic::pic8259 {
         }
         outb(0x20, 0x20);
     }
+
+    uint8_t irqToint(uint8_t irq) {
+        if (irq > 7) {
+            return _slave_base + (irq - 8);
+        }
+        return _master_base + irq;
+    }
 }

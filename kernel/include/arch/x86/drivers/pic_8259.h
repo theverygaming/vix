@@ -6,4 +6,5 @@ namespace drivers::pic::pic8259 {
     void mask_irq(uint8_t irqnum);
     void unmask_irq(uint8_t irqnum);
     void eoi(uint8_t intnum);
+    uint8_t irqToint(uint8_t irq);
 }

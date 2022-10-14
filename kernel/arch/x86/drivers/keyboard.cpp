@@ -97,11 +97,11 @@ static void kbdIntHandler(isr::registers *) {
     if (key == -2) {
         shiftPressed = !shiftPressed;
     }
-    drivers::pic::pic8259::eoi(33);
+    drivers::pic::pic8259::eoi(drivers::pic::pic8259::irqToint(1));
 }
 
 void drivers::keyboard::init() {
-    isr::RegisterHandler(33, kbdIntHandler);
+    isr::RegisterHandler(drivers::pic::pic8259::irqToint(1), kbdIntHandler);
     drivers::pic::pic8259::unmask_irq(1);
 }
 
