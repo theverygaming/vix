@@ -1,5 +1,6 @@
 #include <arch/x86/cpubasics.h>
 #include <arch/x86/drivers/keyboard.h>
+#include <arch/x86/drivers/pic_8259.h>
 #include <arch/x86/drivers/text80x25.h>
 #include <arch/x86/isr.h>
 #include <stdio.h>
@@ -96,11 +97,12 @@ static void kbdIntHandler(isr::registers *) {
     if (key == -2) {
         shiftPressed = !shiftPressed;
     }
-    outb(0x20, 0x20);
+    drivers::pic::pic8259::eoi(33);
 }
 
 void drivers::keyboard::init() {
     isr::RegisterHandler(33, kbdIntHandler);
+    drivers::pic::pic8259::unmask_irq(1);
 }
 
 void drivers::keyboard::manualRead() {

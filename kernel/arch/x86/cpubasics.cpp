@@ -1,35 +1,12 @@
 #include <arch/x86/cpubasics.h>
+#include <arch/x86/drivers/pic_8259.h>
 #include <arch/x86/idt.h>
 #include <arch/x86/isr.h>
 #include <arch/x86/multitasking.h>
 #include <config.h>
 #include <stdio.h>
 
-void init_pic(void) {
-    /* Initialisation de ICW1 */
-    outb(0x20, 0x11);
-    outb(0xA0, 0x11);
-
-    /* Initialisation de ICW2 */
-    outb(0x21, 0x20); /* vecteur de depart = 32 */
-    outb(0xA1, 0x70); /* vecteur de depart = 96 */
-
-    /* Initialisation de ICW3 */
-    outb(0x21, 0x04);
-    outb(0xA1, 0x02);
-
-    /* Initialisation de ICW4 */
-    outb(0x21, 0x01);
-    outb(0xA1, 0x01);
-
-    /* masquage des interruptions */
-    outb(0x21, 0x0);
-    outb(0xA1, 0x0);
-}
-
-// void (*clockHandlers[256])();
-
-void set_pit_freq(int hz) {
+static void set_pit_freq(int hz) {
     int divisor = 1193180 / hz; /* Calculate our divisor */
     outb(0x43, 0x36);           /* Set our command byte 0x36 */
     outb(0x40, divisor & 0xFF); /* Set low byte of divisor */
@@ -46,7 +23,7 @@ void cpubasics::sleep(int ms) {
     ticks = 0;
 }
 
-void isr_clock_int() {
+static void isr_clock_int() {
     if (count == 1) {
         ticks++;
     }
@@ -54,33 +31,17 @@ void isr_clock_int() {
 }
 
 void clockHandler(isr::registers *regs) {
-    /*for(int i = 0; i < 256; i++) {
-        if(clockHandlers[i] != NULL) {
-            clockHandlers[i]();
-        }
-    }*/
-    outb(0x20, 0x20);
     isr_clock_int();
     multitasking::interruptTrigger(regs);
+    drivers::pic::pic8259::eoi((uint8_t)regs->interrupt);
 }
-
-/*void cpubasics::RegisterClockHandler(int number, void (*_func)()) {
-    clockHandlers[number] = _func;
-}
-
-void cpubasics::DeregisterClockHandler(int number) {
-    clockHandlers[number] = NULL;
-}*/
 
 void cpubasics::cpuinit() {
-    // gdt::i686_GDT_Initialize();
     idt::i686_IDT_Initialize();
     isr::i686_ISR_Initialize();
-    init_pic();
+    drivers::pic::pic8259::init(32, 40);
     set_pit_freq(1000);
     isr::RegisterHandler(32, clockHandler);
-    // RegisterClockHandler(0, isr_clock_int);
-    outb(0x21, 0b11111000); // Enable IRQ 0, 1 and 2
-    outb(0xA1, 0b11111111);
+    drivers::pic::pic8259::unmask_irq(0);
     asm volatile("sti");
 }

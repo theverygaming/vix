@@ -1,1 +1,1 @@
-varappend_tx_prefix objs VARINSERT(CURRENTPATH) net/rtl8139.ocpp keyboard.ocpp pci.ocpp serial.ocpp text80x25.ocpp rtc.ocpp
+varappend_tx_prefix objs VARINSERT(CURRENTPATH) net/rtl8139.ocpp keyboard.ocpp pci.ocpp serial.ocpp text80x25.ocpp rtc.ocpp pic_8259.ocpp
