@@ -1,3 +1,3 @@
 ifvardef CONFIG_RUST_SUPPORT 2
 varappend_tx_prefix objs VARINSERT(CURRENTPATH) libkernel.rlib
-shellcmd ~/.cargo/bin/bindgen --use-core --ctypes-prefix "" include/debug.h -o rust/bindings.rs -- -I include -x c++
+shellcmd ~/.cargo/bin/bindgen --use-core --ctypes-prefix "" rust/rust_includes.h -o rust/bindings.rs -- -I include -x c++
