@@ -45,7 +45,7 @@ namespace std {
 
             assureSize(obj._size);
 
-            for (int i = 0; i < obj._size; i++) {
+            for (size_t i = 0; i < obj._size; i++) {
                 new (&_pointer[i]) T(obj._pointer[i]); // placement new + call copy constructor
             }
             return *this;
@@ -59,12 +59,12 @@ namespace std {
             return _size;
         }
 
-        void resize(int n) {
+        void resize(size_t n) {
             _size = n;
             reallocate(n);
         }
 
-        void reserve(int n) {
+        void reserve(size_t n) {
             if (n > _capacity) {
                 reallocate(n);
             }

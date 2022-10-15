@@ -1,6 +1,8 @@
 #![no_std]
 #![no_main]
 
+#![allow(non_camel_case_types)]
+
 /* these should later be defined differently depending on the chosen architecture */
 pub type c_char = core::ffi::c_schar;
 pub type c_int = i32;

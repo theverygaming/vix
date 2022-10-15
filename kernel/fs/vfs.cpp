@@ -16,7 +16,7 @@ void fs::vfs::mount(struct vfs_mountpoint mount) {
 
 void fs::vfs::unmount(char *mountpath) {
     mountpoint_lock.lock();
-    for (int i = 0; i < mountpoints.size(); i++) {
+    for (size_t i = 0; i < mountpoints.size(); i++) {
         if (fs::path::path_compare(mountpath, mountpoints[i].mountpath)) {
             mountpoints.erase(i);
             break;
@@ -28,7 +28,7 @@ void fs::vfs::unmount(char *mountpath) {
 static int find_best_mountpoint_index(char *path) {
     int bestIndex = -1;
     int bestDepth = -1;
-    for (int i = 0; i < mountpoints.size(); i++) {
+    for (size_t i = 0; i < mountpoints.size(); i++) {
         if (fs::path::startswith_path(mountpoints[i].mountpath, path)) {
             int depth = fs::path::path_depth(mountpoints[i].mountpath);
             if (depth > bestDepth) {

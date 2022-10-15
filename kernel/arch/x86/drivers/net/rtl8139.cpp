@@ -88,7 +88,9 @@ void drivers::net::rtl8139::init() {
     outb(io_base + 0x37, 0x0C);
     irqline = drivers::pci::getInterruptLine(bus, device, function);
     printf("rtl8139 irq: %u\n", (uint32_t)irqline);
+
     isr::RegisterHandler(drivers::pic::pic8259::irqToint(irqline), irq_handler);
+    drivers::pic::pic8259::unmask_irq(irqline);
 
     printf("rtl8139 init finished!\n");
 }
