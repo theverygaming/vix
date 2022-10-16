@@ -53,6 +53,7 @@ namespace multitasking {
     void refresh_current_process_pagerange();
     x86_process *fork_current_process(isr::registers *regs);
     void setProcessSwitching(bool state);
+    size_t getProcessCount();
     bool createPageRange(std::vector<process_pagerange> *range, uint32_t max_address = KERNEL_VIRT_ADDRESS);
     void setPageRange(std::vector<process_pagerange> *range);
     void unsetPageRange(std::vector<process_pagerange> *range);

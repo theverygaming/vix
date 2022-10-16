@@ -13,6 +13,4 @@ namespace drivers::rtc {
     };
 
     struct time getCurrentTime();
-
-    uint64_t getunixtime();
 }

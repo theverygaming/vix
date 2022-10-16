@@ -2,6 +2,7 @@
 #include <arch/x86/drivers/keyboard.h>
 #include <arch/x86/elf.h>
 #include <arch/x86/generic/memory.h>
+#include <arch/x86/memorymap.h>
 #include <arch/x86/multitasking.h>
 #include <arch/x86/paging.h>
 #include <arch/x86/syscalls.h>
@@ -12,6 +13,7 @@
 #include <memory_alloc/memalloc.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 uint32_t sys_exit(isr::registers *regs, int *syscall_ret, uint32_t, uint32_t exit_code, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 0;
@@ -133,6 +135,39 @@ uint32_t sys_mmap(isr::registers *, int *syscall_ret, uint32_t, uint32_t mmap_st
     multitasking::refresh_current_process_pagerange();
 
     return (uint32_t)alloc_adr;
+}
+
+uint32_t sys_sysinfo(isr::registers *, int *syscall_ret, uint32_t, uint32_t _info, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
+    *syscall_ret = 1;
+    // https://man7.org/linux/man-pages/man2/sysinfo.2.html
+    struct sysinfo {
+        long uptime;                                  /* Seconds since boot */
+        unsigned long loads[3];                       /* 1, 5, and 15 minute load averages */
+        unsigned long totalram;                       /* Total usable main memory size */
+        unsigned long freeram;                        /* Available memory size */
+        unsigned long sharedram;                      /* Amount of shared memory */
+        unsigned long bufferram;                      /* Memory used by buffers */
+        unsigned long totalswap;                      /* Total swap space size */
+        unsigned long freeswap;                       /* Swap space still available */
+        unsigned short procs;                         /* Number of current processes */
+        unsigned long totalhigh;                      /* Total high memory size */
+        unsigned long freehigh;                       /* Available high memory size */
+        unsigned int mem_unit;                        /* Memory unit size in bytes */
+        char _f[20 - 2 * sizeof(long) - sizeof(int)]; /* Padding to 64 bytes */
+    };
+    struct sysinfo *sysinfostruct = (struct sysinfo *)_info;
+    sysinfostruct->uptime = time::getUptimeSeconds();
+    sysinfostruct->totalram = memorymap::total_ram;
+    sysinfostruct->freeram = memalloc::page::phys_get_free_blocks() * ARCH_PAGE_SIZE;
+    sysinfostruct->sharedram = 0;
+    sysinfostruct->bufferram = 0;
+    sysinfostruct->totalswap = 0;
+    sysinfostruct->freeswap = 0;
+    sysinfostruct->procs = multitasking::getProcessCount();
+    sysinfostruct->totalhigh = 0;
+    sysinfostruct->freehigh = 0;
+    sysinfostruct->mem_unit = 1;
+    return 0;
 }
 
 uint32_t sys_uname(isr::registers *, int *syscall_ret, uint32_t, uint32_t _old_utsname, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {

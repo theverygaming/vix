@@ -13,8 +13,8 @@ static void set_pit_freq(int hz) {
     outb(0x40, divisor >> 8);   /* Set high byte of divisor */
 }
 
-int ticks = 0;
-int count = 1;
+volatile int ticks = 0;
+volatile int count = 1;
 
 void cpubasics::sleep(int ms) {
     ticks = 0;

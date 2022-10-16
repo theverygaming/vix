@@ -1,5 +1,4 @@
 #include <arch/x86/cpubasics.h>
-#include <arch/x86/drivers/rtc.h>
 #include <arch/x86/gdt.h>
 #include <arch/x86/generic/memory.h>
 #include <arch/x86/multitasking.h>
@@ -11,6 +10,7 @@
 #include <scheduler.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 static std::vector<multitasking::x86_process *> processes;
 
@@ -239,6 +239,16 @@ void multitasking::setProcessSwitching(bool state) {
     processSwitchingEnabled = state;
 }
 
+size_t multitasking::getProcessCount() {
+    size_t count = 0;
+    for (size_t i = 0; i < processes.size(); i++) {
+        if (!((processes[i]->state == x86_process::state::KILLED) || (processes[i]->state == x86_process::state::REPLACED))) {
+            count++;
+        }
+    }
+    return count;
+}
+
 uint64_t starttime = 0;
 
 int counter = 0;
@@ -246,13 +256,13 @@ int counter = 0;
 // fired every timer interrupt, may be called during an ISR to possibly force a process switch
 void multitasking::interruptTrigger(isr::registers *regs) {
     if (unlikely(uninitialized)) {
-        starttime = drivers::rtc::getunixtime();
+        starttime = time::getCurrentUnixTime();
         counter = 0;
         return;
     }
 
     if (counter % 30000 == 0) {
-        uint64_t currenttime = drivers::rtc::getunixtime();
+        uint64_t currenttime = time::getCurrentUnixTime();
         uint64_t passedTime = currenttime - starttime;
         DEBUG_PRINTF("timer passed: %u actual passed: %u\n", (uint32_t)(counter / 1000), (uint32_t)passedTime);
     }

@@ -20,6 +20,7 @@
 #include <cppstd/vector.h>
 #include <fs/roramfs.h>
 #include <fs/vfs.h>
+#include <time.h>
 #include <kernel.h>
 #include <panic.h>
 #include <stdio.h>
@@ -62,6 +63,7 @@ void arch::generic::startup::stage3_startup() {
     simd::enableSSE();
     fs::filesystems::roramfs::init((void *)(KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET));
     fs::filesystems::roramfs::mountInVFS();
+    time::bootupTime = time::getCurrentUnixTime();
 }
 
 // very important array definitely

@@ -1,1 +1,1 @@
-varappend_tx_prefix objs VARINSERT(CURRENTPATH) textoutput.ocpp memory.ocpp cpu.ocpp
+varappend_tx_prefix objs VARINSERT(CURRENTPATH) textoutput.ocpp memory.ocpp cpu.ocpp devices.ocpp

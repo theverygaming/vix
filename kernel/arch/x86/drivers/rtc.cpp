@@ -50,14 +50,4 @@ namespace drivers::rtc {
         }
         return currentTime;
     }
-
-    uint64_t getunixtime() { // just a test function, mostly unimplemented
-        struct time currentTime = getCurrentTime();
-        uint64_t unixtime = 0;
-        unixtime += currentTime.second;
-        unixtime += currentTime.minute * 60;
-        unixtime += currentTime.hour * 3600;
-        unixtime += currentTime.day * 86400;
-        return unixtime;
-    }
 }
