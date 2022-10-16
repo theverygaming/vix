@@ -27,28 +27,28 @@ namespace std {
             initString();
 
             assureSize(n);
-            stdlib::memcpy(_pointer, s, n);
+            memcpy(_pointer, s, n);
         }
 
         ~string() {
             memalloc::single::kfree(_pointer);
         }
 
-        char &operator[](int i) {
+        char &operator[](size_t i) {
             assertm(i < _capacity, "out of bounds string access");
             return _pointer[i];
         }
 
         string &operator=(const string &str) {
             assureSize(str._size);
-            stdlib::memcpy(_pointer, str._pointer, str._size);
+            memcpy(_pointer, str._pointer, str._size);
             return *this;
         }
 
         string &operator=(const char *s) {
-            size_t len = stdlib::strlen(s);
+            size_t len = strlen(s);
             assureSize(len);
-            stdlib::memcpy(_pointer, s, len);
+            memcpy(_pointer, s, len);
             return *this;
         }
 
@@ -75,20 +75,20 @@ namespace std {
 
         string &append(const string &str) {
             assureSize(_size + str._size);
-            stdlib::memcpy(&_pointer[_size - str._size], str._pointer, str._size);
+            memcpy(&_pointer[_size - str._size], str._pointer, str._size);
             return *this;
         }
 
         string &append(const char *s) {
-            size_t len = stdlib::strlen(s);
+            size_t len = strlen(s);
             assureSize(_size + len);
-            stdlib::memcpy(&_pointer[_size - len], s, len);
+            memcpy(&_pointer[_size - len], s, len);
             return *this;
         }
 
         string &append(const char *s, size_t n) {
             assureSize(_size + n);
-            stdlib::memcpy(&_pointer[_size - n], s, n);
+            memcpy(&_pointer[_size - n], s, n);
             return *this;
         }
 
@@ -165,35 +165,14 @@ namespace std {
             _pointer = (char *)memalloc::single::kmalloc(_capacity * sizeof(char));
         }
     };
-
-    string operator+(const string &lhs, const string &rhs) {
-        string ret = lhs;
-        ret += rhs;
-        return ret;
-    }
-
-    string operator+(const string &lhs, const char *rhs) {
-        string ret = lhs;
-        ret += rhs;
-        return ret;
-    }
-
-    string operator+(const char *lhs, const string &rhs) {
-        string ret = lhs;
-        ret += rhs;
-        return ret;
-    }
-
-    string operator+(const string &lhs, char rhs) {
-        string ret = lhs;
-        ret += rhs;
-        return ret;
-    }
-
-    string operator+(char lhs, const string &rhs) {
-        string ret;
-        ret.push_back(lhs);
-        ret += rhs;
-        return ret;
-    }
 }
+
+std::string operator+(const std::string &lhs, const std::string &rhs);
+
+std::string operator+(const std::string &lhs, const char *rhs);
+
+std::string operator+(const char *lhs, const std::string &rhs);
+
+std::string operator+(const std::string &lhs, char rhs);
+
+std::string operator+(char lhs, const std::string &rhs);

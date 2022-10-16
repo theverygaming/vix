@@ -39,7 +39,7 @@ void clockHandler(isr::registers *regs) {
 void cpubasics::cpuinit() {
     idt::i686_IDT_Initialize();
     isr::i686_ISR_Initialize();
-    drivers::pic::pic8259::init(32, 40);
+    drivers::pic::pic8259::init(32, 112);
     set_pit_freq(1000);
     isr::RegisterHandler(drivers::pic::pic8259::irqToint(0), clockHandler);
     drivers::pic::pic8259::unmask_irq(0);

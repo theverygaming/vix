@@ -16,6 +16,7 @@
 #include <arch/x86/simd.h>
 #include <arch/x86/syscall.h>
 #include <config.h>
+#include <cppstd/string.h>
 #include <cppstd/vector.h>
 #include <fs/roramfs.h>
 #include <fs/vfs.h>
@@ -78,8 +79,9 @@ static uint8_t franxxlogo[9][18] = {
 
 void arch::generic::startup::after_init() {
     void *elfptr = nullptr;
+    std::vector<std::string> args;
     if (fs::vfs::fptr("/ramfs/shitshell", &elfptr)) {
-        std::vector<char *> args;
+        std::vector<std::string> args;
         args.push_back("/ramfs/shitshell");
         elf::load_program(elfptr, &args);
     }
@@ -89,5 +91,10 @@ void arch::generic::startup::after_init() {
             putcolor(j + 63, i, franxxlogo[i][j] << 4 | 7);
         }
     }
-    multitasking::initMultitasking();
+
+    // a bit of a hack.. we have to call the vector destructor before killing this process
+    args.~vector();
+
+    multitasking::initMultitasking(); // this will kill this process
+    while(true) {} 
 }

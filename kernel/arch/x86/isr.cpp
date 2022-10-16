@@ -159,6 +159,7 @@ extern "C" void *isr_alloc_stack() {
         debug::debug_loop();
     }
     return ((uint8_t *)mem) + (13 * ARCH_PAGE_SIZE);*/
+    return nullptr;
 }
 
 extern "C" void isr_free_stack(void *stackadr) {

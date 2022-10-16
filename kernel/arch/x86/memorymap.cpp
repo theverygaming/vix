@@ -22,7 +22,7 @@ void memorymap::initMemoryMap(void *mapadr, int entrycount) {
         KERNEL_PANIC("memory map issue");
     }
     SMAP_entry *entries = (SMAP_entry *)mapadr;
-    stdlib::memcpy(&map_entries, entries, entrycount * sizeof(*map_entries));
+    memcpy(&map_entries, entries, entrycount * sizeof(*map_entries));
     MemMapEntry processed[entrycount];
     char types[][20] = {"", "usable", "system reserved", "ACPI reclaim", "ACPI NVS", "Memory error", "disabled", "Persistent"};
     for (int i = 0; i < entrycount; i++) {

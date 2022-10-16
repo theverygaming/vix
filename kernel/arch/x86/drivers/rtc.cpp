@@ -42,9 +42,9 @@ static struct drivers::rtc::time getCMOSTime() {
 namespace drivers::rtc {
     struct time getCurrentTime() {
         struct time lastTime;
-        stdlib::memset(&lastTime, 0, sizeof(struct time));
+        memset(&lastTime, 0, sizeof(struct time));
         struct time currentTime = getCMOSTime();
-        while (stdlib::memcmp(&currentTime, &lastTime, sizeof(struct time)) != 0) {
+        while (memcmp(&currentTime, &lastTime, sizeof(struct time)) != 0) {
             lastTime = currentTime;
             currentTime = getCMOSTime();
         }

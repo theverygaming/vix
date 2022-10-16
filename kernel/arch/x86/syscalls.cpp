@@ -5,6 +5,7 @@
 #include <arch/x86/multitasking.h>
 #include <arch/x86/paging.h>
 #include <arch/x86/syscalls.h>
+#include <cppstd/string.h>
 #include <debug.h>
 #include <fs/vfs.h>
 #include <log.h>
@@ -46,7 +47,7 @@ uint32_t sys_read(isr::registers *, int *syscall_ret, uint32_t, uint32_t fd, uin
     uint32_t readCharacters = drivers::keyboard::bufferlocation - bufStart;
 
     drivers::keyboard::bufferlocation = -1;
-    stdlib::memcpy(buf, &drivers::keyboard::buffer[bufStart + 1], readCharacters);
+    memcpy(buf, &drivers::keyboard::buffer[bufStart + 1], readCharacters);
     return readCharacters;
 }
 
@@ -61,7 +62,7 @@ uint32_t sys_write(isr::registers *, int *syscall_ret, uint32_t, uint32_t fd, ui
     // char string[count + 1];
     char *string = (char *)__builtin_alloca((count + 1));
     string[count] = '\0';
-    stdlib::memcpy(string, buf, count);
+    memcpy(string, buf, count);
     printf("%s", string);
     return count; // return number of written bytes
 }
@@ -75,15 +76,15 @@ uint32_t sys_waitpid(isr::registers *, int *syscall_ret, uint32_t, uint32_t pid,
 
     /*multitasking::context *current_context = (multitasking::context *)(KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET);
     multitasking::context tempContextStore;
-    stdlib::memcpy(&tempContextStore, current_context, sizeof(multitasking::context));
+    memcpy(&tempContextStore, current_context, sizeof(multitasking::context));
 
     asm volatile("sti"); // TODO: figure out why this crashes when kernel memory runs out
 
     multitasking::waitForProcess(pid);
 
     asm volatile("cli");
-    stdlib::memcpy(current_context, &tempContextStore, sizeof(multitasking::context));*/
-    //KERNEL_PANIC("sys_waitpid unimplemented");
+    memcpy(current_context, &tempContextStore, sizeof(multitasking::context));*/
+    // KERNEL_PANIC("sys_waitpid unimplemented");
     return 0; // TODO: fix return value
 }
 
@@ -95,23 +96,14 @@ uint32_t sys_execve(isr::registers *regs, int *syscall_ret, uint32_t, uint32_t _
     DEBUG_PRINTF("syscall: sys_execve -> %s\n", filename);
     void *elfptr;
     if (fs::vfs::fptr(filename, &elfptr)) {
-        std::vector<char *> args;
+        std::vector<std::string> args;
         // copy argv to vector
         int argc = 0;
         while (argv[argc] != nullptr) {
-            size_t len = stdlib::strlen(argv[argc]) + 1;
-            char *ptr = (char *)memalloc::single::kmalloc(len);
-            stdlib::memcpy(ptr, argv[argc], len);
-            args.push_back(ptr);
+            args.push_back(argv[argc]);
             argc++;
         }
-
         elf::load_program(elfptr, &args, true, multitasking::getCurrentProcess()->pid, regs);
-
-        // free memory used for strings
-        for (int i = 0; i < args.size(); i++) {
-            memalloc::single::kfree(args[i]);
-        }
         return 0;
     }
     return -1;
@@ -154,12 +146,12 @@ uint32_t sys_uname(isr::registers *, int *syscall_ret, uint32_t, uint32_t _old_u
         char domainname[65];
     };
     struct sys_uname_utsname *unamestruct = (struct sys_uname_utsname *)_old_utsname;
-    stdlib::memcpy(unamestruct->sysname, "shitOS", 7);
-    stdlib::memcpy(unamestruct->nodename, "h", 2);
-    stdlib::memcpy(unamestruct->release, "69.42-funny", 12);
-    stdlib::memcpy(unamestruct->version, "#69.42", 7);
-    stdlib::memcpy(unamestruct->machine, "x86", 4);
-    stdlib::memcpy(unamestruct->domainname, "(none)", 7);
+    memcpy(unamestruct->sysname, "shitOS", 7);
+    memcpy(unamestruct->nodename, "h", 2);
+    memcpy(unamestruct->release, "69.42-funny", 12);
+    memcpy(unamestruct->version, "#69.42", 7);
+    memcpy(unamestruct->machine, "x86", 4);
+    memcpy(unamestruct->domainname, "(none)", 7);
     return 0;
 }
 
@@ -204,7 +196,7 @@ uint32_t sys_getcwd(isr::registers *, int *syscall_ret, uint32_t, uint32_t _buf,
     if (size < 11) {
         return 0;
     }
-    stdlib::memcpy(buf, "/home/user", 11);
+    memcpy(buf, "/home/user", 11);
     return 11;
 }
 

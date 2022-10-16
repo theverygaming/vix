@@ -100,7 +100,7 @@ void *memalloc::page::kernel_realloc(void *adr, uint32_t blocks) {
     bool success;
     void *newptr = ((uint8_t *)kernelalloc.realloc(adr_p, blocks, &success)) + ARCH_KERNEL_HEAP_START;
     if (adr != newptr && success) {
-        stdlib::memcpy(newptr, adr, blocks * ARCH_PAGE_SIZE);
+        memcpy(newptr, adr, blocks * ARCH_PAGE_SIZE);
     }
     if (!success) {
         KERNEL_PANIC("kernel_realloc -> memory full");

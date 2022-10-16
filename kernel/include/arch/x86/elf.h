@@ -1,10 +1,11 @@
 #pragma once
-#include <cppstd/vector.h>
 #include <arch/x86/isr.h>
+#include <cppstd/string.h>
+#include <cppstd/vector.h>
 #include <types.h>
 
 namespace elf {
-    void load_program(void *ELF_baseadr, std::vector<char *> *argv, bool replace_task = false, int replace_pid = 0, isr::registers *regs = nullptr);
+    void load_program(void *ELF_baseadr, std::vector<std::string> *argv, bool replace_task = false, int replace_pid = 0, isr::registers *regs = nullptr);
 
     typedef struct ElfHeader {
         unsigned char e_ident[16]; // should start with [0x7f 'E' 'L' 'F']

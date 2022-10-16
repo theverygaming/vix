@@ -123,10 +123,12 @@ static void expandHeap(size_t extra_size) {
 }
 
 void *memalloc::single::kmalloc(size_t size) {
+    DEBUG_PRINTF_INSANE("kmalloc(%u)\n", size);
     if (heapPages == 0) {
         init();
     }
     if (size == 0) {
+        DEBUG_PRINTF_INSANE("    -> 0x%p\n", nullptr);
         return nullptr;
     }
 
@@ -168,16 +170,20 @@ void *memalloc::single::kmalloc(size_t size) {
         ptrChar = ptrChar + sizeof(meminfo_t);
 
         *((uint64_t *)ptrChar) = 0; // prevent false double free detection
-
+        joinFreeAreas();
+        DEBUG_PRINTF_INSANE("    -> 0x%p\n", ptrChar);
         return ptrChar;
     }
 
     // we couldn't find a free area so we have to allocate more memory
     expandHeap(size);
+    joinFreeAreas();
+    DEBUG_PRINTF_INSANE("    -> kmalloc\n");
     return kmalloc(size);
 }
 
 void memalloc::single::kfree(void *ptr) {
+    DEBUG_PRINTF_INSANE("kfree(0x%p)\n", ptr);
     if (ptr == nullptr) {
         return;
     }
@@ -210,6 +216,7 @@ void memalloc::single::kfree(void *ptr) {
 }
 
 void *memalloc::single::krealloc(void *ptr, size_t size) {
+    DEBUG_PRINTF_INSANE("krealloc(0x%p, %u)\n", ptr, size);
     joinFreeAreas();
     meminfo_t *infoPtr = (meminfo_t *)(((uint8_t *)ptr) - sizeof(meminfo_t));
     meminfo_t *llptr = findListMember(ptr);
@@ -225,6 +232,7 @@ void *memalloc::single::krealloc(void *ptr, size_t size) {
                 newPtr->next = heapListStart;
                 heapListStart->prev = newPtr;
                 heapListStart = newPtr;
+                DEBUG_PRINTF_INSANE("    -> 0x%p\n", ptr);
                 return ptr;
             }
             newPtr->prev = llptr;
@@ -234,6 +242,8 @@ void *memalloc::single::krealloc(void *ptr, size_t size) {
                 newPtr->next->prev = newPtr;
             }
         }
+        joinFreeAreas();
+        DEBUG_PRINTF_INSANE("    -> 0x%p\n", ptr);
         return ptr;
     }
 
@@ -253,17 +263,21 @@ void *memalloc::single::krealloc(void *ptr, size_t size) {
                 llptr->next = newPtr;
 
                 infoPtr->size = size;
-
+                joinFreeAreas();
+                DEBUG_PRINTF_INSANE("    -> 0x%p\n", ptr);
                 return ptr;
             }
         }
     }
 
     // trying to resize failed so we'll malloc and copy instead
+    DEBUG_PRINTF_INSANE("    -> kmalloc\n");
     void *newarea = kmalloc(size);
 
-    stdlib::memcpy(newarea, ptr, infoPtr->size);
-
+    memcpy(newarea, ptr, infoPtr->size);
+    DEBUG_PRINTF_INSANE("    -> kfree\n");
     kfree(ptr);
+    joinFreeAreas();
+    DEBUG_PRINTF_INSANE("    -> 0x%p\n", newarea);
     return newarea;
 }

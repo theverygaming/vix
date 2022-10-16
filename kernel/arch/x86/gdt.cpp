@@ -54,7 +54,7 @@ enum gdt_flags {
 
 static struct gdtEntry make_gdt_entry(uint32_t base, uint32_t limit, uint8_t access, uint8_t flags) {
     struct gdtEntry entry;
-    stdlib::memset(&entry, 0, sizeof(struct gdtEntry));
+    memset(&entry, 0, sizeof(struct gdtEntry));
 
     entry.baseLow = base & 0xFFFF;
     entry.baseMiddle = (base >> 16) & 0xFF;
@@ -90,7 +90,7 @@ void gdt::init() {
                                  sizeof(struct tss::tss_protectedmode),
                                  GDT_ACCESS_PRESENT | GDT_ACCESS_RING0 | GDT_ACCESS_SYSTEM_SEGMENT | GDT_ACCESS_SYSTEM_DESCRIPTOR_TSS | GDT_ACCESS_SYSTEM_TYPE_TSS,
                                  GDT_FLAG_GRANULARITY_1B);
-    stdlib::memset(&tss::tss_entry, 0, sizeof(tss::tss_protectedmode));
+    memset(&tss::tss_entry, 0, sizeof(tss::tss_protectedmode));
     tss::tss_entry.ss0 = i686_GDT_DATA_SEGMENT;
     tss::tss_entry.esp0 = KERNEL_VIRT_ADDRESS + KERNEL_ISR_STACK_POINTER_OFFSET;
 

@@ -100,7 +100,7 @@ namespace std {
             if (index < _size) {
                 _pointer[index].~T();
                 if ((index + 1) < _size) {
-                    stdlib::memmove(&_pointer[index], &_pointer[index + 1], (_size - (index + 1)) * sizeof(T));
+                    memmove(&_pointer[index], &_pointer[index + 1], (_size - (index + 1)) * sizeof(T));
                 }
                 _size--;
             }

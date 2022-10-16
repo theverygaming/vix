@@ -44,12 +44,3 @@ void operator delete[](void *p) {
 void operator delete[](void *p, size_t) {
     memalloc::single::kfree(p);
 }
-
-/* some compilers internally use memset and memcpy */
-
-extern "C" void *memcpy(void *dst, const void *src, size_t n) {
-    return stdlib::memcpy(dst, src, n);
-}
-extern "C" void *memset(void *ptr, int value, size_t n) {
-    return stdlib::memset(ptr, value, n);
-}
