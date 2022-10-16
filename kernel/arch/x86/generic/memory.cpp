@@ -3,9 +3,9 @@
 #include <arch/x86/memorymap.h>
 
 bool arch::generic::memory::get_memory_map(struct memory_map_entry *entry, int n) {
-    if (n == 0) { // lets make zero the kernel/bootloader memory entry
-        entry->start_address = 0;
-        entry->size = KERNEL_PHYS_ADDRESS + KERNEL_MEMORY_END_OFFSET;
+    if (n == 0) { // lets make zero the kernel memory entry
+        entry->start_address = KERNEL_PHYS_ADDRESS;
+        entry->size =  KERNEL_MEMORY_END_OFFSET;
         entry->entry_type = memory_map_entry::entry_type::MEMORY_KERNEL;
         return true;
     }

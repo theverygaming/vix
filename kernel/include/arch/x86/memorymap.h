@@ -14,4 +14,5 @@ namespace memorymap {
 
     extern SMAP_entry map_entries[MEMMAP_MAX_ENTRIES];
     extern int map_entrycount;
+    extern size_t total_ram;
 }
