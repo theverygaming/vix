@@ -6,6 +6,7 @@
 #include <cppstd/vector.h>
 #include <debug.h>
 #include <log.h>
+#include <macros.h>
 #include <memory_alloc/memalloc.h>
 #include <scheduler.h>
 #include <stdio.h>
@@ -244,7 +245,7 @@ int counter = 0;
 
 // fired every timer interrupt, may be called during an ISR to possibly force a process switch
 void multitasking::interruptTrigger(isr::registers *regs) {
-    if (uninitialized) {
+    if (unlikely(uninitialized)) {
         starttime = drivers::rtc::getunixtime();
         counter = 0;
         return;
