@@ -5,8 +5,6 @@ CONFIG_RUSTC rustc
 CONFIG_RUSTCFLAGS --extern kernel=rust/libkernel.rlib --target i686-unknown-linux-gnu -C panic=abort --emit=obj
 CONFIG_RUSTCFLAGS_LIB --target i686-unknown-linux-gnu -C panic=abort --crate-type=rlib
 
-CONFIG_RUST_SUPPORT 'Y'
-
 CONFIG_LD ld
 CONFIG_LDFLAGS -nostdlib -m elf_i386 -z noexecstack
 
@@ -15,4 +13,4 @@ CONFIG_OBJCOPYCMD objcopy -O binary kernel.o kernel.bin
 
 CONFIG_ARCH x86
 CONFIG_ENDIAN_BIG 0
-CONFIG_LOGLEVEL 'I'
+CONFIG_LOGLEVEL 'N'
