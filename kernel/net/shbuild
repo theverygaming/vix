@@ -1,1 +1,1 @@
-varappend_tx_prefix objs VARINSERT(CURRENTPATH) ethernet.ocpp ip.ocpp
+varappend_tx_prefix objs VARINSERT(CURRENTPATH) stack.ocpp ethernet.ocpp ip.ocpp arp.ocpp icmp.ocpp

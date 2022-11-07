@@ -4,7 +4,10 @@
 #include <arch/x86/drivers/pic_8259.h>
 #include <arch/x86/isr.h>
 #include <arch/x86/paging.h>
+#include <drivers/net/generic_card.h>
 #include <memory_alloc/memalloc.h>
+#include <net/stack.h>
+#include <panic.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -12,17 +15,53 @@ static uint8_t bus;
 static uint8_t device;
 static uint8_t function;
 static uint16_t io_base;
-void *bufferptr = nullptr;
-uint8_t irqline;
+static uint8_t *bufferptr = nullptr; // uint8_t * because that makes code a bit cleaner
+static uint16_t bufferoffset = 0;
+static uint8_t irqline;
+
+struct __attribute__((packed)) packetInfo {
+    uint16_t header;
+    uint16_t size;
+};
+
+static struct drivers::net::generic_card rtl8139_card = {
+    .send_packet = drivers::net::rtl8139::sendPacket,
+    .get_mac_byte = drivers::net::rtl8139::get_mac_byte,
+};
+
+static net::networkstack networkstack(rtl8139_card);
 
 static void irq_handler(isr::registers *gaming) {
-    printf("got rtl8139 IRQ\n");
-    outw(io_base + 0x3E, 0x5); // Interrupt Status - Clears the Rx OK bit, acknowledging a packet has been received, and is now in rx_buffer
+    // printf("rtl8139 IRQ\n");
+
+    if ((((struct packetInfo *)(bufferptr + bufferoffset))->header & 0x1) == 0) {
+        printf("ROK not set?? wtf\n");
+        KERNEL_PANIC("rtl8139 skill issue");
+    }
+
+    // we must read packets in a loop until BUFE is set, could have received multiple
+    while ((inb(io_base + 0x37) & 0x1) == 0) {
+        uint16_t packetSize = ((struct packetInfo *)(bufferptr + bufferoffset))->size;
+        // printf("size: %u\n", (uint32_t)packetSize);
+
+        // net::ethernet::parse_ethernet_packet(((uint8_t *)(bufferptr + bufferoffset)) + sizeof(struct packetInfo), packetSize - 4); // 4 CRC bytes
+        networkstack.receive_packet(((uint8_t *)(bufferptr + bufferoffset)) + sizeof(struct packetInfo), packetSize - 4); // 4 CRC bytes
+        // set new buffer offset
+        bufferoffset = (bufferoffset + sizeof(packetInfo) + packetSize + 3) & ~0x3;
+
+        // set CAPR to offset of next expected packet
+        // printf("offset: %u\n", (uint32_t)bufferoffset);
+        outw(io_base + 0x38, bufferoffset - 0x10);
+        // TODO: handle buffer wrap
+    }
+
+    outw(io_base + 0x3E, 0x5); // clear RX ok bit
+
     drivers::pic::pic8259::eoi(drivers::pic::pic8259::irqToint(irqline));
 }
 
 static uint8_t reg_counter = 0;
-void drivers::net::rtl8139::sendPacket(void *data, uint32_t len) {
+void drivers::net::rtl8139::sendPacket(void *data, size_t len) {
     /* https://wiki.osdev.org/RTL8139
      * The RTL8139 NIC uses a round robin style for transmitting packets. It has four transmit buffer (a.k.a. transmit start) registers, and four transmit status/command registers. The transmit start
      * registers are each 32 bits long, and are in I/O offsets 0x20, 0x24, 0x28 and 0x2C. The transmit status/command registers are also each 32 bits long and are in I/O offsets 0x10, 0x14, 0x18 and
@@ -73,13 +112,23 @@ void drivers::net::rtl8139::init() {
         timeout++;
     }
 
+    printf("rtl8139 mac: ");
+    for (int i = 0; i < 5; i++) {
+        printf("%p:", (uint32_t)inb(io_base + 0x0 + i));
+    }
+    printf("%p\n", (uint32_t)inb(io_base + 0x5));
+
     // receive buffer
-    bufferptr = memalloc::single::kmalloc(8192 + 16); // TODO: possibly free this later
+    bufferptr = (uint8_t *)memalloc::single::kmalloc(65536); // TODO: free
+    if (((size_t)bufferptr) % 32) {
+        printf("aligning buffer :troll:\n");
+        bufferptr = bufferptr + (((size_t)bufferptr) % 4);
+    }
     outl(io_base + 0x30, (uint32_t)paging::get_physaddr_unaligned(bufferptr));
 
-    // TODO: make this not broken
-    isr::RegisterHandler(34, irq_handler);
     outw(io_base + 0x3C, 0x0005); // Sets the TOK and ROK bits high
+
+    // outw(io_base + 0x3C, 0xE1FF); // enable all possible interrupts
 
     // configure receive buffer
     outl(io_base + 0x44, 0xf | (1 << 7)); // (1 << 7) is the WRAP bit, 0xf is AB+AM+APM+AAP
@@ -93,4 +142,11 @@ void drivers::net::rtl8139::init() {
     drivers::pic::pic8259::unmask_irq(irqline);
 
     printf("rtl8139 init finished!\n");
+}
+
+uint8_t drivers::net::rtl8139::get_mac_byte(int n) {
+    if (n < 6) {
+        return inb(io_base + 0x0 + n);
+    }
+    return 0;
 }

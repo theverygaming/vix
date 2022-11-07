@@ -6,6 +6,7 @@ include "main/shconfig"
 include "net/shconfig"
 include "fs/shconfig"
 include "rust/shconfig"
+include "drivers/shconfig"
 
 setsubmenupath test/test/a
 addconfigbool CONFIG_BRUH test

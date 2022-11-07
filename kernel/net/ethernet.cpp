@@ -1,49 +1,85 @@
-#include <net/ethernet.h>
+#include <arch/x86/drivers/net/rtl8139.h>
 #include <endianness.h>
+#include <memory_alloc/memalloc.h>
+#include <net/arp.h>
+#include <net/ethernet.h>
 #include <net/ip.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #define ETHERTYPE_IPV4 0x800
 #define ETHERTYPE_IPV6 0x86DD
 #define ETHERTYPE_ARP 0x806
 #define ETHERTYPE_FRARP 0x808
 
-void print_mac(uint8_t *mac) {
-    printf("%p:%p:%p:%p:%p:%p\n", (uint32_t)mac[0], (uint32_t)mac[1], (uint32_t)mac[2], (uint32_t)mac[3], (uint32_t)mac[4], (uint32_t)mac[5]);
+static void print_mac(uint8_t *mac) {
+    for (int i = 0; i < 5; i++) {
+        printf("%p:", (uint32_t)mac[i]);
+    }
+    printf("%p", (uint32_t)mac[5]);
 }
 
-bool net::ethernet::parse_ethernet_packet(void *data, size_t len) {
-    if (len < sizeof(ethernet_packet_t)) {
-        return false;
+void net::ethernet::ethernet_stack::receive_packet(net::networkstack *netstack, void *data, size_t size) {
+    if (size < sizeof(struct ethernet_packet)) {
+        return;
     }
-    ethernet_packet_t *packet = (ethernet_packet_t *)data;
+    struct ethernet_packet *packet = (struct ethernet_packet *)data;
 
     packet->ethertype = endian_assure_big(packet->ethertype);
     // if ethertype 0000-05DC it's length
 
     printf("src: ");
     print_mac(packet->source_mac);
-    printf("dst: ");
+    printf(" dst: ");
     print_mac(packet->dest_mac);
-    printf("type: 0x%p\n", (uint32_t)packet->ethertype);
+
+    struct ethernet_packet_processed processed_packet;
+    for (int i = 0; i < 6; i++) {
+        processed_packet.dest_mac[i] = packet->dest_mac[i];
+        processed_packet.source_mac[i] = packet->source_mac[i];
+    }
+    processed_packet.ethertype = packet->ethertype;
+
+    void *dataptr = ((uint8_t *)data) + sizeof(struct ethernet_packet);
+    size_t packetsize = size - sizeof(struct ethernet_packet);
 
     switch (packet->ethertype) {
     case ETHERTYPE_IPV4:
-        printf("ipv4\n");
-        net::ip::parse_ipv4_packet(((uint8_t *)data) + sizeof(ethernet_packet_t), len - sizeof(ethernet_packet_t));
+        printf("-> ipv4\n");
+        netstack->ipv4->receive_packet(netstack, &processed_packet, dataptr, packetsize);
         break;
     case ETHERTYPE_IPV6:
-        printf("ipv6\n");
+        printf("-> ipv6\n");
         break;
     case ETHERTYPE_ARP:
-        printf("ARP\n");
+        printf("-> ARP\n");
+        netstack->arp->receive_packet(netstack, &processed_packet, dataptr, packetsize);
         break;
     case ETHERTYPE_FRARP:
-        printf("FRARP\n");
+        printf("-> FRARP\n");
         break;
     default:
+        printf(" -> 0x%p(???)\n", (uint32_t)packet->ethertype);
         break;
     }
+}
 
-    return true;
+void net::ethernet::ethernet_stack::send_packet(net::networkstack *netstack, struct ethernet_packet_processed *packet, void *data, size_t size) {
+    void *new_data = memalloc::single::kmalloc(size + sizeof(struct ethernet_packet));
+    memcpy(((uint8_t *)new_data) + sizeof(struct ethernet_packet), data, size);
+    struct ethernet_packet *ethernetpacket = (struct ethernet_packet *)new_data;
+
+    // temporary funny
+    for (int i = 0; i < 6; i++) {
+        mac[i] = netstack->networkcard.get_mac_byte(i);
+    }
+
+    for (int i = 0; i < 6; i++) {
+        ethernetpacket->dest_mac[i] = packet->dest_mac[i];
+        ethernetpacket->source_mac[i] = mac[i];
+    }
+    ethernetpacket->ethertype = packet->ethertype;
+
+    netstack->networkcard.send_packet(new_data, size + sizeof(struct ethernet_packet));
+    memalloc::single::kfree(new_data);
 }
