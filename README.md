@@ -18,7 +18,7 @@ you already cloned the repo? then run ``git submodule update --init`` instead
 
 now to build for x86 you need a few extra dependencies(aside from gcc and make), on ubuntu these are installed by running
 ```
-sudo apt install nasm gcc-multilib g++-multilib xorriso grub-common mtools
+sudo apt install nasm gcc-multilib g++-multilib xorriso grub-common grub-pc mtools
 ```
 
 then you can simply build with
