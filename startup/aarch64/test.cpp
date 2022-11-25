@@ -26,4 +26,4 @@ void main() {
     }
 }
 
-// run with make clean MAKE_ARCH=aarch64 && make MAKE_ARCH=aarch64  && qemu-system-aarch64 -M raspi3b -kernel startup/aarch64/startup -serial stdio
+// run with make clean MAKE_ARCH=aarch64 && make MAKE_ARCH=aarch64  && qemu-system-aarch64 -M raspi3b -serial stdio -kernel startup/aarch64/startup

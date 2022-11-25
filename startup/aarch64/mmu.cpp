@@ -1,13 +1,14 @@
 #include <memmap.h>
 #include <mmu.h>
 
+/*
 struct stage1_lower_attributes {
     // lower attributes -- described on page 2595 of armv8 reference manual
     bool AttrIndx[2];
     bool NS;
     bool AP[2]; // https://developer.arm.com/documentation/102376/0100/Permissions-attributes
-    bool SH[2]; // https://developer.arm.com/documentation/ddi0406/cb/System-Level-Architecture/Virtual-Memory-System-Architecture--VMSA-/Memory-region-attributes/Long-descriptor-format-memory-region-attributes
-    bool AF;
+    bool SH[2]; //
+https://developer.arm.com/documentation/ddi0406/cb/System-Level-Architecture/Virtual-Memory-System-Architecture--VMSA-/Memory-region-attributes/Long-descriptor-format-memory-region-attributes bool AF;
     bool nG;
     bool nT;
 };
@@ -130,8 +131,49 @@ static uint64_t make_entry_new(struct descriptor_stage1_block e) {
     value |= (uint64_t)(e.upper.PXN & 0x1) << 52;
     value |= (uint64_t)(e.upper.XN & 0x1) << 53;
     return value;
+}*/
+
+#define PAGESIZE    4096
+
+// granularity
+#define PT_PAGE     0b11        // 4k granule
+#define PT_BLOCK    0b01        // 2M granule
+// accessibility
+#define PT_KERNEL   (0<<6)      // privileged, supervisor EL1 access only
+#define PT_USER     (1<<6)      // unprivileged, EL0 access allowed
+#define PT_RW       (0<<7)      // read-write
+#define PT_RO       (1<<7)      // read-only
+#define PT_AF       (1<<10)     // accessed flag
+#define PT_NX       (1UL<<54)   // no execute
+// shareability
+#define PT_OSH      (2<<8)      // outter shareable
+#define PT_ISH      (3<<8)      // inner shareable
+// defined in MAIR register
+#define PT_MEM      (0<<2)      // normal memory
+#define PT_DEV      (1<<2)      // device MMIO
+#define PT_NC       (2<<2)      // non-cachable
+
+#define TTBR_CNP    1
+
+
+static uint64_t make_page_entry(uint64_t address, uint64_t flags) {
+    uint64_t entry = address & 0xFFFFFFFFF000;
+    entry |= flags & 0xFFFF;
+    return entry;
 }
 
+static uint64_t l1_table[1];
+static uint64_t l2_table[512];
+
 void test_mmu() {
+    l1_table[0] = make_page_entry(0x0, PT_PAGE | PT_AF | PT_USER | PT_ISH | PT_MEM); // identity L1
+
+    for (int i = 0; i < 512; i++) {
+        // l2_table[i] = make_page_entry(0x0, PT_BLOCK | PT_AF | PT_USER | PT_ISH | PT_MEM);
+    }
+    
+    asm volatile("msr ttbr0_el1, %0" : : "r"((uint64_t)&l1_table));
+    asm volatile("msr mair_el1, %0" : : "r"(0xFF44));
+
     
 }
