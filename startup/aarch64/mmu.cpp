@@ -132,4 +132,6 @@ static uint64_t make_entry_new(struct descriptor_stage1_block e) {
     return value;
 }
 
-void test_mmu() {}
+void test_mmu() {
+    
+}

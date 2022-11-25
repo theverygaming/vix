@@ -2,11 +2,11 @@
 
 void puts(char *str) {
     while (*str) {
-        while ((*((unsigned volatile int*)0x3F201018)) & 0x20) {}
-        *((unsigned volatile int*)0x3F201000) = *str;
+        while ((*((unsigned volatile int *)0x3F201018)) & 0x20) {}
+        *((unsigned volatile int *)0x3F201000) = *str;
         if (*str == '\n') {
-            while ((*((unsigned volatile int*)0x3F201018)) & 0x20) {}
-            *((unsigned volatile int*)0x3F201000) = '\r';
+            while ((*((unsigned volatile int *)0x3F201018)) & 0x20) {}
+            *((unsigned volatile int *)0x3F201000) = '\r';
         }
         str++;
     }
@@ -21,7 +21,7 @@ void main() {
     char a[] = "a";
     while (1) {
         a[0] = c;
-        //puts(a);
+        // puts(a);
         c++;
     }
 }

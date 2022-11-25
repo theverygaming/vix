@@ -17,6 +17,11 @@ SECTIONS
 
     .bss : {
         . = ALIGN(16);
+        __bss_start = .;
         *(.bss)
-    }   
+        __bss_end = .;
+    }
+    /DISCARD/ : { *(.comment) *(.gnu*) *(.note*) *(.eh_frame*) }   
 }
+
+__bss_size = (__bss_end - __bss_start)>>3;
