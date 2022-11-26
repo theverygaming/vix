@@ -15,16 +15,19 @@ img-x86:
 img-aarch64:
 	@$(MAKE) --no-print-directory -C startup/$(MAKE_ARCH)
 
+img-lx106_esp8266:
+	@$(MAKE) --no-print-directory -C kernel
+
 config:
 	@$(MAKE) --no-print-directory -C kernel config
 
 clean:
 	@rm -f shitOS.img shitOS_app.img *.o
 	@$(MAKE) --no-print-directory -C kernel clean
-	@$(MAKE) --no-print-directory -C startup/$(MAKE_ARCH) clean
+	@$(MAKE) --no-print-directory -C startup/$(MAKE_ARCH) clean # lx106 skill issue
 	@$(MAKE) --no-print-directory -C shitshell clean
 
-proper:
+proper: clean
 	@$(MAKE) --no-print-directory -C kernel proper
 	@$(MAKE) --no-print-directory -C startup/$(MAKE_ARCH) proper
 	@$(MAKE) --no-print-directory -C shitshell clean

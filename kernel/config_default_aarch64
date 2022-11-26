@@ -1,0 +1,11 @@
+CONFIG_CXX aarch64-linux-gnu-g++
+CONFIG_CXXFLAGS -Iinclude -O3 -nostdlib -nostartfiles -nostdinc -fno-pie -fno-stack-protector -ffreestanding -fno-exceptions -Wall -Wextra -Wno-pointer-arith -Wno-unused-parameter
+
+CONFIG_LD aarch64-linux-gnu-ld
+CONFIG_LDFLAGS -nostdlib
+
+CONFIG_OBJCOPYCMD aarch64-linux-gnu-objcopy -O binary kernel.o kernel.bin
+
+CONFIG_ARCH aarch64
+CONFIG_ENDIAN_BIG 0
+CONFIG_LOGLEVEL 'I'
