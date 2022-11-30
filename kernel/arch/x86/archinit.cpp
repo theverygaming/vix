@@ -10,6 +10,7 @@
 #include <arch/x86/generic/startup.h>
 #include <arch/x86/isr.h>
 #include <arch/x86/memorymap.h>
+#include <arch/x86/modelf.h>
 #include <arch/x86/multiboot2.h>
 #include <arch/x86/multitasking.h>
 #include <arch/x86/paging.h>
@@ -20,10 +21,10 @@
 #include <cppstd/vector.h>
 #include <fs/roramfs.h>
 #include <fs/vfs.h>
-#include <time.h>
 #include <kernel.h>
 #include <panic.h>
 #include <stdio.h>
+#include <time.h>
 
 static void kernelinit(void *multiboot2_info_ptr) {
     drivers::textmode::text80x25::init();
@@ -81,9 +82,14 @@ static uint8_t franxxlogo[9][18] = {
 
 void arch::generic::startup::after_init() {
     void *elfptr = nullptr;
+
+    if (fs::vfs::fptr("/ramfs/module.o", &elfptr)) {
+        printf("loading kernel module\n");
+        elf::load_module(elfptr);
+    }
+
     std::vector<std::string> args;
     if (fs::vfs::fptr("/ramfs/shitshell", &elfptr)) {
-        std::vector<std::string> args;
         args.push_back("/ramfs/shitshell");
         elf::load_program(elfptr, &args);
     }
@@ -98,5 +104,5 @@ void arch::generic::startup::after_init() {
     args.~vector();
 
     multitasking::initMultitasking(); // this will kill this process
-    while(true) {} 
+    while (true) {}
 }

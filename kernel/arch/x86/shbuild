@@ -1,3 +1,3 @@
 include "drivers/shbuild"
 include "generic/shbuild"
-varappend_tx_prefix objs VARINSERT(CURRENTPATH) archinit.ocpp cpubasics.ocpp cpuid.ocpp gdt.oasm gdt.ocpp idt.oasm idt.ocpp isr.oasm isr.ocpp isrs.ocpp paging.oasm paging.ocpp simd.oasm simd.ocpp multiboot2.ocpp syscall.ocpp syscalls.ocpp multitasking.ocpp memorymap.ocpp elf.ocpp tss.ocpp
+varappend_tx_prefix objs VARINSERT(CURRENTPATH) archinit.ocpp cpubasics.ocpp cpuid.ocpp gdt.oasm gdt.ocpp idt.oasm idt.ocpp isr.oasm isr.ocpp isrs.ocpp paging.oasm paging.ocpp simd.oasm simd.ocpp multiboot2.ocpp syscall.ocpp syscalls.ocpp multitasking.ocpp memorymap.ocpp elf.ocpp tss.ocpp modelf.ocpp
