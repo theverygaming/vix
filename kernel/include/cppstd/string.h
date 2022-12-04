@@ -39,6 +39,18 @@ namespace std {
             return _pointer[i];
         }
 
+        bool operator==(const string &str) {
+            if (str._size != _size) {
+                return false;
+            }
+            for (size_t i = 0; i < _size; i++) {
+                if (str._pointer[i] != _pointer[i]) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
         string &operator=(const string &str) {
             assureSize(str._size);
             memcpy(_pointer, str._pointer, str._size);

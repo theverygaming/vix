@@ -119,17 +119,22 @@ static void expandHeap(size_t extra_size) {
     }
     meminfo_t *newHeapStart = (meminfo_t *)(((uint8_t *)heapPtr) + (heapPages * ARCH_PAGE_SIZE));
     heapPages += pages;
+    printf("new heap size: %u KB\n", (heapPages * ARCH_PAGE_SIZE) / 1000);
     heapPtr = memalloc::page::kernel_resize(heapPtr, heapPages);
 
     meminfo_t *last = getLastListMember();
+    if ((((uint8_t *)last) + last->size + sizeof(meminfo_t)) == (uint8_t *)newHeapStart) {
+        printf("expand: good\n");
+        last->size += (pages * ARCH_PAGE_SIZE);
+    } else {
+        newHeapStart->next = nullptr;
+        newHeapStart->prev = last;
+        newHeapStart->size = (pages * ARCH_PAGE_SIZE) - sizeof(meminfo_t);
 
-    newHeapStart->next = nullptr;
-    newHeapStart->prev = last;
-    newHeapStart->size = (pages * ARCH_PAGE_SIZE) - sizeof(meminfo_t);
+        newHeapStart->prev->next = newHeapStart;
 
-    newHeapStart->prev->next = newHeapStart;
-
-    last->next = newHeapStart;
+        last->next = newHeapStart;
+    }
 
     DEBUG_PRINTF_INSANE("heap expanded\n");
 }
@@ -170,7 +175,7 @@ static size_t joinFreeAreas() {
             ptr = heapListStart;
             continue;
         }
-        if (((uint8_t *)ptr->next) == (((uint8_t *)ptr) + ptr->size + sizeof(meminfo_t))) { // the next pointer is directly after the free area, we can join them together
+        if (((uint8_t *)ptr->next) == (((uint8_t *)ptr) + sizeof(meminfo_t) + ptr->size)) { // the next pointer is directly after the free area, we can join them together
             counter++;
             ptr->size += ptr->next->size + sizeof(meminfo_t);
             ptr->next = ptr->next->next;
@@ -285,6 +290,16 @@ void *memalloc::single::kmalloc(size_t size) {
     return kmalloc(size);
 }
 
+void *memalloc::single::kmalloc_aligned(size_t size, size_t alignment) {
+    // hack level: insane
+    void *ptr = kmalloc(size + alignment);
+    uint32_t misalign = (uint32_t)ptr % alignment;
+    if(misalign != 0) {
+        ptr = (void*)((uint32_t)ptr + (alignment - misalign));
+    }
+    return ptr;
+}
+
 void memalloc::single::kfree(void *ptr) {
     DEBUG_PRINTF_INSANE("kfree(0x%p)\n", ptr);
     checkList();
@@ -313,6 +328,7 @@ void memalloc::single::kfree(void *ptr) {
         heapListStart->prev = infoPtr;
         heapListStart = infoPtr;
         checkList();
+        joinFreeAreas();
         return;
     }
 
@@ -334,60 +350,85 @@ void *memalloc::single::krealloc(void *ptr, size_t size) {
     DEBUG_PRINTF_INSANE("krealloc(0x%p, %u)\n", ptr, size);
     checkList();
     joinFreeAreas();
-    
+    if (ptr == nullptr) {
+        return ptr;
+    }
+
     meminfo_t *infoPtr = (meminfo_t *)(((uint8_t *)ptr) - sizeof(meminfo_t));
-    /*
+
     meminfo_t *llptr = findListMember(ptr);
 
-    
+    goto b;
 
-    if (size < infoPtr->size) {
-        meminfo_t *newPtr = (meminfo_t *)(((uint8_t *)ptr) + size);
-        // is adding a new element to the linked list worth it?
+    /*if (size < infoPtr->size) {
         size_t leftoverSize = infoPtr->size - size;
-        if (leftoverSize > sizeof(meminfo_t)) {
-            DEBUG_PRINTF_INSANE("    -> resize\n", ptr);
-            newPtr->size = leftoverSize - sizeof(meminfo_t);
-            if (llptr == nullptr) {
-                printf("    -> heapstart\n", ptr);
-                newPtr->prev = nullptr;
-                newPtr->next = heapListStart;
-                heapListStart->prev = newPtr;
-                heapListStart = newPtr;
-                DEBUG_PRINTF_INSANE("    -> 0x%p\n", ptr);
-                checkList();
-                return ptr;
-            }
-            newPtr->prev = llptr;
-            newPtr->next = llptr->next;
-            llptr->next = newPtr;
-            if (newPtr->next != nullptr) {
-                newPtr->next->prev = newPtr;
-            }
+
+        // return in case there is not enough space for a new element
+        if (leftoverSize < sizeof(meminfo_t)) {
+            checkList();
+            return ptr;
         }
+
+        infoPtr->size -= leftoverSize;
+
+        meminfo_t *newPtr = (meminfo_t *)(((uint8_t *)ptr) + size);
+        DEBUG_PRINTF_INSANE("    -> resize\n", ptr);
+        newPtr->size = leftoverSize - sizeof(meminfo_t);
+        if (llptr == nullptr) {
+            DEBUG_PRINTF_INSANE("    -> heapstart\n", ptr);
+            newPtr->prev = nullptr;
+            newPtr->next = heapListStart;
+            heapListStart->prev = newPtr;
+            heapListStart = newPtr;
+            DEBUG_PRINTF_INSANE("    -> 0x%p\n", ptr);
+            checkList();
+            return ptr;
+        }
+        newPtr->prev = llptr;
+        newPtr->next = llptr->next;
+        llptr->next = newPtr;
+        if (newPtr->next != nullptr) {
+            newPtr->next->prev = newPtr;
+        }
+
         joinFreeAreas();
         DEBUG_PRINTF_INSANE("    -> 0x%p\n", ptr);
         checkList();
         return ptr;
-    }
+    }*/
 
+    // UNTESTED CODE
     if ((llptr != nullptr) && (llptr->next != nullptr)) {
         if (((uint8_t *)llptr->next) == (((uint8_t *)infoPtr) + infoPtr->size + sizeof(meminfo_t))) {
             if ((infoPtr->size + llptr->next->size) >= size + sizeof(meminfo_t)) {
                 DEBUG_PRINTF_INSANE("    -> enlarge\n", ptr);
-                size_t leftoverSize = (infoPtr->size + llptr->next->size) - (size + sizeof(meminfo_t));
+                printf("enlarge\n");
+                size_t leftoverSize = (infoPtr->size + llptr->next->size + sizeof(meminfo_t)) - size;
 
-                meminfo_t *newPtr = (meminfo_t *)(((uint8_t *)ptr) + size);
+                if (leftoverSize > sizeof(meminfo_t)) {
+                    goto b;
+                    meminfo_t *newPtr = (meminfo_t *)(((uint8_t *)ptr) + size);
 
-                newPtr->size = leftoverSize;
-                newPtr->next = llptr->next->next;
-                if (newPtr->next != nullptr) {
-                    newPtr->next->prev = newPtr;
+                    newPtr->size = leftoverSize;
+                    newPtr->next = llptr->next->next;
+                    printf("llptr->next->next -> 0x%p\n", llptr->next->next);
+                    if (newPtr->next != nullptr) {
+                        newPtr->next->prev = newPtr;
+                    }
+                    newPtr->prev = llptr;
+                    llptr->next = newPtr;
+
+                    infoPtr->size = size;
+                } else {
+                    infoPtr->size += llptr->next->size + sizeof(meminfo_t);
+
+                    llptr->next = llptr->next->next;
+                    if (llptr->next != nullptr) {
+                        llptr->next->prev = llptr;
+                    }
                 }
-                newPtr->prev = llptr;
-                llptr->next = newPtr;
 
-                infoPtr->size = size;
+                // infoPtr->size = size;
                 DEBUG_PRINTF_INSANE("    -> 0x%p\n", ptr);
                 checkList();
                 joinFreeAreas();
@@ -396,7 +437,7 @@ void *memalloc::single::krealloc(void *ptr, size_t size) {
         }
     }
 
-    */
+b:
 
     // trying to resize failed so we'll malloc and copy instead
     DEBUG_PRINTF_INSANE("    -> kmalloc\n");
@@ -409,4 +450,36 @@ void *memalloc::single::krealloc(void *ptr, size_t size) {
     DEBUG_PRINTF_INSANE("    -> 0x%p\n", newarea);
     checkList();
     return newarea;
+}
+
+size_t memalloc::single::getFreeSize() {
+    joinFreeAreas();
+    size_t size = 0;
+
+    meminfo_t *ptr = heapListStart;
+    do {
+        size += ptr->size;
+        ptr = ptr->next;
+    } while (ptr != nullptr);
+
+    printf("frag: %u\n", getHeapFragmentation());
+    expandHeap(6096);
+    joinFreeAreas();
+    printf("-> frag: %u\n", getHeapFragmentation());
+
+    return size;
+}
+
+size_t memalloc::single::getHeapFragmentation() {
+    joinFreeAreas();
+    size_t frag = 0;
+
+    meminfo_t *ptr = heapListStart;
+    do {
+        frag++;
+        // printf("area: 0x%p size: %u\n", ptr, ptr->size);
+        ptr = ptr->next;
+    } while (ptr != nullptr);
+
+    return frag;
 }
