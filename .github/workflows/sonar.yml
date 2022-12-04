@@ -34,7 +34,7 @@ jobs:
       - name: install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install nasm gcc-multilib g++-multilib xorriso grub-common mtools llvm-dev libclang-dev clang
+          sudo apt-get install nasm gcc-multilib g++-multilib xorriso grub-common mtools llvm-dev libclang-dev clang python3
         #curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
         #rustup default stable-x86_64-unknown-linux-gnu
         #cargo install bindgen-cli  --force
@@ -58,7 +58,7 @@ jobs:
       - name: install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install nasm gcc-multilib g++-multilib xorriso grub-common mtools qemu-system-x86 llvm-dev libclang-dev clang
+          sudo apt-get install nasm gcc-multilib g++-multilib xorriso grub-common mtools qemu-system-x86 llvm-dev libclang-dev clang python3
         #curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
         #rustup default stable-x86_64-unknown-linux-gnu
         #cargo install bindgen-cli --force

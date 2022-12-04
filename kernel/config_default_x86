@@ -1,5 +1,5 @@
 CONFIG_CXX g++
-CONFIG_CXXFLAGS -Iinclude -O3 -nostdlib -m32 -march=i386 -fno-pie -mno-red-zone -fno-stack-protector -ffreestanding -fno-exceptions -Wall -Wextra -Wno-unused-parameter
+CONFIG_CXXFLAGS -O3 -Iinclude -nostdlib -m32 -march=i386 -fno-pie -mno-red-zone -fno-stack-protector -ffreestanding -fno-exceptions -Wall -Wextra -Wno-unused-parameter
 
 CONFIG_RUSTC rustc
 CONFIG_RUSTCFLAGS --extern kernel=rust/libkernel.rlib --target i686-unknown-linux-gnu -C panic=abort --emit=obj

@@ -1,6 +1,6 @@
 all: config_gen
 	@g++ scripts/shbuild.cpp -o scripts/shbuild -Wall
-	@scripts/shbuild shbuild
+	@./build.sh
   
 config: 
 	@$(MAKE) --no-print-directory -C scripts/shconfig

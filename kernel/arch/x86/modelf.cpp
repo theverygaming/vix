@@ -1,4 +1,5 @@
 #include <arch/x86/modelf.h>
+#include <arch/x86/symbols.h>
 #include <cppstd/string.h>
 #include <cppstd/vector.h>
 #include <log.h>
@@ -119,12 +120,10 @@ uint32_t elf32_get_symbol_value(void *ELF_baseadr, uint32_t sectionindex, uint32
 
     struct elf32_symtab *symtab_entry = (struct elf32_symtab *)(((uint8_t *)ELF_baseadr) + shdr->sh_offset + (shdr->sh_entsize * symindex));
 
-    if (symtab_entry->st_name != 0) {
-        const char *sname = &stringtable_syms[symtab_entry->st_name];
-    }
+    const char *sname = &stringtable_syms[symtab_entry->st_name];
 
     if (symtab_entry->st_shndx == SHN_UNDEF) {
-        return (uint32_t)printf;
+        return syms::get_sym(sname);
     } else if (symtab_entry->st_shndx == SHN_ABS) {
         printf("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n");
         while (true) {}

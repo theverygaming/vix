@@ -296,8 +296,8 @@ void build_asm_nasm(std::string nasm, std::string nflags, std::string inputfile,
     runcmd(command);
 }
 
-void partial_link(std::string ld, std::string ldflags, std::string linkerscript, std::string inputfiles, std::string outputobject) {
-    std::string command = ld + " " + ldflags + " -r -T " + linkerscript + " " + inputfiles + " -o " + outputobject;
+void partial_link(std::string ld, std::string ldflags, std::string inputfiles, std::string outputobject) {
+    std::string command = ld + " " + ldflags + " -r " + inputfiles + " -o " + outputobject;
     printf("%s %s\n", ld.c_str(), inputfiles.c_str());
     runcmd(command);
 }
@@ -381,7 +381,8 @@ int main(int argc, char *argv[]) {
         return 1;
     }
     std::sort(objs.begin(), objs.end()); // a very hacky way to keep libkernel.rlib at the end...
-    final_link(config_ld, config_ldflags, "arch/" + config_arch + "/linker.ld", expandStrVector(objs), "kernel.o");
+    partial_link(config_ld, config_ldflags, expandStrVector(objs), "kernel_partital.o");
+    final_link(config_ld, config_ldflags, "arch/" + config_arch + "/linker.ld", "kernel_partital.o", "kernel.o");
     runcmd(config_objcopycmd);
 
     return 0;

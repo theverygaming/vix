@@ -111,6 +111,13 @@ uint32_t sys_execve(isr::registers *regs, int *syscall_ret, uint32_t, uint32_t _
     return -1;
 }
 
+uint32_t sys_time(isr::registers *, int *syscall_ret, uint32_t, uint32_t _tloc, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
+    *syscall_ret = 1;
+    uint64_t *tloc = (uint64_t *)_tloc;
+    *tloc = time::getCurrentUnixTime();
+    return 0;
+}
+
 uint32_t sys_mmap(isr::registers *, int *syscall_ret, uint32_t, uint32_t mmap_struct_ptr, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     LOG_INSANE("syscall: sys_mmap -- unstable\n");

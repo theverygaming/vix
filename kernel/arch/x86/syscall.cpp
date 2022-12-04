@@ -20,7 +20,7 @@ uint32_t (*syscall_table[385])(isr::registers *, int *, uint32_t, uint32_t, uint
     nullptr,
     &sys_execve,
     nullptr,
-    nullptr,
+    &sys_time,
     nullptr, /* 14  */
     nullptr,
     nullptr,

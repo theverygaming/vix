@@ -12,15 +12,15 @@ SECTIONS {
 	. = HIGHER_HALF;
 
 	.entry ALIGN(PAGE) : AT(ADDR(.entry) - HIGHER_HALF) {
-		*(.entry)
+		KEEP(*(.entry))
 	}>ram
 
 	.text ALIGN(PAGE) : AT(ADDR(.text) - HIGHER_HALF) {
-		*(.text)
+		KEEP(*(.text))
 	}>ram
 
 	.rodata ALIGN(PAGE) : AT(ADDR(.rodata) - HIGHER_HALF) {
-		*(.rodata)
+		KEEP(*(.rodata))
 	}>ram
 
 	.data ALIGN(PAGE) : AT(ADDR(.data) - HIGHER_HALF) {
@@ -28,11 +28,14 @@ SECTIONS {
     	KEEP(*( .init_array ));
     	KEEP(*(SORT_BY_INIT_PRIORITY( .init_array.* )));
     	END_CONSTRUCTORS = .;
-		*(.data)
+		KEEP(*(.data))
+		KEEP(*(.sym_table))
+		PROVIDE(symtab_start = .);
+		PROVIDE(symtab_end = .);
 	}>ram
 
 	.bss ALIGN(PAGE) : AT(ADDR(.bss) - HIGHER_HALF) {
-		*(.bss)
+		KEEP(*(.bss))
 	}>ram
 
 	KERNEL_SIZE = . - HIGHER_HALF;
