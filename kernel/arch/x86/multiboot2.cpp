@@ -1,23 +1,28 @@
+#include <arch/x86/generic/archspecific.h>
+#include <arch/x86/generic/memory.h>
 #include <arch/x86/multiboot2.h>
+#include <arch/x86/paging.h>
+#include <debug.h>
+#include <memory_alloc/memalloc.h>
 #include <panic.h>
 #include <stdio.h>
 #include <types.h>
 
-typedef struct __attribute__((packed)) {
+struct __attribute__((packed)) multiboot2_tag {
     uint32_t type;
     uint32_t size;
-} multiboot2_tag_t;
+};
 
-static bool multiboot_find_tag(void *multiboot2_info_adr, uint32_t type, multiboot2_tag_t **tag_ptr) {
+static bool multiboot_find_tag(void *multiboot2_info_adr, uint32_t type, struct multiboot2_tag **tag_ptr) {
     // uint32_t multiboot_size = *(uint32_t *)multiboot2_info_adr;
-    multiboot2_tag_t *tag = (multiboot2_tag_t *)((char *)multiboot2_info_adr + (sizeof(uint32_t) * 2));
+    struct multiboot2_tag *tag = (struct multiboot2_tag *)((char *)multiboot2_info_adr + (sizeof(uint32_t) * 2));
     while (!(tag->type == 0 && tag->size == 8)) {
         // printf("found tag %u size: %u\n", tag->type, tag->size);
         if (tag->type == type) {
             *tag_ptr = tag;
             return true;
         }
-        tag = (multiboot2_tag_t *)((char *)tag + ((tag->size + 7) & ~7)); // get next tag
+        tag = (struct multiboot2_tag *)((char *)tag + ((tag->size + 7) & ~7)); // get next tag
     }
     return false;
 }
@@ -31,15 +36,56 @@ typedef struct __attribute__((packed)) {
 
 void *multiboot2::findMemMap(void *multiboot2_info_adr, int *memmap_entrycount) {
     multiboot2_memmap_tag_t *tagptr;
-    if (multiboot_find_tag(multiboot2_info_adr, 6, (multiboot2_tag_t **)&tagptr)) {
+    if (multiboot_find_tag(multiboot2_info_adr, 6, (struct multiboot2_tag **)&tagptr)) {
         // TODO: check if tag version is compatible
         *memmap_entrycount = (tagptr->size - 16) / tagptr->entry_size;
         return (void *)((char *)tagptr + 16);
-    } else if (multiboot_find_tag(multiboot2_info_adr, 17, (multiboot2_tag_t **)&tagptr)) {
+    } else if (multiboot_find_tag(multiboot2_info_adr, 17, (struct multiboot2_tag **)&tagptr)) {
         KERNEL_PANIC("only found EFI memory map tag");
     } else {
         KERNEL_PANIC("literally memorymapless");
     }
     *memmap_entrycount = 0;
     return 0;
+}
+
+struct __attribute__((packed)) multiboot2_framebuffer_info_tag {
+    uint32_t type;
+    uint32_t size;
+    uint64_t framebuffer_addr;
+    uint32_t framebuffer_pitch;
+    uint32_t framebuffer_width;
+    uint32_t framebuffer_height;
+    uint8_t framebuffer_bpp;
+    uint8_t framebuffer_type;
+    uint8_t reserved;
+};
+
+struct fb::fbinfo multiboot2::findFrameBuffer(void *multiboot2_info_adr) {
+    struct multiboot2_framebuffer_info_tag *tag;
+    if (multiboot_find_tag(multiboot2_info_adr, 8, (struct multiboot2_tag **)&tag)) {
+        assertm(tag->framebuffer_type != 2, "wrong framebuffer type");
+        size_t fb_bytes = tag->framebuffer_pitch * tag->framebuffer_height;
+        if (fb_bytes % ARCH_PAGE_SIZE != 0) {
+            fb_bytes += fb_bytes % ARCH_PAGE_SIZE;
+        }
+
+        if (tag->framebuffer_addr > 0xFFFFFFFF) {
+            KERNEL_PANIC("framebuffer is in 64-bit address space");
+        }
+
+        // rather hacky because we have no VMM
+        void *fb_virt_adr = (void *)(KERNEL_VIRT_ADDRESS + KERNEL_MEMORY_END_OFFSET);
+        memalloc::page::phys_alloc((void *)((uintptr_t)tag->framebuffer_addr), fb_bytes / ARCH_PAGE_SIZE);
+        paging::map_page((void *)((uintptr_t)tag->framebuffer_addr), (void *)(KERNEL_VIRT_ADDRESS + KERNEL_MEMORY_END_OFFSET), fb_bytes / ARCH_PAGE_SIZE);
+        return {
+            .address = fb_virt_adr,
+            .width = tag->framebuffer_width,
+            .height = tag->framebuffer_height,
+            .pitch = tag->framebuffer_pitch,
+            .bpp = tag->framebuffer_bpp,
+        };
+    }
+    KERNEL_PANIC("couldn't initialize framebuffer");
+    return {};
 }
