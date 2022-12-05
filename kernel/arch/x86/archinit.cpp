@@ -19,12 +19,20 @@
 #include <config.h>
 #include <cppstd/string.h>
 #include <cppstd/vector.h>
+#include <framebuffer.h>
 #include <fs/roramfs.h>
 #include <fs/vfs.h>
 #include <kernel.h>
 #include <panic.h>
 #include <stdio.h>
 #include <time.h>
+
+static fb::fb framebuffer;
+static fb::fbconsole fbconsole;
+
+static void idkputc(char c) {
+    fbconsole.putc(c);
+}
 
 static void kernelinit(void *multiboot2_info_ptr) {
     drivers::textmode::text80x25::init();
@@ -37,6 +45,13 @@ static void kernelinit(void *multiboot2_info_ptr) {
     int memMap_count = 0;
     void *memMap = multiboot2::findMemMap(multiboot2_info_ptr, &memMap_count);
     memorymap::initMemoryMap(memMap, memMap_count);
+    framebuffer.init(multiboot2::findFrameBuffer(multiboot2_info_ptr));
+    for (size_t y = 0; y < framebuffer.get_height(); y++) {
+        for (size_t x = 0; x < framebuffer.get_width(); x++) {
+            framebuffer.write_pixel(x, y, 56, 60, 60); // discord background color
+        }
+    }
+    fbconsole.init(&framebuffer);
     gdt::init();
     paging::clearPageTables((void *)0x0, KERNEL_VIRT_ADDRESS / ARCH_PAGE_SIZE);
     kernelstart();
@@ -57,7 +72,8 @@ void arch::generic::startup::stage2_startup() {
 }
 
 void arch::generic::startup::stage3_startup() {
-    cpubasics::cpuinit();
+    stdio::set_putc_function(idkputc);
+    cpubasics::cpuinit(); // interrupt handlers are enable here, before this all exceptions will cause a triplefault
     drivers::keyboard::init();
     isr::RegisterHandler(0x80, syscall::syscallHandler);
     cpuid::printFeatures();

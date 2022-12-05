@@ -29,6 +29,15 @@ header_start:
 
     align 8
 
+    dw 5 ; type = 5(framebuffer tag)
+    dw 0 ; flags
+    dd 20 ; size
+    dd 800 ; width
+    dd 600 ; height
+    dd 24 ; depth
+
+    align 8
+
     ; required end tag
     dw 0    ; type
     dw 0    ; flags
