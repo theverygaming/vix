@@ -14,7 +14,7 @@ first make sure you have the shitshell submodule. Simply clone like this
 git clone --recurse-submodules https://github.com/theverygaming/shitOS.git
 ```
 
-you already cloned the repo? then run ``git submodule update --init`` instead
+you already cloned the repo? then run ``git submodule update --init --recursive`` instead
 
 now to build for x86 you need a few extra dependencies(aside from gcc and make), on ubuntu these are installed by running
 ```
