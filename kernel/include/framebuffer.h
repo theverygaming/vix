@@ -1,5 +1,6 @@
 #pragma once
 #include <arch/arch.h>
+#include <psf.h>
 #include <types.h>
 #include INCLUDE_ARCH_GENERIC(textoutput.h)
 
@@ -24,6 +25,7 @@ namespace fb {
     class fbconsole {
     public:
         void init(fb *framebuffer);
+        void init2(); // font init
         void puts(char *str, arch::generic::textoutput::color color = arch::generic::textoutput::color::COLOR_WHITE);
         void putc(char c);
 
@@ -34,5 +36,6 @@ namespace fb {
 
         size_t pos_x = 0;
         size_t pos_y = 0;
+        psf::psf1_reader psfreader;
     };
 }

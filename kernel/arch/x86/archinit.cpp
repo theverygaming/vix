@@ -72,7 +72,6 @@ void arch::generic::startup::stage2_startup() {
 }
 
 void arch::generic::startup::stage3_startup() {
-    stdio::set_putc_function(idkputc);
     cpubasics::cpuinit(); // interrupt handlers are enable here, before this all exceptions will cause a triplefault
     drivers::keyboard::init();
     isr::RegisterHandler(0x80, syscall::syscallHandler);
@@ -97,6 +96,9 @@ static uint8_t franxxlogo[9][18] = {
 };
 
 void arch::generic::startup::after_init() {
+    fbconsole.init2();
+    stdio::set_putc_function(idkputc);
+    
     void *elfptr = nullptr;
 
     if (fs::vfs::fptr("/ramfs/module.o", &elfptr)) {
