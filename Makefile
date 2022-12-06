@@ -9,7 +9,7 @@ img-x86:
 	@$(MAKE) --no-print-directory -C modules
 	@cat startup/$(MAKE_ARCH)/startup kernel/kernel.bin /dev/zero | dd status=none iflag=fullblock of=kernel.bin bs=65536 count=7 # make the ramfs land right at KERNEL_CODE_SIZE
 	@g++ roramfs_create.cpp -o roramfs_create
-	@./roramfs_create roramfs.fs "insert fs label here" shitshell/shitshell modules/module.o
+	@./roramfs_create roramfs.fs "insert fs label here" shitshell/shitshell modules/module.o fonts/Unifont-APL8x16-15.0.01.psf
 	@cat kernel.bin roramfs.fs /dev/zero | dd status=none iflag=fullblock of=kernel_shitshell.bin bs=65536 count=74
 	@grub/createimg.sh
 
