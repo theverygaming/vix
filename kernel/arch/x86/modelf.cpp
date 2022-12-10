@@ -314,7 +314,7 @@ void elf::load_module(void *ELF_baseadr) {
         }
     }
 
-    void (*linux_modexit)() = (int (*)())elf32_find_symbol("cleanup_module", ELF_baseadr, &sections);
+    void (*linux_modexit)() = (void (*)())elf32_find_symbol("cleanup_module", ELF_baseadr, &sections);
     if (linux_modexit != nullptr) {
         linux_modexit();
     }
