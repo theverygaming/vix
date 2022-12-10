@@ -123,6 +123,7 @@ uint32_t elf32_get_symbol_value(void *ELF_baseadr, uint32_t sectionindex, uint32
     const char *sname = &stringtable_syms[symtab_entry->st_name];
 
     if (symtab_entry->st_shndx == SHN_UNDEF) {
+        DEBUG_PRINTF_INSANE("get_sym -- %s\n", sname);
         return syms::get_sym(sname);
     } else if (symtab_entry->st_shndx == SHN_ABS) {
         printf("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n");
@@ -226,6 +227,7 @@ void elf::load_module(void *ELF_baseadr) {
                     }
                 }
                 if (target_address == nullptr) {
+                    LOG_DEBUG("target_address == nullptr");
                     return;
                 }
 
@@ -236,6 +238,7 @@ void elf::load_module(void *ELF_baseadr) {
                 uint32_t symval = elf32_get_symbol_value(ELF_baseadr, shdr->sh_link, ELF32_R_SYM(reloc->r_info), &isoffset, &symname);
 
                 if (symval == 0 && !isoffset) { // unable to locate symbol
+                    LOG_DEBUG("symval == 0 && !isoffset");
                     return;
                 }
 
@@ -249,6 +252,7 @@ void elf::load_module(void *ELF_baseadr) {
                         }
                     }
                     if (!set) {
+                        LOG_DEBUG("!set");
                         return;
                     }
                 }
@@ -292,14 +296,26 @@ void elf::load_module(void *ELF_baseadr) {
     int (*modinit)() = (int (*)())elf32_find_symbol("__MODULE_INIT", ELF_baseadr, &sections);
     if (modinit != nullptr) {
         if (modinit() != 0) {
-            printf("module init failed!\n");
+            printf("shitOS module init failed!\n");
+        }
+    }
+
+    int (*linux_modinit)() = (int (*)())elf32_find_symbol("init_module", ELF_baseadr, &sections);
+    if (linux_modinit != nullptr) {
+        if (linux_modinit() != 0) {
+            printf("linux module init failed!\n");
         }
     }
 
     int (*modexit)() = (int (*)())elf32_find_symbol("__MODULE_EXIT", ELF_baseadr, &sections);
     if (modexit != nullptr) {
         if (modexit() != 0) {
-            printf("module init failed!\n");
+            printf("shitOS module exit failed!\n");
         }
+    }
+
+    void (*linux_modexit)() = (int (*)())elf32_find_symbol("cleanup_module", ELF_baseadr, &sections);
+    if (linux_modexit != nullptr) {
+        linux_modexit();
     }
 }

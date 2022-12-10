@@ -229,6 +229,15 @@ void printf_core(bool debugonly, va_list args, const char *fmt, ...) {
     }
 }
 
+// quick hack for loading linux hello world module
+extern "C" int _printk(const char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    printf_core(false, args, fmt);
+    va_end(args);
+    return 0;
+}
+
 void printf(const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
