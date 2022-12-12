@@ -49,6 +49,22 @@ void *memmove(void *dest, const void *src, size_t n) {
     return dest;
 }
 
+unsigned long int strtoul(const char *str, char **endptr, int base) {
+    unsigned long int num = 0;
+    while (*str) {
+        if (*str < '0' || *str > '9') {
+            break;
+        }
+        uint8_t current_num = *str - '0';
+        num = (num * base) + current_num;
+        str++;
+    }
+    if (endptr != 0) {
+        *endptr = (char *)str;
+    }
+    return num;
+}
+
 int strcmp(const char *str1, const char *str2) {
     while (*str1 && (*str1 == *str2)) {
         str1++;

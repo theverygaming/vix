@@ -1,12 +1,17 @@
 source "kernel/cppstd/Kconfig"
 source "kernel/memory_alloc/Kconfig"
 
-config CONFIG_LOGLEVEL
-	int "kernel loglevel"
-	default 2
-	range 1 4
-	help
-		1 = fatal
-		2 = normal
-		3 = debug
-		4 = insane
+choice
+	prompt "kernel loglevel"
+	default LOGLEVEL_NORMAL
+	config LOGLEVEL_INSANE
+		bool "insane"
+	config LOGLEVEL_DEBUG
+		bool "debug"
+	config LOGLEVEL_NORMAL
+		bool "normal"
+	config LOGLEVEL_FATAL
+		bool "fatal"
+	config LOGLEVEL_SILENT
+		bool "silent"
+endchoice

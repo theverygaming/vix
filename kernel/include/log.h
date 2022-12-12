@@ -3,27 +3,27 @@
 #include <macro.h>
 #include <generated/autoconf.h>
 
-#if CONFIG_LOGLEVEL == 4
+#ifdef CONFIG_LOGLEVEL_INSANE
     #define LOG_INSANE(str) log::log(__FILE__ ":" TOSTRING(__LINE__) " -> " str)
     #define LOG_DEBUG(str) log::log(__FILE__ ":" TOSTRING(__LINE__) " -> " str)
     #define LOG_NORMAL(str) log::log(__FILE__ ":" TOSTRING(__LINE__) " -> " str)
     #define LOG_FATAL(str) log::log(__FILE__ ":" TOSTRING(__LINE__) " -> " str)
-#elif CONFIG_LOGLEVEL == 3
+#elif CONFIG_LOGLEVEL_DEBUG
     #define LOG_INSANE(str)
     #define LOG_DEBUG(str) log::log(__FILE__ ":" TOSTRING(__LINE__) " -> " str)
     #define LOG_NORMAL(str) log::log(__FILE__ ":" TOSTRING(__LINE__) " -> " str)
     #define LOG_FATAL(str) log::log(__FILE__ ":" TOSTRING(__LINE__) " -> " str)
-#elif CONFIG_LOGLEVEL == 2
+#elif CONFIG_LOGLEVEL_NORMAL
     #define LOG_INSANE(str)
     #define LOG_DEBUG(str)
     #define LOG_NORMAL(str) log::log(__FILE__ ":" TOSTRING(__LINE__) " -> " str)
     #define LOG_FATAL(str) log::log(__FILE__ ":" TOSTRING(__LINE__) " -> " str)
-#elif CONFIG_LOGLEVEL == 1
+#elif CONFIG_LOGLEVEL_FATAL
     #define LOG_INSANE(str)
     #define LOG_DEBUG(str)
     #define LOG_NORMAL(str)
     #define LOG_FATAL(str) log::log(__FILE__ ":" TOSTRING(__LINE__) " -> " str)
-#else
+#elif CONFIG_LOGLEVEL_SILENT
     #define LOG_INSANE(str)
     #define LOG_DEBUG(str)
     #define LOG_NORMAL(str)

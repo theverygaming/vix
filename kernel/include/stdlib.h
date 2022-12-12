@@ -8,6 +8,8 @@ extern "C" void *memset(void *ptr, int value, size_t n);
 int memcmp(const void *ptr1, const void *ptr2, size_t num);
 void *memmove(void *dest, const void *src, size_t n);
 
+unsigned long int strtoul(const char *str, char **endptr, int base);
+
 int strcmp(const char *str1, const char *str2);
 size_t strlen(const char *str);
 char *strcpy(char *destination, const char *source);
