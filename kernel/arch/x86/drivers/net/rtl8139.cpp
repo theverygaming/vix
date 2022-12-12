@@ -1,9 +1,9 @@
-#include <arch/x86/cpubasics.h>
-#include <arch/x86/drivers/net/rtl8139.h>
-#include <arch/x86/drivers/pci.h>
-#include <arch/x86/drivers/pic_8259.h>
-#include <arch/x86/isr.h>
-#include <arch/x86/paging.h>
+#include <arch/cpubasics.h>
+#include <arch/drivers/net/rtl8139.h>
+#include <arch/drivers/pci.h>
+#include <arch/drivers/pic_8259.h>
+#include <arch/isr.h>
+#include <arch/paging.h>
 #include <drivers/net/generic_card.h>
 #include <memory_alloc/memalloc.h>
 #include <net/stack.h>

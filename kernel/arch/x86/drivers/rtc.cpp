@@ -1,5 +1,5 @@
-#include <arch/x86/cpubasics.h>
-#include <arch/x86/drivers/rtc.h>
+#include <arch/cpubasics.h>
+#include <arch/drivers/rtc.h>
 #include <stdlib.h>
 
 #define CMOS_PORT 0x70

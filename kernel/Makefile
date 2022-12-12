@@ -1,22 +1,110 @@
-all: config_gen
-	@g++ scripts/shbuild.cpp -o scripts/shbuild -Wall
-	@./build.sh
-  
-config: 
-	@$(MAKE) --no-print-directory -C scripts/shconfig
-	@mkdir -p include/generated/
-	@scripts/shconfig/shconfig -f shconfig -D CONFIG_ARCH $(MAKE_ARCH)
+include Makefile.version
 
-config_gen:
-	@$(MAKE) --no-print-directory -C scripts/shconfig
-	@mkdir -p include/generated/
-	@scripts/shconfig/shconfig -g config_default_$(MAKE_ARCH)
+BUILD_SUBDIRS := kernel drivers fs net 
 
+ifndef ARCH
+$(error must have ARCH enviroment variable set)
+endif
+
+SRCARCH := $(ARCH)
+export SRCARCH ARCH
+
+-include .config
+BUILD_ARCH := $(patsubst "%",%,$(CONFIG_ARCH))
+export SRCARCH ARCH
+
+include scripts/Makefile.build
+
+ifdef BUILD_ARCH
+BUILD_SUBDIRS += arch/$(BUILD_ARCH)
+include arch/$(BUILD_ARCH)/Makefile.arch
+endif
+
+.PHONY: all
+all: genconfig
+
+genconfig:
+	@$(MAKE) --quiet -C scripts/kconfig/ config
+	@scripts/kconfig/config Kconfig --silent --syncconfig
+	@$(MAKE) kernel
+
+help:
+	@echo 'Cleaning targets:'
+	@echo '  clean           - remove everything not required for building modules'
+	@echo '  proper          - clean + remove everything generated'
+	@echo 'Configuration targets:'
+	@$(MAKE) --quiet -C scripts/kconfig/ help
+	@echo ''
+	@echo 'Execute "make" or "make all" to build all targets marked with [*]'
+
+# kconfig targets
+config:
+	@$(MAKE) --quiet -C scripts/kconfig/ config
+	@scripts/kconfig/config Kconfig --oldaskconfig
+
+nconfig: 
+	@$(MAKE) --quiet -C scripts/kconfig/ nconfig
+	@scripts/kconfig/nconfig Kconfig
+
+menuconfig: 
+	@$(MAKE) --quiet -C scripts/kconfig/ menuconfig
+	@scripts/kconfig/menuconfig Kconfig
+
+xconfig: 
+	@$(MAKE) --quiet -C scripts/kconfig/ xconfig
+	@scripts/kconfig/xconfig Kconfig
+
+gconfig: 
+	@$(MAKE) --quiet -C scripts/kconfig/ gconfig
+	@scripts/kconfig/gconfig Kconfig
+
+alldefconfig: 
+	@$(MAKE) --quiet -C scripts/kconfig/ config
+	@scripts/kconfig/config Kconfig --silent --alldefconfig
+
+# clean targets
 clean:
-	@rm -f kernel.bin
+	@rm -f kernel.o kernel.bin symtab.s
 	@find . \( -name '*.oasm' -o -name '*.ocpp' -o -name '*.ors' -o -name '*.rlib' -o -name '*.o' -o -name '*.os' \) -type f -delete
-	@$(MAKE) --no-print-directory -C scripts/shconfig clean
+	@$(MAKE) --quiet -C scripts/kconfig clean
 
 proper: clean
-	@rm -f config_gen
-	@rm -f scripts/shbuild
+	@rm -f .config .config_old
+
+# compiler stuff
+
+CXX      = $(CROSS_COMPILE)g++
+LD       = $(CROSS_COMPILE)ld
+NM       = $(CROSS_COMPILE)nm
+OBJCOPY  = $(CROSS_COMPILE)objcopy
+export CXX LD NM OBJCOPY CXXFLAGS LDFLAGS
+
+# recursive stuff - most of this is based on https://stackoverflow.com/q/56001646/20742078
+OBJS     :=
+objtree  := .
+srctree  := .
+define build_subdir
+objtree := $$(objtree)/$(1)
+srctree := $$(srctree)/$(1)
+
+obj-y :=
+obj-d :=
+
+include $$(srctree)/Makefile
+
+OBJS += $$(patsubst %,$$(objtree)/%,$$(obj-y))
+
+$$(foreach subdir,$$(obj-d),$$(eval $$(call build_subdir,$$(subdir))))
+
+srctree := $$(patsubst %/$(1),%,$$(srctree))
+objtree := $$(patsubst %/$(1),%,$$(objtree))
+endef
+
+$(foreach dir, $(BUILD_SUBDIRS), $(eval $(call build_subdir,$(dir))))
+
+
+# final link
+.PHONY: kernel
+kernel: $(OBJS)
+	@$(LD) $(LDFLAGS) -r $^ -o kernel_partial.o
+	@./arch/$(BUILD_ARCH)/archlink.sh

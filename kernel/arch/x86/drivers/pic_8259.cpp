@@ -1,5 +1,5 @@
-#include <arch/x86/cpubasics.h>
-#include <arch/x86/drivers/pic_8259.h>
+#include <arch/cpubasics.h>
+#include <arch/drivers/pic_8259.h>
 #include <debug.h>
 
 static uint8_t _master_base;

@@ -1,0 +1,78 @@
+HOST_CC ?= gcc
+HOST_CXX ?= g++
+HOST_LEX ?= flex
+HOST_YACC ?= bison
+HOST_LD ?= ld
+HOST_MOC ?= moc
+
+HOST_CFLAGS += -O2
+HOST_LDFLAGS += 
+
+%.o: %.c
+	@echo "  CC $<"
+	@$(HOST_CC) $(HOST_CFLAGS) -c $< -o $@
+
+%.ocpp: %.cc
+	@echo "  CXX $<"
+	@$(HOST_CXX) $(HOST_CFLAGS) -c $< -o $@
+
+%.lex.c: %.l
+	@echo "  LEX $<"
+	@$(HOST_LEX) -o $@ -L $<
+
+%.tab.c %.tab.h: %.y
+	@echo "  YACC $<"
+	@$(HOST_YACC) -o $(basename $@).c --defines=$(basename $@).h -t -l $<
+
+all: help
+
+# object files used by all kconfig flavours
+common-objs	:= confdata.o expr.o lexer.lex.o menu.o parser.tab.o preprocess.o symbol.o util.o
+lexer.lex.o: parser.tab.h
+
+lxdialog := $(addprefix lxdialog/, checklist.o inputbox.o menubox.o textbox.o util.o yesno.o)
+
+config: conf.o $(common-objs)
+	@echo "  CC $@"
+	@$(CC) $^ -o $@ $(HOST_LDFLAGS)
+
+menuconfig: HOST_CFLAGS+=$(shell pkg-config ncurses --cflags)
+menuconfig: HOST_LDFLAGS+=$(shell pkg-config ncurses --libs)
+menuconfig: mconf.o $(lxdialog) $(common-objs)
+	@echo "  CC $@"
+	@$(HOST_CC) $^ -o $@ $(HOST_LDFLAGS)
+
+gconfig: HOST_CFLAGS+=$(shell pkg-config gtk+-2.0 gmodule-2.0 libglade-2.0 --cflags)
+gconfig: HOST_LDFLAGS+=$(shell pkg-config gtk+-2.0 gmodule-2.0 libglade-2.0 --libs)
+gconfig: gconf.o images.o $(common-objs)
+	@echo "  CC $@"
+	@$(HOST_CC) $^ -o $@ $(HOST_LDFLAGS)
+
+nconfig: HOST_CFLAGS+=$(shell pkg-config ncurses menu panel --cflags)
+nconfig: HOST_LDFLAGS+=$(shell pkg-config ncurses menu panel --libs)
+nconfig: nconf.o nconf.gui.o $(common-objs)
+	@echo "  CC $@"
+	@$(HOST_CC) $^ -o $@ $(HOST_LDFLAGS)
+
+xconfig: HOST_CFLAGS+=$(shell pkg-config Qt5Core Qt5Gui Qt5Widgets --cflags)
+xconfig: HOST_LDFLAGS+=$(shell pkg-config Qt5Core Qt5Gui Qt5Widgets --libs)
+xconfig: qconf.ocpp qconf-moc.ocpp images.o $(common-objs)
+	@echo "  CXX $@"
+	@$(HOST_CXX) $^ -o $@ $(HOST_LDFLAGS)
+
+qconf-moc.ocpp: qconf.h
+	@$(HOST_MOC) $^ -o qconf-moc.cpp
+	@$(HOST_CXX) $(HOST_CFLAGS) -c qconf-moc.cpp -o $@
+
+help:
+	@echo  '  config	  - Update current config utilising a line-oriented program'
+	@echo  '  nconfig         - Update current config utilising a ncurses menu based program'
+	@echo  '  menuconfig	  - Update current config utilising a menu based program'
+	@echo  '  xconfig	  - Update current config utilising a Qt based front-end'
+	@echo  '  gconfig	  - Update current config utilising a GTK+ based front-end'
+	@echo  '  alldefconfig	  - New config with all symbols set to default'
+
+clean:
+	@rm -f *.o *.ocpp
+	@rm -f parser.tab.c parser.tab.h lexer.lex.c qconf-moc.cpp
+	@rm -f config nconfig menuconfig xconfig gconfig

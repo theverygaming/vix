@@ -1,5 +1,5 @@
 #pragma once
-#include <generated/config.h>
+#include <generated/autoconf.h>
 #include <panic.h>
 #include <stdio.h>
 #include <types.h>

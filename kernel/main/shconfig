@@ -1,2 +1,0 @@
-setconfigoptions CONFIG_LOGLEVEL 'I' 'D' 'N' 'F' 'X'
-addconfiginfo CONFIG_LOGLEVEL system loglevel, I -> insane, D -> debug, N -> Normal, F -> Fatal, X-> None

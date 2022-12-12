@@ -3,11 +3,11 @@
 *.oc
 *.ocpp
 *.oasm
+*.onasm
 *.os
 *.ors
 *.rlib
 boot/boot
-kernel/kernel
 shitOS.img
 bochsrc
 bx_enh_dbg.ini
@@ -32,3 +32,6 @@ kernel/rust/bindings.rs
 startup/aarch64/startup.elf
 startup/aarch64/startup
 kernel/symtab.s
+kernel/.config
+kernel/include/config/
+kernel/.config.old

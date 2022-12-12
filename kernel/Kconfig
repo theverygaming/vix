@@ -1,0 +1,21 @@
+mainmenu "shitOS/$(SRCARCH) $(KVERSION) Kernel Configuration"
+
+source "arch/$(SRCARCH)/Kconfig"
+source "drivers/Kconfig"
+source "fs/Kconfig"
+source "kernel/Kconfig"
+source "net/Kconfig"
+
+config ARCH
+    string
+    default "$(SRCARCH)"
+
+config KVERSION
+    string
+    default "$(KVERSION)"
+
+config CXX_OPTIM_LEVEL
+	prompt "G++ optimization level"
+	int
+	default 3
+	range 0 3

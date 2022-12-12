@@ -1,1 +1,0 @@
-varappend_tx_prefix objs VARINSERT(CURRENTPATH) kmalloc.ocpp memalloc.ocpp

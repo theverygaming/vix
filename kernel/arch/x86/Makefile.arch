@@ -1,0 +1,6 @@
+CXXFLAGS += -nostdlib -m32 -march=i386 -fno-pie -mno-red-zone -fno-stack-protector -ffreestanding -fno-exceptions
+LDFLAGS  += -m elf_i386 -z noexecstack
+
+%.onasm: %.asm
+	@echo "  NASM $<"
+	@nasm -f elf $< -o $@

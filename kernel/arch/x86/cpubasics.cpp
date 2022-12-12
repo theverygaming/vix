@@ -1,8 +1,8 @@
-#include <arch/x86/cpubasics.h>
-#include <arch/x86/drivers/pic_8259.h>
-#include <arch/x86/idt.h>
-#include <arch/x86/isr.h>
-#include <arch/x86/multitasking.h>
+#include <arch/cpubasics.h>
+#include <arch/drivers/pic_8259.h>
+#include <arch/idt.h>
+#include <arch/isr.h>
+#include <arch/multitasking.h>
 #include <config.h>
 #include <stdio.h>
 

@@ -18,11 +18,12 @@ you already cloned the repo? then run ``git submodule update --init --recursive`
 
 now to build for x86 you need a few extra dependencies(aside from gcc and make), on ubuntu these are installed by running
 ```
-sudo apt install nasm gcc-multilib g++-multilib xorriso grub-common grub-pc mtools python3 cmake
+sudo apt install nasm gcc-multilib g++-multilib xorriso grub-common grub-pc mtools python3 cmake pkg-config flex bison
 ```
 
 then you can simply build with
 ```
+make x86-config MAKE_ARCH=x86 # alldefconfig
 make MAKE_ARCH=x86
 ```
 

@@ -1,4 +1,4 @@
-#include <arch/x86/symbols.h>
+#include <arch/symbols.h>
 #include <stdlib.h>
 
 extern "C" char symtab_start;

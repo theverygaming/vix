@@ -1,8 +1,8 @@
-#include <arch/x86/cpubasics.h>
-#include <arch/x86/drivers/keyboard.h>
-#include <arch/x86/drivers/pic_8259.h>
-#include <arch/x86/drivers/text80x25.h>
-#include <arch/x86/isr.h>
+#include <arch/cpubasics.h>
+#include <arch/drivers/keyboard.h>
+#include <arch/drivers/pic_8259.h>
+#include <arch/drivers/text80x25.h>
+#include <arch/isr.h>
 #include <stdio.h>
 
 namespace drivers::keyboard {

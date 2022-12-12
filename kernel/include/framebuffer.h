@@ -1,5 +1,5 @@
 #pragma once
-#include <arch/arch.h>
+#include <arch.h>
 #include <psf.h>
 #include <types.h>
 #include INCLUDE_ARCH_GENERIC(textoutput.h)

@@ -1,6 +1,6 @@
-#include <arch/x86/elf.h>
-#include <arch/x86/generic/memory.h>
-#include <arch/x86/multitasking.h>
+#include <arch/elf.h>
+#include <arch/generic/memory.h>
+#include <arch/multitasking.h>
 #include <cppstd/string.h>
 #include <cppstd/vector.h>
 #include <log.h>

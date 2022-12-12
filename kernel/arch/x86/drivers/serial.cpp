@@ -1,4 +1,4 @@
-#include <arch/x86/drivers/serial.h>
+#include <arch/drivers/serial.h>
 
 #define SERIAL_PORT 0x3f8 // 0x3f8 is COM1
 

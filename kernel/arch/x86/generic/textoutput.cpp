@@ -1,6 +1,6 @@
-#include <arch/x86/drivers/serial.h>
-#include <arch/x86/drivers/text80x25.h>
-#include <arch/x86/generic/textoutput.h>
+#include <arch/drivers/serial.h>
+#include <arch/drivers/text80x25.h>
+#include <arch/generic/textoutput.h>
 
 static inline drivers::textmode::text80x25::color translatecolor(arch::generic::textoutput::color in) {
     switch (in) {

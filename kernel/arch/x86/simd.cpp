@@ -1,5 +1,5 @@
-#include <arch/x86/simd.h>
-#include <arch/x86/cpuid.h>
+#include <arch/simd.h>
+#include <arch/cpuid.h>
 #include <stdio.h>
 
 extern "C" void simd_enable_sse();

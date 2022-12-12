@@ -1,4 +1,4 @@
-#include <arch/x86/drivers/net/rtl8139.h>
+#include <arch/drivers/net/rtl8139.h>
 #include <net/arp.h>
 #include <stdio.h>
 #include <stdlib.h>

@@ -1,5 +1,5 @@
-#include <arch/x86/generic/memory.h>
-#include <arch/x86/paging.h>
+#include <arch/generic/memory.h>
+#include <arch/paging.h>
 #include <config.h>
 #include <stdio.h>
 #include <stdlib.h>

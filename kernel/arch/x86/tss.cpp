@@ -1,3 +1,3 @@
-#include <arch/x86/tss.h>
+#include <arch/tss.h>
 
 struct tss::tss_protectedmode tss::tss_entry;

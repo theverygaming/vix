@@ -1,4 +1,4 @@
-#include <arch/arch.h>
+#include <arch.h>
 
 #include INCLUDE_ARCH_GENERIC(cpu.h)
 

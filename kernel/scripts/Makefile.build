@@ -1,0 +1,5 @@
+CXXFLAGS += -Iinclude/ -Iarch/$(BUILD_ARCH)/include -Wall -Wextra -Wno-unused-parameter
+
+%.ocpp: %.cpp
+	@echo "  CXX $<"
+	@$(CXX) $(CXXFLAGS) -c $< -o $@

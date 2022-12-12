@@ -1,5 +1,5 @@
 #pragma once
-#include "../../kernel/include/arch/x86/generic/archtypes.h"
+#include "../../kernel/arch/x86/include/arch/generic/archtypes.h"
 
 namespace paging {
     void initpaging();

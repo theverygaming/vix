@@ -1,4 +1,4 @@
-#include <arch/x86/generic/cpu.h>
+#include <arch/generic/cpu.h>
 
 void arch::generic::cpu::halt() {
     while (true) {

@@ -1,7 +1,7 @@
-#include <arch/x86/cpubasics.h>
-#include <arch/x86/gdt.h>
-#include <arch/x86/generic/memory.h>
-#include <arch/x86/multitasking.h>
+#include <arch/cpubasics.h>
+#include <arch/gdt.h>
+#include <arch/generic/memory.h>
+#include <arch/multitasking.h>
 #include <cppstd/vector.h>
 #include <debug.h>
 #include <log.h>

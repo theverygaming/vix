@@ -1,5 +1,5 @@
-#include <arch/x86/cpubasics.h>
-#include <arch/x86/drivers/pci.h>
+#include <arch/cpubasics.h>
+#include <arch/drivers/pci.h>
 #include <stdio.h>
 
 /* direct read/write functions */

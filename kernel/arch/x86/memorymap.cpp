@@ -1,4 +1,4 @@
-#include <arch/x86/memorymap.h>
+#include <arch/memorymap.h>
 #include <debug.h>
 #include <log.h>
 #include <panic.h>

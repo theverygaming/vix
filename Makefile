@@ -1,6 +1,11 @@
+ARCH := $(MAKE_ARCH)
 export MAKE_ARCH
+export ARCH
 
 all: img-$(MAKE_ARCH)
+
+x86-config:
+	@$(MAKE) --no-print-directory -C kernel alldefconfig
 
 img-x86:
 	@$(MAKE) --no-print-directory -C kernel
@@ -23,7 +28,7 @@ config:
 	@$(MAKE) --no-print-directory -C kernel config
 
 clean:
-	@rm -f shitOS.img shitOS_app.img *.o
+	@rm -f shitOS.img shitOS.iso *.o
 	@$(MAKE) --no-print-directory -C kernel clean
 	@$(MAKE) --no-print-directory -C startup/$(MAKE_ARCH) clean # lx106 skill issue
 	@$(MAKE) --no-print-directory -C shitshell clean

@@ -1,4 +1,4 @@
-#include <arch/x86/generic/textoutput.h>
+#include <arch/generic/textoutput.h>
 #include <memory_alloc/memalloc.h>
 #include <module.h>
 #include <stdio.h>

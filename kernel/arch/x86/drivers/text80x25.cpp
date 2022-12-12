@@ -1,5 +1,5 @@
-#include <arch/x86/cpubasics.h>
-#include <arch/x86/drivers/text80x25.h>
+#include <arch/cpubasics.h>
+#include <arch/drivers/text80x25.h>
 #include <config.h>
 
 #define SCREEN_WIDTH 80

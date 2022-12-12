@@ -1,5 +1,5 @@
-#include <arch/x86/modelf.h>
-#include <arch/x86/symbols.h>
+#include <arch/modelf.h>
+#include <arch/symbols.h>
 #include <cppstd/string.h>
 #include <cppstd/vector.h>
 #include <log.h>

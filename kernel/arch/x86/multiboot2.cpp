@@ -1,7 +1,7 @@
-#include <arch/x86/generic/archspecific.h>
-#include <arch/x86/generic/memory.h>
-#include <arch/x86/multiboot2.h>
-#include <arch/x86/paging.h>
+#include <arch/generic/archspecific.h>
+#include <arch/generic/memory.h>
+#include <arch/multiboot2.h>
+#include <arch/paging.h>
 #include <debug.h>
 #include <memory_alloc/memalloc.h>
 #include <panic.h>

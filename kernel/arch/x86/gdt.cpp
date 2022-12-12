@@ -1,6 +1,6 @@
-#include <arch/x86/gdt.h>
-#include <arch/x86/generic/archspecific.h>
-#include <arch/x86/tss.h>
+#include <arch/gdt.h>
+#include <arch/generic/archspecific.h>
+#include <arch/tss.h>
 #include <log.h>
 #include <stdlib.h>
 #include <types.h>

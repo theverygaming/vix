@@ -1,8 +1,8 @@
-#include <arch/x86/syscall.h>
+#include <arch/syscall.h>
 #include <config.h>
 #include <debug.h>
-#include <arch/x86/multitasking.h>
-#include <arch/x86/syscalls.h>
+#include <arch/multitasking.h>
+#include <arch/syscalls.h>
 
 /* syscall arguments correspond to registers eax, ebx, ecx, edx, esi, edi and ebp */
 
