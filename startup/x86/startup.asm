@@ -100,7 +100,7 @@ puts: ; input: eax->pointer to null-terminated string, output: eax->pointer to n
     je .end
     push eax
     mov al, [eax]
-    out 0xE9, al
+    ;out 0xE9, al
     call putc_vidmem
     pop eax
     inc eax
