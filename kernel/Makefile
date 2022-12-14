@@ -66,9 +66,9 @@ alldefconfig:
 clean:
 	@rm -f kernel.o kernel.bin symtab.s
 	@find . \( -name '*.oasm' -o -name '*.ocpp' -o -name '*.ors' -o -name '*.rlib' -o -name '*.o' -o -name '*.os' \) -type f -delete
-	@$(MAKE) --quiet -C scripts/kconfig clean
 
 proper: clean
+	@$(MAKE) --quiet -C scripts/kconfig clean
 	@rm -f .config .config_old
 
 # compiler stuff

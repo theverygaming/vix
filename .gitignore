@@ -35,3 +35,4 @@ kernel/symtab.s
 kernel/.config
 kernel/include/config/
 kernel/.config.old
+glibctest

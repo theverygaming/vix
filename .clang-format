@@ -44,3 +44,4 @@ AllowShortCaseLabelsOnASingleLine: false
 AllowShortEnumsOnASingleLine: true
 
 AlignEscapedNewlines: Left
+AlignConsecutiveMacros: true

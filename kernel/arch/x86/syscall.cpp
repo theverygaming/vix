@@ -3,6 +3,7 @@
 #include <debug.h>
 #include <arch/multitasking.h>
 #include <arch/syscalls.h>
+#include <arch/errno.h>
 
 /* syscall arguments correspond to registers eax, ebx, ecx, edx, esi, edi and ebp */
 
@@ -398,7 +399,7 @@ void syscall::syscallHandler(isr::registers *regs) {
 
     if (syscall_table[regs->eax] == nullptr) {
         DEBUG_PRINTF("syscall %u not found\n", regs->eax);
-        regs->eax = -1; // TODO: return correct error code
+        regs->eax = -ENOSYS;
         return;
     }
     // DEBUG_PRINTF("calling syscall %u\n", regs->eax);
