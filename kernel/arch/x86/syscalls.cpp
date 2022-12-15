@@ -297,8 +297,21 @@ uint32_t sys_getuid32(isr::registers *, int *syscall_ret, uint32_t, uint32_t, ui
     return 0; // with the current state of the system we are always root
 }
 
-uint32_t set_thread_area(isr::registers *, int *syscall_ret, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
+uint32_t set_thread_area(isr::registers *, int *syscall_ret, uint32_t, uint32_t _usr_desc, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     LOG_INSANE("syscall: set_thread_area\n");
+    struct user_desc {
+        unsigned int entry_number;
+        unsigned int base_addr;
+        unsigned int limit;
+        unsigned int seg_32bit : 1;
+        unsigned int contents : 2;
+        unsigned int read_exec_only : 1;
+        unsigned int limit_in_pages : 1;
+        unsigned int seg_not_present : 1;
+        unsigned int useable : 1;
+        unsigned int lm : 1;
+    };
+    struct user_desc *usr_desc_p = (struct user_desc *)_usr_desc;
     return -ENOSYS; // unimplemented
 }

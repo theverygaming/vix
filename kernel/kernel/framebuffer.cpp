@@ -150,7 +150,7 @@ void fb::fbconsole::parse_esc() {
     if (arg_count < 1) {
         return;
     }
-    
+
     if (values[0] == 0) {
         color_background[0] = 0;
         color_background[1] = 0;
@@ -259,16 +259,19 @@ void fb::fbconsole::putc_screen(char c) {
     case '\n':
         linebreak();
         return;
-        break;
     case '\t':
         for (int i = 0; i < 4; i++) {
             this->putc_screen(' ');
         }
         return;
-        break;
     case '\r':
         return;
-        break;
+    case '\b':
+        // erasing on the past line is hard because we do not have any text buffer...
+        if (pos_x >= psfreader.get_width()) {
+            pos_x -= psfreader.get_width();
+        }
+        return;
     default:
         break;
     }
@@ -292,6 +295,6 @@ void fb::fbconsole::putc_screen(char c) {
     if ((pos_x + psfreader.get_width() + psfreader.get_width()) < _framebuffer->get_width()) {
         pos_x += psfreader.get_width();
     } else {
-        // linebreak();
+        linebreak();
     }
 }

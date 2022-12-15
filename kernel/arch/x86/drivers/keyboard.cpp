@@ -85,6 +85,7 @@ static void kbdIntHandler(isr::registers *) {
             }
             drivers::keyboard::bufferlocation--;
             drivers::textmode::text80x25::delc();
+            puts("\b \b");
         }
     } else if (key > 0) {
         printf("%c", key);
@@ -114,6 +115,7 @@ void drivers::keyboard::manualRead() {
             }
             drivers::keyboard::bufferlocation--;
             drivers::textmode::text80x25::delc();
+            puts("\b \b");
         }
     } else if (key > 0) {
         printf("%c", key);
