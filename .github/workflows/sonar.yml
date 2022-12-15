@@ -35,10 +35,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install nasm gcc-multilib g++-multilib xorriso grub-common mtools llvm-dev libclang-dev clang python3  pkg-config flex bison
-        #curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-        #rustup default stable-x86_64-unknown-linux-gnu
-        #cargo install bindgen-cli  --force
-        #cd $GITHUB_WORKSPACE && rustup override set stable-i686-unknown-linux-gnu
       - name: Run build-wrapper
         run: |
           build-wrapper-linux-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} make clean x86-config all MAKE_ARCH=x86
@@ -59,10 +55,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install nasm gcc-multilib g++-multilib xorriso grub-common mtools qemu-system-x86 llvm-dev libclang-dev clang python3 pkg-config flex bison
-        #curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-        #rustup default stable-x86_64-unknown-linux-gnu
-        #cargo install bindgen-cli --force
-        #cd $GITHUB_WORKSPACE && rustup override set stable-i686-unknown-linux-gnu
       - name: compile
         run: cd $GITHUB_WORKSPACE && make x86-config all MAKE_ARCH=x86
 
