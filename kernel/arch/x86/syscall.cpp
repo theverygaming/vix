@@ -53,7 +53,7 @@ uint32_t (*syscall_table[385])(isr::registers *, int *, uint32_t, uint32_t, uint
     nullptr,
     nullptr,
     nullptr, /* 44  */
-    nullptr,
+    &sys_brk,
     nullptr,
     nullptr,
     nullptr,

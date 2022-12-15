@@ -27,19 +27,24 @@ namespace multitasking {
         uint32_t eip;
         uint32_t eflags; // can the user even touch these?
         uint16_t ss;
-
     } context;
 
     typedef struct {
         uint32_t phys_base;
         uint32_t virt_base;
         uint32_t pages;
+        /*
+         * static -> code ,bss etc.
+         * break -> memory allocated by brk()
+         */
+        enum class range_type { UNKNOWN, STATIC, BREAK } type;
     } process_pagerange;
 
     class x86_process : public schedulers::generic_process {
     public:
         context registerContext;
         std::vector<process_pagerange> pages;
+        uintptr_t brk_start = 0;
     };
 
     void initMultitasking();

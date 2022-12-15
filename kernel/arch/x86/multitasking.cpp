@@ -214,6 +214,16 @@ void multitasking::create_task(void *stackadr, void *codeadr, std::vector<proces
 
     kernel_process->pages = *pagerange;
 
+    // quick hack: find out where program break is
+    for (size_t i = 0; i < pagerange->size(); i++) {
+        if ((*pagerange)[i].type == process_pagerange::range_type::BREAK) {
+            kernel_process->brk_start = (*pagerange)[i].virt_base;
+        }
+    }
+    if (kernel_process->brk_start == 0) {
+        KERNEL_PANIC("unable to find break");
+    }
+
     processes.push_back(kernel_process);
     unsetPageRange(pagerange);
 }

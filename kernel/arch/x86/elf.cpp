@@ -32,11 +32,20 @@ void elf::load_program(void *ELF_baseadr, std::vector<std::string> *argv, bool r
         }
     }
 
+    if (min % ARCH_PAGE_SIZE != 0) {
+        min -= min % ARCH_PAGE_SIZE;
+    }
+
+    if (max % ARCH_PAGE_SIZE != 0) {
+        max += ARCH_PAGE_SIZE - (max % ARCH_PAGE_SIZE);
+    }
+
     uint32_t pagecount = ((max - min) / ARCH_PAGE_SIZE) + 5;
 
     std::vector<multitasking::process_pagerange> pageranges;
 
-    pageranges.push_back({(uint32_t)memalloc::page::phys_malloc(pagecount), min, pagecount});
+    pageranges.push_back({.phys_base = (uint32_t)memalloc::page::phys_malloc(pagecount), .virt_base = min, .pages = pagecount, .type = multitasking::process_pagerange::range_type::STATIC});
+    pageranges.push_back({.phys_base = (uint32_t)memalloc::page::phys_malloc(1), .virt_base = max + (ARCH_PAGE_SIZE * 6), .pages = 1, .type = multitasking::process_pagerange::range_type::BREAK});
 
     std::vector<multitasking::process_pagerange> old_pageranges;
     multitasking::createPageRange(&old_pageranges);

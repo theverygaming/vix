@@ -1,6 +1,7 @@
 #include <arch.h>
 #include <arch/drivers/keyboard.h>
 #include <arch/elf.h>
+#include <arch/errno.h>
 #include <arch/generic/memory.h>
 #include <arch/memorymap.h>
 #include <arch/multitasking.h>
@@ -9,6 +10,7 @@
 #include <cppstd/string.h>
 #include <debug.h>
 #include <fs/vfs.h>
+#include <generated/autoconf.h>
 #include <log.h>
 #include <memory_alloc/memalloc.h>
 #include <stdio.h>
@@ -118,6 +120,47 @@ uint32_t sys_time(isr::registers *, int *syscall_ret, uint32_t, uint32_t _tloc, 
     return 0;
 }
 
+uint32_t sys_brk(isr::registers *, int *syscall_ret, uint32_t, uint32_t _brk, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
+    *syscall_ret = 1;
+    DEBUG_PRINTF("syscall: sys_brk -> 0x%p\n", _brk);
+    // hacky level: insane
+    /*
+     * list of things to improve here:
+     * - actually keep track of the break
+     * - don't allocate a whole page every time
+     * - sleep more
+     */
+    multitasking::x86_process *process = multitasking::getCurrentProcess();
+    // hack: compute break size
+    size_t brk_pages = 0;
+    for (size_t i = 0; i < process->pages.size(); i++) {
+        if (process->pages[i].type == multitasking::process_pagerange::range_type::BREAK) {
+            brk_pages += process->pages[i].pages;
+        }
+    }
+    uintptr_t break_adr = process->brk_start + (brk_pages * ARCH_PAGE_SIZE);
+
+    if (_brk == 0) {
+        return break_adr;
+    }
+
+    if (break_adr >= _brk) {
+        return _brk; // we never actually deallocate :troll:
+    } else {
+        uint32_t newbrk = _brk;
+        if (newbrk % ARCH_PAGE_SIZE != 0) { // align brk with page
+            newbrk += ARCH_PAGE_SIZE - (newbrk % ARCH_PAGE_SIZE);
+        }
+        size_t needed_pages = (newbrk - break_adr) / ARCH_PAGE_SIZE;
+        process->pages.push_back({.phys_base = (uint32_t)memalloc::page::phys_malloc(needed_pages),
+                                  .virt_base = process->brk_start + (brk_pages * ARCH_PAGE_SIZE),
+                                  .pages = needed_pages,
+                                  .type = multitasking::process_pagerange::range_type::BREAK});
+        multitasking::setPageRange(&process->pages);
+    }
+    return _brk;
+}
+
 uint32_t sys_mmap(isr::registers *, int *syscall_ret, uint32_t, uint32_t mmap_struct_ptr, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     LOG_INSANE("syscall: sys_mmap -- unstable\n");
@@ -185,15 +228,13 @@ uint32_t sys_uname(isr::registers *, int *syscall_ret, uint32_t, uint32_t _old_u
         char release[65];
         char version[65];
         char machine[65];
-        char domainname[65];
     };
     struct sys_uname_utsname *unamestruct = (struct sys_uname_utsname *)_old_utsname;
     memcpy(unamestruct->sysname, "shitOS", 7);
-    memcpy(unamestruct->nodename, "h", 2);
-    memcpy(unamestruct->release, "69.42-funny", 12);
-    memcpy(unamestruct->version, "#69.42", 7);
-    memcpy(unamestruct->machine, "x86", 4);
-    memcpy(unamestruct->domainname, "(none)", 7);
+    memcpy(unamestruct->nodename, "puter", 6);
+    memcpy(unamestruct->release, CONFIG_KVERSION, strlen(CONFIG_KVERSION) + 1);
+    memcpy(unamestruct->version, __DATE__ " " __TIME__, strlen(__DATE__ " " __TIME__) + 1);
+    memcpy(unamestruct->machine, CONFIG_ARCH, 4);
     return 0;
 }
 
@@ -228,7 +269,7 @@ uint32_t modify_ldt(isr::registers *, int *syscall_ret, uint32_t, uint32_t _func
                  ptr->limit_in_pages,
                  ptr->seg_not_present,
                  ptr->useable);
-    return -1; // unimplemented
+    return -ENOSYS; // unimplemented
 }
 
 uint32_t sys_getcwd(isr::registers *, int *syscall_ret, uint32_t, uint32_t _buf, uint32_t size, uint32_t, uint32_t, uint32_t, uint32_t) {
@@ -247,7 +288,7 @@ uint32_t sys_stat64(isr::registers *, int *syscall_ret, uint32_t, uint32_t _file
     const char *filename = (const char *)_filename;
     LOG_INSANE("syscall: sys_stat64\n");
     printf("%s\n", filename);
-    return -1; // TODO: fix up return value
+    return -ENOSYS; // TODO: fix up return value
 }
 
 uint32_t sys_getuid32(isr::registers *, int *syscall_ret, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
@@ -259,5 +300,5 @@ uint32_t sys_getuid32(isr::registers *, int *syscall_ret, uint32_t, uint32_t, ui
 uint32_t set_thread_area(isr::registers *, int *syscall_ret, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     LOG_INSANE("syscall: set_thread_area\n");
-    return -1; // unimplemented
+    return -ENOSYS; // unimplemented
 }
