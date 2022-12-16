@@ -34,6 +34,7 @@ enum gdt_access {
 
     GDT_ACCESS_SYSTEM_DESCRIPTOR_TSS = 0x00,
     GDT_ACCESS_SYSTEM_TYPE_TSS = 0x9, // 32-bit TSS (available)
+    GDT_ACCESS_SYSTEM_TYPE_LDT = 0x2,
 
     GDT_ACCESS_RING0 = 0x00,
     GDT_ACCESS_RING1 = 0x20,
@@ -70,7 +71,12 @@ static struct gdtEntry make_gdt_entry(uint32_t base, uint32_t limit, uint8_t acc
     return entry;
 }
 
-static gdtEntry gdtTable[6];
+static gdtEntry gdtTable[7];
+static gdtEntry LDT[2];
+
+void gdt::set_ldt_entry(uint32_t base, uint32_t limit, uint8_t access, uint8_t flags) {
+    LDT[1] = make_gdt_entry(base, limit, access, flags);
+}
 
 extern "C" void GDT_load_32(struct gdtDescriptor *descriptor, uint16_t codeSegment, uint16_t dataSegment);
 
@@ -93,6 +99,11 @@ void gdt::init() {
     memset(&tss::tss_entry, 0, sizeof(tss::tss_protectedmode));
     tss::tss_entry.ss0 = i686_GDT_DATA_SEGMENT;
     tss::tss_entry.esp0 = KERNEL_VIRT_ADDRESS + KERNEL_ISR_STACK_POINTER_OFFSET;
+
+    // LDT
+    gdtTable[6] = make_gdt_entry((uint32_t)&LDT, sizeof(LDT), GDT_ACCESS_PRESENT | GDT_ACCESS_SYSTEM_TYPE_LDT, GDT_FLAG_32BIT | GDT_FLAG_GRANULARITY_1B);
+    LDT[0] = make_gdt_entry(0, 0, 0, 0);
+    LDT[1] = make_gdt_entry(0, 0, 0, 0);
 
     struct gdtDescriptor descriptor = {sizeof(gdtTable) - 1, gdtTable};
     GDT_load_32(&descriptor, i686_GDT_CODE_SEGMENT, i686_GDT_DATA_SEGMENT);

@@ -2,6 +2,7 @@
 #include <arch/drivers/keyboard.h>
 #include <arch/elf.h>
 #include <arch/errno.h>
+#include <arch/gdt.h>
 #include <arch/generic/memory.h>
 #include <arch/memorymap.h>
 #include <arch/multitasking.h>
@@ -238,7 +239,7 @@ uint32_t sys_uname(isr::registers *, int *syscall_ret, uint32_t, uint32_t _old_u
     return 0;
 }
 
-uint32_t modify_ldt(isr::registers *, int *syscall_ret, uint32_t, uint32_t _func, uint32_t _ptr, uint32_t bytecount, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_modify_ldt(isr::registers *, int *syscall_ret, uint32_t, uint32_t _func, uint32_t _ptr, uint32_t bytecount, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     struct user_desc {
         unsigned int entry_number;
@@ -253,7 +254,7 @@ uint32_t modify_ldt(isr::registers *, int *syscall_ret, uint32_t, uint32_t _func
     };
     int func = (int)_func;
     struct user_desc *ptr = (struct user_desc *)_ptr;
-    LOG_INSANE("syscall: modify_ldt\n");
+    LOG_INSANE("syscall: sys_modify_ldt\n");
     DEBUG_PRINTF("func: %d ptr: 0x%p bytecount: %u\n", func, ptr, bytecount);
     if (sizeof(user_desc) != bytecount) {
         LOG_INSANE("sizeof(user_desc) != bytecount\n");
@@ -297,9 +298,9 @@ uint32_t sys_getuid32(isr::registers *, int *syscall_ret, uint32_t, uint32_t, ui
     return 0; // with the current state of the system we are always root
 }
 
-uint32_t set_thread_area(isr::registers *, int *syscall_ret, uint32_t, uint32_t _usr_desc, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_set_thread_area(isr::registers *, int *syscall_ret, uint32_t, uint32_t _usr_desc, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
-    LOG_INSANE("syscall: set_thread_area\n");
+    LOG_INSANE("syscall: sys_set_thread_area\n");
     struct user_desc {
         unsigned int entry_number;
         unsigned int base_addr;
@@ -312,6 +313,30 @@ uint32_t set_thread_area(isr::registers *, int *syscall_ret, uint32_t, uint32_t 
         unsigned int useable : 1;
         unsigned int lm : 1;
     };
-    struct user_desc *usr_desc_p = (struct user_desc *)_usr_desc;
-    return -ENOSYS; // unimplemented
+    struct user_desc *user_desc_p = (struct user_desc *)_usr_desc;
+    if (user_desc_p->entry_number != (unsigned int)-1) {
+        LOG_INSANE("sys_set_thread_area does not support entry_number != -1\n");
+        return -ENOSYS;
+    }
+
+    uint8_t access = 0;
+    uint8_t flags = 0;
+    if (user_desc_p->limit_in_pages) {
+        flags |= 0x8;
+    }
+    flags |= 0x4;
+    flags |= user_desc_p->contents << 2;
+    access |= 0x02;
+    access |= 0x80;
+    access |= 0x60;
+    access |= 0x10;
+
+    gdt::set_ldt_entry(user_desc_p->base_addr, user_desc_p->limit, access, flags);
+
+    // load LDT
+    asm volatile("lldt %%ax" : : "a"(6 * 8));
+
+    user_desc_p->entry_number = 1;
+
+    return 0;
 }

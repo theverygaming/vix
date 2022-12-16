@@ -131,7 +131,7 @@ uint32_t (*syscall_table[385])(isr::registers *, int *, uint32_t, uint32_t, uint
     nullptr,
     nullptr,
     &sys_uname,
-    &modify_ldt,
+    &sys_modify_ldt,
     nullptr, /* 124 */
     nullptr,
     nullptr,
@@ -251,7 +251,7 @@ uint32_t (*syscall_table[385])(isr::registers *, int *, uint32_t, uint32_t, uint
     nullptr,
     nullptr,
     nullptr,
-    &set_thread_area,
+    &sys_set_thread_area,
     nullptr, /* 244 */
     nullptr,
     nullptr,
