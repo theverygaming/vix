@@ -1,5 +1,6 @@
 #include <arch/symbols.h>
 #include <stdlib.h>
+#include <debug.h>
 
 extern "C" char symtab_start;
 extern "C" char symtab_end;
@@ -20,5 +21,7 @@ uintptr_t syms::get_sym(const char *name) {
         }
         ptr = (struct symtabentry *)(((uint8_t *)ptr) + sizeof(symtabentry) + strlen(ptr->symname) + 1);
     }
+    DEBUG_PRINTF("cannot find symbol %s\n", name);
+    printf("cannot find symbol %s\n", name);
     return 0;
 }

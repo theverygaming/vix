@@ -120,6 +120,9 @@ extern "C" void i686_ISR_Handler(isr::registers *regs) {
                regs->esp_user,
                regs->ebp,
                regs->eip);
+        if ((regs->eip >= KERNEL_VIRT_ADDRESS) && (regs->eip < KERNEL_VIRT_ADDRESS + KERNEL_MEMORY_END_OFFSET)) {
+            KERNEL_PANIC("kernel exception");
+        }
         printf("Killing current process\n");
         if (multitasking::isProcessSwitchingEnabled()) {
             multitasking::killCurrentProcess(regs);

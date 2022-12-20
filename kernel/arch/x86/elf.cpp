@@ -32,20 +32,23 @@ void elf::load_program(void *ELF_baseadr, std::vector<std::string> *argv, bool r
         }
     }
 
-    if (min % ARCH_PAGE_SIZE != 0) {
-        min -= min % ARCH_PAGE_SIZE;
+    uint32_t max_v = max;
+    uint32_t min_v = min;
+
+    if (min_v % ARCH_PAGE_SIZE != 0) {
+        min_v -= min_v % ARCH_PAGE_SIZE;
     }
 
-    if (max % ARCH_PAGE_SIZE != 0) {
-        max += ARCH_PAGE_SIZE - (max % ARCH_PAGE_SIZE);
+    if (max_v % ARCH_PAGE_SIZE != 0) {
+        max_v += ARCH_PAGE_SIZE - (max_v % ARCH_PAGE_SIZE);
     }
 
-    uint32_t pagecount = ((max - min) / ARCH_PAGE_SIZE) + 5;
+    uint32_t pagecount = ((max_v - min_v) / ARCH_PAGE_SIZE) + 5;
 
     std::vector<multitasking::process_pagerange> pageranges;
 
-    pageranges.push_back({.phys_base = (uint32_t)memalloc::page::phys_malloc(pagecount), .virt_base = min, .pages = pagecount, .type = multitasking::process_pagerange::range_type::STATIC});
-    pageranges.push_back({.phys_base = (uint32_t)memalloc::page::phys_malloc(1), .virt_base = max + (ARCH_PAGE_SIZE * 6), .pages = 1, .type = multitasking::process_pagerange::range_type::BREAK});
+    pageranges.push_back({.phys_base = (uint32_t)memalloc::page::phys_malloc(pagecount), .virt_base = min_v, .pages = pagecount, .type = multitasking::process_pagerange::range_type::STATIC});
+    pageranges.push_back({.phys_base = (uint32_t)memalloc::page::phys_malloc(1), .virt_base = max_v + (ARCH_PAGE_SIZE * 6), .pages = 1, .type = multitasking::process_pagerange::range_type::BREAK});
 
     std::vector<multitasking::process_pagerange> old_pageranges;
     multitasking::createPageRange(&old_pageranges);
@@ -63,13 +66,6 @@ void elf::load_program(void *ELF_baseadr, std::vector<std::string> *argv, bool r
 
         memset((void *)pHeader.p_vaddr, 0, pHeader.p_memsz);
         memcpy((void *)pHeader.p_vaddr, ((char *)ELF_baseadr) + pHeader.p_offset, pHeader.p_filesz);
-
-        if (pHeader.p_vaddr + pHeader.p_memsz > max) {
-            max = pHeader.p_vaddr + pHeader.p_memsz;
-        }
-        if (pHeader.p_vaddr < min) {
-            min = pHeader.p_vaddr;
-        }
     }
     DEBUG_PRINTF("max: %u\n", max);
     DEBUG_PRINTF("min: %u\n", min);

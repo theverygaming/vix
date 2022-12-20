@@ -28,7 +28,6 @@ kernel/include/generated
 kernel/config_gen
 kernel/scripts/shbuild
 startup/startup
-kernel/rust/bindings.rs
 startup/aarch64/startup.elf
 startup/aarch64/startup
 kernel/symtab.s

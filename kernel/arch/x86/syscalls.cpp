@@ -318,18 +318,27 @@ uint32_t sys_set_thread_area(isr::registers *, int *syscall_ret, uint32_t, uint3
         LOG_INSANE("sys_set_thread_area does not support entry_number != -1\n");
         return -ENOSYS;
     }
+    if(user_desc_p->contents != 0) {
+        LOG_INSANE("sys_set_thread_area does not support contents != 0\n");
+        return -ENOSYS;
+    }
+    if(!user_desc_p->seg_32bit) {
+        LOG_INSANE("sys_set_thread_area does not support seg_32bit = false\n");
+        return -ENOSYS;
+    }
 
     uint8_t access = 0;
     uint8_t flags = 0;
     if (user_desc_p->limit_in_pages) {
         flags |= 0x8;
     }
-    flags |= 0x4;
-    flags |= user_desc_p->contents << 2;
-    access |= 0x02;
-    access |= 0x80;
-    access |= 0x60;
-    access |= 0x10;
+    flags |= 0x4; // 32-bit
+    
+    
+    access |= 0x02; // GDT_ACCESS_CODE_READABLE / GDT_ACCESS_DATA_WRITEABLE
+    access |= 0x80; // GDT_ACCESS_PRESENT
+    access |= 0x60; // GDT_ACCESS_RING3 
+    access |= 0x10; // GDT_ACCESS_DATA_SEGMENT
 
     gdt::set_ldt_entry(user_desc_p->base_addr, user_desc_p->limit, access, flags);
 
