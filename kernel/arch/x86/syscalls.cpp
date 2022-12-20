@@ -318,14 +318,25 @@ uint32_t sys_set_thread_area(isr::registers *, int *syscall_ret, uint32_t, uint3
         LOG_INSANE("sys_set_thread_area does not support entry_number != -1\n");
         return -ENOSYS;
     }
-    if(user_desc_p->contents != 0) {
+    if (user_desc_p->contents != 0) {
         LOG_INSANE("sys_set_thread_area does not support contents != 0\n");
         return -ENOSYS;
     }
-    if(!user_desc_p->seg_32bit) {
+    if (!user_desc_p->seg_32bit) {
         LOG_INSANE("sys_set_thread_area does not support seg_32bit = false\n");
         return -ENOSYS;
     }
+
+    DEBUG_PRINTF("entry_number: %u base_addr: 0x%p limit: %u seg_32bit: %u contents: %u read_exec_only: %u limit_in_pages: %u seg_not_present: %u useable: %u\n",
+                 user_desc_p->entry_number,
+                 user_desc_p->base_addr,
+                 user_desc_p->limit,
+                 user_desc_p->seg_32bit,
+                 user_desc_p->contents,
+                 user_desc_p->read_exec_only,
+                 user_desc_p->limit_in_pages,
+                 user_desc_p->seg_not_present,
+                 user_desc_p->useable);
 
     uint8_t access = 0;
     uint8_t flags = 0;
@@ -333,19 +344,28 @@ uint32_t sys_set_thread_area(isr::registers *, int *syscall_ret, uint32_t, uint3
         flags |= 0x8;
     }
     flags |= 0x4; // 32-bit
-    
-    
+
     access |= 0x02; // GDT_ACCESS_CODE_READABLE / GDT_ACCESS_DATA_WRITEABLE
     access |= 0x80; // GDT_ACCESS_PRESENT
-    access |= 0x60; // GDT_ACCESS_RING3 
+    access |= 0x60; // GDT_ACCESS_RING3
     access |= 0x10; // GDT_ACCESS_DATA_SEGMENT
 
-    gdt::set_ldt_entry(user_desc_p->base_addr, user_desc_p->limit, access, flags);
+    gdt::set_tls_entry(user_desc_p->base_addr, user_desc_p->limit, access, flags);
 
-    // load LDT
-    asm volatile("lldt %%ax" : : "a"(6 * 8));
+    // load gs
+    asm volatile("mov %%ax, %%gs" : : "a"(6 * 8));
 
-    user_desc_p->entry_number = 1;
+    // wants address 0x45474150
+    // wants address 0x45488000
+
+    // hack 2000
+    int pages = 200;
+    uint8_t *map = (uint8_t *)memalloc::page::phys_malloc(pages);
+    for (int i = 0; i < pages; i++) {
+        paging::map_page(map + (i * ARCH_PAGE_SIZE), (uint8_t *)0x45474150 + (i * ARCH_PAGE_SIZE));
+    }
+
+    user_desc_p->entry_number = 6;
 
     return 0;
 }
