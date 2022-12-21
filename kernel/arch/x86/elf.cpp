@@ -43,32 +43,46 @@ void elf::load_program(void *ELF_baseadr, std::vector<std::string> *argv, bool r
         max_v += ARCH_PAGE_SIZE - (max_v % ARCH_PAGE_SIZE);
     }
 
-    uint32_t pagecount = ((max_v - min_v) / ARCH_PAGE_SIZE) + 5;
+    uint32_t pagecount = ((max_v - min_v) / ARCH_PAGE_SIZE) + 41;
 
     std::vector<multitasking::process_pagerange> pageranges;
 
     pageranges.push_back({.phys_base = (uint32_t)memalloc::page::phys_malloc(pagecount), .virt_base = min_v, .pages = pagecount, .type = multitasking::process_pagerange::range_type::STATIC});
-    pageranges.push_back({.phys_base = (uint32_t)memalloc::page::phys_malloc(1), .virt_base = max_v + (ARCH_PAGE_SIZE * 6), .pages = 1, .type = multitasking::process_pagerange::range_type::BREAK});
+    pageranges.push_back({.phys_base = (uint32_t)memalloc::page::phys_malloc(1), .virt_base = max_v + (ARCH_PAGE_SIZE * 47), .pages = 1, .type = multitasking::process_pagerange::range_type::BREAK});
 
     std::vector<multitasking::process_pagerange> old_pageranges;
     multitasking::createPageRange(&old_pageranges);
     multitasking::setPageRange(&pageranges);
+
+    struct multitasking::x86_process::tls_info tls;
 
     DEBUG_PRINTF("---Program Headers---\n");
     for (int i = 0; i < header.e_phnum; i++) {
         memcpy(&pHeader, ((char *)ELF_baseadr) + header.e_phoff + (header.e_phentsize * i), sizeof(pHeader));
 
         DEBUG_PRINTF("section: align: 0x%p vaddr->0x%p sizef->0x%p sizem->0x%p\n", pHeader.p_align, pHeader.p_vaddr, pHeader.p_filesz, pHeader.p_memsz);
-        if (pHeader.p_type != 1) {
-            DEBUG_PRINTF("ignoring section of type: 0x%p\n", pHeader.p_type);
+
+        if (pHeader.p_type == 7) {        // PT_TLS
+            if (tls.tlsdata == nullptr) { // can't have two of em (i think you can but not with this loader for now)
+                DEBUG_PRINTF("    loaded TLS\n");
+                tls.tls_size = pHeader.p_memsz;
+                tls.tlsdata_size = pHeader.p_filesz;
+                tls.tlsdata = memalloc::single::kmalloc(tls.tlsdata_size);
+                memcpy(tls.tlsdata, ((char *)ELF_baseadr) + pHeader.p_offset, tls.tlsdata_size);
+                continue;
+            }
+        }
+
+        if (pHeader.p_type != 1) { // only load PT_LOAD
+            DEBUG_PRINTF("    ignoring section of type: 0x%p\n", pHeader.p_type);
             continue;
         }
 
         memset((void *)pHeader.p_vaddr, 0, pHeader.p_memsz);
         memcpy((void *)pHeader.p_vaddr, ((char *)ELF_baseadr) + pHeader.p_offset, pHeader.p_filesz);
     }
-    DEBUG_PRINTF("max: %u\n", max);
-    DEBUG_PRINTF("min: %u\n", min);
+    DEBUG_PRINTF("max: 0x%p\n", max);
+    DEBUG_PRINTF("min: 0x%p\n", min);
     DEBUG_PRINTF("Inital program memory size: %u\n", max - min);
 
     DEBUG_PRINTF("Entry point: 0x%p\n", header.e_entry);
@@ -77,8 +91,8 @@ void elf::load_program(void *ELF_baseadr, std::vector<std::string> *argv, bool r
     multitasking::setPageRange(&old_pageranges);
 
     if (replace_task) {
-        multitasking::replace_task((void *)(max + (ARCH_PAGE_SIZE * 4)), (void *)header.e_entry, &pageranges, argv, replace_pid, regs);
+        multitasking::replace_task((void *)(max + (ARCH_PAGE_SIZE * 40)), (void *)header.e_entry, &pageranges, argv, tls, replace_pid, regs);
     } else {
-        multitasking::create_task((void *)(max + (ARCH_PAGE_SIZE * 4)), (void *)header.e_entry, &pageranges, argv);
+        multitasking::create_task((void *)(max + (ARCH_PAGE_SIZE * 40)), (void *)header.e_entry, &pageranges, argv, tls);
     }
 }

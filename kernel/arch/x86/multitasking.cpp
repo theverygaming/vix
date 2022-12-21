@@ -195,7 +195,7 @@ void multitasking::killCurrentProcess(isr::registers *regs) {
     interruptTrigger(regs);
 }
 
-void multitasking::create_task(void *stackadr, void *codeadr, std::vector<process_pagerange> *pagerange, std::vector<std::string> *argv, pid_t forced_pid) {
+void multitasking::create_task(void *stackadr, void *codeadr, std::vector<process_pagerange> *pagerange, std::vector<std::string> *argv, struct x86_process::tls_info info, pid_t forced_pid) {
     setPageRange(pagerange);
 
     stackadr = init_empty_stack(stackadr, argv, codeadr, true);
@@ -213,6 +213,7 @@ void multitasking::create_task(void *stackadr, void *codeadr, std::vector<proces
     kernel_process->registerContext.eflags = 1 << 9;
 
     kernel_process->pages = *pagerange;
+    kernel_process->tlsinfo = info;
 
     // quick hack: find out where program break is
     for (size_t i = 0; i < pagerange->size(); i++) {
@@ -228,7 +229,8 @@ void multitasking::create_task(void *stackadr, void *codeadr, std::vector<proces
     unsetPageRange(pagerange);
 }
 
-void multitasking::replace_task(void *stackadr, void *codeadr, std::vector<process_pagerange> *pagerange, std::vector<std::string> *argv, int replacePid, isr::registers *regs) {
+void multitasking::replace_task(
+    void *stackadr, void *codeadr, std::vector<process_pagerange> *pagerange, std::vector<std::string> *argv, struct x86_process::tls_info info, int replacePid, isr::registers *regs) {
     pid_t PID = -1;
     size_t index = 0;
     for (size_t i = 0; i < processes.size(); i++) {
@@ -241,7 +243,7 @@ void multitasking::replace_task(void *stackadr, void *codeadr, std::vector<proce
         return;
     }
     processes[index]->state = schedulers::generic_process::state::REPLACED;
-    create_task(stackadr, codeadr, pagerange, argv);
+    create_task(stackadr, codeadr, pagerange, argv, info);
     interruptTrigger(regs);
 }
 

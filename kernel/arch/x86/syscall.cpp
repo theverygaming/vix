@@ -1,13 +1,14 @@
+#include <arch/errno.h>
+#include <arch/multitasking.h>
 #include <arch/syscall.h>
+#include <arch/syscalls.h>
 #include <config.h>
 #include <debug.h>
-#include <arch/multitasking.h>
-#include <arch/syscalls.h>
-#include <arch/errno.h>
 
 /* syscall arguments correspond to registers eax, ebx, ecx, edx, esi, edi and ebp */
 
-uint32_t (*syscall_table[385])(isr::registers *, int *, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) = {
+// clang-format off
+uint32_t (*syscall_table[440])(isr::registers *, int *, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) = {
     nullptr,
     &sys_exit,
     &sys_fork,
@@ -266,7 +267,7 @@ uint32_t (*syscall_table[385])(isr::registers *, int *, uint32_t, uint32_t, uint
     nullptr,
     nullptr,
     nullptr,
-    nullptr,
+    &sys_set_tid_address,
     nullptr, /* 259 */
     nullptr,
     nullptr,
@@ -319,7 +320,7 @@ uint32_t (*syscall_table[385])(isr::registers *, int *, uint32_t, uint32_t, uint
     nullptr,
     nullptr, /* 309 */
     nullptr,
-    nullptr,
+    &sys_set_robust_list,
     nullptr,
     nullptr,
     nullptr, /* 314 */
@@ -393,11 +394,66 @@ uint32_t (*syscall_table[385])(isr::registers *, int *, uint32_t, uint32_t, uint
     nullptr,
     nullptr,
     nullptr, /* 384 */
+    nullptr,
+    &sys_rseq,
+    nullptr,
+    nullptr,
+    nullptr, /* 389 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 394 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 399 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 404 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 409 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 414 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 419 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 424 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 429 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 434 */
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr, /* 439 */
 };
+// clang-format on
 
 void syscall::syscallHandler(isr::registers *regs) {
-
-    if (syscall_table[regs->eax] == nullptr) {
+    if (regs->eax >= (sizeof(syscall_table) / sizeof(syscall_table[0])) || syscall_table[regs->eax] == nullptr) {
         DEBUG_PRINTF("syscall %u not found\n", regs->eax);
         regs->eax = -ENOSYS;
         return;
@@ -405,7 +461,7 @@ void syscall::syscallHandler(isr::registers *regs) {
     // DEBUG_PRINTF("calling syscall %u\n", regs->eax);
     int syscall_ret;
     uint32_t returnval = syscall_table[regs->eax](regs, &syscall_ret, regs->eax, regs->ebx, regs->ecx, regs->edx, regs->esi, regs->edi, regs->ebp);
-    if(syscall_ret > 0) {
+    if (syscall_ret > 0) {
         regs->eax = returnval;
     }
 }

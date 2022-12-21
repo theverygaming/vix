@@ -67,7 +67,7 @@ isr_common:
     mov ds, ax
     mov es, ax
     mov fs, ax
-    ; mov gs, ax ; hack: do  not change gs
+    ; mov gs, ax ; hack: do not change gs
     
     push esp            ; pass pointer to stack to C, so we can access all the pushed information
     call i686_ISR_Handler

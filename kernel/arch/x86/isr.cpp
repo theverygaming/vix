@@ -15,7 +15,24 @@
 
 isr::intHandler handlers[256];
 
+//#define DEBUG_ENTRY_EXIT
+#define PANIC_ON_PROGRAM_EXIT
+
 extern "C" void i686_ISR_Handler(isr::registers *regs) {
+#ifdef DEBUG_ENTRY_EXIT
+    DEBUG_PRINTF_INSANE("KENTER(%u) -- eax: 0x%p ebx: 0x%p ecx: 0x%p edx: 0x%p\nesi: 0x%p edi: 0x%p esp_u: 0x%p esp_p: 0x%p ebp: 0x%p eip: 0x%p\n",
+                        regs->interrupt,
+                        regs->eax,
+                        regs->ebx,
+                        regs->ecx,
+                        regs->edx,
+                        regs->esi,
+                        regs->edi,
+                        regs->esp_user,
+                        regs->esp_pusha,
+                        regs->ebp,
+                        regs->eip);
+#endif
     // TSS stuff
     tss::tss_entry.ss0 = i686_GDT_DATA_SEGMENT;
     tss::tss_entry.esp0 = KERNEL_VIRT_ADDRESS + KERNEL_ISR_STACK_POINTER_OFFSET;
@@ -90,6 +107,9 @@ extern "C" void i686_ISR_Handler(isr::registers *regs) {
         }
         printf("Killing current process\n");
         if (multitasking::isProcessSwitchingEnabled()) {
+#ifdef PANIC_ON_PROGRAM_EXIT
+            KERNEL_PANIC("PANIC_ON_PROGRAM_EXIT");
+#endif
             multitasking::killCurrentProcess(regs);
         } else {
             debug::debug_loop();
@@ -125,6 +145,9 @@ extern "C" void i686_ISR_Handler(isr::registers *regs) {
         }
         printf("Killing current process\n");
         if (multitasking::isProcessSwitchingEnabled()) {
+#ifdef PANIC_ON_PROGRAM_EXIT
+            KERNEL_PANIC("PANIC_ON_PROGRAM_EXIT");
+#endif
             multitasking::killCurrentProcess(regs);
         } else {
             debug::debug_loop();
@@ -134,6 +157,21 @@ extern "C" void i686_ISR_Handler(isr::registers *regs) {
     if ((old_ring == current_ring)) {}
 
     uint16_t new_ring = regs->cs & 0x3;
+
+#ifdef DEBUG_ENTRY_EXIT
+    DEBUG_PRINTF_INSANE("KEXIT(%u) -- eax: 0x%p ebx: 0x%p ecx: 0x%p edx: 0x%p\nesi: 0x%p edi: 0x%p esp_u: 0x%p esp_p: 0x%p ebp: 0x%p eip: 0x%p\n",
+                        regs->interrupt,
+                        regs->eax,
+                        regs->ebx,
+                        regs->ecx,
+                        regs->edx,
+                        regs->esi,
+                        regs->edi,
+                        regs->esp_user,
+                        regs->esp_pusha,
+                        regs->ebp,
+                        regs->eip);
+#endif
 }
 
 void isr::i686_ISR_Initialize() {

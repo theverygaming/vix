@@ -139,20 +139,20 @@ uint32_t sys_brk(isr::registers *, int *syscall_ret, uint32_t, uint32_t _brk, ui
             brk_pages += process->pages[i].pages;
         }
     }
-    uintptr_t break_adr = process->brk_start + (brk_pages * ARCH_PAGE_SIZE);
+    uintptr_t current_break_adr = process->brk_start + (brk_pages * ARCH_PAGE_SIZE);
 
     if (_brk == 0) {
-        return break_adr;
+        return current_break_adr;
     }
 
-    if (break_adr >= _brk) {
+    if (current_break_adr >= _brk) {
         return _brk; // we never actually deallocate :troll:
     } else {
         uint32_t newbrk = _brk;
         if (newbrk % ARCH_PAGE_SIZE != 0) { // align brk with page
             newbrk += ARCH_PAGE_SIZE - (newbrk % ARCH_PAGE_SIZE);
         }
-        size_t needed_pages = (newbrk - break_adr) / ARCH_PAGE_SIZE;
+        size_t needed_pages = (newbrk - current_break_adr) / ARCH_PAGE_SIZE;
         process->pages.push_back({.phys_base = (uint32_t)memalloc::page::phys_malloc(needed_pages),
                                   .virt_base = process->brk_start + (brk_pages * ARCH_PAGE_SIZE),
                                   .pages = needed_pages,
@@ -338,6 +338,13 @@ uint32_t sys_set_thread_area(isr::registers *, int *syscall_ret, uint32_t, uint3
                  user_desc_p->seg_not_present,
                  user_desc_p->useable);
 
+    // load data for tls
+    multitasking::x86_process *proc = multitasking::getCurrentProcess();
+    if (proc->tlsinfo.tlsdata != nullptr) {
+        memset((void *)user_desc_p->base_addr, 0, proc->tlsinfo.tls_size);
+        //memcpy((void *)user_desc_p->base_addr, proc->tlsinfo.tlsdata, proc->tlsinfo.tlsdata_size);
+    }
+
     uint8_t access = 0;
     uint8_t flags = 0;
     if (user_desc_p->limit_in_pages) {
@@ -352,20 +359,55 @@ uint32_t sys_set_thread_area(isr::registers *, int *syscall_ret, uint32_t, uint3
 
     gdt::set_tls_entry(user_desc_p->base_addr, user_desc_p->limit, access, flags);
 
-    // load gs
-    asm volatile("mov %%ax, %%gs" : : "a"(6 * 8));
-
-    // wants address 0x45474150
-    // wants address 0x45488000
-
-    // hack 2000
-    int pages = 200;
-    uint8_t *map = (uint8_t *)memalloc::page::phys_malloc(pages);
-    for (int i = 0; i < pages; i++) {
-        paging::map_page(map + (i * ARCH_PAGE_SIZE), (uint8_t *)0x45474150 + (i * ARCH_PAGE_SIZE));
-    }
+    // load gs -- are we supposed to do this?
+    uint16_t gs_val = (6 * 8) | 3;
+    // asm volatile("mov %%ax, %%gs" : : "a"(gs_val));
 
     user_desc_p->entry_number = 6;
 
     return 0;
+}
+
+uint32_t sys_set_tid_address(isr::registers *, int *syscall_ret, uint32_t, uint32_t tidptr_u, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
+    *syscall_ret = 1;
+    LOG_INSANE("syscall: sys_set_tid_address\n");
+    int *tidptr = (int *)tidptr_u;
+    *tidptr = 69;
+    // i do not understand this syscall, but i know it returns some PId so lets just return the calling thread's PID
+    return multitasking::getCurrentProcess()->pid;
+}
+
+uint32_t sys_set_robust_list(isr::registers *, int *syscall_ret, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
+    *syscall_ret = 1;
+    LOG_INSANE("syscall: sys_set_robust_list\n");
+    return 0; // sure, it worked :troll:
+}
+
+uint32_t sys_rseq(isr::registers *, int *syscall_ret, uint32_t, uint32_t rseq_u, uint32_t rseq_len, uint32_t flags_u, uint32_t sig, uint32_t, uint32_t) {
+    *syscall_ret = 1;
+    LOG_INSANE("syscall: sys_rseq\n");
+    // https://lwn.net/Articles/774098/
+    // linux: include/uapi/linux/rseq.h
+    struct rseq {
+        uint32_t cpu_id_start;
+        uint32_t cpu_id;
+        uint64_t rseq_cs;
+        uint32_t flags;
+    } __attribute__((aligned(4 * sizeof(uint64_t))));
+    struct rseq *rseq = (struct rseq *)rseq_u;
+    DEBUG_PRINTF_INSANE("struct rseq: cpu_id_start->%u cpu_id->%u rseq_cs(only first u32)->%u rseq_cs(last u32)->%u flags->%u\n",
+                        rseq->cpu_id_start,
+                        rseq->cpu_id,
+                        (uint32_t)rseq->rseq_cs,
+                        (uint32_t)(rseq->rseq_cs >> 32),
+                        rseq->flags);
+    int flags = flags_u;
+    DEBUG_PRINTF_INSANE("rseq_len: %u, flags: %d sig: %u", rseq_len, flags, sig);
+    DEBUG_PRINTF_INSANE("rseq sizeof %u\n", sizeof(struct rseq));
+    if (flags == 0) { // registration
+        rseq->cpu_id_start = 0;
+        rseq->cpu_id = (uint32_t)-1;
+        rseq->rseq_cs = 0;
+    }
+    return 0; // sure, it worked fine
 }
