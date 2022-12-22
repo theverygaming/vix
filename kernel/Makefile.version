@@ -1,2 +1,2 @@
-KVERSION := v0.0.1-alpha
+KVERSION := v0.0.1-beta
 export KVERSION

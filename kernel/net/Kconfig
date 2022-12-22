@@ -1,0 +1,9 @@
+config ENABLE_NETWORKING
+    default y
+    bool "Enable networking support"
+
+menu "networking"
+depends on ENABLE_NETWORKING
+
+
+endmenu

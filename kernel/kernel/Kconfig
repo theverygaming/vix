@@ -1,6 +1,8 @@
 source "kernel/cppstd/Kconfig"
 source "kernel/memory_alloc/Kconfig"
 
+menu "core kernel"
+
 choice
 	prompt "kernel loglevel"
 	default LOGLEVEL_NORMAL
@@ -15,3 +17,5 @@ choice
 	config LOGLEVEL_SILENT
 		bool "silent"
 endchoice
+
+endmenu

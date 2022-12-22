@@ -14,8 +14,12 @@ config KVERSION
     string
     default "$(KVERSION)"
 
+menu "build options"
+
 config CXX_OPTIM_LEVEL
 	prompt "G++ optimization level"
 	int
 	default 3
 	range 0 3
+
+endmenu

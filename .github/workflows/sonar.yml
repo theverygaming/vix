@@ -62,7 +62,8 @@ jobs:
         run: |
           wget https://gist.githubusercontent.com/theverygaming/ea45ead0700c7b3c28db89e94f74abf8/raw/exitforce0.cpp
           g++ exitforce0.cpp -o exitforce0
-          cd $GITHUB_WORKSPACE && ./exitforce0 timeout 30 qemu-system-x86_64 shitOS.iso -nographic
+          cd $GITHUB_WORKSPACE && ./exitforce0 timeout 30 qemu-system-x86_64 -cdrom shitOS.iso -nographic > log.txt
+          cd $GITHUB_WORKSPACE && cat log.txt
 
       - name: upload image
         uses:  actions/upload-artifact@v2
