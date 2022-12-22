@@ -66,7 +66,11 @@ void map_page(void *physaddr, void *virtualaddr) {
     uint32_t pDirIndex = (uint32_t)virtualaddr >> 22;
     uint32_t pTableIndex = (uint32_t)virtualaddr >> 12 & 0x03FF;
 
-    pagetables[pDirIndex][pTableIndex] = make_table_entry({.address = physaddr, .global = true, .cache_disabled = false, .write_through = false, .priv = USER, .perms = RW, .present = true});
+    if ((uint32_t)virtualaddr > KERNEL_VIRT_ADDRESS) {
+        pagetables[pDirIndex][pTableIndex] = make_table_entry({.address = physaddr, .global = true, .cache_disabled = false, .write_through = false, .priv = SUPERVISOR, .perms = RW, .present = true});
+    } else {
+        pagetables[pDirIndex][pTableIndex] = make_table_entry({.address = physaddr, .global = true, .cache_disabled = false, .write_through = false, .priv = USER, .perms = RW, .present = true});
+    }
 }
 
 void paging::initpaging() {

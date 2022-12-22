@@ -3,7 +3,7 @@
 
 namespace isr {
     typedef struct {
-        uint32_t ds;                                           // data segment pushed by us
+        uint16_t gs, fs, es, ds;                               // segment registers pushed by us
         uint32_t edi, esi, ebp, esp_pusha, ebx, edx, ecx, eax; // pusha
         uint32_t esp_kernel;
         uint32_t interrupt, error;                   // we push interrupt, error is pushed automatically (or our dummy)

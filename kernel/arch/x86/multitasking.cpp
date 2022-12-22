@@ -117,11 +117,20 @@ static multitasking::context isr2mt(isr::registers *regs) {
     ret.ecx = regs->ecx;
     ret.edx = regs->edx;
 
+    ret.ds = regs->ds;
+    ret.es = regs->es;
+    ret.fs = regs->fs;
+    ret.gs = regs->gs;
+    ret.ss = regs->ss_user;
+
+    ret.cs = regs->cs;
+
     ret.edi = regs->edi;
     ret.esi = regs->esi;
 
     ret.ebp = regs->ebp;
-    ret.esp = regs->esp_kernel;
+    // ret.esp = regs->esp_kernel;
+    ret.esp = regs->esp_user;
 
     ret.eip = regs->eip;
 
@@ -137,11 +146,20 @@ static isr::registers mt2isr(multitasking::context ctx) {
     ret.ecx = ctx.ecx;
     ret.edx = ctx.edx;
 
+    ret.ds = ctx.ds;
+    ret.es = ctx.es;
+    ret.fs = ctx.fs;
+    ret.gs = ctx.gs;
+    ret.ss_user = ctx.ss;
+
+    ret.cs = ctx.cs;
+
     ret.edi = ctx.edi;
     ret.esi = ctx.esi;
 
     ret.ebp = ctx.ebp;
-    ret.esp_kernel = ctx.esp;
+    // ret.esp_kernel = ctx.esp;
+    ret.esp_user = ctx.esp;
 
     ret.eip = ctx.eip;
 
@@ -207,6 +225,13 @@ void multitasking::create_task(void *stackadr, void *codeadr, std::vector<proces
         kernel_process->pid = pidCounter++;
     }
     uint8_t *stack_1 = (uint8_t *)memalloc::single::kmalloc(100);
+
+    kernel_process->registerContext.cs = (3 * 8) | 3;
+    kernel_process->registerContext.ds = (4 * 8) | 3;
+    kernel_process->registerContext.es = (4 * 8) | 3;
+    kernel_process->registerContext.fs = (4 * 8) | 3;
+    kernel_process->registerContext.gs = (4 * 8) | 3;
+    kernel_process->registerContext.ss = (4 * 8) | 3;
 
     kernel_process->registerContext.esp = (uint32_t)stackadr;
     kernel_process->registerContext.eip = (uint32_t)codeadr;
