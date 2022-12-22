@@ -15,7 +15,7 @@
 
 isr::intHandler handlers[256];
 
-#define DEBUG_ENTRY_EXIT
+// #define DEBUG_ENTRY_EXIT
 #define PANIC_ON_PROGRAM_EXIT
 
 extern "C" void i686_ISR_Handler(isr::registers *regs) {
@@ -45,9 +45,9 @@ extern "C" void i686_ISR_Handler(isr::registers *regs) {
     current_ring &= 0x3;
 
     if (old_ring != current_ring) {
-        DEBUG_PRINTF("interrupt ring switch! current ring: %u old ring: %u\n", (uint32_t)current_ring, (uint32_t)old_ring);
-        DEBUG_PRINTF("current esp: 0x%p TSS esp: 0x%p\n", regs->esp_user, tss::tss_entry.esp);
-        // KERNEL_PANIC("skill issue");
+        // DEBUG_PRINTF("interrupt ring switch! current ring: %u old ring: %u\n", (uint32_t)current_ring, (uint32_t)old_ring);
+        // DEBUG_PRINTF("current esp: 0x%p TSS esp: 0x%p\n", regs->esp_user, tss::tss_entry.esp);
+        //  KERNEL_PANIC("skill issue");
     } else {
     }
 
@@ -160,18 +160,7 @@ extern "C" void i686_ISR_Handler(isr::registers *regs) {
     uint16_t new_ring = regs->cs & 0x3;
 
 #ifdef DEBUG_ENTRY_EXIT
-    DEBUG_PRINTF_INSANE("KEXIT(%u) -- eax: 0x%p ebx: 0x%p ecx: 0x%p edx: 0x%p\nesi: 0x%p edi: 0x%p esp_u: 0x%p esp_p: 0x%p ebp: 0x%p eip: 0x%p\n",
-                        regs->interrupt,
-                        regs->eax,
-                        regs->ebx,
-                        regs->ecx,
-                        regs->edx,
-                        regs->esi,
-                        regs->edi,
-                        regs->esp_user,
-                        regs->esp_pusha,
-                        regs->ebp,
-                        regs->eip);
+    DEBUG_PRINTF_INSANE("KEXIT(%u)\n", regs->interrupt);
 #endif
     // since we may use a different stack we have to copy some of the data to the old stack
     memcpy((void *)regs->esp_kernel, &regs->eip, 20);

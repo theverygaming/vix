@@ -38,26 +38,6 @@ isr_common:
     ; our stack now
     ; esp_kernel, interrupt, error, eip, cs, eflags, esp_user, ss_user
 
-    ; jmp .noswitchstack ; skip this for usermode testing
-    ; do we have to swap stacks(are we coming from a user process?)
-    cmp esp, (KERNEL_VIRT_ADDRESS + KERNEL_ISR_STACK_POINTER_OFFSET) - (8 * 4)
-    je .noswitchstack
-
-    ; switch stack
-    push eax
-    push ebx
-    push ecx
-    mov ecx, 10
-    mov eax, (KERNEL_VIRT_ADDRESS + KERNEL_ISR_STACK_POINTER_OFFSET) - (10 * 4)
-    lea ebx, [esp + (3 * 4)]
-    call memcpy32f ; Arguments: eax->dest, ebx->source, ecx->element count in 32bits
-    pop ecx
-    pop ebx
-    pop eax
-    mov esp, (KERNEL_VIRT_ADDRESS + KERNEL_ISR_STACK_POINTER_OFFSET) - (10 * 4)
-
-.noswitchstack:
-
     pusha               ; pushes in order: eax, ecx, edx, ebx, esp, ebp, esi, edi
 
     o16 push ds
