@@ -41,7 +41,7 @@ bool multitasking::isProcessSwitchingEnabled() {
 }
 
 /* this function gets passed the top of stack, argv[] must be terminated with a null pointer | returns new stack pointer */
-static void *init_empty_stack(void *stackadr, std::vector<std::string> *argv, void *eip = 0, bool kernel = false) { // TODO: make kernel NOT the default
+static void *init_empty_stack(void *stackadr, std::vector<std::string> *argv, void *eip = 0, bool kernel = false) {
     // get argc
     int argc = argv->size();
 
@@ -76,6 +76,8 @@ static void *init_empty_stack(void *stackadr, std::vector<std::string> *argv, vo
         stack[2] = 1 << 9;        // EFLAGS, set interrupt bit
         stack[3] = argc;          // argc
         nextindex = 4;
+    } else {
+        stack[0] = argc; // argc
     }
 
     size_t string_pos = total_size + (argc * 4);
@@ -216,7 +218,7 @@ void multitasking::killCurrentProcess(isr::registers *regs) {
 void multitasking::create_task(void *stackadr, void *codeadr, std::vector<process_pagerange> *pagerange, std::vector<std::string> *argv, struct x86_process::tls_info info, pid_t forced_pid) {
     setPageRange(pagerange);
 
-    stackadr = init_empty_stack(stackadr, argv, codeadr, true);
+    stackadr = init_empty_stack(stackadr, argv, codeadr, false);
 
     x86_process *kernel_process = new x86_process;
     if (forced_pid != -1) {
