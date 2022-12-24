@@ -1,9 +1,9 @@
 # shitOS
-a broken operating system with a ton of bad design choices and copypasted code
+a broken operating system with a ton of bad design choices and copypasted code. _It's actually not that bad anymore tho_
 
 #### Goals
-- run Linux applications with little modifications
-- be able to main this(will take 10+ years probably)
+- Full Linux binary compatibility
+- Load Linux kernel modules/drivers
 
 References: [PenutOS](https://github.com/AlexandreRouma/PenutOS/), [nanobyte_os](https://github.com/chibicitiberiu/nanobyte_os), the [OSDev wiki](https://wiki.osdev.org), [raspi3-tutorial](https://github.com/bztsrc/raspi3-tutorial) and of course [Linux](https://github.com/torvalds/linux)
 
@@ -21,10 +21,8 @@ now to build for x86 you need a few extra dependencies(aside from gcc and make),
 sudo apt install nasm gcc-multilib g++-multilib xorriso grub-common grub-pc mtools python3 cmake pkg-config flex bison
 ```
 
-then you can simply build with
-```
-make x86-config MAKE_ARCH=x86 # alldefconfig
-make MAKE_ARCH=x86
-```
+first you have to configure the kernel, you could either simply use the default config (``make alldefconfig``) or configure it yourself (``make menuconfig``)
+
+then you can simply build with ``make``
 
 a bootable iso named ``shitOS.iso`` will be created

@@ -155,7 +155,7 @@ uint32_t (*syscall_table[440])(isr::registers *, int *, uint32_t, uint32_t, uint
     nullptr,
     nullptr, /* 144 */
     nullptr,
-    nullptr,
+    &sys_writev,
     nullptr,
     nullptr,
     nullptr, /* 149 */

@@ -16,7 +16,7 @@
 isr::intHandler handlers[256];
 
 // #define DEBUG_ENTRY_EXIT
-#define PANIC_ON_PROGRAM_EXIT
+#define PANIC_ON_PROGRAM_FAULT
 
 extern "C" void i686_ISR_Handler(isr::registers *regs) {
 #ifdef DEBUG_ENTRY_EXIT
@@ -108,8 +108,8 @@ extern "C" void i686_ISR_Handler(isr::registers *regs) {
         }
         printf("Killing current process\n");
         if (multitasking::isProcessSwitchingEnabled()) {
-#ifdef PANIC_ON_PROGRAM_EXIT
-            KERNEL_PANIC("PANIC_ON_PROGRAM_EXIT");
+#ifdef PANIC_ON_PROGRAM_FAULT
+            KERNEL_PANIC("PANIC_ON_PROGRAM_FAULT");
 #endif
             multitasking::killCurrentProcess(regs);
         } else {
@@ -146,8 +146,8 @@ extern "C" void i686_ISR_Handler(isr::registers *regs) {
         }
         printf("Killing current process\n");
         if (multitasking::isProcessSwitchingEnabled()) {
-#ifdef PANIC_ON_PROGRAM_EXIT
-            KERNEL_PANIC("PANIC_ON_PROGRAM_EXIT");
+#ifdef PANIC_ON_PROGRAM_FAULT
+            KERNEL_PANIC("PANIC_ON_PROGRAM_FAULT");
 #endif
             multitasking::killCurrentProcess(regs);
         } else {

@@ -8,6 +8,8 @@
 #include <types.h>
 #include INCLUDE_ARCH_GENERIC(memory.h)
 
+#define DEBUG_PRINTF_INSANE(...) while(0) {} // disable debug printf for this file
+
 /*
  * Freelist allocator
  */

@@ -273,6 +273,31 @@ uint32_t sys_modify_ldt(isr::registers *, int *syscall_ret, uint32_t, uint32_t _
     return -ENOSYS; // unimplemented
 }
 
+uint32_t sys_writev(isr::registers *, int *syscall_ret, uint32_t, uint32_t fd, uint32_t _iov, uint32_t iovcnt, uint32_t, uint32_t, uint32_t) {
+    *syscall_ret = 1;
+
+    DEBUG_PRINTF("syscall: sys_writev\n");
+
+    struct iovec {
+        void *iov_base; /* Starting address */
+        size_t iov_len; /* Number of bytes to transfer */
+    };
+    struct iovec *iov = (struct iovec *)_iov;
+
+    uint32_t written = 0;
+
+    for (int i = 0; i < (int)iovcnt; i++) {
+        char *string = (char *)__builtin_alloca((iov->iov_len + 1));
+        string[iov->iov_len] = '\0';
+        memcpy(string, iov->iov_base, iov->iov_len);
+        printf("%s", string);
+        written += iov->iov_len;
+        iov++;
+    }
+
+    return written; // return number of written bytes
+}
+
 uint32_t sys_getcwd(isr::registers *, int *syscall_ret, uint32_t, uint32_t _buf, uint32_t size, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     char *buf = (char *)_buf;
@@ -342,7 +367,7 @@ uint32_t sys_set_thread_area(isr::registers *, int *syscall_ret, uint32_t, uint3
     multitasking::x86_process *proc = multitasking::getCurrentProcess();
     if (proc->tlsinfo.tlsdata != nullptr) {
         memset((void *)user_desc_p->base_addr, 0, proc->tlsinfo.tls_size);
-        //memcpy((void *)user_desc_p->base_addr, proc->tlsinfo.tlsdata, proc->tlsinfo.tlsdata_size);
+        memcpy((void *)user_desc_p->base_addr, proc->tlsinfo.tlsdata, proc->tlsinfo.tlsdata_size);
     }
 
     uint8_t access = 0;
@@ -373,7 +398,7 @@ uint32_t sys_set_tid_address(isr::registers *, int *syscall_ret, uint32_t, uint3
     LOG_INSANE("syscall: sys_set_tid_address\n");
     int *tidptr = (int *)tidptr_u;
     *tidptr = 69;
-    // i do not understand this syscall, but i know it returns some PId so lets just return the calling thread's PID
+    // i do not understand this syscall, but i know it returns some PID so lets just return the calling thread's PID
     return multitasking::getCurrentProcess()->pid;
 }
 
