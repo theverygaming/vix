@@ -1,4 +1,4 @@
-obj-$(ENABLE_NETWORKING) += drivers/net/rtl8139.ocpp
+obj-$(CONFIG_ENABLE_NETWORKING) += drivers/net/rtl8139.ocpp
 
 obj-y += drivers/keyboard.ocpp drivers/pci.ocpp drivers/pic_8259.ocpp drivers/rtc.ocpp drivers/serial.ocpp drivers/text80x25.ocpp
 obj-y += generic/cpu.ocpp generic/devices.ocpp generic/memory.ocpp generic/textoutput.ocpp

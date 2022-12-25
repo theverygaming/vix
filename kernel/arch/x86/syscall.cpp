@@ -63,7 +63,7 @@ uint32_t (*syscall_table[440])(isr::registers *, int *, uint32_t, uint32_t, uint
     nullptr,
     nullptr,
     nullptr,
-    nullptr, /* 54  */
+    &sys_ioctl, /* 54  */
     nullptr,
     nullptr,
     nullptr,
@@ -134,7 +134,7 @@ uint32_t (*syscall_table[440])(isr::registers *, int *, uint32_t, uint32_t, uint
     &sys_uname,
     &sys_modify_ldt,
     nullptr, /* 124 */
-    nullptr,
+    &sys_mprotect,
     nullptr,
     nullptr,
     nullptr,
@@ -184,7 +184,7 @@ uint32_t (*syscall_table[440])(isr::registers *, int *, uint32_t, uint32_t, uint
     nullptr,
     nullptr,
     nullptr, /* 174 */
-    nullptr,
+    &sys_rt_sigprocmask,
     nullptr,
     nullptr,
     nullptr,
@@ -201,7 +201,7 @@ uint32_t (*syscall_table[440])(isr::registers *, int *, uint32_t, uint32_t, uint
     nullptr, /* 189 */
     nullptr,
     nullptr,
-    nullptr,
+    &sys_mmap2,
     nullptr,
     nullptr, /* 194 */
     &sys_stat64,
@@ -458,10 +458,11 @@ void syscall::syscallHandler(isr::registers *regs) {
         regs->eax = -ENOSYS;
         return;
     }
-    // DEBUG_PRINTF("calling syscall %u\n", regs->eax);
+    DEBUG_PRINTF_INSANE("calling syscall %u\n", regs->eax);
     int syscall_ret;
     uint32_t returnval = syscall_table[regs->eax](regs, &syscall_ret, regs->eax, regs->ebx, regs->ecx, regs->edx, regs->esi, regs->edi, regs->ebp);
     if (syscall_ret > 0) {
         regs->eax = returnval;
     }
+    DEBUG_PRINTF_INSANE("syscall return %u\n", returnval);
 }

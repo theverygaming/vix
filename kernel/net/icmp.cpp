@@ -1,5 +1,5 @@
 #include <arch/drivers/net/rtl8139.h>
-#include <endianness.h>
+#include <endian.h>
 #include <net/ethernet.h>
 #include <net/icmp.h>
 #include <net/ip.h>

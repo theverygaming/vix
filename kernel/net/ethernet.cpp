@@ -1,5 +1,5 @@
 #include <arch/drivers/net/rtl8139.h>
-#include <endianness.h>
+#include <endian.h>
 #include <memory_alloc/memalloc.h>
 #include <net/arp.h>
 #include <net/ethernet.h>
@@ -25,7 +25,7 @@ void net::ethernet::ethernet_stack::receive_packet(net::networkstack *netstack, 
     }
     struct ethernet_packet *packet = (struct ethernet_packet *)data;
 
-    packet->ethertype = endian_assure_big(packet->ethertype);
+    packet->ethertype = BE_16(packet->ethertype);
     // if ethertype 0000-05DC it's length
 
     printf("src: ");

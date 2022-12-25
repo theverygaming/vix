@@ -1,4 +1,4 @@
-#include <endianness.h>
+#include <endian.h>
 #include <memory_alloc/memalloc.h>
 #include <net/icmp.h>
 #include <net/ip.h>
@@ -56,9 +56,9 @@ void net::ip::ipv4_stack::send_packet(net::networkstack *netstack, struct ipv4_p
     struct ipv4_packet packet_n;
     packet_n.version_ihl = 0x45;
     packet_n.TOS = 0x0;
-    packet_n.total_length = endian_assure_big((uint16_t)(size + 20));
-    packet_n.identification = endian_assure_big((uint16_t)0x81AF);        // only used for fragmentation/reassembly, we don't need it _for now_
-    packet_n.flags_fragment_offset = endian_assure_big((uint16_t)0x4000); // no fragmentation
+    packet_n.total_length = BE_16((uint16_t)(size + 20));
+    packet_n.identification = BE_16((uint16_t)0x81AF);        // only used for fragmentation/reassembly, we don't need it _for now_
+    packet_n.flags_fragment_offset = BE_16((uint16_t)0x4000); // no fragmentation
     packet_n.TTL = 0x40;
     packet_n.protocol = packet->protocol;
     packet_n.header_checksum = 0x0000;
@@ -69,9 +69,9 @@ void net::ip::ipv4_stack::send_packet(net::networkstack *netstack, struct ipv4_p
     uint16_t *packet_u16 = (uint16_t *)&packet_n;
     uint16_t packet_sum = 0;
     for (int i = 0; i < 10; i++) {
-        packet_sum += endian_assure_big(packet_u16[i]);
+        packet_sum += BE_16(packet_u16[i]);
     }
-    packet_n.header_checksum = endian_assure_big((uint16_t)(~packet_sum - 3)); // why -3? i have no clue -> maybe carry count???
+    packet_n.header_checksum = BE_16((uint16_t)(~packet_sum - 3)); // why -3? i have no clue -> maybe carry count???
 
     void *packetdata = memalloc::single::kmalloc(size + 20);
     memcpy(packetdata, &packet_n, 20);
@@ -116,9 +116,9 @@ void *net::ip::make_ipv4_packet(const uint8_t *src_address, const uint8_t *dest_
     struct ipv4_packet packet;
     packet.version_ihl = 0x45;
     packet.TOS = 0x0;
-    packet.total_length = endian_assure_big((uint16_t)(payload_length + 20));
-    packet.identification = endian_assure_big((uint16_t)0x81AF);        // only used for fragmentation/reassembly, we don't need it _for now_
-    packet.flags_fragment_offset = endian_assure_big((uint16_t)0x4000); // no fragmentation
+    packet.total_length = BE_16((uint16_t)(payload_length + 20));
+    packet.identification = BE_16((uint16_t)0x81AF);        // only used for fragmentation/reassembly, we don't need it _for now_
+    packet.flags_fragment_offset = BE_16((uint16_t)0x4000); // no fragmentation
     packet.TTL = 0x40;
     packet.protocol = protocol;
     packet.header_checksum = 0x0000;
@@ -129,9 +129,9 @@ void *net::ip::make_ipv4_packet(const uint8_t *src_address, const uint8_t *dest_
     uint16_t *packet_u16 = (uint16_t *)&packet;
     uint16_t packet_sum = 0;
     for (int i = 0; i < 10; i++) {
-        packet_sum += endian_assure_big(packet_u16[i]);
+        packet_sum += BE_16(packet_u16[i]);
     }
-    packet.header_checksum = endian_assure_big((uint16_t)(~packet_sum - 3)); // why -3? i have no clue
+    packet.header_checksum = BE_16((uint16_t)(~packet_sum - 3)); // why -3? i have no clue
 
     void *ret = new uint8_t[20];
     memcpy(ret, &packet, 20);
