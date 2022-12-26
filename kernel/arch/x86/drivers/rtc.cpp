@@ -5,12 +5,12 @@
 #define CMOS_PORT 0x70
 #define CMOS_DATA 0x71
 
-static uint8_t getCMOSregister(uint8_t reg) {
+static inline uint8_t getCMOSregister(uint8_t reg) {
     outb(CMOS_PORT, reg);
     return inb(CMOS_DATA);
 }
 
-static bool isCMOSupdateInProgress() {
+static inline bool isCMOSupdateInProgress() {
     return (getCMOSregister(0x0A) & 0x80) > 0;
 }
 

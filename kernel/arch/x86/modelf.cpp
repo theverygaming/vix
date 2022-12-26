@@ -35,38 +35,38 @@ struct __attribute__((packed)) elf32_program_header {
 };
 
 // https://github.com/torvalds/linux/blob/master/include/uapi/linux/elf.h
-#define SHT_NULL 0
+#define SHT_NULL     0
 #define SHT_PROGBITS 1
-#define SHT_SYMTAB 2
-#define SHT_STRTAB 3
-#define SHT_RELA 4
-#define SHT_HASH 5
-#define SHT_DYNAMIC 6
-#define SHT_NOTE 7
-#define SHT_NOBITS 8
-#define SHT_REL 9
-#define SHT_SHLIB 10
-#define SHT_DYNSYM 11
-#define SHT_NUM 12
-#define SHT_LOPROC 0x70000000
-#define SHT_HIPROC 0x7fffffff
-#define SHT_LOUSER 0x80000000
-#define SHT_HIUSER 0xffffffff
+#define SHT_SYMTAB   2
+#define SHT_STRTAB   3
+#define SHT_RELA     4
+#define SHT_HASH     5
+#define SHT_DYNAMIC  6
+#define SHT_NOTE     7
+#define SHT_NOBITS   8
+#define SHT_REL      9
+#define SHT_SHLIB    10
+#define SHT_DYNSYM   11
+#define SHT_NUM      12
+#define SHT_LOPROC   0x70000000
+#define SHT_HIPROC   0x7fffffff
+#define SHT_LOUSER   0x80000000
+#define SHT_HIUSER   0xffffffff
 
-#define SHF_WRITE 0x1
-#define SHF_ALLOC 0x2
-#define SHF_EXECINSTR 0x4
+#define SHF_WRITE          0x1
+#define SHF_ALLOC          0x2
+#define SHF_EXECINSTR      0x4
 #define SHF_RELA_LIVEPATCH 0x00100000
-#define SHF_RO_AFTER_INIT 0x00200000
-#define SHF_MASKPROC 0xf0000000
+#define SHF_RO_AFTER_INIT  0x00200000
+#define SHF_MASKPROC       0xf0000000
 
-#define SHN_UNDEF 0
+#define SHN_UNDEF     0
 #define SHN_LORESERVE 0xff00
-#define SHN_LOPROC 0xff00
-#define SHN_HIPROC 0xff1f
+#define SHN_LOPROC    0xff00
+#define SHN_HIPROC    0xff1f
 #define SHN_LIVEPATCH 0xff20
-#define SHN_ABS 0xfff1
-#define SHN_COMMON 0xfff2
+#define SHN_ABS       0xfff1
+#define SHN_COMMON    0xfff2
 #define SHN_HIRESERVE 0xffff
 
 struct __attribute__((packed)) elf32_section_header {
@@ -83,10 +83,10 @@ struct __attribute__((packed)) elf32_section_header {
 };
 
 #define R_386_NONE 0
-#define R_386_32 1
+#define R_386_32   1
 #define R_386_PC32 2
 
-#define ELF32_R_SYM(x) ((x) >> 8)
+#define ELF32_R_SYM(x)  ((x) >> 8)
 #define ELF32_R_TYPE(x) ((x)&0xff)
 
 struct __attribute__((packed)) elf32_rel {
@@ -307,11 +307,9 @@ void elf::load_module(void *ELF_baseadr) {
         }
     }
 
-    int (*modexit)() = (int (*)())elf32_find_symbol("__MODULE_EXIT", ELF_baseadr, &sections);
+    void (*modexit)() = (void (*)())elf32_find_symbol("__MODULE_EXIT", ELF_baseadr, &sections);
     if (modexit != nullptr) {
-        if (modexit() != 0) {
-            printf("shitOS module exit failed!\n");
-        }
+        modexit();
     }
 
     void (*linux_modexit)() = (void (*)())elf32_find_symbol("cleanup_module", ELF_baseadr, &sections);

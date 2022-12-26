@@ -13,25 +13,7 @@ static void set_pit_freq(int hz) {
     outb(0x40, divisor >> 8);   /* Set high byte of divisor */
 }
 
-volatile int ticks = 0;
-volatile int count = 1;
-
-void cpubasics::sleep(int ms) {
-    ticks = 0;
-    count = 1;
-    while (ticks < ms) {}
-    ticks = 0;
-}
-
-static void isr_clock_int() {
-    if (count == 1) {
-        ticks++;
-    }
-    *((unsigned volatile char *)((KERNEL_VIRT_ADDRESS + VIDMEM_OFFSET) + 2 * 79 + 160 * 0)) = ticks / 20;
-}
-
-void clockHandler(isr::registers *regs) {
-    isr_clock_int();
+static void clockHandler(isr::registers *regs) {
     multitasking::interruptTrigger(regs);
     drivers::pic::pic8259::eoi((uint8_t)regs->interrupt);
 }

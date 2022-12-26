@@ -3,34 +3,34 @@
 #include <stdio.h>
 
 /* direct read/write functions */
-uint32_t drivers::pci::pciConfigRead32(uint8_t bus, uint8_t slot, uint8_t function, uint8_t offset) {
+static inline uint32_t pciConfigRead32(uint8_t bus, uint8_t slot, uint8_t function, uint8_t offset) {
     uint32_t address = (((uint32_t)bus) << 16) | (((uint32_t)slot) << 11) | (((uint32_t)function) << 8) | (offset & 0xFC) | (0x80000000);
     outl(0xCF8, address);
     return inl(0xCFC);
 }
 
-uint16_t drivers::pci::pciConfigRead16(uint8_t bus, uint8_t slot, uint8_t function, uint8_t offset) {
+static inline uint16_t pciConfigRead16(uint8_t bus, uint8_t slot, uint8_t function, uint8_t offset) {
     return (uint16_t)((pciConfigRead32(bus, slot, function, offset) >> ((offset % 4) * 8)) & 0xFFFF);
 }
 
-uint8_t drivers::pci::pciConfigRead08(uint8_t bus, uint8_t slot, uint8_t function, uint8_t offset) {
+static inline uint8_t pciConfigRead08(uint8_t bus, uint8_t slot, uint8_t function, uint8_t offset) {
     return (uint8_t)((pciConfigRead32(bus, slot, function, offset) >> ((offset % 4) * 8)) & 0xFF);
 }
 
-void drivers::pci::pciConfigWrite32(uint8_t bus, uint8_t slot, uint8_t function, uint8_t offset, uint32_t data) {
+static inline void pciConfigWrite32(uint8_t bus, uint8_t slot, uint8_t function, uint8_t offset, uint32_t data) {
     uint32_t address = (((uint32_t)bus) << 16) | (((uint32_t)slot) << 11) | (((uint32_t)function) << 8) | (offset & 0xFC) | (0x80000000);
     outl(0xCF8, address);
     outl(0xCFC, data);
 }
 
-void drivers::pci::pciConfigWrite16(uint8_t bus, uint8_t slot, uint8_t function, uint8_t offset, uint16_t data) {
+static inline void pciConfigWrite16(uint8_t bus, uint8_t slot, uint8_t function, uint8_t offset, uint16_t data) {
     uint32_t read = pciConfigRead32(bus, slot, function, offset);
     read &= ~(0xFFFF << ((offset % 4) * 8));
     read |= data << ((offset % 4) * 8);
     pciConfigWrite32(bus, slot, function, offset, read);
 }
 
-void drivers::pci::pciConfigWrite08(uint8_t bus, uint8_t slot, uint8_t function, uint8_t offset, uint8_t data) {
+static inline void pciConfigWrite08(uint8_t bus, uint8_t slot, uint8_t function, uint8_t offset, uint8_t data) {
     uint32_t read = pciConfigRead32(bus, slot, function, offset);
     read &= ~(0xFF << ((offset % 4) * 8));
     read |= data << ((offset % 4) * 8);
@@ -85,38 +85,38 @@ static generic_pciHeader_t readGenericHeader(uint8_t bus, uint8_t slot, uint8_t 
      * +----------+--------+----------+------------+--------------+---------------+
      */
     generic_pciHeader_t pciheader;
-    pciheader.vendorID = drivers::pci::pciConfigRead16(bus, slot, function, 0);
-    pciheader.deviceID = drivers::pci::pciConfigRead16(bus, slot, function, 2);
-    pciheader.command = drivers::pci::pciConfigRead16(bus, slot, function, 4);
-    pciheader.status = drivers::pci::pciConfigRead16(bus, slot, function, 6);
-    pciheader.revisionID = drivers::pci::pciConfigRead08(bus, slot, function, 8);
-    pciheader.progIF = drivers::pci::pciConfigRead08(bus, slot, function, 9);
-    pciheader.subclass = drivers::pci::pciConfigRead08(bus, slot, function, 10);
-    pciheader.classID = drivers::pci::pciConfigRead08(bus, slot, function, 11);
-    pciheader.cacheLineSize = drivers::pci::pciConfigRead08(bus, slot, function, 12);
-    pciheader.latencyTimer = drivers::pci::pciConfigRead08(bus, slot, function, 13);
-    pciheader.headerType = drivers::pci::pciConfigRead08(bus, slot, function, 14);
-    pciheader.BIST = drivers::pci::pciConfigRead08(bus, slot, function, 15);
+    pciheader.vendorID = pciConfigRead16(bus, slot, function, 0);
+    pciheader.deviceID = pciConfigRead16(bus, slot, function, 2);
+    pciheader.command = pciConfigRead16(bus, slot, function, 4);
+    pciheader.status = pciConfigRead16(bus, slot, function, 6);
+    pciheader.revisionID = pciConfigRead08(bus, slot, function, 8);
+    pciheader.progIF = pciConfigRead08(bus, slot, function, 9);
+    pciheader.subclass = pciConfigRead08(bus, slot, function, 10);
+    pciheader.classID = pciConfigRead08(bus, slot, function, 11);
+    pciheader.cacheLineSize = pciConfigRead08(bus, slot, function, 12);
+    pciheader.latencyTimer = pciConfigRead08(bus, slot, function, 13);
+    pciheader.headerType = pciConfigRead08(bus, slot, function, 14);
+    pciheader.BIST = pciConfigRead08(bus, slot, function, 15);
     return pciheader;
 }
 
 static pciHeader0x0_t read0x0Header(uint8_t bus, uint8_t slot, uint8_t function) {
     pciHeader0x0_t header;
-    header.BAR0 = drivers::pci::pciConfigRead32(bus, slot, function, 16);
-    header.BAR1 = drivers::pci::pciConfigRead32(bus, slot, function, 20);
-    header.BAR2 = drivers::pci::pciConfigRead32(bus, slot, function, 24);
-    header.BAR3 = drivers::pci::pciConfigRead32(bus, slot, function, 28);
-    header.BAR4 = drivers::pci::pciConfigRead32(bus, slot, function, 32);
-    header.BAR5 = drivers::pci::pciConfigRead32(bus, slot, function, 36);
-    header.cardbusCISptr = drivers::pci::pciConfigRead32(bus, slot, function, 40);
-    header.subsystemVendorID = drivers::pci::pciConfigRead16(bus, slot, function, 44);
-    header.subsystemID = drivers::pci::pciConfigRead16(bus, slot, function, 46);
-    header.expansionROMbaseAddress = drivers::pci::pciConfigRead32(bus, slot, function, 48);
-    header.capabilitiesPtr = drivers::pci::pciConfigRead08(bus, slot, function, 52);
-    header.interruptLine = drivers::pci::pciConfigRead08(bus, slot, function, 60);
-    header.interruptPin = drivers::pci::pciConfigRead08(bus, slot, function, 61);
-    header.minGrant = drivers::pci::pciConfigRead08(bus, slot, function, 62);
-    header.maxLatency = drivers::pci::pciConfigRead08(bus, slot, function, 63);
+    header.BAR0 = pciConfigRead32(bus, slot, function, 16);
+    header.BAR1 = pciConfigRead32(bus, slot, function, 20);
+    header.BAR2 = pciConfigRead32(bus, slot, function, 24);
+    header.BAR3 = pciConfigRead32(bus, slot, function, 28);
+    header.BAR4 = pciConfigRead32(bus, slot, function, 32);
+    header.BAR5 = pciConfigRead32(bus, slot, function, 36);
+    header.cardbusCISptr = pciConfigRead32(bus, slot, function, 40);
+    header.subsystemVendorID = pciConfigRead16(bus, slot, function, 44);
+    header.subsystemID = pciConfigRead16(bus, slot, function, 46);
+    header.expansionROMbaseAddress = pciConfigRead32(bus, slot, function, 48);
+    header.capabilitiesPtr = pciConfigRead08(bus, slot, function, 52);
+    header.interruptLine = pciConfigRead08(bus, slot, function, 60);
+    header.interruptPin = pciConfigRead08(bus, slot, function, 61);
+    header.minGrant = pciConfigRead08(bus, slot, function, 62);
+    header.maxLatency = pciConfigRead08(bus, slot, function, 63);
     return header;
 }
 
@@ -229,7 +229,7 @@ drivers::pci::bar_type drivers::pci::getBarType(uint8_t bus, uint8_t device, uin
     if (barnum > 5) {
         return bar_type::BAR_TYPE_ERROR;
     }
-    uint32_t BAR = drivers::pci::pciConfigRead32(bus, device, function, 16 + (barnum * 4));
+    uint32_t BAR = pciConfigRead32(bus, device, function, 16 + (barnum * 4));
     if (BAR & 0x1) {
         return bar_type::BAR_TYPE_IO;
     } else {
@@ -241,7 +241,7 @@ uint16_t drivers::pci::getBarIOAddress(uint8_t bus, uint8_t device, uint8_t func
     if (barnum > 5 || getBarType(bus, device, function, barnum) != bar_type::BAR_TYPE_IO) {
         return 0;
     }
-    uint32_t BAR = drivers::pci::pciConfigRead32(bus, device, function, 16 + (barnum * 4));
+    uint32_t BAR = pciConfigRead32(bus, device, function, 16 + (barnum * 4));
     return (uint16_t)(BAR & 0xFFFFFFFC);
 }
 

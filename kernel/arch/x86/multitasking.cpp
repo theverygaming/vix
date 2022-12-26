@@ -288,25 +288,25 @@ size_t multitasking::getProcessCount() {
     return count;
 }
 
-uint64_t starttime = 0;
+// uint64_t starttime = 0;
 
-int counter = 0;
+// int counter = 0;
 
 // fired every timer interrupt, may be called during an ISR to possibly force a process switch
 void multitasking::interruptTrigger(isr::registers *regs) {
     if (unlikely(uninitialized)) {
-        starttime = time::getCurrentUnixTime();
-        counter = 0;
+        // starttime = time::getCurrentUnixTime();
+        // counter = 0;
         return;
     }
 
-    if (counter % 30000 == 0) {
+    /*if (counter % 30000 == 0) {
         uint64_t currenttime = time::getCurrentUnixTime();
         uint64_t passedTime = currenttime - starttime;
         DEBUG_PRINTF("timer passed: %u actual passed: %u\n", (uint32_t)(counter / 1000), (uint32_t)passedTime);
     }
 
-    counter++;
+    counter++;*/
 
     bool switch_;
     size_t switch_index;

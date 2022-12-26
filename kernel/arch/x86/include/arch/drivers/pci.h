@@ -2,12 +2,6 @@
 #include <types.h>
 
 namespace drivers::pci {
-    uint32_t pciConfigRead32(uint8_t bus, uint8_t slot, uint8_t function, uint8_t offset);
-    uint16_t pciConfigRead16(uint8_t bus, uint8_t slot, uint8_t function, uint8_t offset);
-    uint8_t pciConfigRead08(uint8_t bus, uint8_t slot, uint8_t function, uint8_t offset);
-    void pciConfigWrite32(uint8_t bus, uint8_t slot, uint8_t function, uint8_t offset, uint32_t data);
-    void pciConfigWrite16(uint8_t bus, uint8_t slot, uint8_t function, uint8_t offset, uint16_t data);
-    void pciConfigWrite08(uint8_t bus, uint8_t slot, uint8_t function, uint8_t offset, uint8_t data);
     void init();
     bool hasDev(uint16_t vendorID, uint16_t deviceID, uint8_t *bus, uint8_t *device, uint8_t *function);
     bool enableMastering(uint8_t bus, uint8_t device, uint8_t function);

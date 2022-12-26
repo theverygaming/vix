@@ -81,11 +81,6 @@ void net::ethernet::send(net::networkstack *netstack, struct ethernet_packet_pro
     memcpy(((uint8_t *)new_data) + sizeof(struct ethernet_packet), data, size);
     struct ethernet_packet *ethernetpacket = (struct ethernet_packet *)new_data;
 
-    // temporary funny
-    for (int i = 0; i < 6; i++) {
-        mac[i] = netstack->networkcard.get_mac_byte(i);
-    }
-
     for (int i = 0; i < 6; i++) {
         ethernetpacket->dest_mac[i] = packet->dest_mac[i];
         ethernetpacket->source_mac[i] = mac[i];

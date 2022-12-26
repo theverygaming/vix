@@ -32,8 +32,6 @@ static struct drivers::net::generic_card rtl8139_card = {
 static net::networkstack networkstack(rtl8139_card);
 
 static void irq_handler(isr::registers *gaming) {
-    // printf("rtl8139 IRQ\n");
-
     if ((((struct packetInfo *)(bufferptr + bufferoffset))->header & 0x1) == 0) {
         printf("ROK not set?? wtf\n");
         KERNEL_PANIC("rtl8139 skill issue");

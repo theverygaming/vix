@@ -46,11 +46,6 @@ static void kernelinit(void *multiboot2_info_ptr) {
     void *memMap = multiboot2::findMemMap(multiboot2_info_ptr, &memMap_count);
     memorymap::initMemoryMap(memMap, memMap_count);
     framebuffer.init(multiboot2::findFrameBuffer(multiboot2_info_ptr));
-    for (size_t y = 0; y < framebuffer.get_height(); y++) {
-        for (size_t x = 0; x < framebuffer.get_width(); x++) {
-            framebuffer.write_pixel(x, y, 56, 60, 60); // discord background color
-        }
-    }
     fbconsole.init(&framebuffer);
     gdt::init();
     paging::clearPageTables((void *)0x0, KERNEL_VIRT_ADDRESS / ARCH_PAGE_SIZE);
@@ -82,23 +77,11 @@ void arch::generic::startup::stage3_startup() {
     time::bootupTime = time::getCurrentUnixTime();
 }
 
-// very important array definitely
-static uint8_t franxxlogo[9][18] = {
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 4, 0},
-    {0, 0, 0, 0, 0, 0, 0, 15, 0, 15, 0, 0, 0, 4, 0, 4, 0, 0},
-    {0, 0, 1, 0, 1, 0, 1, 0, 15, 0, 4, 0, 4, 0, 4, 0, 0, 0},
-    {0, 0, 0, 1, 0, 1, 0, 1, 0, 4, 0, 4, 0, 4, 0, 0, 0, 0},
-    {0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 4, 0, 4, 0, 0, 0, 0, 0},
-    {0, 0, 0, 1, 0, 1, 0, 1, 0, 4, 0, 4, 0, 4, 0, 0, 0, 0},
-    {0, 0, 1, 0, 1, 0, 1, 0, 15, 0, 4, 0, 4, 0, 4, 0, 0, 0},
-    {0, 1, 0, 1, 0, 0, 0, 15, 0, 15, 0, 0, 0, 4, 0, 4, 0, 0},
-    {1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-};
-
 void arch::generic::startup::after_init() {
+    framebuffer.clear();
     fbconsole.init2();
     stdio::set_putc_function(idkputc);
-    
+
     void *elfptr = nullptr;
 
     if (fs::vfs::fptr("/ramfs/module.o", &elfptr)) {
@@ -110,12 +93,6 @@ void arch::generic::startup::after_init() {
     if (fs::vfs::fptr("/ramfs/shitshell", &elfptr)) {
         args.push_back("/ramfs/shitshell");
         elf::load_program(elfptr, &args);
-    }
-
-    for (int i = 0; i < 9; i++) {
-        for (int j = 0; j < 18; j++) {
-            putcolor(j + 63, i, franxxlogo[i][j] << 4 | 7);
-        }
     }
 
     // a bit of a hack.. we have to call the vector destructor before killing this process
