@@ -1,6 +1,6 @@
 #pragma once
-#include <net/arp.h>
-#include <net/ip.h>
+#include <net/stack/arp.h>
+#include <net/stack/ip.h>
 #include <types.h>
 
 namespace net {

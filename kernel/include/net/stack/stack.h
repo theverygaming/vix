@@ -1,6 +1,6 @@
 #pragma once
 #include <drivers/net/generic_card.h>
-#include <net/ethernet.h>
+#include <net/stack/ethernet.h>
 #include <types.h>
 
 namespace net {

@@ -1,10 +1,10 @@
 #include <arch/drivers/net/rtl8139.h>
 #include <endian.h>
 #include <memory_alloc/memalloc.h>
-#include <net/arp.h>
-#include <net/ethernet.h>
-#include <net/ip.h>
-#include <net/stack.h>
+#include <net/stack/arp.h>
+#include <net/stack/ethernet.h>
+#include <net/stack/ip.h>
+#include <net/stack/stack.h>
 #include <stdio.h>
 #include <stdlib.h>
 

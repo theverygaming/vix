@@ -1,9 +1,9 @@
 #include <arch/drivers/net/rtl8139.h>
 #include <endian.h>
-#include <net/ethernet.h>
-#include <net/icmp.h>
-#include <net/ip.h>
-#include <net/stack.h>
+#include <net/stack/ethernet.h>
+#include <net/stack/icmp.h>
+#include <net/stack/ip.h>
+#include <net/stack/stack.h>
 #include <stdio.h>
 #include <stdlib.h>
 

@@ -1,6 +1,6 @@
 #pragma once
 #include <cppstd/vector.h>
-#include <net/icmp.h>
+#include <net/stack/icmp.h>
 #include <types.h>
 
 namespace net {

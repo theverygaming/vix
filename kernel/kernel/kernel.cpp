@@ -17,13 +17,9 @@ void kernelstart() {
     cpp_init();
     LOG_NORMAL("initialized C++");
 
-    drivers::pci::init();
-
     arch::generic::startup::stage3_startup();
 
-    drivers::net::rtl8139::init();
-
-    // arch::generic::startup::after_init();
+    arch::generic::startup::after_init();
 
     while (true) {}
 }

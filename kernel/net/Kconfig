@@ -5,5 +5,4 @@ config ENABLE_NETWORKING
 menu "networking"
 depends on ENABLE_NETWORKING
 
-
 endmenu

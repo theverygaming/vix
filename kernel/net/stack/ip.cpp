@@ -1,8 +1,8 @@
 #include <endian.h>
 #include <memory_alloc/memalloc.h>
-#include <net/icmp.h>
-#include <net/ip.h>
-#include <net/stack.h>
+#include <net/stack/icmp.h>
+#include <net/stack/ip.h>
+#include <net/stack/stack.h>
 #include <stdio.h>
 #include <stdlib.h>
 
