@@ -4,13 +4,21 @@
 #include <net/arp.h>
 #include <net/ethernet.h>
 #include <net/ip.h>
+#include <net/stack.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-#define ETHERTYPE_IPV4 0x800
-#define ETHERTYPE_IPV6 0x86DD
-#define ETHERTYPE_ARP 0x806
+#define ETHERTYPE_IPV4  0x800
+#define ETHERTYPE_IPV6  0x86DD
+#define ETHERTYPE_ARP   0x806
 #define ETHERTYPE_FRARP 0x808
+
+// TODO: 802.1Q support
+struct __attribute__((packed)) ethernet_packet {
+    uint8_t dest_mac[6];
+    uint8_t source_mac[6];
+    uint16_t ethertype;
+};
 
 static void print_mac(uint8_t *mac) {
     for (int i = 0; i < 5; i++) {
@@ -19,7 +27,11 @@ static void print_mac(uint8_t *mac) {
     printf("%p", (uint32_t)mac[5]);
 }
 
-void net::ethernet::ethernet_stack::receive_packet(net::networkstack *netstack, void *data, size_t size) {
+net::ethernet::ethernet(uint8_t *mac_adr) {
+    memcpy(mac, mac_adr, 6);
+}
+
+void net::ethernet::receive(net::networkstack *netstack, void *data, size_t size) {
     if (size < sizeof(struct ethernet_packet)) {
         return;
     }
@@ -46,14 +58,14 @@ void net::ethernet::ethernet_stack::receive_packet(net::networkstack *netstack, 
     switch (packet->ethertype) {
     case ETHERTYPE_IPV4:
         printf("-> ipv4\n");
-        netstack->ipv4->receive_packet(netstack, &processed_packet, dataptr, packetsize);
+        ipv4.receive(netstack, dataptr, packetsize);
         break;
     case ETHERTYPE_IPV6:
         printf("-> ipv6\n");
         break;
     case ETHERTYPE_ARP:
         printf("-> ARP\n");
-        netstack->arp->receive_packet(netstack, &processed_packet, dataptr, packetsize);
+        arp.receive(netstack, dataptr, packetsize);
         break;
     case ETHERTYPE_FRARP:
         printf("-> FRARP\n");
@@ -64,7 +76,7 @@ void net::ethernet::ethernet_stack::receive_packet(net::networkstack *netstack, 
     }
 }
 
-void net::ethernet::ethernet_stack::send_packet(net::networkstack *netstack, struct ethernet_packet_processed *packet, void *data, size_t size) {
+void net::ethernet::send(net::networkstack *netstack, struct ethernet_packet_processed *packet, void *data, size_t size) {
     void *new_data = memalloc::single::kmalloc(size + sizeof(struct ethernet_packet));
     memcpy(((uint8_t *)new_data) + sizeof(struct ethernet_packet), data, size);
     struct ethernet_packet *ethernetpacket = (struct ethernet_packet *)new_data;

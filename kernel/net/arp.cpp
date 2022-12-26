@@ -1,5 +1,7 @@
 #include <arch/drivers/net/rtl8139.h>
 #include <net/arp.h>
+#include <net/ethernet.h>
+#include <net/stack.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -15,7 +17,7 @@ struct __attribute__((packed)) arp_packet {
     uint8_t dest_protocol_adr[4];
 };
 
-void net::arp::arp_stack::receive_packet(net::networkstack *netstack, struct net::ethernet::ethernet_packet_processed *ethernet, void *data, size_t size) {
+void net::arp::receive(net::networkstack *netstack, void *data, size_t size) {
     if (size < sizeof(struct arp_packet)) {
         printf("    -> packet too short for ARP\n");
         return;
@@ -31,7 +33,7 @@ void net::arp::arp_stack::receive_packet(net::networkstack *netstack, struct net
 
         newpacket.opcode = 0x200; // reply
 
-        memcpy(newpacket.src_protocol_adr, netstack->ipv4->ip, 4);
+        memcpy(newpacket.src_protocol_adr, netstack->ethernet->ipv4.ip, 4);
 
         for (uint8_t i = 0; i < 6; i++) {
             newpacket.src_hardware_adr[i] = netstack->ethernet->mac[i];
@@ -43,6 +45,6 @@ void net::arp::arp_stack::receive_packet(net::networkstack *netstack, struct net
             ethernetpacket.dest_mac[i] = newpacket.dest_hardware_adr[i];
         }
 
-        netstack->ethernet->send_packet(netstack, &ethernetpacket, &newpacket, sizeof(struct arp_packet));
+        netstack->ethernet->send(netstack, &ethernetpacket, &newpacket, sizeof(struct arp_packet));
     }
 }

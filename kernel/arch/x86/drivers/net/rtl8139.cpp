@@ -45,7 +45,7 @@ static void irq_handler(isr::registers *gaming) {
         // printf("size: %u\n", (uint32_t)packetSize);
 
         // net::ethernet::parse_ethernet_packet(((uint8_t *)(bufferptr + bufferoffset)) + sizeof(struct packetInfo), packetSize - 4); // 4 CRC bytes
-        networkstack.receive_packet(((uint8_t *)(bufferptr + bufferoffset)) + sizeof(struct packetInfo), packetSize - 4); // 4 CRC bytes
+        networkstack.receive(((uint8_t *)(bufferptr + bufferoffset)) + sizeof(struct packetInfo), packetSize - 4); // 4 CRC bytes
         // set new buffer offset
         bufferoffset = (bufferoffset + sizeof(packetInfo) + packetSize + 3) & ~0x3;
 
@@ -142,6 +142,8 @@ void drivers::net::rtl8139::init() {
     drivers::pic::pic8259::unmask_irq(irqline);
 
     printf("rtl8139 init finished!\n");
+
+    networkstack.init();
 }
 
 uint8_t drivers::net::rtl8139::get_mac_byte(int n) {

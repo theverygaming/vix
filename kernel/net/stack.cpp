@@ -2,18 +2,24 @@
 
 net::networkstack::networkstack(struct drivers::net::generic_card card) {
     networkcard = card;
+}
 
-    ethernet = new net::ethernet::ethernet_stack;
-    ipv4 = new net::ip::ipv4_stack;
-    arp = new net::arp::arp_stack;
+void net::networkstack::init() {
+    uint8_t mac[6];
+    for (int i = 0; i < 6; i++) {
+        mac[i] = networkcard.get_mac_byte(i);
+    }
+    ethernet = new net::ethernet(mac);
+    _init = true;
 }
 
 net::networkstack::~networkstack() {
     delete ethernet;
-    delete ipv4;
-    delete arp;
 }
 
-void net::networkstack::receive_packet(void *data, size_t size) {
-    ethernet->receive_packet(this, data, size);
+void net::networkstack::receive(void *data, size_t size) {
+    if (!_init) {
+        return;
+    }
+    ethernet->receive(this, data, size);
 }
