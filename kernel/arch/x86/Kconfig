@@ -1,3 +1,7 @@
 config ARCH_X86
   bool
   default y
+
+config ENABLE_FTRACE
+  default n
+  bool "Enable function tracing"

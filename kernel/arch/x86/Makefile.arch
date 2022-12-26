@@ -4,3 +4,7 @@ LDFLAGS  += -m elf_i386 -z noexecstack
 %.onasm: %.asm
 	@echo "  NASM $<"
 	@nasm -f elf $< -o $@
+
+ifeq ($(CONFIG_ENABLE_FTRACE), y)
+CXXFLAGS += -finstrument-functions
+endif
