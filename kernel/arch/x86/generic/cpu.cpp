@@ -1,6 +1,6 @@
 #include <arch/generic/cpu.h>
 
-void arch::generic::cpu::halt() {
+void __attribute__((no_instrument_function)) __attribute__((noreturn)) arch::generic::cpu::halt() {
     while (true) {
         asm volatile("cli");
         asm volatile("hlt");

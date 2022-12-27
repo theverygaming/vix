@@ -5,3 +5,11 @@ config ARCH_X86
 config ENABLE_FTRACE
   default n
   bool "Enable function tracing"
+
+menu "Security"
+
+config ENABLE_STACKPROTECTOR
+  default y
+  bool "Enable Stack Smashing Protector"
+
+endmenu

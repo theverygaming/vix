@@ -1,4 +1,4 @@
-CXXFLAGS += -nostdlib -m32 -march=i386 -fno-pie -mno-red-zone -fno-stack-protector -ffreestanding -fno-exceptions
+CXXFLAGS += -nostdlib -m32 -march=i386 -fno-pie -mno-red-zone -ffreestanding -fno-exceptions
 LDFLAGS  += -m elf_i386 -z noexecstack
 
 %.onasm: %.asm
@@ -7,4 +7,10 @@ LDFLAGS  += -m elf_i386 -z noexecstack
 
 ifeq ($(CONFIG_ENABLE_FTRACE), y)
 CXXFLAGS += -finstrument-functions
+endif
+
+ifeq ($(CONFIG_ENABLE_STACKPROTECTOR), y)
+CXXFLAGS += -fstack-protector-strong -mstack-protector-guard=global
+else
+CXXFLAGS += -fno-stack-protector
 endif
