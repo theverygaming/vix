@@ -67,7 +67,7 @@ void elf::load_program(void *ELF_baseadr, std::vector<std::string> *argv, bool r
                 DEBUG_PRINTF("    loaded TLS\n");
                 tls.tls_size = pHeader.p_memsz;
                 tls.tlsdata_size = pHeader.p_filesz;
-                tls.tlsdata = memalloc::single::kmalloc(tls.tlsdata_size);
+                tls.tlsdata = mm::kmalloc(tls.tlsdata_size);
                 memcpy(tls.tlsdata, ((char *)ELF_baseadr) + pHeader.p_offset, tls.tlsdata_size);
                 continue;
             }

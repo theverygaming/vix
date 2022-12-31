@@ -72,15 +72,15 @@ char *fs::path::rm_prefix(char *prefix, char *path) {
 
     if ((strstr(path_a, prefix_a) != nullptr) && (strlen(prefix_a) > 1)) {
         char *path_a_n = path_a + strlen(prefix_a);
-        ret = (char *)memalloc::single::kmalloc(strlen(path_a_n) + 1);
+        ret = (char *)mm::kmalloc(strlen(path_a_n) + 1);
         strcpy(ret, path_a_n);
         if (*ret != '/') {
-            memalloc::single::kfree(ret);
-            ret = (char *)memalloc::single::kmalloc(strlen(path_a) + 1);
+            mm::kfree(ret);
+            ret = (char *)mm::kmalloc(strlen(path_a) + 1);
             strcpy(ret, path_a);
         }
     } else {
-        ret = (char *)memalloc::single::kmalloc(strlen(path_a) + 1);
+        ret = (char *)mm::kmalloc(strlen(path_a) + 1);
         strcpy(ret, path_a);
     }
 

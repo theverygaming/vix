@@ -77,7 +77,7 @@ void net::ethernet::receive(net::networkstack *netstack, void *data, size_t size
 }
 
 void net::ethernet::send(net::networkstack *netstack, struct ethernet_packet_processed *packet, void *data, size_t size) {
-    void *new_data = memalloc::single::kmalloc(size + sizeof(struct ethernet_packet));
+    void *new_data = mm::kmalloc(size + sizeof(struct ethernet_packet));
     memcpy(((uint8_t *)new_data) + sizeof(struct ethernet_packet), data, size);
     struct ethernet_packet *ethernetpacket = (struct ethernet_packet *)new_data;
 
@@ -88,5 +88,5 @@ void net::ethernet::send(net::networkstack *netstack, struct ethernet_packet_pro
     ethernetpacket->ethertype = packet->ethertype;
 
     netstack->networkcard.send_packet(new_data, size + sizeof(struct ethernet_packet));
-    memalloc::single::kfree(new_data);
+    mm::kfree(new_data);
 }

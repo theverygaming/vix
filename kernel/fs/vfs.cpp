@@ -49,7 +49,7 @@ size_t fs::vfs::fsize(char *path) {
     }
     char *rmprefix = fs::path::rm_prefix(mountpoints[bestindex].mountpath, path);
     size_t size = mountpoints[bestindex].fsize(rmprefix);
-    memalloc::single::kfree(rmprefix);
+    mm::kfree(rmprefix);
     mountpoint_lock.unlock();
     return size;
 }
@@ -63,7 +63,7 @@ bool fs::vfs::fload(char *path, void *memloc) {
     }
     char *rmprefix = fs::path::rm_prefix(mountpoints[bestindex].mountpath, path);
     bool loaded = mountpoints[bestindex].fload(rmprefix, memloc);
-    memalloc::single::kfree(rmprefix);
+    mm::kfree(rmprefix);
     mountpoint_lock.unlock();
     return loaded;
 }
@@ -77,7 +77,7 @@ bool fs::vfs::fptr(char *path, void **fileptr) {
     }
     char *rmprefix = fs::path::rm_prefix(mountpoints[bestindex].mountpath, path);
     bool loaded = mountpoints[bestindex].fptr(rmprefix, fileptr);
-    memalloc::single::kfree(rmprefix);
+    mm::kfree(rmprefix);
     mountpoint_lock.unlock();
     return loaded;
 }

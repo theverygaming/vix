@@ -60,7 +60,7 @@ void arch::generic::startup::stage2_startup() {
     memalloc::page::kernel_free(testp);
     ets_uart_printf("we can use it!\n");
     ets_uart_printf("but what about single?\n");
-    uint64_t *test = (uint64_t *)memalloc::single::kmalloc(8);
-    memalloc::single::kfree(test);
+    uint64_t *test = (uint64_t *)mm::kmalloc(8);
+    mm::kfree(test);
     ets_uart_printf("fuck yeah!\n");
 }

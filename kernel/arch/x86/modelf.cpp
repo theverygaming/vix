@@ -196,9 +196,9 @@ void elf::load_module(void *ELF_baseadr) {
         const char *name = stringtable_base + shdr->sh_name;
         void *adr;
         if (shdr->sh_addralign != 0 && shdr->sh_addralign != 1) {
-            adr = memalloc::single::kmalloc_aligned(shdr->sh_size, shdr->sh_addralign);
+            adr = mm::kmalloc_aligned(shdr->sh_size, shdr->sh_addralign);
         } else {
-            adr = memalloc::single::kmalloc(shdr->sh_size);
+            adr = mm::kmalloc(shdr->sh_size);
         }
         sections.push_back({.name = name, .address = adr});
 

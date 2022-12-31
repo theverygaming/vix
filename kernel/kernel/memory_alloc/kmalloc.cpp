@@ -191,7 +191,7 @@ static size_t joinFreeAreas() {
     return totalCounter;
 }
 
-void *memalloc::single::kmalloc(size_t size) {
+void *mm::kmalloc(size_t size) {
     DEBUG_PRINTF_INSANE("kmalloc(%u)\n", size);
     if (heapPages == 0) {
         init();
@@ -292,7 +292,7 @@ void *memalloc::single::kmalloc(size_t size) {
     return kmalloc(size);
 }
 
-void *memalloc::single::kmalloc_aligned(size_t size, size_t alignment) {
+void *mm::kmalloc_aligned(size_t size, size_t alignment) {
     // hack level: insane
     void *ptr = kmalloc(size + alignment);
     uint32_t misalign = (uint32_t)ptr % alignment;
@@ -302,7 +302,7 @@ void *memalloc::single::kmalloc_aligned(size_t size, size_t alignment) {
     return ptr;
 }
 
-void memalloc::single::kfree(void *ptr) {
+void mm::kfree(void *ptr) {
     DEBUG_PRINTF_INSANE("kfree(0x%p)\n", ptr);
     checkList();
     if (ptr == nullptr) {
@@ -348,7 +348,7 @@ void memalloc::single::kfree(void *ptr) {
     joinFreeAreas();
 }
 
-void *memalloc::single::krealloc(void *ptr, size_t size) {
+void *mm::krealloc(void *ptr, size_t size) {
     DEBUG_PRINTF_INSANE("krealloc(0x%p, %u)\n", ptr, size);
     checkList();
     joinFreeAreas();
@@ -454,7 +454,7 @@ b:
     return newarea;
 }
 
-size_t memalloc::single::getFreeSize() {
+size_t mm::getFreeSize() {
     joinFreeAreas();
     size_t size = 0;
 
@@ -472,7 +472,7 @@ size_t memalloc::single::getFreeSize() {
     return size;
 }
 
-size_t memalloc::single::getHeapFragmentation() {
+size_t mm::getHeapFragmentation() {
     joinFreeAreas();
     size_t frag = 0;
 

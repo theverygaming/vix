@@ -36,6 +36,14 @@ static void irq_handler(isr::registers *gaming) {
         printf("ROK not set?? wtf\n");
         KERNEL_PANIC("rtl8139 skill issue");
     }
+    printf("rtl8139 IRQ\n");
+
+    struct packet {
+        void *ptr;
+        size_t size;
+    };
+
+    std::vector<struct packet> received;
 
     // we must read packets in a loop until BUFE is set, could have received multiple
     while ((inb(io_base + 0x37) & 0x1) == 0) {
@@ -43,7 +51,11 @@ static void irq_handler(isr::registers *gaming) {
         // printf("size: %u\n", (uint32_t)packetSize);
 
         // net::ethernet::parse_ethernet_packet(((uint8_t *)(bufferptr + bufferoffset)) + sizeof(struct packetInfo), packetSize - 4); // 4 CRC bytes
-        networkstack.receive(((uint8_t *)(bufferptr + bufferoffset)) + sizeof(struct packetInfo), packetSize - 4); // 4 CRC bytes
+        // networkstack.receive(((uint8_t *)(bufferptr + bufferoffset)) + sizeof(struct packetInfo), packetSize - 4); // 4 CRC bytes
+        void *packet = mm::kmalloc(packetSize - 4);
+        memcpy(packet, ((uint8_t *)(bufferptr + bufferoffset)) + sizeof(struct packetInfo), packetSize - 4);
+        received.push_back({.ptr = packet, .size = packetSize - 4});
+
         // set new buffer offset
         bufferoffset = (bufferoffset + sizeof(packetInfo) + packetSize + 3) & ~0x3;
 
@@ -54,6 +66,13 @@ static void irq_handler(isr::registers *gaming) {
     }
 
     outw(io_base + 0x3E, 0x5); // clear RX ok bit
+
+    printf("got %u packets\n", received.size());
+
+    for (size_t i = 0; i < received.size(); i++) {
+        networkstack.receive(received[i].ptr, received[i].size);
+        mm::kfree(received[i].ptr);
+    }
 
     drivers::pic::pic8259::eoi(drivers::pic::pic8259::irqToint(irqline));
 }
@@ -117,14 +136,16 @@ void drivers::net::rtl8139::init() {
     printf("%p\n", (uint32_t)inb(io_base + 0x5));
 
     // receive buffer
-    bufferptr = (uint8_t *)memalloc::single::kmalloc(65536); // TODO: free
+    bufferptr = (uint8_t *)mm::kmalloc(65536); // TODO: free
     if (((size_t)bufferptr) % 32) {
         printf("aligning buffer :troll:\n");
         bufferptr = bufferptr + (((size_t)bufferptr) % 4);
     }
     outl(io_base + 0x30, (uint32_t)paging::get_physaddr_unaligned(bufferptr));
 
-    outw(io_base + 0x3C, 0x0005); // Sets the TOK and ROK bits high
+    // outw(io_base + 0x3C, 0x0005); // Sets the TOK and ROK bits high
+
+    outw(io_base + 0x3C, 0x1); // set ROK bit high
 
     // outw(io_base + 0x3C, 0xE1FF); // enable all possible interrupts
 

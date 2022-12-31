@@ -27,7 +27,7 @@ namespace memalloc::page {
     void kernel_init();
 }
 
-namespace memalloc::single {
+namespace mm {
     void *kmalloc(size_t size);
     void kfree(void *ptr);
     void *krealloc(void *ptr, size_t size);

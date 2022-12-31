@@ -22,25 +22,25 @@ void cpp_init() {
 }
 
 void *operator new(size_t size) {
-    return memalloc::single::kmalloc(size);
+    return mm::kmalloc(size);
 }
 
 void *operator new[](size_t size) {
-    return memalloc::single::kmalloc(size);
+    return mm::kmalloc(size);
 }
 
 void operator delete(void *p) {
-    memalloc::single::kfree(p);
+    mm::kfree(p);
 }
 
 void operator delete(void *p, size_t) {
-    memalloc::single::kfree(p);
+    mm::kfree(p);
 }
 
 void operator delete[](void *p) {
-    memalloc::single::kfree(p);
+    mm::kfree(p);
 }
 
 void operator delete[](void *p, size_t) {
-    memalloc::single::kfree(p);
+    mm::kfree(p);
 }

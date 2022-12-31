@@ -16,14 +16,14 @@ static int init() {
     arch::generic::textoutput::puts("module loaded!\n", arch::generic::textoutput::color::COLOR_LIGHT_RED);
     printf("hello world from module! %d\n", 5);
     printf("current unix time: %llu\n", time::getCurrentUnixTime());
-    ptr = (char *)memalloc::single::kmalloc(100);
+    ptr = (char *)mm::kmalloc(100);
     memcpy(ptr, "hello world!\n", 14);
     return 0;
 }
 
 static void exit() {
     printf("%s", ptr);
-    memalloc::single::kfree(ptr);
+    mm::kfree(ptr);
     printf("module gon\n");
     arch::generic::textoutput::puts("module unloaded!\n", arch::generic::textoutput::color::COLOR_LIGHT_RED);
 }

@@ -11,13 +11,13 @@ namespace std {
         vector() {
             _capacity = 1;
             _size = 0;
-            _pointer = (T *)memalloc::single::kmalloc(_capacity * sizeof(T));
+            _pointer = (T *)mm::kmalloc(_capacity * sizeof(T));
         }
 
         vector(const vector &obj) {
             _capacity = 1;
             _size = 0;
-            _pointer = (T *)memalloc::single::kmalloc(_capacity * sizeof(T));
+            _pointer = (T *)mm::kmalloc(_capacity * sizeof(T));
 
             assureSize(obj._size);
 
@@ -30,7 +30,7 @@ namespace std {
             for (size_t i = 0; i < _size; i++) {
                 _pointer[i].~T();
             }
-            memalloc::single::kfree(_pointer);
+            mm::kfree(_pointer);
         }
 
         T &operator[](size_t i) {
@@ -41,7 +41,7 @@ namespace std {
         vector<T> &operator=(const vector<T> &obj) {
             _capacity = 1;
             _size = 0;
-            _pointer = (T *)memalloc::single::kmalloc(_capacity * sizeof(T));
+            _pointer = (T *)mm::kmalloc(_capacity * sizeof(T));
 
             assureSize(obj._size);
 
@@ -131,7 +131,7 @@ namespace std {
             if (_capacity == 0) {
                 _capacity = 1;
             }
-            _pointer = (T *)memalloc::single::krealloc(_pointer, _capacity * sizeof(T));
+            _pointer = (T *)mm::krealloc(_pointer, _capacity * sizeof(T));
         }
     };
 }

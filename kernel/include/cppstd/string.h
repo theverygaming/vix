@@ -31,7 +31,7 @@ namespace std {
         }
 
         ~string() {
-            memalloc::single::kfree(_pointer);
+            mm::kfree(_pointer);
         }
 
         char &operator[](size_t i) {
@@ -168,13 +168,13 @@ namespace std {
             if (_capacity <= 0) {
                 _capacity = 1;
             }
-            _pointer = (char *)memalloc::single::krealloc(_pointer, _capacity * sizeof(char));
+            _pointer = (char *)mm::krealloc(_pointer, _capacity * sizeof(char));
         }
 
         void initString() {
             _capacity = 1;
             _size = 0;
-            _pointer = (char *)memalloc::single::kmalloc(_capacity * sizeof(char));
+            _pointer = (char *)mm::kmalloc(_capacity * sizeof(char));
         }
     };
 }

@@ -226,7 +226,7 @@ void multitasking::create_task(void *stackadr, void *codeadr, std::vector<proces
     } else {
         kernel_process->pid = pidCounter++;
     }
-    uint8_t *stack_1 = (uint8_t *)memalloc::single::kmalloc(100);
+    uint8_t *stack_1 = (uint8_t *)mm::kmalloc(100);
 
     kernel_process->registerContext.cs = (3 * 8) | 3;
     kernel_process->registerContext.ds = (4 * 8) | 3;

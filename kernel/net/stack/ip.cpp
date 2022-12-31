@@ -92,7 +92,7 @@ void net::ipv4::send(net::networkstack *netstack, struct ipv4_packet_processed *
     }
     packet_n.header_checksum = BE_16((uint16_t)(~packet_sum - 3)); // why -3? i have no clue -> maybe carry count???
 
-    void *packetdata = memalloc::single::kmalloc(size + 20);
+    void *packetdata = mm::kmalloc(size + 20);
     memcpy(packetdata, &packet_n, 20);
     memcpy(((uint8_t *)packetdata) + 20, data, size);
 
@@ -124,5 +124,5 @@ void net::ipv4::send(net::networkstack *netstack, struct ipv4_packet_processed *
 
     netstack->ethernet->send(netstack, &ethernetpacket, packetdata, size + 20);
 
-    memalloc::single::kfree(packetdata);
+    mm::kfree(packetdata);
 }
