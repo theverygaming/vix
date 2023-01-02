@@ -1,0 +1,18 @@
+menu "memory allocator"
+
+choice
+	prompt "kmalloc allocation"
+	default KMALLOC_BEST_SIZE
+	config KMALLOC_FIRST_FIT
+		bool "first-fit"
+        help
+            Will allocate the first free block found that is big enough.
+            Fast but may waste memory.
+	config KMALLOC_BEST_SIZE
+		bool "best size"
+        help
+            Will search for the block that is the closest to the wanted size. 
+            Allocation is slower but saves more memory.
+endchoice
+
+endmenu

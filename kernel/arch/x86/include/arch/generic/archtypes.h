@@ -15,3 +15,6 @@ typedef uint32_t size_t;
 typedef int pid_t;
 
 typedef uint32_t uintptr_t;
+
+#define SIZE_MAX    0xFFFFFFFF
+#define UINTPTR_MAX 0xFFFFFFFF

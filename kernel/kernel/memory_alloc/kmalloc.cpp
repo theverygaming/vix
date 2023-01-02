@@ -1,6 +1,7 @@
 #include <arch.h>
 #include <config.h>
 #include <debug.h>
+#include <macros.h>
 #include <memory_alloc/memalloc.h>
 #include <panic.h>
 #include <stdio.h>
@@ -8,480 +9,377 @@
 #include <types.h>
 #include INCLUDE_ARCH_GENERIC(memory.h)
 
-#define DEBUG_PRINTF_INSANE(...) while(0) {} // disable debug printf for this file
+#define DEBUG_PRINTF_INSANE(...) \
+    while (0) {} // disable debug printf for this file
 
 /*
  * Freelist allocator
  */
 
-typedef struct meminfo_t meminfo_t;
-struct __attribute__((packed)) meminfo_t {
-    meminfo_t *prev;
-    meminfo_t *next;
+struct __attribute__((packed)) meminfo {
+    struct meminfo *prev;
+    struct meminfo *next;
     size_t size; // holds the size of the area EXCLUDING this struct
 };
 
-static uint32_t heapPages = 0;
+static struct meminfo *heap_start = nullptr;
+static void *heap_base_ptr = nullptr;
+static size_t heap_base_size = 0;
 
-static void *heapPtr;
-static meminfo_t *heapListStart = nullptr;
+/* linked list related functions */
 
-static void init() {
-    heapPtr = memalloc::page::kernel_malloc(1);
-    if (heapPtr == nullptr) {
-        KERNEL_PANIC("kmalloc initial allocation failed");
-    }
-    heapPages = 1;
-
-    heapListStart = (meminfo_t *)heapPtr;
-    *heapListStart = {.prev = nullptr, .next = nullptr, .size = ARCH_PAGE_SIZE - sizeof(meminfo_t)};
-}
-
-static meminfo_t *findFreeArea(size_t size) {
-    meminfo_t *ptr = heapListStart;
-    while (true) {
-        if (size <= ptr->size) {
-            return ptr;
-        }
-        if (ptr->next == nullptr) {
-            break;
-        }
-        ptr = ptr->next;
-    }
-    return nullptr;
-}
-
-static void checkList() {
-    DEBUG_PRINTF_INSANE("    -> checkList()\n");
-    meminfo_t *ptr = heapListStart;
-    meminfo_t *lastPtr = heapListStart;
-    int counter = 0;
-    while (true) {
-        if ((ptr->prev == nullptr) && (ptr != heapListStart)) {
-            KERNEL_PANIC("freelist corrupted, prev null");
+/*
+ * For debugging.
+ * Checks linked list and panics if it is not correct.
+ */
+static void ll_check() {
+    DEBUG_PRINTF_INSANE("sizeof(struct meminfo) = 0x%p\n", (uint32_t)sizeof(struct meminfo));
+    DEBUG_PRINTF_INSANE("ll_check\n");
+    struct meminfo *ptr = heap_start;
+    while (ptr != nullptr) {
+        DEBUG_PRINTF_INSANE("    -> e: 0x%p p: 0x%p n: 0x%p\n", ptr, ptr->prev, ptr->next);
+        if (ptr->prev == ptr || ptr->next == ptr) {
+            KERNEL_PANIC("ll_check failure!!! ptr->prev == ptr || ptr->next == ptr");
         }
         if (ptr->prev != nullptr) {
-            if (ptr->prev != lastPtr) {
-                printf("current index: %d\n", counter);
-                printf("prev instead: 0x%p what prev should be: 0x%p current pointer: 0x%p\n", ptr->prev, lastPtr, ptr);
-                KERNEL_PANIC("freelist corrupted, prev not matching");
+            if (ptr->prev->next != ptr) {
+                DEBUG_PRINTF_INSANE("is: 0x%p should be: 0x%p\n", ptr->prev->next, ptr);
+                KERNEL_PANIC("ll_check failure!!! ptr->prev->next != ptr");
             }
-            if ((((uint8_t *)ptr->prev) + ptr->prev->size) > (uint8_t *)ptr) {
-                printf("current index: %d\n", counter);
-                printf("ptr->prev 0x%p ptr->prev->size: %u ptr: 0x%p\n", ptr->prev, ptr->prev->size, ptr);
-                KERNEL_PANIC("freelist corrupted, overlap");
-            }
-        }
-        if (ptr->next == nullptr) {
-            break;
-        }
-        lastPtr = ptr;
-        ptr = ptr->next;
-        counter++;
-    }
-}
-
-static meminfo_t *getLastListMember() {
-    meminfo_t *ptr = heapListStart;
-    while (true) {
-        if (ptr->next == nullptr) {
-            return ptr;
+        } else if (ptr != heap_start) {
+            KERNEL_PANIC("ll_check failure!!! ptr != heap_start");
         }
         ptr = ptr->next;
     }
 }
 
 /*
- * finds the list member closest below the specified address
- * returns nullptr if before heap start
+ * inserts element into linked list
+ * if after it will insert after the specified element, default is false
+ * otherwise it will insert before it
+ *
+ * ptr -> element to insert before/after
+ * insert -> element to insert
  */
-static meminfo_t *findListMember(void *adr) {
-    meminfo_t *ptr = heapListStart;
+static void ll_insert(struct meminfo *ptr, struct meminfo *insert, bool after = false) {
+    DEBUG_PRINTF_INSANE("ll_insert (0x%p, 0x%p)\n", ptr, insert);
+    if (after) {
+        DEBUG_PRINTF_INSANE("    -> after\n");
+    } else {
+        DEBUG_PRINTF_INSANE("    -> before\n");
+    }
+    ll_check();
+    struct meminfo *old_prev = ptr->prev;
+    struct meminfo *old_next = ptr->next;
 
-    if (adr < ptr) {
-        return nullptr;
+    // TODO: handle heap start
+
+    if (after) {
+        if (old_next != nullptr) {
+            old_next->prev = insert;
+        }
+        ptr->next = insert;
+
+        insert->prev = ptr;
+        insert->next = old_next;
+    } else {
+        if (old_prev != nullptr) {
+            old_prev->next = insert;
+        }
+        ptr->prev = insert;
+        DEBUG_PRINTF_INSANE("    -> s: 0x%p p: 0x%p n: 0x%p\n", ptr, ptr->prev, ptr->next);
+
+        insert->next = ptr;
+        insert->prev = old_prev;
+    }
+    DEBUG_PRINTF_INSANE("    -> s: 0x%p p: 0x%p n: 0x%p\n", ptr, ptr->prev, ptr->next);
+
+    if (ptr == heap_start && !after) {
+        heap_start = insert;
+        DEBUG_PRINTF_INSANE("    -> s: 0x%p p: 0x%p n: 0x%p\n", insert, insert->prev, insert->next);
+        DEBUG_PRINTF_INSANE("    -> ll_insert heap_start\n");
+        // KERNEL_PANIC("debug");
+    }
+    DEBUG_PRINTF_INSANE("    -> s: 0x%p p: 0x%p n: 0x%p\n", insert, insert->prev, insert->next);
+    DEBUG_PRINTF_INSANE("    -> s: 0x%p p: 0x%p n: 0x%p\n", ptr, ptr->prev, ptr->next);
+    ll_check();
+}
+
+/*
+ * Adds block to linked list with size
+ */
+static void ll_alloc_new_block(size_t required) {
+    size_t pages = required / ARCH_PAGE_SIZE;
+    if (required % ARCH_PAGE_SIZE != 0) {
+        pages += 1;
+    }
+    struct meminfo *new_start = (struct meminfo *)((uint8_t *)heap_base_ptr + (heap_base_size * ARCH_PAGE_SIZE));
+
+    heap_base_size += pages;
+    memalloc::page::kernel_resize(heap_base_ptr, heap_base_size);
+    new_start->size = pages * ARCH_PAGE_SIZE;
+
+    struct meminfo *ptr = heap_start;
+    while (ptr->next != nullptr) {
+        ptr = ptr->next;
     }
 
-    while (true) {
-        if (ptr->next == nullptr) {
-            return ptr;
+    ll_insert(ptr, new_start, true);
+}
+
+/*
+ * removes element from linked list
+ */
+static void ll_remove(struct meminfo *ptr) {
+    DEBUG_PRINTF_INSANE("ll_remove (0x%p)\n", ptr);
+    ll_check();
+
+    if (ptr == heap_start && heap_start->next == nullptr) {
+        DEBUG_PRINTF_INSANE("adding block");
+        ll_alloc_new_block(ARCH_PAGE_SIZE);
+    }
+
+    struct meminfo *old_prev = ptr->prev;
+    struct meminfo *old_next = ptr->next;
+
+    // TODO: check if this is heap_start and act accordingly
+    if (ptr->prev != nullptr) {
+        ptr->prev->next = ptr->next;
+    }
+    if (ptr->next != nullptr) {
+        ptr->next->prev = ptr->prev;
+    }
+
+    ptr->next = nullptr;
+    ptr->prev = nullptr;
+
+    if (ptr == heap_start) {
+        if (old_next != nullptr) {
+            heap_start = old_next;
+        } else {
+            KERNEL_PANIC("ll_remove ptr == heap_start -- no new");
         }
-        if ((ptr->next > adr) && (ptr < adr)) {
-            return ptr;
+    }
+    ll_check();
+}
+
+/*
+ * will replace block already in linked list with a different one
+ */
+static void ll_replace(struct meminfo *old, struct meminfo *_new) {
+    DEBUG_PRINTF_INSANE("ll_replace\n");
+    if (old->prev != nullptr) {
+        old->prev->next = _new;
+    }
+    if (old->next != nullptr) {
+        old->next->prev = _new;
+    }
+    _new->next = old->next;
+    _new->prev = old->prev;
+
+    old->next = nullptr;
+    old->prev = nullptr;
+
+    if (old == heap_start) {
+        heap_start = _new;
+    }
+    ll_check();
+}
+
+/*
+ * tries to find the block closest to the current one in memory
+ */
+static struct meminfo *ll_find_closest(struct meminfo *block) {
+    uintptr_t closest_dist = UINTPTR_MAX;
+    struct meminfo *closest = nullptr;
+    struct meminfo *ptr = heap_start;
+    while (ptr != nullptr) {
+        uintptr_t dist;
+        if ((uintptr_t)ptr < (uintptr_t)block) {
+            dist = (uintptr_t)block - (uintptr_t)ptr;
+        } else {
+            dist = (uintptr_t)ptr - (uintptr_t)block;
+        }
+        if (dist < closest_dist) {
+            closest_dist = dist;
+            closest = ptr;
         }
         ptr = ptr->next;
     }
+    return closest;
 }
+/*
+ * tries to find the smallest possible block or the first big enough block
+ */
+static struct meminfo *ll_find_block(size_t minsize) {
+    struct meminfo *smallest = nullptr;
+    size_t smallest_size = SIZE_MAX;
 
-static void expandHeap(size_t extra_size) {
-    size_t pages = (extra_size + sizeof(meminfo_t)) / ARCH_PAGE_SIZE;
-    size_t leftover = extra_size % ARCH_PAGE_SIZE;
-    if (leftover > 0) {
-        pages++;
-    }
-    meminfo_t *newHeapStart = (meminfo_t *)(((uint8_t *)heapPtr) + (heapPages * ARCH_PAGE_SIZE));
-    heapPages += pages;
-    printf("new heap size: %u KB\n", (heapPages * ARCH_PAGE_SIZE) / 1000);
-    heapPtr = memalloc::page::kernel_resize(heapPtr, heapPages);
-
-    meminfo_t *last = getLastListMember();
-    if ((((uint8_t *)last) + last->size + sizeof(meminfo_t)) == (uint8_t *)newHeapStart) {
-        printf("expand: good\n");
-        last->size += (pages * ARCH_PAGE_SIZE);
-    } else {
-        newHeapStart->next = nullptr;
-        newHeapStart->prev = last;
-        newHeapStart->size = (pages * ARCH_PAGE_SIZE) - sizeof(meminfo_t);
-
-        newHeapStart->prev->next = newHeapStart;
-
-        last->next = newHeapStart;
-    }
-
-    DEBUG_PRINTF_INSANE("heap expanded\n");
-}
-
-/* removes member from linked list */
-static void removeListMember(meminfo_t *member) {
-    if (member->prev != nullptr) {
-        member->prev->next = member->next;
-    } else {
-        if (member->next == nullptr) {
-            expandHeap(ARCH_PAGE_SIZE);
-            removeListMember(member);
-            return;
-        }
-        heapListStart = member->next;
-    }
-
-    if (member->next != nullptr) {
-        member->next->prev = member->prev;
-    }
-}
-
-/* defragment freelist, returns amount of times list entries were joined */
-static size_t joinFreeAreas() {
-    DEBUG_PRINTF_INSANE("    -> joinFreeAreas()\n");
-    checkList();
-    size_t totalCounter = 0;
-
-    size_t counter = 0;
-    meminfo_t *ptr = heapListStart;
-    while (true) {
-        if ((ptr == nullptr) || (ptr->next == nullptr)) {
-            if (counter == 0) {
-                break;
-            }
-            totalCounter += counter;
-            counter = 0;
-            ptr = heapListStart;
+    struct meminfo *ptr = heap_start;
+    while (ptr != nullptr) {
+        if (ptr->size < minsize) {
+            ptr = ptr->next;
             continue;
         }
-        if (((uint8_t *)ptr->next) == (((uint8_t *)ptr) + sizeof(meminfo_t) + ptr->size)) { // the next pointer is directly after the free area, we can join them together
-            counter++;
-            ptr->size += ptr->next->size + sizeof(meminfo_t);
-            ptr->next = ptr->next->next;
-            if (ptr->next != nullptr) {
-                ptr->next->prev = ptr;
+#ifdef CONFIG_KMALLOC_BEST_SIZE
+        if (ptr->size < smallest_size) {
+            smallest = ptr;
+            smallest_size = ptr->size;
+        }
+#else
+        return ptr;
+#endif
+        ptr = ptr->next;
+    }
+    return smallest;
+}
+
+/*
+ * Will try to defragment, very slow function.
+ * Do not use the internal argument
+ */
+static size_t ll_defrag(bool internal = false) {
+    DEBUG_PRINTF_INSANE("ll_defrag\n");
+    size_t count = 0;
+    struct meminfo *ptr = heap_start;
+    while (ptr != nullptr) {
+        if (ptr->next != nullptr) {
+            // DEBUG_PRINTF_INSANE("c: 0x%p next: 0x%p\n", ((uintptr_t)ptr + sizeof(struct meminfo) + ptr->size), ptr->next);
+            if ((uintptr_t)ptr->next == ((uintptr_t)ptr + sizeof(struct meminfo) + ptr->size)) {
+                DEBUG_PRINTF_INSANE("can defrag\n");
+                DEBUG_PRINTF_INSANE("heap frag: %u\n", mm::getHeapFragmentation());
+                DEBUG_PRINTF_INSANE("heap free: %u\n", mm::getFreeSize());
+                ptr->size += ptr->next->size + sizeof(struct meminfo);
+                ll_remove(ptr->next);
+                count += 1;
+                DEBUG_PRINTF_INSANE("heap frag: %u\n", mm::getHeapFragmentation());
+                break;
             }
         }
         ptr = ptr->next;
     }
-    checkList();
-    return totalCounter;
+    if (!internal) {
+        size_t defrag;
+        do {
+            defrag = ll_defrag(true);
+            count += defrag;
+        } while (defrag != 0);
+    }
+    if (!internal) {
+        DEBUG_PRINTF_INSANE("ll_defrag -> defragged %u\n", count);
+    }
+    return count;
+}
+
+/*
+ * will try to allocate block, possibly inserting an element into the linked list if the size different is too big
+ *
+ */
+static void ll_allocate_block(struct meminfo *block, size_t wanted_size) {
+    size_t leftover_size = block->size - wanted_size;
+    if (leftover_size > sizeof(struct meminfo)) {
+        struct meminfo *_new = (struct meminfo *)((uint8_t *)block + sizeof(struct meminfo) + wanted_size);
+        DEBUG_PRINTF_INSANE("    -> creating new block: 0x%p\n", _new);
+        _new->size = leftover_size - sizeof(struct meminfo);
+        block->size -= leftover_size;
+        ll_replace(block, _new);
+    } else {
+        ll_remove(block);
+    }
+}
+
+/* memory allocator functions */
+
+static void init() {
+    DEBUG_PRINTF_INSANE("kmalloc init\n");
+    heap_base_ptr = memalloc::page::kernel_malloc(1);
+    heap_base_size = 1;
+    heap_start = (struct meminfo *)heap_base_ptr;
+    *heap_start = {.prev = nullptr, .next = nullptr, .size = ARCH_PAGE_SIZE - sizeof(struct meminfo)};
 }
 
 void *mm::kmalloc(size_t size) {
     DEBUG_PRINTF_INSANE("kmalloc(%u)\n", size);
-    if (heapPages == 0) {
+    if (unlikely(heap_start == nullptr)) {
         init();
     }
-    if (size == 0) {
-        DEBUG_PRINTF_INSANE("    -> 0x%p\n", nullptr);
-        return nullptr;
+    struct meminfo *found = ll_find_block(size);
+    if (found != nullptr) {
+        DEBUG_PRINTF_INSANE("    -> smallest block found: %u bytes\n", found->size);
+        ll_allocate_block(found, size);
+        DEBUG_PRINTF_INSANE("    -> resized block to %u bytes\n", found->size);
+        return ((uint8_t *)found) + sizeof(struct meminfo);
     }
 
-    joinFreeAreas();
-
-    size_t neededSize = size + sizeof(meminfo_t);
-
-    meminfo_t *freeArea = findFreeArea(neededSize);
-
-    if (freeArea != nullptr) {
-        DEBUG_PRINTF_INSANE("    -> found free area\n");
-        // insert a new element into the linked list
-        checkList();
-
-        size_t leftoverSize = freeArea->size - neededSize;
-        if (leftoverSize > sizeof(meminfo_t)) {
-            meminfo_t *oldPrev = freeArea->prev;
-            meminfo_t *oldNext = freeArea->next;
-            DEBUG_PRINTF_INSANE("enough space for new entry\n");
-            DEBUG_PRINTF_INSANE("leftover size: %u\n", leftoverSize);
-            DEBUG_PRINTF_INSANE("prev = 0x%p\n", freeArea->prev);
-            DEBUG_PRINTF_INSANE("next = 0x%p\n", freeArea->next);
-
-            meminfo_t *newptr = (meminfo_t *)(((uint8_t *)freeArea) + neededSize);
-
-            DEBUG_PRINTF_INSANE("newptr: 0x%p\n", newptr);
-
-            newptr->size = leftoverSize - sizeof(meminfo_t);
-            newptr->next = oldNext;
-            newptr->prev = oldPrev;
-
-            DEBUG_PRINTF_INSANE("prev = 0x%p\n", freeArea->prev);
-            DEBUG_PRINTF_INSANE("next = 0x%p\n", freeArea->next);
-
-            checkList();
-
-            if (newptr->next != nullptr) {
-                DEBUG_PRINTF_INSANE("newptr->next != nullptr\n");
-                newptr->next->prev = newptr;
-            }
-
-            if (newptr->prev != nullptr) {
-                DEBUG_PRINTF_INSANE("newptr->prev != nullptr\n");
-                newptr->prev->next = newptr;
-            } else {
-                // this is the start of the heap!
-                DEBUG_PRINTF_INSANE("heap start\n");
-                heapListStart = newptr;
-                if (newptr->next != nullptr) {
-                    newptr->next->prev = newptr;
-                }
-            }
-
-            freeArea->size = size;
-
-            checkList();
-        } else {
-            DEBUG_PRINTF_INSANE("not creating new entry\n");
-
-            removeListMember(freeArea);
-
-            checkList();
-        }
-
-        freeArea->next = nullptr;
-        freeArea->prev = nullptr;
-
-        checkList();
-
-        char *ptrChar = (char *)freeArea;
-        ptrChar = ptrChar + sizeof(meminfo_t);
-
-        size_t asize = freeArea->size;
-        if (asize > 8) {
-            asize = 8;
-        }
-        for (int i = 0; i < asize; i++) {
-            ptrChar[i] = 0; // prevent false double free detection
-        }
-
-        joinFreeAreas();
-        DEBUG_PRINTF_INSANE("    -> 0x%p\n", ptrChar);
-        checkList();
-        return ptrChar;
-    }
-
-    // we couldn't find a free area so we have to allocate more memory
-    expandHeap(size);
-    joinFreeAreas();
-    DEBUG_PRINTF_INSANE("    -> resizing heap, calling kmalloc\n");
-    checkList();
+    ll_alloc_new_block(size);
     return kmalloc(size);
+}
+
+void mm::kfree(void *ptr) {
+    DEBUG_PRINTF_INSANE("kfree(0x%p)\n", ptr);
+    struct meminfo *_blk = (struct meminfo *)((uint8_t *)ptr - sizeof(struct meminfo));
+    DEBUG_PRINTF_INSANE("    -> 0x%p\n", _blk);
+    struct meminfo *closest = ll_find_closest(_blk);
+    if (closest == _blk) {
+        KERNEL_PANIC("double free!\n");
+        DEBUG_PRINTF_INSANE("--------------------- IGNORED DOUBLE FREE\n");
+        return;
+    }
+    if ((uintptr_t)closest < (uintptr_t)_blk) {
+        ll_insert(closest, _blk, true);
+    } else {
+        ll_insert(closest, _blk, false);
+    }
+    ll_defrag();
 }
 
 void *mm::kmalloc_aligned(size_t size, size_t alignment) {
     // hack level: insane
     void *ptr = kmalloc(size + alignment);
     uint32_t misalign = (uint32_t)ptr % alignment;
-    if(misalign != 0) {
-        ptr = (void*)((uint32_t)ptr + (alignment - misalign));
+    if (misalign != 0) {
+        ptr = (void *)((uint32_t)ptr + (alignment - misalign));
     }
     return ptr;
 }
 
-void mm::kfree(void *ptr) {
-    DEBUG_PRINTF_INSANE("kfree(0x%p)\n", ptr);
-    checkList();
-    if (ptr == nullptr) {
-        return;
-    }
-
-    meminfo_t *infoPtr = (meminfo_t *)(((uint8_t *)ptr) - sizeof(meminfo_t));
-    DEBUG_PRINTF_INSANE("infoPtr -> 0x%p\n", infoPtr);
-
-    if (infoPtr->size >= 8) {
-        uint64_t *dfdetect = (uint64_t *)ptr;
-        if (*dfdetect == 0xF1CFD26422FDDA53) {
-            KERNEL_PANIC("double free!");
-        }
-        *dfdetect = 0xF1CFD26422FDDA53;
-    }
-
-    checkList();
-
-    meminfo_t *llptr = findListMember(ptr);
-    if (llptr == nullptr) { // we are at the start of the heap
-        DEBUG_PRINTF_INSANE("heap start\n");
-        infoPtr->prev = nullptr;
-        infoPtr->next = heapListStart;
-        heapListStart->prev = infoPtr;
-        heapListStart = infoPtr;
-        checkList();
-        joinFreeAreas();
-        return;
-    }
-
-    checkList();
-
-    if (llptr->next != nullptr) {
-        DEBUG_PRINTF_INSANE("llptr->next 0x%p\n", llptr->next);
-        llptr->next->prev = infoPtr;
-    }
-    infoPtr->next = llptr->next;
-    infoPtr->prev = llptr;
-    llptr->next = infoPtr;
-
-    checkList();
-    joinFreeAreas();
-}
-
 void *mm::krealloc(void *ptr, size_t size) {
     DEBUG_PRINTF_INSANE("krealloc(0x%p, %u)\n", ptr, size);
-    checkList();
-    joinFreeAreas();
-    if (ptr == nullptr) {
-        return ptr;
+
+    struct meminfo *_blk = (struct meminfo *)((uint8_t *)ptr - sizeof(struct meminfo));
+
+    size_t copy_size = size;
+    if (copy_size > _blk->size) {
+        copy_size = _blk->size;
     }
-
-    meminfo_t *infoPtr = (meminfo_t *)(((uint8_t *)ptr) - sizeof(meminfo_t));
-
-    meminfo_t *llptr = findListMember(ptr);
-
-    goto b;
-
-    /*if (size < infoPtr->size) {
-        size_t leftoverSize = infoPtr->size - size;
-
-        // return in case there is not enough space for a new element
-        if (leftoverSize < sizeof(meminfo_t)) {
-            checkList();
-            return ptr;
-        }
-
-        infoPtr->size -= leftoverSize;
-
-        meminfo_t *newPtr = (meminfo_t *)(((uint8_t *)ptr) + size);
-        DEBUG_PRINTF_INSANE("    -> resize\n", ptr);
-        newPtr->size = leftoverSize - sizeof(meminfo_t);
-        if (llptr == nullptr) {
-            DEBUG_PRINTF_INSANE("    -> heapstart\n", ptr);
-            newPtr->prev = nullptr;
-            newPtr->next = heapListStart;
-            heapListStart->prev = newPtr;
-            heapListStart = newPtr;
-            DEBUG_PRINTF_INSANE("    -> 0x%p\n", ptr);
-            checkList();
-            return ptr;
-        }
-        newPtr->prev = llptr;
-        newPtr->next = llptr->next;
-        llptr->next = newPtr;
-        if (newPtr->next != nullptr) {
-            newPtr->next->prev = newPtr;
-        }
-
-        joinFreeAreas();
-        DEBUG_PRINTF_INSANE("    -> 0x%p\n", ptr);
-        checkList();
-        return ptr;
-    }*/
-
-    // UNTESTED CODE
-    if ((llptr != nullptr) && (llptr->next != nullptr)) {
-        if (((uint8_t *)llptr->next) == (((uint8_t *)infoPtr) + infoPtr->size + sizeof(meminfo_t))) {
-            if ((infoPtr->size + llptr->next->size) >= size + sizeof(meminfo_t)) {
-                DEBUG_PRINTF_INSANE("    -> enlarge\n", ptr);
-                printf("enlarge\n");
-                size_t leftoverSize = (infoPtr->size + llptr->next->size + sizeof(meminfo_t)) - size;
-
-                if (leftoverSize > sizeof(meminfo_t)) {
-                    goto b;
-                    meminfo_t *newPtr = (meminfo_t *)(((uint8_t *)ptr) + size);
-
-                    newPtr->size = leftoverSize;
-                    newPtr->next = llptr->next->next;
-                    printf("llptr->next->next -> 0x%p\n", llptr->next->next);
-                    if (newPtr->next != nullptr) {
-                        newPtr->next->prev = newPtr;
-                    }
-                    newPtr->prev = llptr;
-                    llptr->next = newPtr;
-
-                    infoPtr->size = size;
-                } else {
-                    infoPtr->size += llptr->next->size + sizeof(meminfo_t);
-
-                    llptr->next = llptr->next->next;
-                    if (llptr->next != nullptr) {
-                        llptr->next->prev = llptr;
-                    }
-                }
-
-                // infoPtr->size = size;
-                DEBUG_PRINTF_INSANE("    -> 0x%p\n", ptr);
-                checkList();
-                joinFreeAreas();
-                return ptr;
-            }
-        }
-    }
-
-b:
 
     // trying to resize failed so we'll malloc and copy instead
     DEBUG_PRINTF_INSANE("    -> kmalloc\n");
     void *newarea = kmalloc(size);
+    DEBUG_PRINTF_INSANE("    -> newarea: 0x%p\n", newarea);
 
-    memcpy(newarea, ptr, size);
+    memcpy(newarea, ptr, copy_size);
     DEBUG_PRINTF_INSANE("    -> kfree\n");
     kfree(ptr);
-    joinFreeAreas();
-    DEBUG_PRINTF_INSANE("    -> 0x%p\n", newarea);
-    checkList();
     return newarea;
 }
 
 size_t mm::getFreeSize() {
-    joinFreeAreas();
-    size_t size = 0;
-
-    meminfo_t *ptr = heapListStart;
-    do {
-        size += ptr->size;
+    size_t free = 0;
+    struct meminfo *ptr = heap_start;
+    while (ptr != nullptr) {
+        free += ptr->size;
         ptr = ptr->next;
-    } while (ptr != nullptr);
-
-    printf("frag: %u\n", getHeapFragmentation());
-    expandHeap(6096);
-    joinFreeAreas();
-    printf("-> frag: %u\n", getHeapFragmentation());
-
-    return size;
+    }
+    return free;
 }
 
 size_t mm::getHeapFragmentation() {
-    joinFreeAreas();
-    size_t frag = 0;
-
-    meminfo_t *ptr = heapListStart;
-    do {
-        frag++;
-        // printf("area: 0x%p size: %u\n", ptr, ptr->size);
+    size_t count = 0;
+    struct meminfo *ptr = heap_start;
+    while (ptr != nullptr) {
+        count++;
         ptr = ptr->next;
-    } while (ptr != nullptr);
-
-    return frag;
+    }
+    return count;
 }
