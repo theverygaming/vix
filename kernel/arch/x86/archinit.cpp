@@ -1,7 +1,7 @@
 #include <arch/archinit.h>
 #include <arch/cpubasics.h>
 #include <arch/cpuid.h>
-#include <arch/drivers/keyboard.h>
+#include <arch/drivers/ps2.h>
 #include <arch/drivers/serial.h>
 #include <arch/drivers/text80x25.h>
 #include <arch/elf.h>
@@ -67,8 +67,9 @@ void arch::generic::startup::stage2_startup() {
 }
 
 void arch::generic::startup::stage3_startup() {
-    cpubasics::cpuinit(); // interrupt handlers are enable here, before this all exceptions will cause a triplefault
+    cpubasics::cpuinit(); // interrupt handlers are enabled here, before this all exceptions will cause a triplefault
     drivers::keyboard::init();
+    // drivers::mouse::init(); // must be disabled when polling is in use for the keyboard
     isr::RegisterHandler(0x80, syscall::syscallHandler);
     cpuid::printFeatures();
     simd::enableSSE();

@@ -1,5 +1,6 @@
 #pragma once
 #include <arch.h>
+#include <drivers/ms_mouse.h>
 #include <psf.h>
 #include <types.h>
 #include INCLUDE_ARCH_GENERIC(textoutput.h)
@@ -12,15 +13,19 @@ namespace fb {
 
     class fb {
     public:
+        fb();
+        ~fb();
         void init(struct fbinfo info);
         size_t get_width();
         size_t get_height();
         void write_pixel(size_t x, size_t y, uint8_t r, uint8_t g, uint8_t b);
+        void read_pixel(size_t x, size_t y, uint8_t *r, uint8_t *g, uint8_t *b);
         void clear();
         void scroll_y(size_t pixels);
 
     private:
         struct fbinfo _info;
+        static void mouse_event(void *self, struct drivers::ms_mouse::mouse_packet packet);
     };
 
     class fbconsole {

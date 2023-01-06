@@ -1,5 +1,5 @@
 #include <arch.h>
-#include <arch/drivers/keyboard.h>
+#include <arch/drivers/ps2.h>
 #include <arch/elf.h>
 #include <arch/errno.h>
 #include <arch/gdt.h>
@@ -44,7 +44,7 @@ uint32_t sys_read(isr::registers *, int *syscall_ret, uint32_t, uint32_t fd, uin
 
     int bufStart = drivers::keyboard::bufferlocation;
     while (drivers::keyboard::bufferlocation - bufStart < (int)count) {
-        drivers::keyboard::manualRead();
+        drivers::keyboard::poll();
         if (drivers::keyboard::buffer[drivers::keyboard::bufferlocation] == '\n') {
             break;
         }

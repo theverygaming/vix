@@ -3,7 +3,11 @@
 
 namespace drivers::keyboard {
     void init();
-    void manualRead();
+    void poll();
     extern char buffer[100];
     extern int bufferlocation;
+}
+
+namespace drivers::mouse {
+    void init();
 }
