@@ -6,7 +6,7 @@
 #include <debug.h>
 #include <log.h>
 #include <macros.h>
-#include <memory_alloc/memalloc.h>
+#include <mm/memalloc.h>
 #include <scheduler.h>
 #include <stdio.h>
 #include <stdlib.h>

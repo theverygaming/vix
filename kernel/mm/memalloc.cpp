@@ -1,8 +1,8 @@
 #include <arch.h>
 #include <config.h>
 #include <log.h>
-#include <memory_alloc/allocators.h>
-#include <memory_alloc/memalloc.h>
+#include <mm/allocators.h>
+#include <mm/memalloc.h>
 #include <panic.h>
 #include <stdlib.h>
 #include INCLUDE_ARCH_GENERIC(memory.h)

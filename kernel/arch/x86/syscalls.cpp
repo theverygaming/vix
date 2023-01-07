@@ -13,7 +13,7 @@
 #include <fs/vfs.h>
 #include <generated/autoconf.h>
 #include <log.h>
-#include <memory_alloc/memalloc.h>
+#include <mm/memalloc.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>

@@ -4,7 +4,7 @@
 #include <cppstd/string.h>
 #include <cppstd/vector.h>
 #include <log.h>
-#include <memory_alloc/memalloc.h>
+#include <mm/memalloc.h>
 #include <stdlib.h>
 
 void elf::load_program(void *ELF_baseadr, std::vector<std::string> *argv, bool replace_task, int replace_pid, isr::registers *regs) {

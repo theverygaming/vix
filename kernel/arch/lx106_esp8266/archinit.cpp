@@ -1,7 +1,7 @@
 #include <arch/lx106_esp8266/generic/memory.h>
 #include <arch/lx106_esp8266/generic/startup.h>
 #include <kernel.h>
-#include <memory_alloc/memalloc.h>
+#include <mm/memalloc.h>
 #include <stdio.h>
 #include <types.h>
 

@@ -3,7 +3,7 @@
 #include <arch/multiboot2.h>
 #include <arch/paging.h>
 #include <debug.h>
-#include <memory_alloc/memalloc.h>
+#include <mm/memalloc.h>
 #include <panic.h>
 #include <stdio.h>
 #include <types.h>

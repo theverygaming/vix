@@ -9,7 +9,7 @@
 #include <config.h>
 #include <debug.h>
 #include <log.h>
-#include <memory_alloc/memalloc.h>
+#include <mm/memalloc.h>
 #include <stdio.h>
 #include <stdlib.h>
 

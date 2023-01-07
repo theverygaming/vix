@@ -1,7 +1,7 @@
 name: Build
 on: [push, pull_request]
 jobs:
-  build-image:
+  Build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -22,13 +22,13 @@ jobs:
           cd $GITHUB_WORKSPACE && ./exitforce0 timeout 30 qemu-system-x86_64 -cdrom shitOS.iso -nographic > log.txt
           cd $GITHUB_WORKSPACE && cat log.txt
 
+      - name: upload image
+        uses:  actions/upload-artifact@v3
+        with:
+            name: image
+            path: ${{runner.workspace}}/shitOS/shitOS.iso
+
       - name: check tests
         run: |
           python3 ${GITHUB_WORKSPACE}/tools/testparser.py ${GITHUB_WORKSPACE}/log.txt >> $GITHUB_STEP_SUMMARY
           python3 ${GITHUB_WORKSPACE}/tools/testparser.py ${GITHUB_WORKSPACE}/log.txt -f
-
-      - name: upload image
-        uses:  actions/upload-artifact@v2
-        with:
-            name: image
-            path: ${{runner.workspace}}/shitOS/shitOS.iso

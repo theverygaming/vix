@@ -4,7 +4,7 @@
 #include <cpp.h>
 #include <kernel.h>
 #include <log.h>
-#include <memory_alloc/memalloc.h>
+#include <mm/memalloc.h>
 #include INCLUDE_ARCH_GENERIC(startup.h)
 
 #ifdef CONFIG_ENABLE_TESTS

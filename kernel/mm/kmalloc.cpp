@@ -2,7 +2,7 @@
 #include <config.h>
 #include <debug.h>
 #include <macros.h>
-#include <memory_alloc/memalloc.h>
+#include <mm/memalloc.h>
 #include <panic.h>
 #include <stdio.h>
 #include <stdlib.h>

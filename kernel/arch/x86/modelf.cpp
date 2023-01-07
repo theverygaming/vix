@@ -3,7 +3,7 @@
 #include <cppstd/string.h>
 #include <cppstd/vector.h>
 #include <log.h>
-#include <memory_alloc/memalloc.h>
+#include <mm/memalloc.h>
 #include <stdlib.h>
 
 struct __attribute__((packed)) elf32_header {

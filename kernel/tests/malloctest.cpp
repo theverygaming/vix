@@ -1,5 +1,5 @@
 #include "testprint.h"
-#include <memory_alloc/memalloc.h>
+#include <mm/memalloc.h>
 #include <panic.h>
 #include <stdio.h>
 #include <stdlib.h>
