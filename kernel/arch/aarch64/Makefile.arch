@@ -1,0 +1,12 @@
+CXXFLAGS += -nostdlib -fno-pie -ffreestanding -fno-exceptions -mno-outline-atomics
+LDFLAGS  += 
+
+ifeq ($(CONFIG_ENABLE_FTRACE), y)
+CXXFLAGS += -finstrument-functions
+endif
+
+ifeq ($(CONFIG_ENABLE_STACKPROTECTOR), y)
+CXXFLAGS += -fstack-protector-strong -mstack-protector-guard=global
+else
+CXXFLAGS += -fno-stack-protector
+endif

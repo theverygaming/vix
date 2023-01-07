@@ -1,7 +1,5 @@
 #!/bin/bash
 
-#-T arch/x86/linker.ld
-
 set -e
 
 ${LD} ${LDFLAGS} -T arch/x86/linker.ld kernel_partial.o -o kernel.o

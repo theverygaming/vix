@@ -1,4 +1,3 @@
-#include <arch/drivers/net/rtl8139.h>
 #include <endian.h>
 #include <net/stack/ethernet.h>
 #include <net/stack/icmp.h>

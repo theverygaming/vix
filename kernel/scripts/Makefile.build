@@ -3,3 +3,7 @@ CXXFLAGS += -Iinclude/ -Iarch/$(BUILD_ARCH)/include -O$(CXX_OPTIM_LEVEL) -Wall -
 %.ocpp: %.cpp
 	@echo "  CXX $<"
 	@$(CXX) $(CXXFLAGS) -c $< -o $@
+
+%.oS: %.S
+	@echo "  AS $<"
+	@$(CXX) $(CXXFLAGS) -c $< -o $@

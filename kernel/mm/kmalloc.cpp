@@ -336,9 +336,9 @@ void mm::kfree(void *ptr) {
 void *mm::kmalloc_aligned(size_t size, size_t alignment) {
     // hack level: insane
     void *ptr = kmalloc(size + alignment);
-    uint32_t misalign = (uint32_t)ptr % alignment;
+    uintptr_t misalign = (uintptr_t)ptr % alignment;
     if (misalign != 0) {
-        ptr = (void *)((uint32_t)ptr + (alignment - misalign));
+        ptr = (void *)((uintptr_t)ptr + (alignment - misalign));
     }
     return ptr;
 }

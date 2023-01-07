@@ -1,5 +1,3 @@
-#include <arch/drivers/net/rtl8139.h>
-#include <arch/drivers/pci.h>
 #include <config.h>
 #include <cpp.h>
 #include <kernel.h>
@@ -19,6 +17,7 @@ void kernelstart() {
     memalloc::page::kernel_init();
     LOG_NORMAL("initialized kernel memory manager");
     arch::generic::startup::stage2_startup();
+    LOG_NORMAL("initializing C++");
     cpp_init();
     LOG_NORMAL("initialized C++");
 

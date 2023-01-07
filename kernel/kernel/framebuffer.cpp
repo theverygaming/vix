@@ -44,8 +44,8 @@ void fb::fb::mouse_event(void *self, struct drivers::ms_mouse::mouse_packet pack
     mouse_x += packet.x_movement;
     mouse_y -= packet.y_movement; // inverted for Y
 
-    mouse_x = std::clamp(mouse_x, 0, (ssize_t)_self->_info.width);
-    mouse_y = std::clamp(mouse_y, 0, (ssize_t)_self->_info.height);
+    mouse_x = std::clamp(mouse_x, (ssize_t)0, (ssize_t)_self->_info.width);
+    mouse_y = std::clamp(mouse_y, (ssize_t)0, (ssize_t)_self->_info.height);
 
     if (mouse_x + mouse_w < _self->_info.width && mouse_y + mouse_h < _self->_info.height) {
         for (int y = 0; y < mouse_h; y++) {

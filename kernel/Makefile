@@ -65,7 +65,7 @@ alldefconfig:
 # clean targets
 clean:
 	@rm -f kernel.o kernel.bin symtab.s symtab.os kernel_partial.o
-	@find ./arch ./drivers ./fs ./include ./kernel ./net \( -name '*.oasm' -o -name '*.onasm' -o -name '*.ocpp' -o -name '*.ors' -o -name '*.rlib' -o -name '*.o' -o -name '*.os' \) -type f -delete
+	@find ./arch ./drivers ./fs ./include ./kernel ./net ./mm ./cppstd ./tests \( -name '*.oasm' -o -name '*.onasm' -o -name '*.ocpp' -o -name '*.ors' -o -name '*.rlib' -o -name '*.o' -o -name '*.os' \) -type f -delete
 
 proper: clean
 	@$(MAKE) --quiet -C scripts/kconfig clean

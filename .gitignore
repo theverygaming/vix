@@ -5,6 +5,7 @@
 *.oasm
 *.onasm
 *.os
+*.oS
 *.ors
 *.rlib
 boot/boot
