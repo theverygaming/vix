@@ -1,3 +1,4 @@
+#include <arch/drivers/uart.h>
 #include <arch/generic/startup.h>
 #include <config.h>
 #include <framebuffer.h>
@@ -13,16 +14,10 @@ static void idkputc(char c) {
     fbconsole.putc(c);
 }
 
-#include <arch/drivers/uart.h>
-
 static void kernelinit() {
-    //stdio::set_putc_function(drivers::uart::putc);
     stdio::set_putc_function(drivers::uart::putc, true);
-    puts("testing printf\n");
-    printf("hello kernel!\n");
-    puts("tested printf\n");
     // framebuffer.init(multiboot2::findFrameBuffer(multiboot2_info_ptr));
-    //fbconsole.init(&framebuffer);
+    // fbconsole.init(&framebuffer);
     kernelstart();
 }
 

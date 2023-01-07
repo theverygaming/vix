@@ -29,7 +29,7 @@ menuconfig:
 	@$(MAKE) --no-print-directory -C kernel menuconfig
 
 img-aarch64:
-	@$(MAKE) --no-print-directory -C startup/$(MAKE_ARCH)
+	@$(MAKE) --no-print-directory -C kernel
 
 img-lx106_esp8266:
 	@$(MAKE) --no-print-directory -C kernel

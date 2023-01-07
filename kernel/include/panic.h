@@ -1,7 +1,13 @@
 #pragma once
+#include <arch.h>
+#include <macro.h>
+#include <stdio.h>
+#include INCLUDE_ARCH_GENERIC(cpu.h)
 
-#define KERNEL_PANIC(reason) panic::kernel_panic(__FILE__, __LINE__, reason)
-
-namespace panic {
-    void kernel_panic(const char *file, int line, const char *text);
-}
+#define KERNEL_PANIC(reason)                                                                 \
+    do {                                                                                     \
+        puts("kernel panic in " __FILE__ " at line " TOSTRING(__LINE__) "\n    -> " reason); \
+        while (true) {                                                                       \
+            arch::generic::cpu::halt();                                                      \
+        }                                                                                    \
+    } while (0)

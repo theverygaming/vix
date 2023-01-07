@@ -1,5 +1,6 @@
 #include <config.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <types.h>
 
 static void (*putc_function_ptr)(char c) = nullptr;
@@ -43,197 +44,259 @@ void puts(const char *str, bool debugonly) {
     }
 }
 
-const char g_HexChars[] = "0123456789abcdef";
+char *itoa(size_t value, char *str, size_t base) {
+    char *ptr = str;
 
-void printf_unsigned(uint32_t number, int radix, bool debugonly) // long long causes issue so using 32 bit unsigned
-{
-    char buffer[32];
-    int pos = 0;
-
-    // convert number to ASCII
     do {
-        unsigned long long rem = number % radix;
-        number /= radix;
-        buffer[pos++] = g_HexChars[rem];
-    } while (number > 0);
+        size_t mod = value % base;
+        unsigned char start = '0';
+        if ((base == 16) && (mod > 9)) {
+            start = 'a';
+            mod -= 10;
+        }
+        *ptr++ = start + mod;
+    } while ((value /= base) > 0);
+    *ptr = '\0';
 
-    // print number in reverse order
-    while (--pos >= 0)
-        putc(buffer[pos], debugonly);
+    size_t len = strlen(str);
+
+    for (int i = 0; i < len / 2; i++) {
+        char c = str[i];
+        str[i] = str[len - i - 1];
+        str[len - i - 1] = c;
+    }
+
+    return str;
 }
 
-void printf_signed(long long number, int radix, bool debugonly) {
-    if (number < 0) {
-        putc('-', debugonly);
-        printf_unsigned(-number, radix, debugonly);
-    } else
-        printf_unsigned(number, radix, debugonly);
-}
-
-#define PRINTF_STATE_NORMAL 0
-#define PRINTF_STATE_LENGTH 1
-#define PRINTF_STATE_LENGTH_SHORT 2
-#define PRINTF_STATE_LENGTH_LONG 3
-#define PRINTF_STATE_SPEC 4
-
-#define PRINTF_LENGTH_DEFAULT 0
-#define PRINTF_LENGTH_SHORT_SHORT 1
-#define PRINTF_LENGTH_SHORT 2
-#define PRINTF_LENGTH_LONG 3
-#define PRINTF_LENGTH_LONG_LONG 4
-
-void printf_core(bool debugonly, va_list args, const char *fmt, ...) {
-    int state = PRINTF_STATE_NORMAL;
-    int length = PRINTF_LENGTH_DEFAULT;
-    int radix = 10;
+char *itoa_signed(ssize_t value, char *str, size_t base) {
     bool sign = false;
-    bool number = false;
+    if (value < 0) {
+        sign = true;
+        value = -value;
+    }
 
+    char *ptr = str;
+
+    int dig = 0;
+    do {
+        size_t mod = value % base;
+        unsigned char start = '0';
+        if ((base == 16) && (mod > 9)) {
+            start = 'a';
+            mod -= 10;
+        }
+        *ptr++ = start + mod;
+    } while ((value /= base) > 0);
+    if (sign) {
+        *ptr++ = '-';
+    }
+    *ptr = '\0';
+
+    size_t len = strlen(str);
+
+    for (int i = 0; i < len / 2; i++) {
+        char c = str[i];
+        str[i] = str[len - i - 1];
+        str[len - i - 1] = c;
+    }
+
+    return str;
+}
+
+char *strchr(char *str, int character) {
+    while (*str) {
+        if (*str == character) {
+            return str;
+        }
+        str++;
+    }
+    if (*str == character) {
+        return str;
+    }
+    return 0;
+}
+
+size_t strcspn(const char *s1, const char *s2) {
+    size_t n = 0;
+    if (*s2 == 0) {
+        return 0;
+    }
+    while (*s1) {
+        if (strchr((char *)s2, *s1)) {
+            return n;
+        }
+        s1++;
+        n++;
+    }
+    return n;
+}
+
+static int printf_base(va_list *args, const char *fmt, char *buf, bool buf_write, size_t buf_len, bool serialonly) {
+    size_t chars_written = 0;
     while (*fmt) {
-        switch (state) {
-        case PRINTF_STATE_NORMAL:
+        if (*fmt == '%') {
+            fmt++;
             switch (*fmt) {
-            case '%':
-                state = PRINTF_STATE_LENGTH;
-                break;
-            default:
-                putc(*fmt, debugonly);
-                break;
-            }
-            break;
-
-        case PRINTF_STATE_LENGTH:
-            switch (*fmt) {
-            case 'h':
-                length = PRINTF_LENGTH_SHORT;
-                state = PRINTF_STATE_LENGTH_SHORT;
-                break;
-            case 'l':
-                length = PRINTF_LENGTH_LONG;
-                state = PRINTF_STATE_LENGTH_LONG;
-                break;
-            default:
-                goto PRINTF_STATE_SPEC_;
-            }
-            break;
-
-        case PRINTF_STATE_LENGTH_SHORT:
-            if (*fmt == 'h') {
-                length = PRINTF_LENGTH_SHORT_SHORT;
-                state = PRINTF_STATE_SPEC;
-            } else
-                goto PRINTF_STATE_SPEC_;
-            break;
-
-        case PRINTF_STATE_LENGTH_LONG:
-            if (*fmt == 'l') {
-                length = PRINTF_LENGTH_LONG_LONG;
-                state = PRINTF_STATE_SPEC;
-            } else
-                goto PRINTF_STATE_SPEC_;
-            break;
-
-        case PRINTF_STATE_SPEC:
-        PRINTF_STATE_SPEC_:
-            switch (*fmt) {
-            case 'c':
-                putc((char)va_arg(args, int), debugonly);
-                break;
-
-            case 's':
-                puts(va_arg(args, const char *), debugonly);
-                break;
-
-            case '%':
-                putc('%', debugonly);
-                break;
-
-            case 'd':
-            case 'i':
-                radix = 10;
-                sign = true;
-                number = true;
-                break;
-
-            case 'u':
-                radix = 10;
-                sign = false;
-                number = true;
-                break;
-
-            case 'X':
-            case 'x':
-            case 'p':
-                radix = 16;
-                sign = false;
-                number = true;
-                break;
-
-            case 'o':
-                radix = 8;
-                sign = false;
-                number = true;
-                break;
-
-            // ignore invalid spec
-            default:
-                break;
-            }
-
-            if (number) {
-                if (sign) {
-                    switch (length) {
-                    case PRINTF_LENGTH_SHORT_SHORT:
-                    case PRINTF_LENGTH_SHORT:
-                    case PRINTF_LENGTH_DEFAULT:
-                        printf_signed(va_arg(args, int), radix, debugonly);
-                        break;
-
-                    case PRINTF_LENGTH_LONG:
-                        printf_signed(va_arg(args, long), radix, debugonly);
-                        break;
-
-                    case PRINTF_LENGTH_LONG_LONG:
-                        printf_signed(va_arg(args, long long), radix, debugonly);
-                        break;
+            case '%': {
+                fmt += 1;
+                if (buf_write) {
+                    size_t can_write = (buf_len - 1) - chars_written;
+                    if (chars_written > (buf_len - 1)) {
+                        can_write = 0;
+                    }
+                    if (can_write >= 1) {
+                        memcpy(&buf[chars_written], "%", 1);
+                    } else {
+                        memcpy(&buf[chars_written], "%", can_write);
                     }
                 } else {
-                    switch (length) {
-                    case PRINTF_LENGTH_SHORT_SHORT:
-                    case PRINTF_LENGTH_SHORT:
-                    case PRINTF_LENGTH_DEFAULT:
-                        printf_unsigned(va_arg(args, unsigned int), radix, debugonly);
-                        break;
-
-                    case PRINTF_LENGTH_LONG:
-                        printf_unsigned(va_arg(args, unsigned long), radix, debugonly);
-                        break;
-
-                    case PRINTF_LENGTH_LONG_LONG:
-                        printf_unsigned(va_arg(args, unsigned long long), radix, debugonly);
-                        break;
-                    }
+                    putc('%', serialonly);
                 }
+                chars_written += 1;
+                break;
             }
-
-            // reset state
-            state = PRINTF_STATE_NORMAL;
-            length = PRINTF_LENGTH_DEFAULT;
-            radix = 10;
-            sign = false;
-            number = false;
-            break;
+            case 's': {
+                fmt += 1;
+                char *arg = va_arg(*args, char *);
+                if (buf_write) {
+                    size_t can_write = (buf_len - 1) - chars_written;
+                    if (chars_written > (buf_len - 1)) {
+                        can_write = 0;
+                    }
+                    if (can_write >= strlen(arg)) {
+                        memcpy(&buf[chars_written], arg, strlen(arg));
+                    } else {
+                        memcpy(&buf[chars_written], arg, can_write);
+                    }
+                } else {
+                    puts(arg, serialonly);
+                }
+                chars_written += strlen(arg);
+                break;
+            }
+            case 'u': {
+                fmt += 1;
+                size_t arg = va_arg(*args, size_t);
+                char n_buf[11];
+                char *ret = itoa(arg, n_buf, 10);
+                if (buf_write) {
+                    size_t can_write = (buf_len - 1) - chars_written;
+                    if (chars_written > (buf_len - 1)) {
+                        can_write = 0;
+                    }
+                    if (can_write >= strlen(ret)) {
+                        memcpy(&buf[chars_written], ret, strlen(ret));
+                    } else {
+                        memcpy(&buf[chars_written], ret, can_write);
+                    }
+                } else {
+                    puts(ret, serialonly);
+                }
+                chars_written += strlen(ret);
+                break;
+            }
+            case 'p': {
+                fmt += 1;
+                uintptr_t arg = va_arg(*args, uintptr_t);
+                char n_buf[17];
+                char *ret = itoa(arg, n_buf, 16);
+                if (buf_write) {
+                    size_t can_write = (buf_len - 1) - chars_written;
+                    if (chars_written > (buf_len - 1)) {
+                        can_write = 0;
+                    }
+                    if (can_write >= strlen(ret)) {
+                        memcpy(&buf[chars_written], ret, strlen(ret));
+                    } else {
+                        memcpy(&buf[chars_written], ret, can_write);
+                    }
+                } else {
+                    puts(ret, serialonly);
+                }
+                chars_written += strlen(ret);
+                break;
+            }
+            case 'd': {
+                fmt += 1;
+                size_t arg = va_arg(*args, size_t);
+                char n_buf[12];
+                char *ret = itoa_signed(arg, n_buf, 10);
+                if (buf_write) {
+                    size_t can_write = (buf_len - 1) - chars_written;
+                    if (chars_written > (buf_len - 1)) {
+                        can_write = 0;
+                    }
+                    if (can_write >= strlen(ret)) {
+                        memcpy(&buf[chars_written], ret, strlen(ret));
+                    } else {
+                        memcpy(&buf[chars_written], ret, can_write);
+                    }
+                } else {
+                    puts(ret, serialonly);
+                }
+                chars_written += strlen(ret);
+                break;
+            }
+            case 'c': {
+                fmt += 1;
+                char arg = va_arg(*args, int);
+                if (buf_write) {
+                    size_t can_write = (buf_len - 1) - chars_written;
+                    if (chars_written > (buf_len - 1)) {
+                        can_write = 0;
+                    }
+                    if (can_write >= 1) {
+                        memcpy(&buf[chars_written], &arg, 1);
+                    } else {
+                        memcpy(&buf[chars_written], &arg, can_write);
+                    }
+                } else {
+                    putc(arg, serialonly);
+                }
+                chars_written++;
+                break;
+            }
+            default:
+                printf("printf: unsupported %%%c\n", *fmt);
+                break;
+            }
         }
-
-        fmt++;
+        size_t count = strcspn(fmt, "%");
+        if (buf_write) {
+            size_t can_write = (buf_len - 1) - chars_written;
+            if (chars_written > (buf_len - 1)) {
+                can_write = 0;
+            }
+            if (can_write >= count) {
+                memcpy(&buf[chars_written], fmt, count);
+            } else {
+                memcpy(&buf[chars_written], fmt, can_write);
+            }
+        } else {
+            for (int i = 0; i < count; i++) {
+                putc(fmt[i], serialonly);
+            }
+        }
+        chars_written += count;
+        fmt += count;
     }
+    if (buf_write) {
+        if (chars_written < (buf_len - 1)) {
+            buf[chars_written] = '\0';
+        } else {
+            buf[buf_len - 1] = '\0';
+        }
+    }
+
+    return chars_written;
 }
 
 // quick hack for loading linux hello world module
 extern "C" int _printk(const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
-    printf_core(false, args, fmt);
+    printf_base(&args, fmt, nullptr, false, 0, false);
     va_end(args);
     return 0;
 }
@@ -241,24 +304,13 @@ extern "C" int _printk(const char *fmt, ...) {
 void printf(const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
-    printf_core(false, args, fmt);
+    printf_base(&args, fmt, nullptr, false, 0, false);
     va_end(args);
 }
 
 void printf_serial(const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
-    printf_core(true, args, fmt);
+    printf_base(&args, fmt, nullptr, false, 0, true);
     va_end(args);
-}
-
-void print_buffer(const char *msg, const void *buffer, uint32_t count) {
-    const uint8_t *u8Buffer = (const uint8_t *)buffer;
-
-    puts(msg, false);
-    for (uint16_t i = 0; i < count; i++) {
-        putc(g_HexChars[u8Buffer[i] >> 4], false);
-        putc(g_HexChars[u8Buffer[i] & 0xF], false);
-    }
-    puts("\n", false);
 }

@@ -24,3 +24,7 @@ config CXX_OPTIM_LEVEL
 	range 0 3
 
 endmenu
+
+config UBSAN
+    bool "Enable ubsan"
+    default n

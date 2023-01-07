@@ -7,3 +7,7 @@ CXXFLAGS += -Iinclude/ -Iarch/$(BUILD_ARCH)/include -O$(CXX_OPTIM_LEVEL) -Wall -
 %.oS: %.S
 	@echo "  AS $<"
 	@$(CXX) $(CXXFLAGS) -c $< -o $@
+
+ifeq ($(CONFIG_UBSAN), y)
+CXXFLAGS += -fsanitize=undefined
+endif

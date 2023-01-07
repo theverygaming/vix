@@ -15,7 +15,7 @@ static char *ptr;
 static int init() {
     arch::generic::textoutput::puts("module loaded!\n", arch::generic::textoutput::color::COLOR_LIGHT_RED);
     printf("hello world from module! %d\n", 5);
-    printf("current unix time: %llu\n", time::getCurrentUnixTime());
+    printf("current unix time: %u\n", time::getCurrentUnixTime());
     ptr = (char *)mm::kmalloc(100);
     memcpy(ptr, "hello world!\n", 14);
     return 0;

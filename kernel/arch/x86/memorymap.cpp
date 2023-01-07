@@ -27,7 +27,7 @@ void memorymap::initMemoryMap(void *mapadr, int entrycount) {
     MemMapEntry processed[entrycount];
     char types[][20] = {"", "usable", "system reserved", "ACPI reclaim", "ACPI NVS", "Memory error", "disabled", "Persistent"};
     for (int i = 0; i < entrycount; i++) {
-        DEBUG_PRINTF("#%d -> base: %llu, length: %llu type: %u(%s)\n", i, entries[i].Base, entries[i].Length, entries[i].Type, types[entries[i].Type]);
+        DEBUG_PRINTF("#%d -> base: %u, length: %u type: %u(%s)\n", i, (uint32_t)(entries[i].Base & 0xFFFFFFFF), (uint32_t)(entries[i].Length & 0xFFFFFFFF), entries[i].Type, types[entries[i].Type]);
         processed[i] = {entries[i].Base, entries[i].Base + entries[i].Length, entries[i].Type};
     }
 
