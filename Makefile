@@ -8,6 +8,9 @@ all: img-$(MAKE_ARCH)
 alldefconfig:
 	@$(MAKE) --no-print-directory -C kernel alldefconfig
 
+tests:
+	@cd kernel && echo "CONFIG_ENABLE_TESTS=y" >> .config # hacky but "works"
+
 img-x86:
 	@$(MAKE) --no-print-directory -C kernel
 	@$(MAKE) --no-print-directory -C startup/$(MAKE_ARCH)

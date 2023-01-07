@@ -1,0 +1,34 @@
+name: Build
+on: [push, pull_request]
+jobs:
+  build-image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install nasm gcc-multilib g++-multilib xorriso grub-common mtools qemu-system-x86 llvm-dev libclang-dev clang python3 pkg-config flex bison
+      - name: compile
+        run: cd $GITHUB_WORKSPACE && make alldefconfig tests all MAKE_ARCH=x86
+
+      - name: run
+        run: |
+          wget https://gist.githubusercontent.com/theverygaming/ea45ead0700c7b3c28db89e94f74abf8/raw/exitforce0.cpp
+          g++ exitforce0.cpp -o exitforce0
+          cd $GITHUB_WORKSPACE && ./exitforce0 timeout 30 qemu-system-x86_64 -cdrom shitOS.iso -nographic > log.txt
+          cd $GITHUB_WORKSPACE && cat log.txt
+
+      - name: check tests
+        run: |
+          python3 ${GITHUB_WORKSPACE}/tools/testparser.py ${GITHUB_WORKSPACE}/log.txt >> $GITHUB_STEP_SUMMARY
+          python3 ${GITHUB_WORKSPACE}/tools/testparser.py ${GITHUB_WORKSPACE}/log.txt -f
+
+      - name: upload image
+        uses:  actions/upload-artifact@v2
+        with:
+            name: image
+            path: ${{runner.workspace}}/shitOS/shitOS.iso

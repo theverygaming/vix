@@ -5,6 +5,7 @@ source "drivers/Kconfig"
 source "fs/Kconfig"
 source "kernel/Kconfig"
 source "net/Kconfig"
+source "tests/Kconfig"
 
 config ARCH
     string

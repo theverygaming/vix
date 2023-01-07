@@ -1,6 +1,6 @@
 include Makefile.version
 
-BUILD_SUBDIRS := kernel drivers fs net 
+BUILD_SUBDIRS := kernel drivers fs net tests
 
 ifndef ARCH
 $(error must have ARCH enviroment variable set)
