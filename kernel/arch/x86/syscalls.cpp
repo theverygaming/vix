@@ -72,6 +72,22 @@ uint32_t sys_write(isr::registers *, int *syscall_ret, uint32_t, uint32_t fd, ui
     return count; // return number of written bytes
 }
 
+uint32_t sys_open(isr::registers *, int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _flags, uint32_t _mode, uint32_t, uint32_t, uint32_t) {
+    *syscall_ret = 1;
+    LOG_INSANE("syscall: sys_open");
+    const char *filename = (const char *)_filename;
+    DEBUG_PRINTF("open: %s\n", filename);
+    return -ENOENT;
+}
+
+uint32_t sys_close(isr::registers *, int *syscall_ret, uint32_t, uint32_t _fd, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
+    *syscall_ret = 1;
+    LOG_INSANE("syscall: sys_close");
+    int fd = (int)_fd;
+    DEBUG_PRINTF("close: %d\n", fd);
+    return -EBADF;
+}
+
 uint32_t sys_waitpid(isr::registers *, int *syscall_ret, uint32_t, uint32_t pid, uint32_t _stat_addr, uint32_t _options, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     // int *stat_addr = (int *)_stat_addr;
@@ -119,6 +135,12 @@ uint32_t sys_time(isr::registers *, int *syscall_ret, uint32_t, uint32_t _tloc, 
     uint64_t *tloc = (uint64_t *)_tloc;
     *tloc = time::getCurrentUnixTime();
     return 0;
+}
+
+uint32_t sys_getpid(isr::registers *, int *syscall_ret, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
+    *syscall_ret = 1;
+    LOG_INSANE("syscall: sys_getpid");
+    return multitasking::getCurrentProcess()->pid;
 }
 
 uint32_t sys_brk(isr::registers *, int *syscall_ret, uint32_t, uint32_t _brk, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
@@ -226,6 +248,8 @@ uint32_t sys_sysinfo(isr::registers *, int *syscall_ret, uint32_t, uint32_t _inf
     sysinfostruct->mem_unit = 1;
     return 0;
 }
+
+// sys_clone defined in multitasking.cpp
 
 uint32_t sys_uname(isr::registers *, int *syscall_ret, uint32_t, uint32_t _old_utsname, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
@@ -361,6 +385,32 @@ uint32_t sys_getuid32(isr::registers *, int *syscall_ret, uint32_t, uint32_t, ui
     return 0; // with the current state of the system we are always root
 }
 
+uint32_t sys_fcntl64(isr::registers *, int *syscall_ret, uint32_t, uint32_t _fd, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
+    *syscall_ret = 1;
+    LOG_INSANE("syscall: sys_fcntl64");
+    int fd = (int)_fd;
+    DEBUG_PRINTF("fd: %d\n", fd);
+    return -ENOSYS;
+}
+
+uint32_t sys_futex(isr::registers *, int *syscall_ret, uint32_t, uint32_t _uaddr, uint32_t _op, uint32_t val, uint32_t _timeout, uint32_t _uaddr2, uint32_t val3) {
+    *syscall_ret = 1;
+    LOG_INSANE("syscall: sys_futex");
+    uint32_t *uaddr = (uint32_t *)_uaddr;
+    int op = (int)_op;
+    uint64_t *timeout = (uint64_t *)_timeout;
+    uint32_t *uaddr2 = (uint32_t *)_uaddr2;
+
+    DEBUG_PRINTF("futex: uaddr -> 0x%p op -> %d val -> 0x%p timeout -> 0x%p uaddr2 -> 0x%p val3 -> 0x%p\n", _uaddr, op, val, _timeout, _uaddr2, val3);
+    op &= 0xF;
+    DEBUG_PRINTF("futex2: uaddr -> 0x%p op -> %d val -> 0x%p timeout -> 0x%p uaddr2 -> 0x%p val3 -> 0x%p\n", _uaddr, op, val, _timeout, _uaddr2, val3);
+    if (op == 1) { // FUTEX_WAKE
+        return 1;  // :troll:
+    }
+
+    return -ENOSYS;
+}
+
 uint32_t sys_set_thread_area(isr::registers *, int *syscall_ret, uint32_t, uint32_t _usr_desc, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     LOG_INSANE("syscall: sys_set_thread_area");
@@ -435,29 +485,61 @@ uint32_t sys_set_tid_address(isr::registers *, int *syscall_ret, uint32_t, uint3
     *syscall_ret = 1;
     LOG_INSANE("syscall: sys_set_tid_address");
     int *tidptr = (int *)tidptr_u;
-    *tidptr = 69;
-    // i do not understand this syscall, but i know it returns some PID so lets just return the calling thread's PID
+    // TODO: implement together with clone
+    return 69;
     return multitasking::getCurrentProcess()->pid;
 }
 
-uint32_t sys_set_robust_list(isr::registers *, int *syscall_ret, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_set_robust_list(isr::registers *, int *syscall_ret, uint32_t, uint32_t _robust_list_head, uint32_t _len, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     LOG_INSANE("syscall: sys_set_robust_list");
+    struct robust_list {
+        struct robust_list *next;
+    };
+    struct robust_list_head {
+        struct robust_list list;
+        long futex_offset;
+        struct robust_list *list_op_pending;
+    };
+    struct robust_list_head *head = (struct robust_list_head *)_robust_list_head;
+    size_t len = (size_t)_len;
+    if (len != sizeof(*head)) {
+        return -EINVAL;
+    }
+
     return 0; // sure, it worked :troll:
 }
 
 uint32_t sys_rseq(isr::registers *, int *syscall_ret, uint32_t, uint32_t rseq_u, uint32_t rseq_len, uint32_t flags_u, uint32_t sig, uint32_t, uint32_t) {
     *syscall_ret = 1;
     LOG_INSANE("syscall: sys_rseq");
+    return -ENOSYS;
     // https://lwn.net/Articles/774098/
+    // https://lwn.net/Articles/883104/
     // linux: include/uapi/linux/rseq.h
     struct rseq {
         uint32_t cpu_id_start;
         uint32_t cpu_id;
         uint64_t rseq_cs;
         uint32_t flags;
+        uint32_t node_id;
+        uint32_t mm_cid;
+    } __attribute__((aligned(4 * sizeof(uint64_t))));
+    struct rseq_cs {
+        uint32_t version;
+        uint64_t start_ip;
+        uint64_t post_commit_offset;
+        uint64_t abort_ip;
     } __attribute__((aligned(4 * sizeof(uint64_t))));
     struct rseq *rseq = (struct rseq *)rseq_u;
+    struct rseq_cs *rseq_cs = (struct rseq_cs *)rseq->rseq_cs;
+    if (rseq_cs != nullptr) {
+        DEBUG_PRINTF_INSANE("struct rseq_cs: version -> 0x%p start_ip(lower 32) -> 0x%p post_commit_offset(lower 32) -> 0x%p abort_ip(lower 32) -> 0x%p\n",
+                            rseq_cs->version,
+                            (uint32_t)(rseq_cs->start_ip & 0xFFFFFFFF),
+                            (uint32_t)(rseq_cs->post_commit_offset & 0xFFFFFFFF),
+                            (uint32_t)(rseq_cs->abort_ip & 0xFFFFFFFF));
+    }
     DEBUG_PRINTF_INSANE("struct rseq: cpu_id_start->%u cpu_id->%u rseq_cs(only first u32)->%u rseq_cs(last u32)->%u flags->%u\n",
                         rseq->cpu_id_start,
                         rseq->cpu_id,
@@ -465,12 +547,14 @@ uint32_t sys_rseq(isr::registers *, int *syscall_ret, uint32_t, uint32_t rseq_u,
                         (uint32_t)(rseq->rseq_cs >> 32),
                         rseq->flags);
     int flags = flags_u;
-    DEBUG_PRINTF_INSANE("rseq_len: %u, flags: %d sig: %u", rseq_len, flags, sig);
+    DEBUG_PRINTF_INSANE("rseq_len: 0x%p, flags: %d sig: 0x%p\n", rseq_len, flags, sig);
     DEBUG_PRINTF_INSANE("rseq sizeof %u\n", sizeof(struct rseq));
     if (flags == 0) { // registration
+        DEBUG_PRINTF("registration\n");
         rseq->cpu_id_start = 0;
-        rseq->cpu_id = (uint32_t)-1;
-        rseq->rseq_cs = 0;
+        rseq->cpu_id = 0;
+        rseq->node_id = 0;
+        rseq->mm_cid = 0;
     }
     return 0; // sure, it worked fine
 }

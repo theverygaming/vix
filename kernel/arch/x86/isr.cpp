@@ -16,7 +16,7 @@
 isr::intHandler handlers[256];
 
 // #define DEBUG_ENTRY_EXIT
-#define PANIC_ON_PROGRAM_FAULT
+// #define PANIC_ON_PROGRAM_FAULT
 
 extern "C" void i686_ISR_Handler(isr::registers *regs) {
 #ifdef DEBUG_ENTRY_EXIT

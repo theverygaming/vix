@@ -14,8 +14,8 @@ uint32_t (*syscall_table[440])(isr::registers *, int *, uint32_t, uint32_t, uint
     &sys_fork,
     &sys_read,
     &sys_write, /* 4   */
-    nullptr,
-    nullptr,
+    &sys_open,
+    &sys_close,
     &sys_waitpid,
     nullptr,
     nullptr, /* 9  */
@@ -29,7 +29,7 @@ uint32_t (*syscall_table[440])(isr::registers *, int *, uint32_t, uint32_t, uint
     nullptr,
     nullptr,
     nullptr, /* 19  */
-    nullptr,
+    &sys_getpid,
     nullptr,
     nullptr,
     nullptr,
@@ -129,7 +129,7 @@ uint32_t (*syscall_table[440])(isr::registers *, int *, uint32_t, uint32_t, uint
     nullptr,
     nullptr,
     nullptr, /* 119 */
-    nullptr,
+    &sys_clone,
     nullptr,
     &sys_uname,
     &sys_modify_ldt,
@@ -230,7 +230,7 @@ uint32_t (*syscall_table[440])(isr::registers *, int *, uint32_t, uint32_t, uint
     nullptr,
     nullptr, /* 219 */
     nullptr,
-    nullptr,
+    &sys_fcntl64,
     nullptr,
     nullptr,
     nullptr, /* 224 */
@@ -249,7 +249,7 @@ uint32_t (*syscall_table[440])(isr::registers *, int *, uint32_t, uint32_t, uint
     nullptr,
     nullptr,
     nullptr, /* 239 */
-    nullptr,
+    &sys_futex,
     nullptr,
     nullptr,
     &sys_set_thread_area,
@@ -464,5 +464,5 @@ void syscall::syscallHandler(isr::registers *regs) {
     if (syscall_ret > 0) {
         regs->eax = returnval;
     }
-    DEBUG_PRINTF_INSANE("syscall return %u\n", returnval);
+    DEBUG_PRINTF_INSANE("syscall return %d\n", returnval);
 }
