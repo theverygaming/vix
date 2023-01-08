@@ -62,6 +62,11 @@ void elf::load_program(void *ELF_baseadr, std::vector<std::string> *argv, bool r
 
         DEBUG_PRINTF("section: align: 0x%p vaddr->0x%p sizef->0x%p sizem->0x%p\n", pHeader.p_align, pHeader.p_vaddr, pHeader.p_filesz, pHeader.p_memsz);
 
+        if (!(pHeader.p_type == 1 || pHeader.p_type == 7)) { // only load PT_LOAD and PT_TLS
+            DEBUG_PRINTF("    ignoring section of type: 0x%p\n", pHeader.p_type);
+            continue;
+        }
+
         if (pHeader.p_type == 7) {        // PT_TLS
             if (tls.tlsdata == nullptr) { // can't have two of em (i think you can but not with this loader for now)
                 DEBUG_PRINTF("    loaded TLS\n");
@@ -70,12 +75,9 @@ void elf::load_program(void *ELF_baseadr, std::vector<std::string> *argv, bool r
                 tls.tlsdata = mm::kmalloc(tls.tlsdata_size);
                 memcpy(tls.tlsdata, ((char *)ELF_baseadr) + pHeader.p_offset, tls.tlsdata_size);
                 continue;
+            } else {
+                KERNEL_PANIC("skill issue");
             }
-        }
-
-        if (pHeader.p_type != 1) { // only load PT_LOAD
-            DEBUG_PRINTF("    ignoring section of type: 0x%p\n", pHeader.p_type);
-            continue;
         }
 
         memset((void *)pHeader.p_vaddr, 0, pHeader.p_memsz);

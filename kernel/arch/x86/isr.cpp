@@ -64,7 +64,7 @@ extern "C" void i686_ISR_Handler(isr::registers *regs) {
     if (handlers[regs->interrupt] != 0) {
         handlers[regs->interrupt](regs);
     } else if (regs->interrupt >= 32) {
-        DEBUG_PRINTF("No interrupt handler for #%lu!, ignoring\n", regs->interrupt);
+        DEBUG_PRINTF("No interrupt handler for #%u!, ignoring\n", regs->interrupt);
     } else if (regs->interrupt == 14) {
         uint32_t fault_address;
         asm volatile("mov %%cr2, %0" : "=r"(fault_address)); // get address page fault occoured at
@@ -129,7 +129,7 @@ extern "C" void i686_ISR_Handler(isr::registers *regs) {
                regs->eip);
         debug::debug_loop();
     } else {
-        printf("Exception #%lu\n", regs->interrupt);
+        printf("Exception #%u\n", regs->interrupt);
         printf("Error code: 0x%p\n", regs->error);
         printf("eax: 0x%p ebx: 0x%p ecx: 0x%p edx: 0x%p\nesi: 0x%p edi: 0x%p esp: 0x%p ebp: 0x%p eip: 0x%p\n",
                regs->eax,

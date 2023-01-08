@@ -389,6 +389,10 @@ uint32_t sys_set_thread_area(isr::registers *, int *syscall_ret, uint32_t, uint3
         LOG_INSANE("sys_set_thread_area does not support seg_32bit = false");
         return -ENOSYS;
     }
+    if (user_desc_p->base_addr == 0) {
+        LOG_INSANE("sys_set_thread_area does not support base_addr = 0");
+        return -ENOSYS;
+    }
 
     DEBUG_PRINTF("entry_number: %u base_addr: 0x%p limit: %u seg_32bit: %u contents: %u read_exec_only: %u limit_in_pages: %u seg_not_present: %u useable: %u\n",
                  user_desc_p->entry_number,
@@ -404,8 +408,8 @@ uint32_t sys_set_thread_area(isr::registers *, int *syscall_ret, uint32_t, uint3
     // load data for tls
     multitasking::x86_process *proc = multitasking::getCurrentProcess();
     if (proc->tlsinfo.tlsdata != nullptr) {
-        memset((void *)user_desc_p->base_addr, 0, proc->tlsinfo.tls_size);
-        memcpy((void *)user_desc_p->base_addr, proc->tlsinfo.tlsdata, proc->tlsinfo.tlsdata_size);
+        memset((uint8_t *)user_desc_p->base_addr - proc->tlsinfo.tls_size, 0, proc->tlsinfo.tls_size);
+        memcpy((uint8_t *)user_desc_p->base_addr - proc->tlsinfo.tls_size, proc->tlsinfo.tlsdata, proc->tlsinfo.tlsdata_size);
     }
 
     uint8_t access = 0;
@@ -421,10 +425,6 @@ uint32_t sys_set_thread_area(isr::registers *, int *syscall_ret, uint32_t, uint3
     access |= 0x10; // GDT_ACCESS_DATA_SEGMENT
 
     gdt::set_tls_entry(user_desc_p->base_addr, user_desc_p->limit, access, flags);
-
-    // load gs -- are we supposed to do this?
-    uint16_t gs_val = (6 * 8) | 3;
-    // asm volatile("mov %%ax, %%gs" : : "a"(gs_val));
 
     user_desc_p->entry_number = 6;
 
