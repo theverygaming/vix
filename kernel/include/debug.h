@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <types.h>
 
+// clang-format off
 #ifdef CONFIG_LOGLEVEL_INSANE
     #define DEBUG_PRINTF(...) printf_serial(__VA_ARGS__)
     #define DEBUG_PRINTF_INSANE(...) printf_serial(__VA_ARGS__)
@@ -30,7 +31,7 @@
     #define DEBUG_BREAKPOINT
     #define assertm(condition, msg)
 #endif
-
+// clang-format on
 
 namespace debug {
     void debug_loop();

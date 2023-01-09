@@ -1,4 +1,3 @@
-#include <arch.h>
 #include <arch/drivers/ps2.h>
 #include <arch/elf.h>
 #include <arch/errno.h>

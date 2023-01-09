@@ -1,4 +1,5 @@
 #pragma once
+
 namespace simd {
-    bool enableSSE();   
+    bool enableSSE();
 }

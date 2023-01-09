@@ -3,7 +3,7 @@
 
 /* needed for memory allocators -- VIRTUAL addresses -- must be aligned to ARCH_PAGE_SIZE */
 #define ARCH_KERNEL_HEAP_START 0x69
-#define ARCH_KERNEL_HEAP_END 0x420
+#define ARCH_KERNEL_HEAP_END   0x420
 
 /*
  * page size(if this architecture has virtual memory), otherwise just a block size used for some memory allocators and stuff

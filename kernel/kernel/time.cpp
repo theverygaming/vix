@@ -1,6 +1,5 @@
-#include <arch.h>
+#include <arch/generic/devices.h>
 #include <time.h>
-#include INCLUDE_ARCH_GENERIC(devices.h)
 
 volatile uint64_t time::bootupTime = 0;
 

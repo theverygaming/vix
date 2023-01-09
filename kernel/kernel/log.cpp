@@ -1,6 +1,5 @@
-#include <arch.h>
+#include <arch/generic/textoutput.h>
 #include <log.h>
-#include INCLUDE_ARCH_GENERIC(textoutput.h)
 
 void log::log(const char *str) {
     printf("%s\n", str);

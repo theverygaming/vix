@@ -1,18 +1,16 @@
-#include <arch.h>
-
-#include INCLUDE_ARCH_GENERIC(cpu.h)
+#include <arch/generic/cpu.h>
 
 void arch::generic::cpu::halt() {
     while (true) {}
 }
 
-#include INCLUDE_ARCH_GENERIC(memory.h)
+#include <arch/generic/memory.h>
 
 bool arch::generic::memory::get_memory_map(struct memory_map_entry *entry, int n) {
     return false;
 }
 
-#include INCLUDE_ARCH_GENERIC(startup.h)
+#include <arch/generic/startup.h>
 
 void arch::generic::startup::stage2_startup() {}
 
@@ -20,11 +18,11 @@ void arch::generic::startup::stage3_startup() {}
 
 void arch::generic::startup::after_init() {}
 
-#include INCLUDE_ARCH_GENERIC(textoutput.h)
+#include <arch/generic/textoutput.h>
 
 void arch::generic::textoutput::puts(const char *str, color foreground, color background) {}
 
-#include INCLUDE_ARCH_GENERIC(devices.h)
+#include <arch/generic/devices.h>
 
 arch::generic::devices::get_current_rtc_time(uint16_t *year, uint8_t *month, uint8_t *day, uint8_t *hour, uint8_t *minute, uint8_t *second) {
     *year = 1970;

@@ -1,9 +1,9 @@
+#include <arch/generic/startup.h>
 #include <config.h>
 #include <cpp.h>
 #include <kernel.h>
 #include <log.h>
 #include <mm/memalloc.h>
-#include INCLUDE_ARCH_GENERIC(startup.h)
 
 #ifdef CONFIG_ENABLE_TESTS
 void run_all_tests();

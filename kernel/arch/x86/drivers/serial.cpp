@@ -17,8 +17,7 @@ void drivers::serial::init() {
     outb(SERIAL_PORT + 0, 0xAE); // Test serial chip (send byte 0xAE and check if serial returns same byte)
 
     // Check if serial is faulty (i.e: not same byte as sent)
-    if (inb(SERIAL_PORT + 0) != 0xAE)
-    {
+    if (inb(SERIAL_PORT + 0) != 0xAE) {
         serial_enabled = false;
         return;
     }
@@ -34,16 +33,22 @@ static int is_tx_empty() {
 }
 
 void drivers::serial::putc(char c) {
-    if(!serial_enabled) { return; }
-    while(is_tx_empty() == 0);
+    if (!serial_enabled) {
+        return;
+    }
+    while (is_tx_empty() == 0)
+        ;
     outb(SERIAL_PORT, c);
-    if(c == '\n') {
+    if (c == '\n') {
         outb(SERIAL_PORT, '\r');
     }
 }
 
 char drivers::serial::getc() {
-    if(!serial_enabled) { return '\0'; }
-    while(!(inb(SERIAL_PORT + 5) & 1));
+    if (!serial_enabled) {
+        return '\0';
+    }
+    while (!(inb(SERIAL_PORT + 5) & 1))
+        ;
     return inb(SERIAL_PORT);
 }

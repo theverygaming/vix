@@ -1,8 +1,7 @@
-#include <arch.h>
+#include <arch/generic/cpu.h>
 #include <config.h>
 #include <debug.h>
 #include <stdio.h>
-#include INCLUDE_ARCH_GENERIC(cpu.h)
 
 void debug::debug_loop() {
     printf("debug deth\n");

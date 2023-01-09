@@ -1,4 +1,4 @@
-#include <arch.h>
+#include <arch/generic/memory.h>
 #include <config.h>
 #include <debug.h>
 #include <macros.h>
@@ -7,7 +7,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <types.h>
-#include INCLUDE_ARCH_GENERIC(memory.h)
 
 #define DEBUG_PRINTF_INSANE(...) \
     while (0) {} // disable debug printf for this file

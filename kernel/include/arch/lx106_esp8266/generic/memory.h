@@ -5,7 +5,7 @@ extern "C" uint32_t _heap_start;
 
 /* needed for memory allocators -- VIRTUAL addresses -- must be aligned to ARCH_PAGE_SIZE */
 #define ARCH_KERNEL_HEAP_START 0x3FFE8000
-#define ARCH_KERNEL_HEAP_END (ARCH_KERNEL_HEAP_START + 0x2000) 
+#define ARCH_KERNEL_HEAP_END   (ARCH_KERNEL_HEAP_START + 0x2000)
 
 /*
  * page size(if this architecture has virtual memory), otherwise just a block size used for some memory allocators and stuff

@@ -1,9 +1,8 @@
 #pragma once
-#include <arch.h>
+#include <arch/generic/textoutput.h>
 #include <drivers/ms_mouse.h>
 #include <psf.h>
 #include <types.h>
-#include INCLUDE_ARCH_GENERIC(textoutput.h)
 
 namespace fb {
     struct fbinfo {

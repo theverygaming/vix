@@ -1,8 +1,9 @@
 #pragma once
 #include <debug.h>
-#include <macro.h>
 #include <generated/autoconf.h>
+#include <macro.h>
 
+// clang-format off
 #ifdef CONFIG_LOGLEVEL_INSANE
     #define LOG_INSANE(str) log::log(__FILE__ ":" TOSTRING(__LINE__) " -> " str)
     #define LOG_DEBUG(str) log::log(__FILE__ ":" TOSTRING(__LINE__) " -> " str)
@@ -29,6 +30,7 @@
     #define LOG_NORMAL(str)
     #define LOG_FATAL(str)
 #endif
+// clang-format on
 
 namespace log {
     void log(const char *str);

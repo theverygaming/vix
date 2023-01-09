@@ -2,7 +2,7 @@
 #include <arch/drivers/text80x25.h>
 #include <config.h>
 
-#define SCREEN_WIDTH 80
+#define SCREEN_WIDTH  80
 #define SCREEN_HEIGHT 25
 
 static const uint8_t DEFAULT_COLOR = 0x7;

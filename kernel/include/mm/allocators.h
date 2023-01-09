@@ -67,11 +67,11 @@ namespace memalloc::allocators {
 
         size_t count_free_blocks() {
             size_t count = 0;
-            for(size_t i = 0; i < max_block_count; i++) {
+            for (size_t i = 0; i < max_block_count; i++) {
                 uint8_t allocated;
                 uint8_t marker;
                 p_get_memmap_entry(i, &allocated, &marker);
-                if(allocated == 0) {
+                if (allocated == 0) {
                     count++;
                 }
             }

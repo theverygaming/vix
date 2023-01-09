@@ -1,11 +1,11 @@
 #include <arch/cpuid.h>
 #include <log.h>
 
-#define CPUID_MACRO(level, a, b, c, d)                                                                                                                                                                 \
-    __asm__("xchg{l}\t{%%}ebx, %1\n\t"                                                                                                                                                                 \
-            "cpuid\n\t"                                                                                                                                                                                \
-            "xchg{l}\t{%%}ebx, %1\n\t"                                                                                                                                                                 \
-            : "=a"(a), "=r"(b), "=c"(c), "=d"(d)                                                                                                                                                       \
+#define CPUID_MACRO(level, a, b, c, d)           \
+    __asm__("xchg{l}\t{%%}ebx, %1\n\t"           \
+            "cpuid\n\t"                          \
+            "xchg{l}\t{%%}ebx, %1\n\t"           \
+            : "=a"(a), "=r"(b), "=c"(c), "=d"(d) \
             : "0"(level))
 
 void cpuid::get_vendorstring(char *vendorstring) {

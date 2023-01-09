@@ -12,7 +12,7 @@
 // directory size: 4096 bytes(ends 0x1001000)
 // tables size: (1024 * 1024 * 4) bytes
 #define PAGE_DIRECTORY_OFFSET 0xF0000
-#define PAGE_TABLES_OFFSET (PAGE_DIRECTORY_OFFSET + (1024 * 4))
+#define PAGE_TABLES_OFFSET    (PAGE_DIRECTORY_OFFSET + (1024 * 4))
 
 // location where ISR stores registers, size: 32 bytes
 // could be moved a bit
@@ -24,7 +24,7 @@
 #define VIDMEM_OFFSET 0x4F2000
 
 #define KERNEL_START_STACK_POINTER_OFFSET 0x501000 // stack grows downwards
-#define KERNEL_ISR_STACK_POINTER_OFFSET 0x50B000
+#define KERNEL_ISR_STACK_POINTER_OFFSET   0x50B000
 
 #define KERNEL_FREE_AREA_BEGIN_OFFSET 0x50B000
-#define KERNEL_MEMORY_END_OFFSET 0x9C1000
+#define KERNEL_MEMORY_END_OFFSET      0x9C1000

@@ -1,8 +1,7 @@
 #pragma once
-#include <arch.h>
+#include <arch/generic/cpu.h>
 #include <macro.h>
 #include <stdio.h>
-#include INCLUDE_ARCH_GENERIC(cpu.h)
 
 #define KERNEL_PANIC(reason)                                                                 \
     do {                                                                                     \
