@@ -21,13 +21,13 @@ sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/' << EOF | fdisk image.img
   1    # partition number 1
   2048 # start partition at 2048
        # default - end of disk
-  a    # set bootable flag on created parition
+  a    # set bootable flag on created partition
   p    # print partition table
   w    # write the partition table
   q    # quit
 EOF
 
-dd if=image.img of=image_extracted.img bs=512 skip=2048 # extract parition
+dd if=image.img of=image_extracted.img bs=512 skip=2048 # extract partition
 mkfs.ext2 image_extracted.img
 
 if [ -z ${limine_path+x} ]; then
@@ -55,13 +55,13 @@ sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/' << EOF | fdisk image.img
   1    # partition number 1
   2048 # start partition at 2048
        # default - end of disk
-  a    # set bootable flag on created parition
+  a    # set bootable flag on created partition
   p    # print partition table
   w    # write the partition table
   q    # quit
 EOF
 
-dd if=image.img of=image_extracted.img bs=512 skip=2048 # extract parition
+dd if=image.img of=image_extracted.img bs=512 skip=2048 # extract partition
 mkfs.fat image_extracted.img
 
 mmd -i image_extracted.img ::boot

@@ -2,7 +2,7 @@
 
 namespace arch::generic::startup {
     /*
-     * this function is called after memory allocators finish intializing(but have not been used yet!) but constructors have not been called yet
+     * this function is called after memory allocators finish initializing(but have not been used yet!) but constructors have not been called yet
      * as of September 2022 on x86 it is used to allocate some memory that is used for a ramfs before any memory allocators have been used
      */
     void stage2_startup();

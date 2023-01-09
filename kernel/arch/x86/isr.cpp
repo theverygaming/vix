@@ -67,7 +67,7 @@ extern "C" void i686_ISR_Handler(isr::registers *regs) {
         DEBUG_PRINTF("No interrupt handler for #%u!, ignoring\n", regs->interrupt);
     } else if (regs->interrupt == 14) {
         uint32_t fault_address;
-        asm volatile("mov %%cr2, %0" : "=r"(fault_address)); // get address page fault occoured at
+        asm volatile("mov %%cr2, %0" : "=r"(fault_address)); // get address page fault occurred at
         int present = !(regs->error & 0x1);                  // page not present
         int rw = regs->error & 0x2;                          // is caused by write
         int us = regs->error & 0x4;                          // user or kernel fault?

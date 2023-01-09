@@ -60,7 +60,7 @@ void memalloc::page::phys_init() {
         counter++;
     }
 
-    // now mark all areas that are unusable as allocated. This has to be done to make sure that higher priority entires come first in case of overlaps
+    // now mark all areas that are unusable as allocated. This has to be done to make sure that higher priority entries come first in case of overlaps
     counter = 0;
     while (arch::generic::memory::get_memory_map(&entry, counter)) {
         size_t end_adr = entry.start_address + entry.size;

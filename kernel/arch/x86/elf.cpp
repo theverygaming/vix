@@ -85,7 +85,7 @@ void elf::load_program(void *ELF_baseadr, std::vector<std::string> *argv, bool r
     }
     DEBUG_PRINTF("max: 0x%p\n", max);
     DEBUG_PRINTF("min: 0x%p\n", min);
-    DEBUG_PRINTF("Inital program memory size: %u\n", max - min);
+    DEBUG_PRINTF("Initial program memory size: %u\n", max - min);
 
     DEBUG_PRINTF("Entry point: 0x%p\n", header.e_entry);
 

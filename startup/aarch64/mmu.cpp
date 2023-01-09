@@ -146,7 +146,7 @@ static uint64_t make_entry_new(struct descriptor_stage1_block e) {
 #define PT_AF       (1<<10)     // accessed flag
 #define PT_NX       (1UL<<54)   // no execute
 // shareability
-#define PT_OSH      (2<<8)      // outter shareable
+#define PT_OSH      (2<<8)      // outer shareable
 #define PT_ISH      (3<<8)      // inner shareable
 // defined in MAIR register
 #define PT_MEM      (0<<2)      // normal memory

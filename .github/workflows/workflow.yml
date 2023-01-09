@@ -3,6 +3,9 @@ on: [push, pull_request]
 jobs:
   Build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: $GITHUB_WORKSPACE
     steps:
       - uses: actions/checkout@v3
         with:
@@ -12,15 +15,14 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install nasm gcc-multilib g++-multilib xorriso grub-common mtools qemu-system-x86 llvm-dev libclang-dev clang python3 pkg-config flex bison
+      
       - name: compile
-        run: cd $GITHUB_WORKSPACE && make alldefconfig tests all MAKE_ARCH=x86
+        run: make alldefconfig tests all MAKE_ARCH=x86
 
       - name: run
         run: |
-          wget https://gist.githubusercontent.com/theverygaming/ea45ead0700c7b3c28db89e94f74abf8/raw/exitforce0.cpp
-          g++ exitforce0.cpp -o exitforce0
-          cd $GITHUB_WORKSPACE && ./exitforce0 timeout 30 qemu-system-x86_64 -cdrom shitOS.iso -nographic > log.txt
-          cd $GITHUB_WORKSPACE && cat log.txt
+          timeout 30 qemu-system-x86_64 -cdrom shitOS.iso -nographic > log.txt || true
+          cat log.txt
 
       - name: upload image
         uses:  actions/upload-artifact@v3
@@ -28,7 +30,31 @@ jobs:
             name: image
             path: ${{runner.workspace}}/shitOS/shitOS.iso
 
+      - name: count LOC
+        run: |
+          python3 tools/locchart.py >> $GITHUB_STEP_SUMMARY
+
       - name: check tests
         run: |
-          python3 ${GITHUB_WORKSPACE}/tools/testparser.py ${GITHUB_WORKSPACE}/log.txt >> $GITHUB_STEP_SUMMARY
-          python3 ${GITHUB_WORKSPACE}/tools/testparser.py ${GITHUB_WORKSPACE}/log.txt -f
+          python3 tools/testparser.py log.txt >> $GITHUB_STEP_SUMMARY
+          python3 tools/testparser.py log.txt -f
+  formatting_and_spelling:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: $GITHUB_WORKSPACE
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      
+      - name: install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y codespell python3
+
+      -name: codespell
+        run: codespell -q 3 --builtin clear -S ./.git,./kernel/scripts -L useable
+
+      -name: clang-format
+        run: python3 tools/clang_format_check.py
