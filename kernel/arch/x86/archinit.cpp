@@ -76,13 +76,12 @@ void arch::generic::startup::stage3_startup() {
     fs::filesystems::roramfs::init((void *)(KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET));
     fs::filesystems::roramfs::mountInVFS();
     time::bootupTime = time::getCurrentUnixTime();
-}
-
-void arch::generic::startup::after_init() {
     framebuffer.clear();
     fbconsole.init2();
     stdio::set_putc_function(idkputc);
+}
 
+void arch::generic::startup::after_init() {
     void *elfptr = nullptr;
 
     if (fs::vfs::fptr("/ramfs/module.o", &elfptr)) {

@@ -1,4 +1,4 @@
-CXXFLAGS += -Iinclude/ -Iarch/$(BUILD_ARCH)/include -O$(CXX_OPTIM_LEVEL) -Wall -Wextra -Wno-unused-parameter
+CXXFLAGS += -Iinclude/ -Iarch/$(BUILD_ARCH)/include -O$(CXX_OPTIM_LEVEL) -Wall -Wextra -Wno-unused-parameter -g
 
 %.ocpp: %.cpp
 	@echo "  CXX $<"

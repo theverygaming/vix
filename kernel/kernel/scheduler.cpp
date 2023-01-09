@@ -1,16 +1,16 @@
 #include <scheduler.h>
 
 namespace schedulers {
-    void generic_scheduler_singlethread::init(std::vector<generic_process *> *processes) {
+    void generic_scheduler_singlethread::init(std::vector<generic_process *> *processes, void (*load_process)(generic_process *, void *), void (*unload_process)(generic_process *, void *)) {
         _processes = processes;
         currentProcess = -1;
         currentProcessIndex = 0;
+
+        _load_process = load_process;
+        _unload_process = unload_process;
     }
 
-    bool generic_scheduler_singlethread::tick(bool *switch_, size_t *switch_index, bool *old, size_t *old_index) {
-        *switch_ = false;
-        *old = true;
-
+    bool generic_scheduler_singlethread::tick(void *ctx) {
         if (_processes->size() <= 0) {
             return false;
         }
@@ -21,9 +21,7 @@ namespace schedulers {
 
         if (currentProcess < 0) { // first startup, we have to instantly schedule a process
             if (reschedule(0)) {
-                *switch_ = true;
-                *switch_index = currentProcessIndex;
-                *old = false;
+                _load_process((*_processes)[currentProcessIndex], ctx);
                 return true;
             } else {
                 return false;
@@ -33,9 +31,7 @@ namespace schedulers {
         if ((*_processes)[currentProcessIndex]->state != generic_process::state::RUNNING) {
             clearProcessesArray();
             if (reschedule(currentProcessIndex)) {
-                *switch_ = true;
-                *switch_index = currentProcessIndex;
-                *old = false;
+                _load_process((*_processes)[currentProcessIndex], ctx);
                 return true;
             } else {
                 return false;
@@ -50,10 +46,9 @@ namespace schedulers {
         if ((*_processes)[currentProcessIndex]->used_cputime >= (*_processes)[currentProcessIndex]->cputime) {
             (*_processes)[currentProcessIndex]->state = generic_process::state::RUNNABLE;
             (*_processes)[currentProcessIndex]->used_cputime = 0;
-            *old_index = currentProcessIndex;
+            _unload_process((*_processes)[currentProcessIndex], ctx);
             if (reschedule(currentProcessIndex)) {
-                *switch_ = true;
-                *switch_index = currentProcessIndex;
+                _load_process((*_processes)[currentProcessIndex], ctx);
                 return true;
             } else {
                 return false;
@@ -73,7 +68,7 @@ namespace schedulers {
 
             if ((*_processes)[index]->state == generic_process::state::RUNNABLE) {
                 (*_processes)[index]->state = generic_process::state::RUNNING;
-                currentProcess = (*_processes)[index]->pid;
+                currentProcess = (*_processes)[index]->tgid;
                 currentProcessIndex = index;
                 return true;
             }
@@ -91,7 +86,7 @@ namespace schedulers {
                 (*_processes)[i]->parent = 1;
             }
 
-            if ((*_processes)[i]->pid == pid) {
+            if ((*_processes)[i]->tgid == pid) {
                 delete (*_processes)[i];
                 _processes->erase(i);
                 i--;
@@ -105,7 +100,7 @@ namespace schedulers {
         size_t i = 0;
         while (i < _processes->size()) {
             if ((*_processes)[i]->state == generic_process::state::KILLED) {
-                remove_process((*_processes)[i]->pid);
+                remove_process((*_processes)[i]->tgid);
                 clearProcessesArray();
                 break;
             }

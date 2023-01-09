@@ -4,5 +4,5 @@
 
 #define TEST(group, name, condition)                                                                                            \
     do {                                                                                                                        \
-        printf("--TEST--|%s|" group "|" name "|" __FILE__ "|" TOSTRING(__LINE__) "|" #condition "\n", (condition) ? "K" : "F"); \
+        printf("--TEST--|%s|" group "|%s|" __FILE__ "|" TOSTRING(__LINE__) "|" #condition "\n", (condition) ? "K" : "F", name); \
     } while (0)

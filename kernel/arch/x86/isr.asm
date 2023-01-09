@@ -45,7 +45,7 @@ isr_common:
     o16 push fs
     o16 push gs
 
-    mov ax, 0x10        ; use kernel data segment
+    mov ax, 2 * 8        ; use kernel data segment
     mov ds, ax
     mov es, ax
     mov fs, ax

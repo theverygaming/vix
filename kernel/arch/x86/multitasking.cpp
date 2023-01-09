@@ -30,8 +30,12 @@ static void cpuidle() {
     }
 }
 
+static void(load_process)(multitasking::x86_process *proc, void *ctx);
+static void(unload_process)(multitasking::x86_process *proc, void *ctx);
+
 void multitasking::initMultitasking() {
-    scheduler.init((std::vector<schedulers::generic_process *> *)&processes);
+    scheduler.init(
+        (std::vector<schedulers::generic_process *> *)&processes, (void (*)(schedulers::generic_process *, void *))load_process, (void (*)(schedulers::generic_process *, void *))unload_process);
 
     log::log_service("multitasking", "initialized");
     processSwitchingEnabled = true;
@@ -109,7 +113,7 @@ multitasking::x86_process *multitasking::getCurrentProcess() {
 
 static multitasking::x86_process *getProcessByPid(pid_t pid) {
     for (size_t i = 0; i < processes.size(); i++) {
-        if (processes[i]->pid == pid) {
+        if (processes[i]->tgid == pid) {
             return processes[i];
         }
     }
@@ -184,8 +188,8 @@ multitasking::x86_process *multitasking::fork_current_process(isr::registers *re
 
     x86_process *new_process = new x86_process;
 
-    new_process->pid = pidCounter++;
-    new_process->parent = currentProcess->pid;
+    new_process->tgid = pidCounter++;
+    new_process->parent = currentProcess->tgid;
     new_process->state = schedulers::generic_process::state::RUNNABLE;
     // new_process->registerContext = currentProcess->registerContext;
 
@@ -209,7 +213,7 @@ multitasking::x86_process *multitasking::fork_current_process(isr::registers *re
     }
 
     processes.push_back(new_process);
-    DEBUG_PRINTF("forked %d -> new PID: %d\n", currentProcess->pid, new_process->pid);
+    DEBUG_PRINTF("forked %d -> new PID: %d\n", currentProcess->tgid, new_process->tgid);
     return new_process;
 }
 
@@ -219,54 +223,68 @@ void multitasking::killCurrentProcess(isr::registers *regs) {
     interruptTrigger(regs);
 }
 
-void multitasking::create_task(void *stackadr, void *codeadr, std::vector<process_pagerange> *pagerange, std::vector<std::string> *argv, struct x86_process::tls_info info, pid_t forced_pid) {
+void multitasking::create_task(
+    void *stackadr, void *codeadr, std::vector<process_pagerange> *pagerange, std::vector<std::string> *argv, struct x86_process::tls_info info, pid_t forced_pid, bool kernel) {
     setPageRange(pagerange);
 
-    stackadr = init_empty_stack(stackadr, argv, codeadr, false);
-
-    x86_process *kernel_process = new x86_process;
-    if (forced_pid != -1) {
-        kernel_process->pid = forced_pid;
-    } else {
-        kernel_process->pid = pidCounter++;
+    if (!kernel) {
+        stackadr = init_empty_stack(stackadr, argv, codeadr, false);
     }
-    uint8_t *stack_1 = (uint8_t *)mm::kmalloc(100);
 
-    kernel_process->registerContext.cs = (3 * 8) | 3;
-    kernel_process->registerContext.ds = (4 * 8) | 3;
-    kernel_process->registerContext.es = (4 * 8) | 3;
-    kernel_process->registerContext.fs = (4 * 8) | 3;
-    kernel_process->registerContext.gs = (4 * 8) | 3;
-    kernel_process->registerContext.ss = (4 * 8) | 3;
+    x86_process *new_process = new x86_process;
+    if (forced_pid != -1) {
+        new_process->tgid = forced_pid;
+    } else {
+        new_process->tgid = pidCounter++;
+    }
 
-    kernel_process->registerContext.esp = (uint32_t)stackadr;
-    kernel_process->registerContext.eip = (uint32_t)codeadr;
-    kernel_process->registerContext.eflags = 1 << 9;
+    uint16_t cs = GDT_USER_CODE | 3;
+    uint16_t ds = GDT_USER_DATA | 3;
+    if (kernel) {
+        cs = GDT_KERNEL_CODE;
+        ds = GDT_KERNEL_DATA;
+    }
 
-    kernel_process->pages = *pagerange;
-    kernel_process->tlsinfo = info;
+    new_process->registerContext.cs = cs;
+    new_process->registerContext.ds = ds;
+    new_process->registerContext.es = ds;
+    new_process->registerContext.fs = ds;
+    new_process->registerContext.gs = ds;
+    new_process->registerContext.ss = ds;
 
-    // quick hack: find out where program break is
-    for (size_t i = 0; i < pagerange->size(); i++) {
-        if ((*pagerange)[i].type == process_pagerange::range_type::BREAK) {
-            kernel_process->brk_start = (*pagerange)[i].virt_base;
+    new_process->registerContext.esp = (uint32_t)stackadr;
+    new_process->registerContext.eip = (uint32_t)codeadr;
+    new_process->registerContext.eflags = 1 << 9;
+
+    new_process->pages = *pagerange;
+
+    if (!kernel) {
+        new_process->tlsinfo = info;
+    }
+
+    if (!kernel) {
+        // quick hack: find out where program break is
+        for (size_t i = 0; i < pagerange->size(); i++) {
+            if ((*pagerange)[i].type == process_pagerange::range_type::BREAK) {
+                new_process->brk_start = (*pagerange)[i].virt_base;
+            }
+        }
+        if (new_process->brk_start == 0) {
+            KERNEL_PANIC("unable to find break");
         }
     }
-    if (kernel_process->brk_start == 0) {
-        KERNEL_PANIC("unable to find break");
-    }
 
-    processes.push_back(kernel_process);
+    processes.push_back(new_process);
     unsetPageRange(pagerange);
 }
 
 void multitasking::replace_task(
-    void *stackadr, void *codeadr, std::vector<process_pagerange> *pagerange, std::vector<std::string> *argv, struct x86_process::tls_info info, int replacePid, isr::registers *regs) {
+    void *stackadr, void *codeadr, std::vector<process_pagerange> *pagerange, std::vector<std::string> *argv, struct x86_process::tls_info info, int replacePid, isr::registers *regs, bool kernel) {
     pid_t PID = -1;
     size_t index = 0;
     for (size_t i = 0; i < processes.size(); i++) {
-        if (processes[i]->pid == replacePid) {
-            PID = processes[i]->pid;
+        if (processes[i]->tgid == replacePid) {
+            PID = processes[i]->tgid;
             index = i;
         }
     }
@@ -274,7 +292,7 @@ void multitasking::replace_task(
         return;
     }
     processes[index]->state = schedulers::generic_process::state::REPLACED;
-    create_task(stackadr, codeadr, pagerange, argv, info);
+    create_task(stackadr, codeadr, pagerange, argv, info, kernel);
     interruptTrigger(regs);
 }
 
@@ -292,46 +310,29 @@ size_t multitasking::getProcessCount() {
     return count;
 }
 
-// uint64_t starttime = 0;
+static void(load_process)(multitasking::x86_process *proc, void *ctx) {
+    isr::registers *regs = (isr::registers *)ctx;
+    *regs = mt2isr(proc->registerContext);
+    setPageRange(&proc->pages);
 
-// int counter = 0;
+    DEBUG_PRINTF("loaded %d\n", proc->tgid);
+}
+
+static void(unload_process)(multitasking::x86_process *proc, void *ctx) {
+    isr::registers *regs = (isr::registers *)ctx;
+    proc->registerContext = isr2mt(regs);
+    unsetPageRange(&proc->pages);
+    DEBUG_PRINTF("unloaded %d\n", proc->tgid);
+}
 
 // fired every timer interrupt, may be called during an ISR to possibly force a process switch
 void multitasking::interruptTrigger(isr::registers *regs) {
     if (unlikely(uninitialized)) {
-        // starttime = time::getCurrentUnixTime();
-        // counter = 0;
         return;
     }
 
-    /*if (counter % 30000 == 0) {
-        uint64_t currenttime = time::getCurrentUnixTime();
-        uint64_t passedTime = currenttime - starttime;
-        DEBUG_PRINTF("timer passed: %u actual passed: %u\n", (uint32_t)(counter / 1000), (uint32_t)passedTime);
-    }
-
-    counter++;*/
-
-    bool switch_;
-    size_t switch_index;
-
-    bool old;
-    size_t old_index;
-
-    if (!scheduler.tick(&switch_, &switch_index, &old, &old_index)) {
+    if (!unlikely(scheduler.tick(regs))) {
         KERNEL_PANIC("Scheduler error");
-    }
-
-    if (switch_) {
-        if (old) {
-            processes[old_index]->registerContext = isr2mt(regs);
-            unsetPageRange(&processes[old_index]->pages);
-        }
-
-        *regs = mt2isr(processes[switch_index]->registerContext);
-        setPageRange(&processes[switch_index]->pages);
-
-        DEBUG_PRINTF("switched process to %d\n", processes[switch_index]->pid);
     }
 }
 
@@ -435,13 +436,13 @@ uint32_t sys_clone(isr::registers *regs, int *syscall_ret, uint32_t, uint32_t _f
 
     multitasking::x86_process *new_process = new multitasking::x86_process;
 
-    new_process->pid = pidCounter++;
+    new_process->tgid = pidCounter++;
 
     if (flags & CLONE_PARENT_SETTID) {
-        *parent_tid = new_process->pid;
+        *parent_tid = new_process->tgid;
     }
 
-    new_process->parent = currentProcess->pid;
+    new_process->parent = currentProcess->tgid;
     new_process->state = schedulers::generic_process::state::RUNNABLE;
     // new_process->registerContext = currentProcess->registerContext;
 
@@ -453,9 +454,9 @@ uint32_t sys_clone(isr::registers *regs, int *syscall_ret, uint32_t, uint32_t _f
     new_process->pages = currentProcess->pages;
 
     processes.push_back(new_process);
-    DEBUG_PRINTF("cloned %d -> new TID: %d\n", currentProcess->pid, new_process->pid);
+    DEBUG_PRINTF("cloned %d -> new TID: %d\n", currentProcess->tgid, new_process->tgid);
 
-    return new_process->pid;
+    return new_process->tgid;
 }
 
 bool multitasking::createPageRange(std::vector<process_pagerange> *range, uint32_t max_address) {

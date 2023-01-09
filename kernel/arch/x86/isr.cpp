@@ -35,7 +35,7 @@ extern "C" void i686_ISR_Handler(isr::registers *regs) {
 #endif
     uint32_t previous_esp_user = regs->esp_user;
     // TSS stuff
-    tss::tss_entry.ss0 = i686_GDT_DATA_SEGMENT;
+    tss::tss_entry.ss0 = GDT_KERNEL_DATA;
     tss::tss_entry.esp0 = KERNEL_VIRT_ADDRESS + KERNEL_ISR_STACK_POINTER_OFFSET;
 
     // get current ring

@@ -5,7 +5,8 @@
 namespace schedulers {
     class generic_process {
     public:
-        pid_t pid;
+        pid_t tgid;
+        pid_t tid;
         pid_t parent = -1;
         uint8_t cputime = 0; // process will run for cputime + 1 ticks
 
@@ -21,8 +22,8 @@ namespace schedulers {
          *     -> must have been replaced by another process with the same PID.
          * KILLED -> this process has been killed and any of it's children will be given to PID 1
          */
-        enum class state { RUNNING, RUNNABLE, SLEEP, UNINTERRUPTIBLE_SLEEP, ZOMBIE, STOPPED, REPLACED, KILLED} state = state::RUNNABLE;
-        uint8_t used_cputime = 0;
+        volatile enum class state { RUNNING, RUNNABLE, SLEEP, UNINTERRUPTIBLE_SLEEP, ZOMBIE, STOPPED, REPLACED, KILLED } state = state::RUNNABLE;
+        volatile uint8_t used_cputime = 0;
     };
 
     /*
@@ -31,15 +32,13 @@ namespace schedulers {
      */
     class generic_scheduler_singlethread {
     public:
-        void init(std::vector<generic_process *> *processes);
+        void init(std::vector<generic_process *> *processes, void (*load_process)(generic_process *proc, void *ctx), void (*unload_process)(generic_process *proc, void *ctx));
 
         /*
          * called every tick(timer interrupt or similar)
-         * returns true unless we have a problem(for example ran out of processes to schedule)
-         * takes two pointers, switch and switch_index. Switch will be set true when a process switch is needed,
-         * then switch_index will be set to the index in the processes vector that shall be switched to.
+         * ctx is passed to load_process and unload_process
          */
-        bool tick(bool *switch_, size_t *switch_index, bool *old, size_t *old_index);
+        bool tick(void *ctx);
 
         pid_t currentProcess = -1;      // current running process PID
         size_t currentProcessIndex = 0; // current running process index in processes vector
@@ -52,5 +51,8 @@ namespace schedulers {
         bool reschedule(size_t oldProcessIndex);
         void remove_process(pid_t pid);
         void clearProcessesArray();
+
+        void (*_load_process)(generic_process *proc, void *ctx);
+        void (*_unload_process)(generic_process *proc, void *ctx);
     };
 }

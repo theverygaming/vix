@@ -1,11 +1,10 @@
 #pragma once
 #include <types.h>
 
-#define i686_GDT_CODE_SEGMENT (0x08 * 1) // specifies offset in bytes in GDT
-#define i686_GDT_DATA_SEGMENT (0x08 * 2)
-
-#define i686_USER_CODE_SEGMENT ((0x08 * 3) | 3)
-#define i686_USER_DATA_SEGMENT ((0x08 * 4) | 3)
+#define GDT_KERNEL_CODE (1 * 8)
+#define GDT_KERNEL_DATA (2 * 8)
+#define GDT_USER_CODE   (3 * 8)
+#define GDT_USER_DATA   (4 * 8)
 
 namespace gdt {
     void init();

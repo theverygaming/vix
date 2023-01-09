@@ -56,8 +56,16 @@ namespace multitasking {
     bool isProcessSwitchingEnabled();
     void killCurrentProcess(isr::registers *regs);
     void interruptTrigger(isr::registers *regs);
-    void create_task(void *stackadr, void *codeadr, std::vector<process_pagerange> *pagerange, std::vector<std::string> *argv, struct x86_process::tls_info info, pid_t forced_pid = -1);
-    void replace_task(void *stackadr, void *codeadr, std::vector<process_pagerange> *pagerange, std::vector<std::string> *argv, struct x86_process::tls_info info, int replacePid, isr::registers *regs);
+    void create_task(
+        void *stackadr, void *codeadr, std::vector<process_pagerange> *pagerange, std::vector<std::string> *argv, struct x86_process::tls_info info, pid_t forced_pid = -1, bool kernel = false);
+    void replace_task(void *stackadr,
+                      void *codeadr,
+                      std::vector<process_pagerange> *pagerange,
+                      std::vector<std::string> *argv,
+                      struct x86_process::tls_info info,
+                      int replacePid,
+                      isr::registers *regs,
+                      bool kernel = false);
     x86_process *getCurrentProcess();
     void waitForProcess(int pid);
     void refresh_current_process_pagerange();

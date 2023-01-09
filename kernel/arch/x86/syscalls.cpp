@@ -31,7 +31,7 @@ uint32_t sys_fork(isr::registers *regs, int *syscall_ret, uint32_t, uint32_t, ui
     multitasking::x86_process *newprocess = multitasking::fork_current_process(regs);
     if (newprocess) {
         newprocess->registerContext.eax = 0;
-        return newprocess->pid;
+        return newprocess->tgid;
     } else {
         return -1; // TODO: correct return value
     }
@@ -124,7 +124,7 @@ uint32_t sys_execve(isr::registers *regs, int *syscall_ret, uint32_t, uint32_t _
             args.push_back(argv[argc]);
             argc++;
         }
-        elf::load_program(elfptr, &args, true, multitasking::getCurrentProcess()->pid, regs);
+        elf::load_program(elfptr, &args, true, multitasking::getCurrentProcess()->tgid, regs);
         return 0;
     }
     return -1;
@@ -140,7 +140,7 @@ uint32_t sys_time(isr::registers *, int *syscall_ret, uint32_t, uint32_t _tloc, 
 uint32_t sys_getpid(isr::registers *, int *syscall_ret, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     LOG_INSANE("syscall: sys_getpid");
-    return multitasking::getCurrentProcess()->pid;
+    return multitasking::getCurrentProcess()->tgid;
 }
 
 uint32_t sys_brk(isr::registers *, int *syscall_ret, uint32_t, uint32_t _brk, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
@@ -487,7 +487,7 @@ uint32_t sys_set_tid_address(isr::registers *, int *syscall_ret, uint32_t, uint3
     int *tidptr = (int *)tidptr_u;
     // TODO: implement together with clone
     return 69;
-    return multitasking::getCurrentProcess()->pid;
+    return multitasking::getCurrentProcess()->tgid;
 }
 
 uint32_t sys_set_robust_list(isr::registers *, int *syscall_ret, uint32_t, uint32_t _robust_list_head, uint32_t _len, uint32_t, uint32_t, uint32_t, uint32_t) {
