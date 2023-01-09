@@ -15,7 +15,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install nasm gcc-multilib g++-multilib xorriso grub-common mtools qemu-system-x86 llvm-dev libclang-dev clang python3 pkg-config flex bison
-      
+
       - name: compile
         run: make alldefconfig tests all MAKE_ARCH=x86
 
@@ -25,10 +25,10 @@ jobs:
           cat log.txt
 
       - name: upload image
-        uses:  actions/upload-artifact@v3
+        uses: actions/upload-artifact@v3
         with:
-            name: image
-            path: ${{runner.workspace}}/shitOS/shitOS.iso
+          name: image
+          path: ${{runner.workspace}}/shitOS/shitOS.iso
 
       - name: count LOC
         run: |
@@ -38,6 +38,7 @@ jobs:
         run: |
           python3 tools/testparser.py log.txt >> $GITHUB_STEP_SUMMARY
           python3 tools/testparser.py log.txt -f
+
   formatting_and_spelling:
     runs-on: ubuntu-latest
     defaults:
@@ -47,14 +48,14 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: recursive
-      
+
       - name: install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y codespell python3
 
-      -name: codespell
+      - name: codespell
         run: codespell -q 3 --builtin clear -S ./.git,./kernel/scripts -L useable
 
-      -name: clang-format
+      - name: clang-format
         run: python3 tools/clang_format_check.py
