@@ -3,9 +3,6 @@ on: [push, pull_request]
 jobs:
   Build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: $GITHUB_WORKSPACE
     steps:
       - uses: actions/checkout@v3
         with:
@@ -17,10 +14,11 @@ jobs:
           sudo apt-get install nasm gcc-multilib g++-multilib xorriso grub-common mtools qemu-system-x86 llvm-dev libclang-dev clang python3 pkg-config flex bison
 
       - name: compile
-        run: make alldefconfig tests all MAKE_ARCH=x86
+        run: cd $GITHUB_WORKSPACE && make alldefconfig tests all MAKE_ARCH=x86
 
       - name: run
         run: |
+          cd $GITHUB_WORKSPACE
           timeout 30 qemu-system-x86_64 -cdrom shitOS.iso -nographic > log.txt || true
           cat log.txt
 
@@ -32,18 +30,17 @@ jobs:
 
       - name: count LOC
         run: |
+          cd $GITHUB_WORKSPACE 
           python3 tools/locchart.py >> $GITHUB_STEP_SUMMARY
 
       - name: check tests
         run: |
+          cd $GITHUB_WORKSPACE 
           python3 tools/testparser.py log.txt >> $GITHUB_STEP_SUMMARY
           python3 tools/testparser.py log.txt -f
 
   formatting_and_spelling:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: $GITHUB_WORKSPACE
     steps:
       - uses: actions/checkout@v3
         with:
@@ -55,7 +52,7 @@ jobs:
           sudo apt-get install -y codespell python3
 
       - name: codespell
-        run: codespell -q 3 --builtin clear -S ./.git,./kernel/scripts -L useable
+        run: cd $GITHUB_WORKSPACE && codespell -q 3 --builtin clear -S ./.git,./kernel/scripts -L useable
 
       - name: clang-format
-        run: python3 tools/clang_format_check.py
+        run: cd $GITHUB_WORKSPACE && python3 tools/clang_format_check.py
