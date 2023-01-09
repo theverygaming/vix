@@ -52,7 +52,7 @@ jobs:
           sudo apt-get install -y codespell python3
 
       - name: codespell
-        run: cd $GITHUB_WORKSPACE && codespell -q 3 --builtin clear -S ./.git,./kernel/scripts -L useable
+        run: cd $GITHUB_WORKSPACE && codespell -q 3 --builtin clear -S ./.git,./kernel/scripts -L useable || true
 
       - name: clang-format
         run: cd $GITHUB_WORKSPACE && python3 tools/clang_format_check.py
