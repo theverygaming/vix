@@ -1,2 +1,2 @@
 #pragma once
-#include <arch/generic/archtypes.h>
+#include <arch/generic/types.h>

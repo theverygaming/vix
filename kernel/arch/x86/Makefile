@@ -1,3 +1,5 @@
+obj-d += syscalls
+
 obj-$(CONFIG_ENABLE_NETWORKING) += drivers/net/rtl8139.ocpp
 obj-$(CONFIG_ENABLE_FTRACE) += trace.ocpp
 obj-$(CONFIG_ENABLE_STACKPROTECTOR) += stackprotector.ocpp

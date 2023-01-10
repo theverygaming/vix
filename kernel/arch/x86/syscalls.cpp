@@ -17,6 +17,15 @@
 #include <stdlib.h>
 #include <time.h>
 
+uint32_t sys_dbg(isr::registers *regs, int *syscall_ret, uint32_t, uint32_t n, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
+    *syscall_ret = 1;
+    LOG_INSANE("syscall: sys_dbg");
+    if (n == 1) {
+        multitasking::list_processes();
+    }
+    return 0;
+}
+
 uint32_t sys_exit(isr::registers *regs, int *syscall_ret, uint32_t, uint32_t exit_code, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 0;
     DEBUG_PRINTF("syscall: sys_exit code: %d\n", exit_code);
@@ -32,27 +41,8 @@ uint32_t sys_fork(isr::registers *regs, int *syscall_ret, uint32_t, uint32_t, ui
         newprocess->registerContext.eax = 0;
         return newprocess->tgid;
     } else {
-        return -1; // TODO: correct return value
+        return -EAGAIN;
     }
-}
-
-uint32_t sys_read(isr::registers *, int *syscall_ret, uint32_t, uint32_t fd, uint32_t _buf, uint32_t count, uint32_t, uint32_t, uint32_t) {
-    *syscall_ret = 1;
-    char *buf = (char *)_buf;
-    LOG_INSANE("syscall: sys_read");
-
-    int bufStart = drivers::keyboard::bufferlocation;
-    while (drivers::keyboard::bufferlocation - bufStart < (int)count) {
-        drivers::keyboard::poll();
-        if (drivers::keyboard::buffer[drivers::keyboard::bufferlocation] == '\n') {
-            break;
-        }
-    }
-    uint32_t readCharacters = drivers::keyboard::bufferlocation - bufStart;
-
-    drivers::keyboard::bufferlocation = -1;
-    memcpy(buf, &drivers::keyboard::buffer[bufStart + 1], readCharacters);
-    return readCharacters;
 }
 
 uint32_t sys_write(isr::registers *, int *syscall_ret, uint32_t, uint32_t fd, uint32_t _buf, uint32_t count, uint32_t, uint32_t, uint32_t) {
@@ -85,27 +75,6 @@ uint32_t sys_close(isr::registers *, int *syscall_ret, uint32_t, uint32_t _fd, u
     int fd = (int)_fd;
     DEBUG_PRINTF("close: %d\n", fd);
     return -EBADF;
-}
-
-uint32_t sys_waitpid(isr::registers *, int *syscall_ret, uint32_t, uint32_t pid, uint32_t _stat_addr, uint32_t _options, uint32_t, uint32_t, uint32_t) {
-    *syscall_ret = 1;
-    // int *stat_addr = (int *)_stat_addr;
-    // int options = (uint32_t)_options;
-
-    DEBUG_PRINTF("syscall: sys_waitpid - PID: %d\n", pid);
-
-    /*multitasking::context *current_context = (multitasking::context *)(KERNEL_VIRT_ADDRESS + REGISTER_STORE_OFFSET);
-    multitasking::context tempContextStore;
-    memcpy(&tempContextStore, current_context, sizeof(multitasking::context));
-
-    asm volatile("sti"); // TODO: figure out why this crashes when kernel memory runs out
-
-    multitasking::waitForProcess(pid);
-
-    asm volatile("cli");
-    memcpy(current_context, &tempContextStore, sizeof(multitasking::context));*/
-    // KERNEL_PANIC("sys_waitpid unimplemented");
-    return 0; // TODO: fix return value
 }
 
 uint32_t sys_execve(isr::registers *regs, int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _argv, uint32_t _envp, uint32_t, uint32_t, uint32_t) {

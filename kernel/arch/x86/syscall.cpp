@@ -9,7 +9,7 @@
 
 // clang-format off
 uint32_t (*syscall_table[440])(isr::registers *, int *, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) = {
-    nullptr,
+    &sys_dbg,
     &sys_exit,
     &sys_fork,
     &sys_read,
@@ -463,6 +463,6 @@ void syscall::syscallHandler(isr::registers *regs) {
     uint32_t returnval = syscall_table[regs->eax](regs, &syscall_ret, regs->eax, regs->ebx, regs->ecx, regs->edx, regs->esi, regs->edi, regs->ebp);
     if (syscall_ret > 0) {
         regs->eax = returnval;
+        DEBUG_PRINTF_INSANE("syscall return %d\n", returnval);
     }
-    DEBUG_PRINTF_INSANE("syscall return %d\n", returnval);
 }

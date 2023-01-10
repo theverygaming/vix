@@ -4,6 +4,7 @@
 
 #define __SYS_DEFINE(x) uint32_t x(isr::registers *, int *, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t)
 
+__SYS_DEFINE(sys_dbg);
 __SYS_DEFINE(sys_exit);
 __SYS_DEFINE(sys_fork);
 __SYS_DEFINE(sys_read);

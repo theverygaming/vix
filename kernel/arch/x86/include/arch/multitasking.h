@@ -4,10 +4,12 @@
 #include <config.h>
 #include <cppstd/string.h>
 #include <cppstd/vector.h>
+#include <event.h>
 #include <scheduler.h>
 #include <types.h>
 
 namespace multitasking {
+    extern event_dispatcher<pid_t> process_deth_events;
     typedef struct {
         uint32_t eax;
         uint32_t ebx;
@@ -52,6 +54,8 @@ namespace multitasking {
         } tlsinfo;
     };
 
+    void list_processes();
+
     void initMultitasking();
     bool isProcessSwitchingEnabled();
     void killCurrentProcess(isr::registers *regs);
@@ -72,6 +76,8 @@ namespace multitasking {
     x86_process *fork_current_process(isr::registers *regs);
     void setProcessSwitching(bool state);
     size_t getProcessCount();
+    x86_process *get_tid(pid_t tid);
+    void reschedule(isr::registers *regs);
     bool createPageRange(std::vector<process_pagerange> *range, uint32_t max_address = KERNEL_VIRT_ADDRESS);
     void setPageRange(std::vector<process_pagerange> *range);
     void unsetPageRange(std::vector<process_pagerange> *range);

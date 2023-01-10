@@ -3,6 +3,7 @@
 #include <arch/drivers/ps2.h>
 #include <arch/drivers/text80x25.h>
 #include <arch/isr.h>
+#include <cppstd/vector.h>
 #include <drivers/ms_mouse.h>
 #include <stdio.h>
 
@@ -176,10 +177,11 @@ static void kbdIntHandlerBase() {
         }
     } else if (key > 0) {
         printf("%c", key);
+        drivers::keyboard::events.dispatch(&key);
         if (drivers::keyboard::bufferlocation < 100) {
             drivers::keyboard::buffer[++drivers::keyboard::bufferlocation] = key;
         } else {
-            printf("skill issue: keyboard buffer filled\n");
+            // printf("skill issue: keyboard buffer filled\n");
         }
     }
     if (key == -2) {
@@ -198,6 +200,7 @@ static void kbdIntHandler(isr::registers *) {
 }
 
 namespace drivers::keyboard {
+    event_dispatcher<char> events;
     char buffer[100];
     int bufferlocation = -1;
 }
@@ -223,7 +226,7 @@ void drivers::keyboard::poll() {
         if (drivers::keyboard::bufferlocation < 100) {
             drivers::keyboard::buffer[++drivers::keyboard::bufferlocation] = key;
         } else {
-            printf("skill issue: keyboard buffer filled\n");
+            // printf("skill issue: keyboard buffer filled\n");
         }
     }
     if (key == -2) {

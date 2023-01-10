@@ -1,3 +1,4 @@
+#include <debug.h>
 #include <scheduler.h>
 
 namespace schedulers {
@@ -24,16 +25,22 @@ namespace schedulers {
                 _load_process((*_processes)[currentProcessIndex], ctx);
                 return true;
             } else {
+                DEBUG_PRINTF("sched: no startup process\n");
                 return false;
             }
         }
 
         if ((*_processes)[currentProcessIndex]->state != generic_process::state::RUNNING) {
-            clearProcessesArray();
+            if (((*_processes)[currentProcessIndex]->state == generic_process::state::REPLACED) || ((*_processes)[currentProcessIndex]->state == generic_process::state::KILLED)) {
+                clearProcessesArray();
+            } else {
+                _unload_process((*_processes)[currentProcessIndex], ctx);
+            }
             if (reschedule(currentProcessIndex)) {
                 _load_process((*_processes)[currentProcessIndex], ctx);
                 return true;
             } else {
+                DEBUG_PRINTF("sched: no runnable (prev not running)\n");
                 return false;
             }
         }
@@ -51,6 +58,7 @@ namespace schedulers {
                 _load_process((*_processes)[currentProcessIndex], ctx);
                 return true;
             } else {
+                DEBUG_PRINTF("sched: no runnable\n");
                 return false;
             }
         }

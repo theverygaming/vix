@@ -18,6 +18,9 @@ static void kernelinit() {
     stdio::set_putc_function(drivers::uart::putc, true);
     // framebuffer.init(multiboot2::findFrameBuffer(multiboot2_info_ptr));
     // fbconsole.init(&framebuffer);
+    puts("entry\n");
+    printf("%s\n", "printf works!");
+    puts("kernelstart()\n");
     kernelstart();
 }
 

@@ -1,8 +1,8 @@
-#include "testprint.h"
 #include <mm/memalloc.h>
 #include <panic.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <tests/testprint.h>
 
 static int rand_seed = 420;
 

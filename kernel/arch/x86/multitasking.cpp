@@ -7,12 +7,15 @@
 #include <debug.h>
 #include <errno.h>
 #include <log.h>
+#include <macro.h>
 #include <macros.h>
 #include <mm/memalloc.h>
 #include <scheduler.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+
+event_dispatcher<pid_t> multitasking::process_deth_events;
 
 static std::vector<multitasking::x86_process *> processes;
 
@@ -23,6 +26,12 @@ static bool processSwitchingEnabled = false;
 static bool uninitialized = true;
 
 static pid_t pidCounter = 1;
+
+void multitasking::list_processes() {
+    for (size_t i = 0; i < processes.size(); i++) {
+        printf("[%u] tgid: %d tid: %d state: %d\n", i, processes[i]->tgid, processes[i]->tid, processes[i]->state);
+    }
+}
 
 static void cpuidle() {
     while (true) {
@@ -36,6 +45,20 @@ static void(unload_process)(multitasking::x86_process *proc, void *ctx);
 void multitasking::initMultitasking() {
     scheduler.init(
         (std::vector<schedulers::generic_process *> *)&processes, (void (*)(schedulers::generic_process *, void *))load_process, (void (*)(schedulers::generic_process *, void *))unload_process);
+
+    // TODO: run idle process only when required
+    x86_process *idle = new x86_process;
+    idle->tgid = 0;
+    idle->registerContext.cs = GDT_KERNEL_CODE;
+    idle->registerContext.ds = GDT_KERNEL_DATA;
+    idle->registerContext.es = GDT_KERNEL_DATA;
+    idle->registerContext.fs = GDT_KERNEL_DATA;
+    idle->registerContext.gs = GDT_KERNEL_DATA;
+    idle->registerContext.ss = GDT_KERNEL_DATA;
+    idle->registerContext.esp = 0; // TODO: investigate kernel task stack pointer bug
+    idle->registerContext.eip = (uint32_t)cpuidle;
+    idle->registerContext.eflags = 1 << 9;
+    processes.push_back(idle);
 
     log::log_service("multitasking", "initialized");
     processSwitchingEnabled = true;
@@ -219,6 +242,7 @@ multitasking::x86_process *multitasking::fork_current_process(isr::registers *re
 
 void multitasking::killCurrentProcess(isr::registers *regs) {
     x86_process *currentProcess = getCurrentProcess();
+    process_deth_events.dispatch(&currentProcess->tgid);
     currentProcess->state = schedulers::generic_process::state::KILLED;
     interruptTrigger(regs);
 }
@@ -280,19 +304,19 @@ void multitasking::create_task(
 
 void multitasking::replace_task(
     void *stackadr, void *codeadr, std::vector<process_pagerange> *pagerange, std::vector<std::string> *argv, struct x86_process::tls_info info, int replacePid, isr::registers *regs, bool kernel) {
-    pid_t PID = -1;
+    pid_t pid = -1;
     size_t index = 0;
     for (size_t i = 0; i < processes.size(); i++) {
         if (processes[i]->tgid == replacePid) {
-            PID = processes[i]->tgid;
+            pid = processes[i]->tgid;
             index = i;
         }
     }
-    if (PID == -1) {
+    if (pid == -1) {
         return;
     }
     processes[index]->state = schedulers::generic_process::state::REPLACED;
-    create_task(stackadr, codeadr, pagerange, argv, info, kernel);
+    create_task(stackadr, codeadr, pagerange, argv, info, replacePid, kernel);
     interruptTrigger(regs);
 }
 
@@ -310,19 +334,35 @@ size_t multitasking::getProcessCount() {
     return count;
 }
 
+multitasking::x86_process *multitasking::get_tid(pid_t tid) {
+    for (size_t i = 0; i < processes.size(); i++) {
+        if (!((processes[i]->state == x86_process::state::KILLED) || (processes[i]->state == x86_process::state::REPLACED)) && processes[i]->tgid == tid) {
+            return processes[i];
+        }
+    }
+    return nullptr;
+}
+
+void multitasking::reschedule(isr::registers *regs) {
+    interruptTrigger(regs);
+}
+
 static void(load_process)(multitasking::x86_process *proc, void *ctx) {
     isr::registers *regs = (isr::registers *)ctx;
     *regs = mt2isr(proc->registerContext);
     setPageRange(&proc->pages);
-
-    DEBUG_PRINTF("loaded %d\n", proc->tgid);
+    if (proc->tgid != 0) {
+        DEBUG_PRINTF("loaded %d\n", proc->tgid);
+    }
 }
 
 static void(unload_process)(multitasking::x86_process *proc, void *ctx) {
     isr::registers *regs = (isr::registers *)ctx;
     proc->registerContext = isr2mt(regs);
     unsetPageRange(&proc->pages);
-    DEBUG_PRINTF("unloaded %d\n", proc->tgid);
+    if (proc->tgid != 0) {
+        DEBUG_PRINTF("unloaded %d\n", proc->tgid);
+    }
 }
 
 // fired every timer interrupt, may be called during an ISR to possibly force a process switch
@@ -332,6 +372,7 @@ void multitasking::interruptTrigger(isr::registers *regs) {
     }
 
     if (!unlikely(scheduler.tick(regs))) {
+        list_processes();
         KERNEL_PANIC("Scheduler error");
     }
 }
