@@ -44,7 +44,7 @@ jobs:
       - name: install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install qemu-system-arm llvm-dev libclang-dev clang python3 pkg-config flex bison gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu
+          sudo apt-get install qemu-system-arm llvm-dev libclang-dev clang python3 pkg-config flex bison gcc-aarch64-linux-gnu g++-aarch64-linux-gnu binutils-aarch64-linux-gnu
 
       - name: compile
         run: |
