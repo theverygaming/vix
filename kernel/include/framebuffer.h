@@ -8,6 +8,7 @@ namespace fb {
     struct fbinfo {
         void *address;
         size_t width, height, pitch, bpp;
+        bool rgb;
     };
 
     class fb {

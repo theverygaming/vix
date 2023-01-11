@@ -3,9 +3,9 @@ mainmenu "shitOS/$(SRCARCH) $(KVERSION) Kernel Configuration"
 source "arch/$(SRCARCH)/Kconfig"
 source "drivers/Kconfig"
 source "fs/Kconfig"
-source "kernel/Kconfig"
 source "net/Kconfig"
 source "tests/Kconfig"
+source "kernel/Kconfig"
 
 config ARCH
     string

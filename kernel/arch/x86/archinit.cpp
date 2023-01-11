@@ -30,7 +30,7 @@
 static fb::fb framebuffer;
 static fb::fbconsole fbconsole;
 
-static void idkputc(char c) {
+static void fbputc(char c) {
     fbconsole.putc(c);
 }
 
@@ -78,7 +78,7 @@ void arch::generic::startup::stage3_startup() {
     time::bootupTime = time::getCurrentUnixTime();
     framebuffer.clear();
     fbconsole.init2();
-    stdio::set_putc_function(idkputc);
+    stdio::set_putc_function(fbputc);
 }
 
 void arch::generic::startup::after_init() {

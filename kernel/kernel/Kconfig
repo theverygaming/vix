@@ -17,4 +17,8 @@ choice
 		bool "silent"
 endchoice
 
+config ENABLE_BUILTIN_FONT
+  default y if ARCH_AARCH64
+  bool "Compile font into kernel"
+
 endmenu

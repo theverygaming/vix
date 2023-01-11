@@ -84,6 +84,7 @@ struct fb::fbinfo multiboot2::findFrameBuffer(void *multiboot2_info_adr) {
             .height = tag->framebuffer_height,
             .pitch = tag->framebuffer_pitch,
             .bpp = tag->framebuffer_bpp,
+            .rgb = false,
         };
     }
     KERNEL_PANIC("couldn't initialize framebuffer");

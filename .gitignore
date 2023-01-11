@@ -28,11 +28,8 @@ kernel/scripts/shconfig/shconfig
 kernel/include/generated
 kernel/config_gen
 kernel/scripts/shbuild
-startup/startup
-startup/aarch64/startup.elf
-startup/aarch64/startup
 kernel/symtab.s
 kernel/.config
 kernel/include/config/
 kernel/.config.old
-glibctest
+libctest

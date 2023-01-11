@@ -11,6 +11,9 @@ alldefconfig:
 tests:
 	@cd kernel && echo "CONFIG_ENABLE_TESTS=y" >> .config # hacky but "works"
 
+menuconfig:
+	@$(MAKE) --no-print-directory -C kernel menuconfig
+
 img-x86:
 	@$(MAKE) --no-print-directory -C kernel
 	@$(MAKE) --no-print-directory -C startup/$(MAKE_ARCH)
@@ -25,22 +28,23 @@ img-x86:
 	@cat kernel.bin roramfs.fs /dev/zero | dd status=none iflag=fullblock of=kernel_shitshell.bin bs=65536 count=83
 	@grub/createimg.sh
 
-menuconfig:
-	@$(MAKE) --no-print-directory -C kernel menuconfig
-
 img-aarch64:
 	@$(MAKE) --no-print-directory -C kernel
 
 img-lx106_esp8266:
 	@$(MAKE) --no-print-directory -C kernel
 
-clean:
+clean-lx106_esp8266:
+clean-aarch64:
+clean-x86:
+	@$(MAKE) --no-print-directory -C startup/$(MAKE_ARCH) clean
+	@$(MAKE) --no-print-directory -C startup/$(MAKE_ARCH) proper
+
+clean: clean-$(MAKE_ARCH)
 	@rm -f shitOS.img shitOS.iso *.o
 	@$(MAKE) --no-print-directory -C kernel clean
-	@$(MAKE) --no-print-directory -C startup/$(MAKE_ARCH) clean # lx106 skill issue
 	@$(MAKE) --no-print-directory -C shitshell clean
 	@$(MAKE) --no-print-directory -C modules clean
 
 proper: clean
 	@$(MAKE) --no-print-directory -C kernel proper
-	@$(MAKE) --no-print-directory -C startup/$(MAKE_ARCH) proper

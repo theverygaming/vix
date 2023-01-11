@@ -1,3 +1,4 @@
+#include <config.h>
 #include <cppstd/algorithm.h>
 #include <debug.h>
 #include <drivers/ms_mouse.h>
@@ -82,16 +83,28 @@ size_t fb::fb::get_height() {
 
 void fb::fb::write_pixel(size_t x, size_t y, uint8_t r, uint8_t g, uint8_t b) {
     size_t offset = _info.pitch * y + (_info.bpp / 8) * x;
-    *(((uint8_t *)_info.address) + offset + 0) = b;
-    *(((uint8_t *)_info.address) + offset + 1) = g;
-    *(((uint8_t *)_info.address) + offset + 2) = r;
+    if (_info.rgb) {
+        *(((uint8_t *)_info.address) + offset + 0) = r;
+        *(((uint8_t *)_info.address) + offset + 1) = g;
+        *(((uint8_t *)_info.address) + offset + 2) = b;
+    } else {
+        *(((uint8_t *)_info.address) + offset + 0) = b;
+        *(((uint8_t *)_info.address) + offset + 1) = g;
+        *(((uint8_t *)_info.address) + offset + 2) = r;
+    }
 }
 
 void fb::fb::read_pixel(size_t x, size_t y, uint8_t *r, uint8_t *g, uint8_t *b) {
     size_t offset = _info.pitch * y + (_info.bpp / 8) * x;
-    *r = *(((uint8_t *)_info.address) + offset + 0);
-    *g = *(((uint8_t *)_info.address) + offset + 1);
-    *b = *(((uint8_t *)_info.address) + offset + 2);
+    if (_info.rgb) {
+        *r = *(((uint8_t *)_info.address) + offset + 0);
+        *g = *(((uint8_t *)_info.address) + offset + 1);
+        *b = *(((uint8_t *)_info.address) + offset + 2);
+    } else {
+        *b = *(((uint8_t *)_info.address) + offset + 0);
+        *g = *(((uint8_t *)_info.address) + offset + 1);
+        *r = *(((uint8_t *)_info.address) + offset + 2);
+    }
 }
 
 void fb::fb::clear() {
@@ -115,7 +128,16 @@ void fb::fbconsole::init(fb *framebuffer) {
     pos_y = 0;
 }
 
+#ifdef CONFIG_ENABLE_BUILTIN_FONT
+extern uint8_t file_Unifont_APL8x16_15_0_01_psf[];
+#endif
+
 void fb::fbconsole::init2() {
+#ifdef CONFIG_ENABLE_BUILTIN_FONT
+    if (!psfreader.init(file_Unifont_APL8x16_15_0_01_psf)) {
+        KERNEL_PANIC("could not initialize font"); // this stupid
+    }
+#else
     void *fontptr;
     if (fs::vfs::fptr("/ramfs/Unifont-APL8x16-15.0.01.psf", &fontptr)) {
         if (!psfreader.init(fontptr)) {
@@ -124,6 +146,7 @@ void fb::fbconsole::init2() {
     } else {
         KERNEL_PANIC("could not find font");
     }
+#endif
 }
 
 void fb::fbconsole::puts(char *str) {
