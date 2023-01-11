@@ -23,7 +23,7 @@
  *
  */
 
-// source: https://github.com/bztsrc/raspi3-tutorial/blob/master/10_virtualmemory/start.S
+// source: https://github.com/bztsrc/raspi3-tutorial/blob/master/11_exceptions/start.S
 
 .section ".text.boot"
 
@@ -77,7 +77,7 @@ _start:
     movk    x2, #0x30d0, lsl #16
     msr     sctlr_el1, x2
     // set up exception handlers
-    ldr     x2, =_ivt
+    ldr     x2, =_evt
     msr     vbar_el1, x2
     // change execution level to EL1
     mov     x2, #0x3c4
@@ -87,6 +87,10 @@ _start:
     eret
 
 5:  mov     sp, x1
+    // trigger exception on unaligned access
+    mrs     x2, sctlr_el1
+    orr     x2, x2, #(1 << 1)
+    msr     sctlr_el1, x2
 
     // clear bss
     ldr     x1, =__bss_start
@@ -112,7 +116,7 @@ _start:
 .endm
 
     .align 11
-_ivt:
+_evt:
     // Synchronous
     evt_entry 1, 0
     // IRQ

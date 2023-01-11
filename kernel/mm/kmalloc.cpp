@@ -289,16 +289,19 @@ static size_t ll_defrag(bool internal) {
 }
 
 /*
- * will try to allocate block, possibly inserting an element into the linked list if the size different is too big
+ * will try to allocate block, possibly inserting an element into the linked list if the size difference is too big
  *
  */
 static void ll_allocate_block(struct meminfo *block, size_t wanted_size) {
     size_t leftover_size = block->size - wanted_size;
-    if (leftover_size > sizeof(struct meminfo)) {
+    if (leftover_size > (sizeof(struct meminfo) + ARCH_ALIGNMENT_REQUIRED)) {
         struct meminfo *_new = (struct meminfo *)((uint8_t *)block + sizeof(struct meminfo) + wanted_size);
+        uintptr_t aligndiff = PTR_ALIGN_UP_DIFF(_new, ARCH_ALIGNMENT_REQUIRED);
+        _new = PTR_ALIGN_UP(_new, ARCH_ALIGNMENT_REQUIRED);
         DEBUG_PRINTF_INSANE("    -> creating new block: 0x%p\n", _new);
-        _new->size = leftover_size - sizeof(struct meminfo);
-        block->size -= leftover_size;
+        _new->size = (leftover_size - sizeof(struct meminfo)) - aligndiff;
+        block->size -= leftover_size - aligndiff;
+
         ll_replace(block, _new);
     } else {
         ll_remove(block);
@@ -339,14 +342,8 @@ void mm::kfree(void *ptr) {
     struct meminfo *closest = ll_find_closest(_blk);
     if (closest == _blk) {
         KERNEL_PANIC("double free!\n");
-        DEBUG_PRINTF_INSANE("--------------------- IGNORED DOUBLE FREE\n");
-        return;
     }
-    if ((uintptr_t)closest < (uintptr_t)_blk) {
-        ll_insert(closest, _blk, true);
-    } else {
-        ll_insert(closest, _blk, false);
-    }
+    ll_insert(closest, _blk, (uintptr_t)closest < (uintptr_t)_blk);
     ll_defrag();
 }
 

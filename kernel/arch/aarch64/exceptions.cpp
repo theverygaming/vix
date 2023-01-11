@@ -78,7 +78,7 @@ extern "C" void exception_handler(uint64_t n, uint64_t esr, uint64_t elr, uint64
         }
 
         if (esr & 0xF0) {
-            switch (esr & 0xFF) {
+            switch (esr & 0x3F) {
             case 0b010000:
                 printf(" | Synchronous External abort, not on translation table walk");
                 break;
