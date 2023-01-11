@@ -1,5 +1,7 @@
 ENTRY(_start)
 
+PAGE = 0x1000;
+
 MEMORY
 {
     ram (rwx) : org = 0x80000, l = 0xF0000
@@ -9,16 +11,16 @@ SECTIONS
 {
     . = 0x80000;
 
-    .text : {
+    .text ALIGN(PAGE) : {
         KEEP(*(.text.boot))
 		*(.text)
 	}>ram
 
-    .rodata : {
+    .rodata ALIGN(PAGE) : {
         *(.rodata)
     }>ram
 
-    .data : {
+    .data ALIGN(PAGE) : {
         START_CONSTRUCTORS = .;
     	KEEP(*( .init_array ));
     	KEEP(*(SORT_BY_INIT_PRIORITY( .init_array.* )));
@@ -26,7 +28,7 @@ SECTIONS
 		KEEP(*(.data))
     }>ram
 
-    .bss : {
+    .bss ALIGN(PAGE) : {
         . = ALIGN(16);
         __bss_start = .;
         *(.bss)

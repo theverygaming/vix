@@ -7,12 +7,14 @@
 #include <stdio.h>
 #include <time.h>
 
+/*
 static fb::fb framebuffer;
 static fb::fbconsole fbconsole;
 
 static void idkputc(char c) {
     fbconsole.putc(c);
 }
+*/
 
 static void kernelinit() {
     stdio::set_putc_function(drivers::uart::putc, true);
@@ -36,8 +38,8 @@ void arch::generic::startup::stage3_startup() {
 }
 
 void arch::generic::startup::after_init() {
-    framebuffer.clear();
-    fbconsole.init2();
+    // framebuffer.clear();
+    // fbconsole.init2();
     // stdio::set_putc_function(idkputc);
 
     while (true) {}

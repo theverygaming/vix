@@ -11,11 +11,7 @@ void putc(char c, bool serialonly = false);
 void puts(const char *str, bool serialonly = false);
 void putcolor(int x, int y, uint8_t color); // TODO: create generic thingy for this -- currently defined in arch/x86/drivers/text80x25.cpp
 void printf(const char *fmt, ...);
-#ifdef CONFIG_ARCH_AARCH64
-#define printf_serial(...) printf(__VA_ARGS__)
-#else
 void printf_serial(const char *fmt, ...);
-#endif
 
 typedef __builtin_va_list va_list;
 #define va_start(v, l)    __builtin_va_start(v, l)

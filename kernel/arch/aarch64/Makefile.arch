@@ -1,5 +1,6 @@
-CXXFLAGS += -nostdlib -fno-pie -ffreestanding -fno-exceptions -mno-outline-atomics
-LDFLAGS  += 
+# https://gcc.gnu.org/onlinedocs/gcc-9.1.0/gcc/ARM-Options.html
+CXXFLAGS += -fno-pie -ffreestanding -nostdinc -nostdlib -nostartfiles -fno-exceptions -mno-outline-atomics -march=armv8-a+nofp
+LDFLAGS  += -nostdlib
 
 ifeq ($(CONFIG_ENABLE_FTRACE), y)
 CXXFLAGS += -finstrument-functions

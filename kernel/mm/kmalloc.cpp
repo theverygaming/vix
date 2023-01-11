@@ -1,5 +1,6 @@
 #include <arch/generic/memory.h>
 #include <config.h>
+#include <cppstd/algorithm.h>
 #include <debug.h>
 #include <macros.h>
 #include <mm/memalloc.h>
@@ -27,14 +28,18 @@ static size_t heap_base_size = 0;
 
 /* linked list related functions */
 
+static size_t ll_defrag(bool internal = false);
+
 /*
  * For debugging.
  * Checks linked list and panics if it is not correct.
  */
 static void ll_check() {
-    DEBUG_PRINTF_INSANE("sizeof(struct meminfo) = 0x%p\n", (uint32_t)sizeof(struct meminfo));
     DEBUG_PRINTF_INSANE("ll_check\n");
     struct meminfo *ptr = heap_start;
+    if (heap_start->prev != nullptr) {
+        KERNEL_PANIC("ll_check failure!!! heap_start->prev != nullptr");
+    }
     while (ptr != nullptr) {
         DEBUG_PRINTF_INSANE("    -> e: 0x%p p: 0x%p n: 0x%p\n", ptr, ptr->prev, ptr->next);
         if (ptr->prev == ptr || ptr->next == ptr) {
@@ -62,6 +67,9 @@ static void ll_check() {
  */
 static void ll_insert(struct meminfo *ptr, struct meminfo *insert, bool after = false) {
     DEBUG_PRINTF_INSANE("ll_insert (0x%p, 0x%p)\n", ptr, insert);
+    if ((std::max((uintptr_t)ptr, (uintptr_t)insert) - std::min((uintptr_t)ptr, (uintptr_t)insert)) < sizeof(struct meminfo)) {
+        KERNEL_PANIC("ll_insert");
+    }
     if (after) {
         DEBUG_PRINTF_INSANE("    -> after\n");
     } else {
@@ -77,37 +85,43 @@ static void ll_insert(struct meminfo *ptr, struct meminfo *insert, bool after = 
         if (old_next != nullptr) {
             old_next->prev = insert;
         }
+        DEBUG_PRINTF_INSANE("    -> ptr: 0x%p p: 0x%p n: 0x%p\n", ptr, ptr->prev, ptr->next);
         ptr->next = insert;
+        DEBUG_PRINTF_INSANE("    -> ptr: 0x%p p: 0x%p n: 0x%p\n", ptr, ptr->prev, ptr->next);
 
         insert->prev = ptr;
         insert->next = old_next;
+        DEBUG_PRINTF_INSANE("    -> ptr: 0x%p p: 0x%p n: 0x%p\n", ptr, ptr->prev, ptr->next);
+        DEBUG_PRINTF_INSANE("    -> ins: 0x%p p: 0x%p n: 0x%p\n", insert, insert->prev, insert->next);
     } else {
         if (old_prev != nullptr) {
             old_prev->next = insert;
         }
         ptr->prev = insert;
-        DEBUG_PRINTF_INSANE("    -> s: 0x%p p: 0x%p n: 0x%p\n", ptr, ptr->prev, ptr->next);
+        DEBUG_PRINTF_INSANE("    -> ptr: 0x%p p: 0x%p n: 0x%p\n", ptr, ptr->prev, ptr->next);
 
         insert->next = ptr;
         insert->prev = old_prev;
     }
-    DEBUG_PRINTF_INSANE("    -> s: 0x%p p: 0x%p n: 0x%p\n", ptr, ptr->prev, ptr->next);
+    DEBUG_PRINTF_INSANE("    -> ptr: 0x%p p: 0x%p n: 0x%p\n", ptr, ptr->prev, ptr->next);
 
     if (ptr == heap_start && !after) {
         heap_start = insert;
-        DEBUG_PRINTF_INSANE("    -> s: 0x%p p: 0x%p n: 0x%p\n", insert, insert->prev, insert->next);
+        DEBUG_PRINTF_INSANE("    -> ins: 0x%p p: 0x%p n: 0x%p\n", insert, insert->prev, insert->next);
         DEBUG_PRINTF_INSANE("    -> ll_insert heap_start\n");
         // KERNEL_PANIC("debug");
     }
-    DEBUG_PRINTF_INSANE("    -> s: 0x%p p: 0x%p n: 0x%p\n", insert, insert->prev, insert->next);
-    DEBUG_PRINTF_INSANE("    -> s: 0x%p p: 0x%p n: 0x%p\n", ptr, ptr->prev, ptr->next);
+    DEBUG_PRINTF_INSANE("    -> ins: 0x%p p: 0x%p n: 0x%p\n", insert, insert->prev, insert->next);
+    DEBUG_PRINTF_INSANE("    -> ptr: 0x%p p: 0x%p n: 0x%p\n", ptr, ptr->prev, ptr->next);
     ll_check();
 }
 
 /*
  * Adds block to linked list with size
  */
-static void ll_alloc_new_block(size_t required) {
+static void ll_alloc_new_block(size_t required, bool defrag = true) {
+    DEBUG_PRINTF_INSANE("ll_alloc_new_block(current: %u want: %u)\n", heap_base_size * ARCH_PAGE_SIZE, required);
+    ll_check();
     size_t pages = required / ARCH_PAGE_SIZE;
     if (required % ARCH_PAGE_SIZE != 0) {
         pages += 1;
@@ -116,14 +130,18 @@ static void ll_alloc_new_block(size_t required) {
 
     heap_base_size += pages;
     memalloc::page::kernel_resize(heap_base_ptr, heap_base_size);
-    new_start->size = pages * ARCH_PAGE_SIZE;
+    new_start->size = (pages * ARCH_PAGE_SIZE) - sizeof(struct meminfo);
 
     struct meminfo *ptr = heap_start;
     while (ptr->next != nullptr) {
         ptr = ptr->next;
     }
+    ll_check();
 
     ll_insert(ptr, new_start, true);
+    if (defrag) {
+        ll_defrag();
+    }
 }
 
 /*
@@ -135,7 +153,7 @@ static void ll_remove(struct meminfo *ptr) {
 
     if (ptr == heap_start && heap_start->next == nullptr) {
         DEBUG_PRINTF_INSANE("adding block");
-        ll_alloc_new_block(ARCH_PAGE_SIZE);
+        ll_alloc_new_block(ARCH_PAGE_SIZE, false);
     }
 
     struct meminfo *old_prev = ptr->prev;
@@ -237,7 +255,7 @@ static struct meminfo *ll_find_block(size_t minsize) {
  * Will try to defragment, very slow function.
  * Do not use the internal argument
  */
-static size_t ll_defrag(bool internal = false) {
+static size_t ll_defrag(bool internal) {
     DEBUG_PRINTF_INSANE("ll_defrag\n");
     size_t count = 0;
     struct meminfo *ptr = heap_start;

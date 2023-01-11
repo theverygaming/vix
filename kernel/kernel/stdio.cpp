@@ -302,87 +302,15 @@ extern "C" int _printk(const char *fmt, ...) {
 }
 
 void printf(const char *fmt, ...) {
-    bool serialonly = false;
     va_list args;
     va_start(args, fmt);
-    size_t chars_written = 0;
-    while (*fmt) {
-        if (*fmt == '%') {
-            fmt++;
-            switch (*fmt) {
-            case '%': {
-                fmt += 1;
-
-                putc('%', serialonly);
-
-                chars_written += 1;
-                break;
-            }
-            case 's': {
-                fmt += 1;
-                char *arg = va_arg(args, char *);
-                puts(arg, serialonly);
-                chars_written += strlen(arg);
-                break;
-            }
-            case 'u': {
-                fmt += 1;
-                size_t arg = va_arg(args, size_t);
-                char n_buf[11];
-                char *ret = itoa(arg, n_buf, 10);
-                puts(ret, serialonly);
-                chars_written += strlen(ret);
-                break;
-            }
-            case 'p': {
-                fmt += 1;
-                uintptr_t arg = va_arg(args, uintptr_t);
-                char n_buf[17];
-                char *ret = itoa(arg, n_buf, 16);
-                puts(ret, serialonly);
-                chars_written += strlen(ret);
-                break;
-            }
-            case 'd': {
-                fmt += 1;
-                size_t arg = va_arg(args, size_t);
-                char n_buf[12];
-                char *ret = itoa_signed(arg, n_buf, 10);
-                puts(ret, serialonly);
-                chars_written += strlen(ret);
-                break;
-            }
-            case 'c': {
-                fmt += 1;
-                char arg = va_arg(args, int);
-                putc(arg, serialonly);
-                chars_written++;
-                break;
-            }
-            default:
-                printf("printf: unsupported %%%c\n", *fmt);
-                break;
-            }
-        }
-        size_t count = strcspn(fmt, "%");
-
-        for (int i = 0; i < count; i++) {
-            putc(fmt[i], serialonly);
-        }
-
-        chars_written += count;
-        fmt += count;
-    }
-
+    printf_base(&args, fmt, nullptr, false, 0, false);
     va_end(args);
-    // return chars_written;
 }
 
-#ifndef CONFIG_ARCH_AARCH64
 void printf_serial(const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
     printf_base(&args, fmt, nullptr, false, 0, true);
     va_end(args);
 }
-#endif

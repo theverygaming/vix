@@ -76,6 +76,9 @@ _start:
     mov     x2, #0x0800
     movk    x2, #0x30d0, lsl #16
     msr     sctlr_el1, x2
+    // set up exception handlers
+    ldr     x2, =_ivt
+    msr     vbar_el1, x2
     // change execution level to EL1
     mov     x2, #0x3c4
     msr     spsr_el2, x2
@@ -97,3 +100,24 @@ _start:
 4:  bl      _kentry
     // for failsafe, halt this core too
     b       1b
+
+.macro evt_entry el, n
+    .align  7
+    mov     x0, #\n
+    mrs     x1, esr_el\el
+    mrs     x2, elr_el\el
+    mrs     x3, spsr_el\el
+    mrs     x4, far_el\el
+    b       exception_handler
+.endm
+
+    .align 11
+_ivt:
+    // Synchronous
+    evt_entry 1, 0
+    // IRQ
+    evt_entry 1, 1
+    // FIQ
+    evt_entry 1, 2
+    // SError
+    evt_entry 1, 3
