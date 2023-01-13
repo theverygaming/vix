@@ -1,5 +1,5 @@
 #include <cpp.h>
-#include <mm/memalloc.h>
+#include <mm/kmalloc.h>
 #include <stdlib.h>
 #include <types.h>
 

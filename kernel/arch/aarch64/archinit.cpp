@@ -6,7 +6,7 @@
 #include <config.h>
 #include <framebuffer.h>
 #include <kernel.h>
-#include <mm/memalloc.h>
+#include <mm/kmalloc.h>
 #include <panic.h>
 #include <stdio.h>
 #include <time.h>

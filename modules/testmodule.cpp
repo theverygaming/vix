@@ -1,5 +1,5 @@
 #include <arch/generic/textoutput.h>
-#include <mm/memalloc.h>
+#include <mm/kmalloc.h>
 #include <module.h>
 #include <stdio.h>
 #include <stdlib.h>

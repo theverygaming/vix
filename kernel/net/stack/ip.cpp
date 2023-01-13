@@ -1,5 +1,5 @@
 #include <endian.h>
-#include <mm/memalloc.h>
+#include <mm/kmalloc.h>
 #include <net/stack/icmp.h>
 #include <net/stack/ip.h>
 #include <net/stack/stack.h>

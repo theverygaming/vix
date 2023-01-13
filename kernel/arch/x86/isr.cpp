@@ -9,7 +9,7 @@
 #include <config.h>
 #include <debug.h>
 #include <log.h>
-#include <mm/memalloc.h>
+#include <mm/kmalloc.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -186,7 +186,7 @@ void isr::DeregisterHandler(int handler) {
 
 extern "C" void *isr_alloc_stack() {
     KERNEL_PANIC("unimplemented");
-    /*void *mem = memalloc::page::kernel_malloc(13);
+    /*void *mem = mm::phys::kernel_malloc(13);
     if (mem == 0) {
         printf("could not allocate memory for syscall!\n");
         debug::debug_loop();
@@ -197,5 +197,5 @@ extern "C" void *isr_alloc_stack() {
 
 extern "C" void isr_free_stack(void *stackadr) {
     KERNEL_PANIC("unimplemented");
-    // memalloc::page::kernel_free(((uint8_t *)stackadr) - (13 * ARCH_PAGE_SIZE));
+    // mm::phys::kernel_free(((uint8_t *)stackadr) - (13 * ARCH_PAGE_SIZE));
 }

@@ -3,7 +3,7 @@
 #include <arch/syscalls.h>
 #include <debug.h>
 #include <log.h>
-#include <mm/memalloc.h>
+#include <mm/kmalloc.h>
 #include <scheduler.h>
 #include <stdlib.h>
 #include <types.h>

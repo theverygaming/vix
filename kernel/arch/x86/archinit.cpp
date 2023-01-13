@@ -23,6 +23,7 @@
 #include <fs/roramfs.h>
 #include <fs/vfs.h>
 #include <kernel.h>
+#include <mm/phys.h>
 #include <panic.h>
 #include <stdio.h>
 #include <time.h>
@@ -63,7 +64,7 @@ extern "C" void __attribute__((section(".entry"))) _kentry(void *multiboot2_info
 }
 
 void arch::generic::startup::stage2_startup() {
-    memalloc::page::kernel_alloc((void *)(KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET), 704);
+    mm::phys::kernel_alloc((void *)(KERNEL_VIRT_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET), 704);
 }
 
 void arch::generic::startup::stage3_startup() {

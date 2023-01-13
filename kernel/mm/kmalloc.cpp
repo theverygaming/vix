@@ -3,7 +3,8 @@
 #include <cppstd/algorithm.h>
 #include <debug.h>
 #include <macros.h>
-#include <mm/memalloc.h>
+#include <mm/kmalloc.h>
+#include <mm/phys.h>
 #include <panic.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -129,7 +130,7 @@ static void ll_alloc_new_block(size_t required, bool defrag = true) {
     struct meminfo *new_start = (struct meminfo *)((uint8_t *)heap_base_ptr + (heap_base_size * ARCH_PAGE_SIZE));
 
     heap_base_size += pages;
-    memalloc::page::kernel_resize(heap_base_ptr, heap_base_size);
+    mm::phys::kernel_resize(heap_base_ptr, heap_base_size);
     new_start->size = (pages * ARCH_PAGE_SIZE) - sizeof(struct meminfo);
 
     struct meminfo *ptr = heap_start;
@@ -312,7 +313,7 @@ static void ll_allocate_block(struct meminfo *block, size_t wanted_size) {
 
 static void init() {
     DEBUG_PRINTF_INSANE("kmalloc init\n");
-    heap_base_ptr = memalloc::page::kernel_malloc(1);
+    heap_base_ptr = mm::phys::kernel_malloc(1);
     heap_base_size = 1;
     heap_start = (struct meminfo *)heap_base_ptr;
     *heap_start = {.prev = nullptr, .next = nullptr, .size = ARCH_PAGE_SIZE - sizeof(struct meminfo)};

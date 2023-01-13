@@ -1,5 +1,5 @@
 #include <endian.h>
-#include <mm/memalloc.h>
+#include <mm/kmalloc.h>
 #include <net/stack/arp.h>
 #include <net/stack/ethernet.h>
 #include <net/stack/ip.h>

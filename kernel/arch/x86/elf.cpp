@@ -4,7 +4,8 @@
 #include <cppstd/string.h>
 #include <cppstd/vector.h>
 #include <log.h>
-#include <mm/memalloc.h>
+#include <mm/kmalloc.h>
+#include <mm/phys.h>
 #include <stdlib.h>
 
 void elf::load_program(void *ELF_baseadr, std::vector<std::string> *argv, bool replace_task, int replace_pid, isr::registers *regs) {
@@ -47,8 +48,8 @@ void elf::load_program(void *ELF_baseadr, std::vector<std::string> *argv, bool r
 
     std::vector<multitasking::process_pagerange> pageranges;
 
-    pageranges.push_back({.phys_base = (uint32_t)memalloc::page::phys_malloc(pagecount), .virt_base = min_v, .pages = pagecount, .type = multitasking::process_pagerange::range_type::STATIC});
-    pageranges.push_back({.phys_base = (uint32_t)memalloc::page::phys_malloc(1), .virt_base = max_v + (ARCH_PAGE_SIZE * 47), .pages = 1, .type = multitasking::process_pagerange::range_type::BREAK});
+    pageranges.push_back({.phys_base = (uint32_t)mm::phys::phys_malloc(pagecount), .virt_base = min_v, .pages = pagecount, .type = multitasking::process_pagerange::range_type::STATIC});
+    pageranges.push_back({.phys_base = (uint32_t)mm::phys::phys_malloc(1), .virt_base = max_v + (ARCH_PAGE_SIZE * 47), .pages = 1, .type = multitasking::process_pagerange::range_type::BREAK});
 
     std::vector<multitasking::process_pagerange> old_pageranges;
     multitasking::createPageRange(&old_pageranges);

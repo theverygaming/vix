@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <types.h>
 
-namespace memalloc::allocators {
+namespace mm::allocators {
     template <size_t max_block_count, size_t block_size> class block_alloc {
     public:
         void init() {

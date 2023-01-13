@@ -3,7 +3,8 @@
 #include <arch/multiboot2.h>
 #include <arch/paging.h>
 #include <debug.h>
-#include <mm/memalloc.h>
+#include <mm/kmalloc.h>
+#include <mm/phys.h>
 #include <panic.h>
 #include <stdio.h>
 #include <types.h>
@@ -76,7 +77,7 @@ struct fb::fbinfo multiboot2::findFrameBuffer(void *multiboot2_info_adr) {
 
         // rather hacky because we have no VMM
         void *fb_virt_adr = (void *)(KERNEL_VIRT_ADDRESS + KERNEL_MEMORY_END_OFFSET);
-        memalloc::page::phys_alloc((void *)((uintptr_t)tag->framebuffer_addr), fb_bytes / ARCH_PAGE_SIZE);
+        mm::phys::phys_alloc((void *)((uintptr_t)tag->framebuffer_addr), fb_bytes / ARCH_PAGE_SIZE);
         paging::map_page((void *)((uintptr_t)tag->framebuffer_addr), (void *)(KERNEL_VIRT_ADDRESS + KERNEL_MEMORY_END_OFFSET), fb_bytes / ARCH_PAGE_SIZE);
         return {
             .address = fb_virt_adr,

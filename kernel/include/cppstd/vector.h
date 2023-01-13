@@ -1,7 +1,7 @@
 #pragma once
 #include <cpp.h>
 #include <debug.h>
-#include <mm/memalloc.h>
+#include <mm/kmalloc.h>
 #include <stdlib.h>
 
 namespace std {

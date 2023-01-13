@@ -12,7 +12,8 @@
 #include <fs/vfs.h>
 #include <generated/autoconf.h>
 #include <log.h>
-#include <mm/memalloc.h>
+#include <mm/kmalloc.h>
+#include <mm/phys.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -143,7 +144,7 @@ uint32_t sys_brk(isr::registers *, int *syscall_ret, uint32_t, uint32_t _brk, ui
             newbrk += ARCH_PAGE_SIZE - (newbrk % ARCH_PAGE_SIZE);
         }
         size_t needed_pages = (newbrk - current_break_adr) / ARCH_PAGE_SIZE;
-        process->pages.push_back({.phys_base = (uint32_t)memalloc::page::phys_malloc(needed_pages),
+        process->pages.push_back({.phys_base = (uint32_t)mm::phys::phys_malloc(needed_pages),
                                   .virt_base = process->brk_start + (brk_pages * ARCH_PAGE_SIZE),
                                   .pages = needed_pages,
                                   .type = multitasking::process_pagerange::range_type::BREAK});
@@ -175,7 +176,7 @@ uint32_t sys_mmap(isr::registers *, int *syscall_ret, uint32_t, uint32_t mmap_st
     DEBUG_PRINTF("mmap: program wants %u bytes\n", args->length);
 
     int pages = (args->length / ARCH_PAGE_SIZE) + 1;
-    uint8_t *map = (uint8_t *)memalloc::page::phys_malloc(pages);
+    uint8_t *map = (uint8_t *)mm::phys::phys_malloc(pages);
     for (int i = 0; i < pages; i++) {
         paging::map_page(map + (i * ARCH_PAGE_SIZE), alloc_adr + (i * ARCH_PAGE_SIZE));
     }
@@ -205,7 +206,7 @@ uint32_t sys_sysinfo(isr::registers *, int *syscall_ret, uint32_t, uint32_t _inf
     struct sysinfo *sysinfostruct = (struct sysinfo *)_info;
     sysinfostruct->uptime = time::getUptimeSeconds();
     sysinfostruct->totalram = memorymap::total_ram;
-    sysinfostruct->freeram = memalloc::page::phys_get_free_blocks() * ARCH_PAGE_SIZE;
+    sysinfostruct->freeram = mm::phys::phys_get_free_blocks() * ARCH_PAGE_SIZE;
     sysinfostruct->sharedram = 0;
     sysinfostruct->bufferram = 0;
     sysinfostruct->totalswap = 0;
@@ -332,8 +333,7 @@ uint32_t sys_mmap2(isr::registers *, int *syscall_ret, uint32_t, uint32_t addr, 
         pages += 1;
     }
     multitasking::x86_process *process = multitasking::getCurrentProcess();
-    process->pages.push_back(
-        {.phys_base = (uint32_t)memalloc::page::phys_malloc(pages), .virt_base = (uint32_t)alloc_adr, .pages = pages, .type = multitasking::process_pagerange::range_type::UNKNOWN});
+    process->pages.push_back({.phys_base = (uint32_t)mm::phys::phys_malloc(pages), .virt_base = (uint32_t)alloc_adr, .pages = pages, .type = multitasking::process_pagerange::range_type::UNKNOWN});
     multitasking::setPageRange(&process->pages);
 
     return (uint32_t)alloc_adr;

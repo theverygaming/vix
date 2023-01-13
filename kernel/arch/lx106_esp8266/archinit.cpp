@@ -1,7 +1,8 @@
 #include <arch/lx106_esp8266/generic/memory.h>
 #include <arch/lx106_esp8266/generic/startup.h>
 #include <kernel.h>
-#include <mm/memalloc.h>
+#include <mm/kmalloc.h>
+#include <mm/phys.h>
 #include <stdio.h>
 #include <types.h>
 
@@ -43,21 +44,21 @@ extern "C" uint32_t _data_start;
 extern "C" uint32_t _data_end;
 
 void arch::generic::startup::stage2_startup() {
-    ets_uart_printf("free kernel memory: %u bytes\n", memalloc::page::kernel_get_free_blocks() * ARCH_PAGE_SIZE);
-    ets_uart_printf("free physical memory: %u bytes\n", memalloc::page::phys_get_free_blocks() * ARCH_PAGE_SIZE);
+    ets_uart_printf("free kernel memory: %u bytes\n", mm::phys::kernel_get_free_blocks() * ARCH_PAGE_SIZE);
+    ets_uart_printf("free physical memory: %u bytes\n", mm::phys::phys_get_free_blocks() * ARCH_PAGE_SIZE);
     // allocate memory used by sections in kernel
-    memalloc::page::kernel_alloc((void *)((size_t)&_bss_start - ARCH_PAGE_SIZE), ((((size_t)&_bss_end) - ((size_t)&_bss_start)) / ARCH_PAGE_SIZE) + 1);
-    memalloc::page::kernel_alloc((void *)((size_t)&_rodata_start - ARCH_PAGE_SIZE), ((((size_t)&_rodata_end) - ((size_t)&_rodata_start)) / ARCH_PAGE_SIZE) + 1);
-    memalloc::page::kernel_alloc((void *)((size_t)&_data_start - ARCH_PAGE_SIZE), ((((size_t)&_data_end) - ((size_t)&_data_start)) / ARCH_PAGE_SIZE) + 1);
-    ets_uart_printf("free kernel memory: %u bytes\n", memalloc::page::kernel_get_free_blocks() * ARCH_PAGE_SIZE);
-    ets_uart_printf("free physical memory: %u bytes\n", memalloc::page::phys_get_free_blocks() * ARCH_PAGE_SIZE);
-    uint64_t *testp = (uint64_t *)memalloc::page::kernel_malloc(1);
+    mm::phys::kernel_alloc((void *)((size_t)&_bss_start - ARCH_PAGE_SIZE), ((((size_t)&_bss_end) - ((size_t)&_bss_start)) / ARCH_PAGE_SIZE) + 1);
+    mm::phys::kernel_alloc((void *)((size_t)&_rodata_start - ARCH_PAGE_SIZE), ((((size_t)&_rodata_end) - ((size_t)&_rodata_start)) / ARCH_PAGE_SIZE) + 1);
+    mm::phys::kernel_alloc((void *)((size_t)&_data_start - ARCH_PAGE_SIZE), ((((size_t)&_data_end) - ((size_t)&_data_start)) / ARCH_PAGE_SIZE) + 1);
+    ets_uart_printf("free kernel memory: %u bytes\n", mm::phys::kernel_get_free_blocks() * ARCH_PAGE_SIZE);
+    ets_uart_printf("free physical memory: %u bytes\n", mm::phys::phys_get_free_blocks() * ARCH_PAGE_SIZE);
+    uint64_t *testp = (uint64_t *)mm::phys::kernel_malloc(1);
     ets_uart_printf("malloc gave us memory %u, lets try using it...\n", testp);
     testp[0] = 8734872473;
     if (testp[0] == 8734872473) {
         ets_uart_printf("memory works!\n");
     }
-    memalloc::page::kernel_free(testp);
+    mm::phys::kernel_free(testp);
     ets_uart_printf("we can use it!\n");
     ets_uart_printf("but what about single?\n");
     uint64_t *test = (uint64_t *)mm::kmalloc(8);

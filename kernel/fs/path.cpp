@@ -1,5 +1,5 @@
 #include <fs/path.h>
-#include <mm/memalloc.h>
+#include <mm/kmalloc.h>
 #include <stdlib.h>
 
 static void format_path(char *path) {

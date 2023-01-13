@@ -1,6 +1,6 @@
 #pragma once
 #include <arch/multitasking.h>
-#include <mm/memalloc.h>
+#include <mm/kmalloc.h>
 #include <panic.h>
 #include <types.h>
 

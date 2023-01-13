@@ -9,7 +9,8 @@
 #include <log.h>
 #include <macro.h>
 #include <macros.h>
-#include <mm/memalloc.h>
+#include <mm/kmalloc.h>
+#include <mm/phys.h>
 #include <scheduler.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -221,7 +222,7 @@ multitasking::x86_process *multitasking::fork_current_process(isr::registers *re
     new_process->pages.reserve(currentProcess->pages.size());
 
     for (size_t i = 0; i < currentProcess->pages.size(); i++) {
-        void *newadr = memalloc::page::phys_malloc(currentProcess->pages[i].pages);
+        void *newadr = mm::phys::phys_malloc(currentProcess->pages[i].pages);
         if (!newadr) {
             KERNEL_PANIC("could not allocate memory for fork"); // this shouldn't be a panic later on...
         }
@@ -557,7 +558,7 @@ void multitasking::unsetPageRange(std::vector<process_pagerange> *range) {
 void multitasking::freePageRange(std::vector<process_pagerange> *range) {
     for (size_t i = 0; i < range->size(); i++) {
         if ((*range)[i].pages > 0) {
-            memalloc::page::phys_free((void *)(*range)[i].phys_base);
+            mm::phys::phys_free((void *)(*range)[i].phys_base);
         }
     }
 }

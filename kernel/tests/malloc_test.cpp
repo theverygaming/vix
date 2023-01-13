@@ -1,4 +1,4 @@
-#include <mm/memalloc.h>
+#include <mm/kmalloc.h>
 #include <panic.h>
 #include <stdio.h>
 #include <stdlib.h>
