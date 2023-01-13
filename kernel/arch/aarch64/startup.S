@@ -25,20 +25,23 @@
 
 // source: https://github.com/bztsrc/raspi3-tutorial/blob/master/11_exceptions/start.S
 
+.section ".data" // these cannot be in the .bss section because that only gets zeroed after the first cpu starts
+.align 8
+.global _initcpuid
+_initcpuid:
+.dword 0
+.global _initcpuadr
+_initcpuadr:
+.dword 0
+.global _initcpustack
+_initcpustack:
+.dword 0
+
 .section ".text.boot"
 
 .global _start
 
-_start:
-    // read cpu id, stop slave cores
-    mrs     x1, mpidr_el1
-    and     x1, x1, #3
-    cbz     x1, 2f
-    // cpu id > 0, stop
-1:  wfe
-    b       1b
-2:  // cpu id == 0
-
+_start:    
     // set top of stack just before our code (stack grows to a lower address per AAPCS64)
     ldr     x1, =_start
 
@@ -91,6 +94,12 @@ _start:
     mrs     x2, sctlr_el1
     orr     x2, x2, #(1 << 1)
     msr     sctlr_el1, x2
+    // read cpu id, cpu_init for all cores other than 0
+    mrs     x0, mpidr_el1
+    and     x0, x0, #0x7
+    cbz     x0, 2f
+    b       cpu_init
+2:
 
     // clear bss
     ldr     x1, =__bss_start
@@ -101,8 +110,27 @@ _start:
     cbnz    w2, 3b
 
     // jump to C code, should not return
-4:  bl      _kentry
+4:  mrs     x0, mpidr_el1
+    bl      _kentry
     // for failsafe, halt this core too
+1:  wfe
+    b       1b
+
+cpu_init:
+    wfe
+    ldr     x2, =_initcpuid
+    ldxr    x1, [x2]
+    cmp     x0, x1
+    b.ne    cpu_init
+    
+    ldr     x2, =_initcpustack
+    ldxr    x1, [x2]
+    mov     sp, x1
+
+    ldr     x2, =_initcpuadr
+    ldxr    x1, [x2]
+
+    blr     x1
     b       1b
 
 .macro evt_entry el, n
