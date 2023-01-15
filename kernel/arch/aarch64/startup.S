@@ -27,6 +27,9 @@
 
 .section ".data" // these cannot be in the .bss section because that only gets zeroed after the first cpu starts
 .align 8
+.global _initcpulock
+_initcpulock:
+.dword 0
 .global _initcpuid
 _initcpuid:
 .dword 0
@@ -80,7 +83,7 @@ _start:
     movk    x2, #0x30d0, lsl #16
     msr     sctlr_el1, x2
     // set up exception handlers
-    ldr     x2, =_evt
+    ldr     x2, =_evt_early
     msr     vbar_el1, x2
     // change execution level to EL1
     mov     x2, #0x3c4
@@ -110,46 +113,87 @@ _start:
     cbnz    w2, 3b
 
     // jump to C code, should not return
-4:  mrs     x0, mpidr_el1
+4:
+    ldr     x2, =_evt
+    msr     vbar_el1, x2
+    mrs     x0, mpidr_el1
     bl      _kentry
     // for failsafe, halt this core too
-1:  wfe
-    b       1b
+    b .die
 
 cpu_init:
     wfe
+.lock:
+    mov     x5, 1
+    ldr     x2, =_initcpulock
+    ldxr    x3, [x2]
+    stxr    w4, x5, [x2]
+    cbnz    w4, .lock
+    dmb ish
+    cbnz    x3, .lock
+    // critical section starts here
+    b       .critical
+
+.nomatch:
+    // critical section ends here
+    ldr     x2, =_initcpulock
+    stlr    xzr, [x2]
+    b   .lock
+
+.critical:
     ldr     x2, =_initcpuid
-    ldxr    x1, [x2]
-    cmp     x0, x1
-    b.ne    cpu_init
+    ldr     x3, [x2]
+    cmp     x0, x3
+    b.ne    .nomatch
+
+    str     xzr, [x2] // set cpuid to zero -> cpu started
     
     ldr     x2, =_initcpustack
-    ldxr    x1, [x2]
+    ldr     x1, [x2]
     mov     sp, x1
 
     ldr     x2, =_initcpuadr
-    ldxr    x1, [x2]
+    ldr     x1, [x2]
+
+    // critical section ends here
+    ldr     x2, =_initcpulock
+    stlr    xzr, [x2]
 
     blr     x1
-    b       1b
+    b       .die
 
-.macro evt_entry el, n
+.die:
+    wfe
+    b .die
+
+.macro evt_entry el, n, func
     .align  7
     mov     x0, #\n
     mrs     x1, esr_el\el
     mrs     x2, elr_el\el
     mrs     x3, spsr_el\el
     mrs     x4, far_el\el
-    b       exception_handler
+    b       \func
 .endm
 
+_evt_early:
     .align 11
-_evt:
     // Synchronous
-    evt_entry 1, 0
+    evt_entry 1, 0, .die
     // IRQ
-    evt_entry 1, 1
+    evt_entry 1, 1, .die
     // FIQ
-    evt_entry 1, 2
+    evt_entry 1, 2, .die
     // SError
-    evt_entry 1, 3
+    evt_entry 1, 3, .die
+
+_evt:
+    .align 11
+    // Synchronous
+    evt_entry 1, 0, exception_handler
+    // IRQ
+    evt_entry 1, 1, exception_handler
+    // FIQ
+    evt_entry 1, 2, exception_handler
+    // SError
+    evt_entry 1, 3, exception_handler

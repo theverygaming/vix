@@ -22,7 +22,7 @@ static void fbputc(char c) {
 
 static volatile bool done = false;
 static void cpuinit(uint64_t cpu) {
-    _initcpuid = 0;
+    while (done) {}
     printf("i am CPU %u\n", cpu);
     done = true;
     while (true) {}
@@ -66,6 +66,9 @@ void arch::generic::startup::stage3_startup() {
 
 extern "C" void _start();
 
+extern "C" void _init_cpu_lock();
+extern "C" void _init_cpu_unlock();
+
 void arch::generic::startup::after_init() {
     // wake up cores (addresses from https://wiki.osdev.org/Raspberry_Pi_Bare_Bones)
     *((volatile uint64_t *)0xE0) = (uint64_t)_start;
@@ -75,13 +78,24 @@ void arch::generic::startup::after_init() {
     *((volatile uint64_t *)0xF0) = (uint64_t)_start;
     asm volatile("sev");
 
-    _initcpuadr = (uint64_t)cpuinit;
     for (int i = 1; i <= 3; i++) {
         printf("inititalizing CPU %d\n", i);
+        done = false;
+        _init_cpu_lock();
+        _initcpuadr = (uint64_t)cpuinit;
         _initcpustack = (uint64_t)mm::kmalloc_aligned(1000, 8);
         _initcpuid = i;
+        _init_cpu_unlock();
         asm volatile("sev");
-        while (_initcpuid != 0) {}
+        while (true) {
+            _init_cpu_lock();
+            if (_initcpuid == 0) {
+                _init_cpu_unlock();
+                break;
+            }
+            _init_cpu_unlock();
+        }
+
         while (!done) {}
         done = false;
     }

@@ -114,9 +114,9 @@ void *paging::get_physaddr_unaligned(void *virtualaddr) {
 }
 
 // Both addresses have to be page-aligned!
-void paging::map_page(void *physaddr, void *virtualaddr, size_t count, bool massflush) {
+void paging::map_page(void *physaddr, void *virtualaddr, size_t count, bool massflush, bool global) {
 
-    uint32_t entry = make_table_entry({.address = physaddr, .global = false, .cache_disabled = false, .write_through = false, .priv = USER, .perms = RW, .present = true});
+    uint32_t entry = make_table_entry({.address = physaddr, .global = global, .cache_disabled = false, .write_through = false, .priv = USER, .perms = RW, .present = true});
 
     uint32_t pDirIndex;
     uint32_t pTableIndex;

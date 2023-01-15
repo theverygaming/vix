@@ -4,6 +4,7 @@ cd "$parent_path"
 
 
 cp ../kernel_shitshell.bin rootfs/boot/kernel.bin
+cp ../roramfs.fs rootfs/boot/initramfs.bin
 grub-mkrescue -o ../shitOS.iso rootfs/
 exit
 limine_path=../../limine/bin # relative from the location of this script
@@ -38,6 +39,7 @@ fi
 
 e2cp rootfs/boot/limine.cfg -G 0 -O 0 image_extracted.img:/boot/
 e2cp ../kernel_shitshell.bin -G 0 -O 0 image_extracted.img:/boot/kernel.bin
+e2cp ../roramfs.fs -G 0 -O 0 image_extracted.img:/boot/initramfs.bin
 
 dd if=image_extracted.img of=image.img bs=512 seek=2048 # write partition back to image
 ${limine_path}/limine-deploy image.img
@@ -74,6 +76,7 @@ fi
 
 mcopy -i image_extracted.img rootfs/boot/limine.cfg ::boot/
 mcopy -i image_extracted.img ../kernel_shitshell.bin ::boot/kernel.bin
+mcopy -i image_extracted.img ../roramfs.fs ::boot/initramfs.bin
 
 mmd -i image_extracted.img ::EFI
 mmd -i image_extracted.img ::EFI/BOOT

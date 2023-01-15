@@ -18,7 +18,7 @@ header_start:
     dd header_start ; header_addr
     dd -1 ; load_addr -> -1 means must be loaded from beginning
     dd 0 ; load_end_addr -> 0 means .data and .text is whole image
-    dd 0 ; bss_end_addr
+    dd (KERNEL_PHYS_ADDRESS + KERNEL_MEMORY_END_OFFSET) ; bss_end_addr
 
     align 8
 
@@ -35,6 +35,12 @@ header_start:
     dd 800 ; width
     dd 600 ; height
     dd 24 ; depth
+
+    align 8
+
+    dw 6 ; type = 6(Module alignment tag) -> force modules to be page aligned
+    dw 0 ; flags
+    dd 8 ; size = 8
 
     align 8
 

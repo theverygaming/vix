@@ -11,14 +11,14 @@
 
 #define KERNEL_PAGES ((ARCH_KERNEL_HEAP_END / ARCH_PAGE_SIZE) - (ARCH_KERNEL_HEAP_START / ARCH_PAGE_SIZE))
 
-static mm::allocators::block_alloc<PHYS_BITMAP_BLOCK_COUNT, ARCH_PAGE_SIZE> physalloc;
+static mm::allocators::block_alloc_single<PHYS_BITMAP_BLOCK_COUNT, ARCH_PAGE_SIZE> physalloc;
 static mm::allocators::block_alloc<KERNEL_PAGES, ARCH_PAGE_SIZE> kernelalloc;
 
-void mm::phys::phys_alloc(void *adr, uint32_t blockcount) {
+void mm::phys::phys_alloc(void *adr, size_t blockcount) {
     physalloc.alloc(((uint8_t *)adr) - ARCH_PHYS_MEM_START, blockcount);
 }
 
-void *mm::phys::phys_malloc(uint32_t blockcount) {
+void *mm::phys::phys_malloc(size_t blockcount) {
     bool success = false;
     uint8_t *allocated = (uint8_t *)physalloc.malloc(blockcount, &success);
     allocated += ARCH_PHYS_MEM_START;
@@ -29,8 +29,8 @@ void *mm::phys::phys_malloc(uint32_t blockcount) {
     return allocated;
 }
 
-void mm::phys::phys_free(void *adr) {
-    physalloc.free(((uint8_t *)adr) - ARCH_PHYS_MEM_START);
+void mm::phys::phys_free(void *adr, size_t blockcount) {
+    physalloc.dealloc(((uint8_t *)adr) - ARCH_PHYS_MEM_START, blockcount);
 }
 
 size_t mm::phys::phys_get_free_blocks() {

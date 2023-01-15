@@ -14,9 +14,9 @@ struct __attribute__((packed)) multiboot2_tag {
     uint32_t size;
 };
 
-static bool multiboot_find_tag(void *multiboot2_info_adr, uint32_t type, struct multiboot2_tag **tag_ptr) {
+static bool multiboot_find_tag(const void *multiboot2_info_adr, uint32_t type, struct multiboot2_tag **tag_ptr) {
     // uint32_t multiboot_size = *(uint32_t *)multiboot2_info_adr;
-    struct multiboot2_tag *tag = (struct multiboot2_tag *)((char *)multiboot2_info_adr + (sizeof(uint32_t) * 2));
+    struct multiboot2_tag *tag = (struct multiboot2_tag *)((const char *)multiboot2_info_adr + (sizeof(uint32_t) * 2));
     while (!(tag->type == 0 && tag->size == 8)) {
         // printf("found tag %u size: %u\n", tag->type, tag->size);
         if (tag->type == type) {
@@ -29,7 +29,7 @@ static bool multiboot_find_tag(void *multiboot2_info_adr, uint32_t type, struct 
 }
 
 typedef struct __attribute__((packed)) {
-    uint32_t type;
+    uint32_t type; // 6
     uint32_t size;
     uint32_t entry_size;
     uint32_t entry_version;
@@ -62,7 +62,7 @@ struct __attribute__((packed)) multiboot2_framebuffer_info_tag {
     uint8_t reserved;
 };
 
-struct fb::fbinfo multiboot2::findFrameBuffer(void *multiboot2_info_adr) {
+struct fb::fbinfo multiboot2::findFrameBuffer(const void *multiboot2_info_adr) {
     struct multiboot2_framebuffer_info_tag *tag;
     if (multiboot_find_tag(multiboot2_info_adr, 8, (struct multiboot2_tag **)&tag)) {
         assertm(tag->framebuffer_type != 2, "wrong framebuffer type");
@@ -90,4 +90,21 @@ struct fb::fbinfo multiboot2::findFrameBuffer(void *multiboot2_info_adr) {
     }
     KERNEL_PANIC("couldn't initialize framebuffer");
     return {};
+}
+
+struct __attribute__((packed)) boot_module_tag {
+    uint32_t type; // 3
+    uint32_t size;
+    uint32_t mod_start;
+    uint32_t mod_end;
+};
+
+bool multiboot2::find_initramfs(const void *multiboot2_info_adr, void **start, size_t *size) {
+    struct boot_module_tag *tag;
+    if (multiboot_find_tag(multiboot2_info_adr, 3, (struct multiboot2_tag **)&tag)) {
+        *start = (void *)tag->mod_start;
+        *size = tag->mod_end - tag->mod_start;
+        return true;
+    }
+    return false;
 }

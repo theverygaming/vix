@@ -1,7 +1,7 @@
 #pragma once
 #include <arch/generic/cpu.h>
 #include <config.h>
-#include <macro.h>
+#include <macros.h>
 #include <stdio.h>
 #include <tests/testprint.h>
 

@@ -7,7 +7,6 @@
 #include <debug.h>
 #include <errno.h>
 #include <log.h>
-#include <macro.h>
 #include <macros.h>
 #include <mm/kmalloc.h>
 #include <mm/phys.h>
@@ -244,6 +243,7 @@ multitasking::x86_process *multitasking::fork_current_process(isr::registers *re
 void multitasking::killCurrentProcess(isr::registers *regs) {
     x86_process *currentProcess = getCurrentProcess();
     process_deth_events.dispatch(&currentProcess->tgid);
+    freePageRange(&currentProcess->pages);
     currentProcess->state = schedulers::generic_process::state::KILLED;
     interruptTrigger(regs);
 }
@@ -558,7 +558,7 @@ void multitasking::unsetPageRange(std::vector<process_pagerange> *range) {
 void multitasking::freePageRange(std::vector<process_pagerange> *range) {
     for (size_t i = 0; i < range->size(); i++) {
         if ((*range)[i].pages > 0) {
-            mm::phys::phys_free((void *)(*range)[i].phys_base);
+            mm::phys::phys_free((void *)(*range)[i].phys_base, (*range)[i].pages);
         }
     }
 }

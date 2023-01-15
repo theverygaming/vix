@@ -1,7 +1,7 @@
 #pragma once
 #include <debug.h>
 #include <generated/autoconf.h>
-#include <macro.h>
+#include <macros.h>
 
 // clang-format off
 #ifdef CONFIG_LOGLEVEL_INSANE

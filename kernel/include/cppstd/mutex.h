@@ -5,28 +5,18 @@ namespace std {
     class mutex {
     public:
         void lock() {
-            while (__atomic_load_n(&mtx_locked, __ATOMIC_SEQ_CST)) {}
-            lockMtx();
+            while (__sync_lock_test_and_set(&_lock, 1)) {}
         }
 
         bool try_lock() {
-            if (__atomic_load_n(&mtx_locked, __ATOMIC_SEQ_CST)) {
-                return false;
-            }
-            lockMtx();
-            return true;
+            return !__sync_lock_test_and_set(&_lock, 1);
         }
 
         void unlock() {
-            __atomic_store_n(&mtx_locked, false, __ATOMIC_SEQ_CST);
+            __sync_lock_release(&_lock);
         }
 
     private:
-        volatile bool mtx_locked = false;
-        void lockMtx() {
-            if (__atomic_exchange_n(&mtx_locked, true, __ATOMIC_SEQ_CST)) {
-                KERNEL_PANIC("tried locking locked mutex, this is a mutex bug");
-            }
-        }
+        volatile int _lock = 0;
     };
 }

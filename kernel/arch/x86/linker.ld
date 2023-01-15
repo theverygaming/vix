@@ -1,7 +1,10 @@
 ENTRY(_kentry)
 
 PAGE = 0x1000;
+
+KERNEL_START = 0x1EA000;
 HIGHER_HALF = 0xC0000000;
+KERNEL_OFFSET = HIGHER_HALF - KERNEL_START;
 
 MEMORY
 {
@@ -9,21 +12,21 @@ MEMORY
 }
 
 SECTIONS {
-	. = HIGHER_HALF;
+	. = KERNEL_START + KERNEL_OFFSET;
 
-	.entry ALIGN(PAGE) : AT(ADDR(.entry) - HIGHER_HALF) {
+	.entry ALIGN(PAGE) : AT(ADDR(.entry) - KERNEL_OFFSET) {
 		KEEP(*(.entry))
 	}>ram
 
-	.text ALIGN(PAGE) : AT(ADDR(.text) - HIGHER_HALF) {
+	.text ALIGN(PAGE) : AT(ADDR(.text) - KERNEL_OFFSET) {
 		KEEP(*(.text))
 	}>ram
 
-	.rodata ALIGN(PAGE) : AT(ADDR(.rodata) - HIGHER_HALF) {
+	.rodata ALIGN(PAGE) : AT(ADDR(.rodata) - KERNEL_OFFSET) {
 		KEEP(*(.rodata))
 	}>ram
 
-	.data ALIGN(PAGE) : AT(ADDR(.data) - HIGHER_HALF) {
+	.data ALIGN(PAGE) : AT(ADDR(.data) - KERNEL_OFFSET) {
 		START_CONSTRUCTORS = .;
     	KEEP(*( .init_array ));
     	KEEP(*(SORT_BY_INIT_PRIORITY( .init_array.* )));
@@ -34,9 +37,9 @@ SECTIONS {
 		PROVIDE(symtab_end = .);
 	}>ram
 
-	.bss ALIGN(PAGE) : AT(ADDR(.bss) - HIGHER_HALF) {
+	.bss ALIGN(PAGE) : AT(ADDR(.bss) - KERNEL_OFFSET) {
+		_bss_start = ABSOLUTE(.);
 		KEEP(*(.bss))
+		_bss_end = ABSOLUTE(.);
 	}>ram
-
-	KERNEL_SIZE = . - HIGHER_HALF;
 }
