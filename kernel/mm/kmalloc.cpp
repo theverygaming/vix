@@ -149,12 +149,10 @@ static void ll_insert(struct meminfo *ptr, struct meminfo *insert, bool after = 
  * Adds block to linked list with size
  */
 static void ll_alloc_new_block(size_t required, bool defrag = true) {
+    required += sizeof(struct meminfo);
     DEBUG_PRINTF_INSANE("ll_alloc_new_block(current: %u want: %u)\n", heap_base_size * ARCH_PAGE_SIZE, required);
     ll_check();
-    size_t pages = required / ARCH_PAGE_SIZE;
-    if (required % ARCH_PAGE_SIZE != 0) {
-        pages += 1;
-    }
+    size_t pages = ALIGN_UP(required, ARCH_PAGE_SIZE) / ARCH_PAGE_SIZE;
 
     struct meminfo *new_start = (struct meminfo *)alloc_pages(pages);
 
