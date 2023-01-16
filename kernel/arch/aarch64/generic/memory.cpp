@@ -11,9 +11,18 @@ bool arch::generic::memory::get_memory_map(struct memory_map_entry *entry, int n
     }
     int memmap_index = n - 1;
 
+    if (memmap_index == 0) {
+        entry->start_address = ARCH_KERNEL_HEAP_START;
+        entry->size = ARCH_KERNEL_HEAP_END - ARCH_KERNEL_HEAP_START;
+        entry->entry_type = memory_map_entry::entry_type::MEMORY_RAM;
+        return true;
+    }
+
     if (memmap_index >= memory_map_entrycount) {
         return false;
     }
+
+    return false;
 
     switch (memory_map[memmap_index].type) {
     case memory_type::MEM_RAM:
@@ -27,6 +36,6 @@ bool arch::generic::memory::get_memory_map(struct memory_map_entry *entry, int n
         break;
     }
     entry->start_address = memory_map[memmap_index].start;
-    entry->start_address = memory_map[memmap_index].size;
+    entry->size = memory_map[memmap_index].size;
     return true;
 }

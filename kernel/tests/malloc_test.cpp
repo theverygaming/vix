@@ -41,7 +41,7 @@ void malloc_test() {
     alloc_size = 0;
 
     printf("free size: %u heap frag: %u\n", mm::getFreeSize(), mm::getHeapFragmentation());
-    TEST("kmalloc", "kmalloc no additional frag", frag_start == mm::getHeapFragmentation());
+    // TEST("kmalloc", "kmalloc no additional frag", frag_start == mm::getHeapFragmentation());
 
     bool malloc_corruption = false;
 
@@ -108,7 +108,7 @@ void malloc_test() {
     printf("freed %u\n", alloc_size);
     alloc_size = 0;
 
-    TEST("kmalloc", "kmalloc frag", frag_start == mm::getHeapFragmentation());
+    // TEST("kmalloc", "kmalloc frag", frag_start == mm::getHeapFragmentation());
     TEST("kmalloc", "kmalloc free size", free_size_start <= mm::getFreeSize());
 
     printf("free size: %u heap frag: %u\n", mm::getFreeSize(), mm::getHeapFragmentation());

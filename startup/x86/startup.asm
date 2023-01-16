@@ -17,8 +17,8 @@ header_start:
     dd 24 ; size
     dd header_start ; header_addr
     dd -1 ; load_addr -> -1 means must be loaded from beginning
-    dd 0 ; load_end_addr -> 0 means .data and .text is whole image
-    dd (KERNEL_PHYS_ADDRESS + KERNEL_MEMORY_END_OFFSET) ; bss_end_addr
+    dd (KERNEL_PHYS_ADDRESS + KERNEL_CODE_SIZE) ; load_end_addr -> 0 means .data and .text is whole image
+    dd (KERNEL_PHYS_ADDRESS + KERNEL_FREE_AREA_BEGIN_OFFSET) ; bss_end_addr
 
     align 8
 
