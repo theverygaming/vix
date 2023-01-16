@@ -1,1 +1,1 @@
-obj-y += kmalloc.ocpp memalloc.ocpp
+obj-y += kmalloc.ocpp memalloc.ocpp kvmm.ocpp

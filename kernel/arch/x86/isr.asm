@@ -1,8 +1,6 @@
 [bits 32]
 
 extern i686_ISR_Handler
-extern isr_alloc_stack
-extern isr_free_stack
 
 %macro ISR_NOERRORCODE 1
 

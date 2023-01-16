@@ -183,19 +183,3 @@ void isr::RegisterHandler(int handler, void (*_func)(registers *regs)) {
 void isr::DeregisterHandler(int handler) {
     handlers[handler] = 0;
 }
-
-extern "C" void *isr_alloc_stack() {
-    KERNEL_PANIC("unimplemented");
-    /*void *mem = mm::phys::kernel_malloc(13);
-    if (mem == 0) {
-        printf("could not allocate memory for syscall!\n");
-        debug::debug_loop();
-    }
-    return ((uint8_t *)mem) + (13 * ARCH_PAGE_SIZE);*/
-    return nullptr;
-}
-
-extern "C" void isr_free_stack(void *stackadr) {
-    KERNEL_PANIC("unimplemented");
-    // mm::phys::kernel_free(((uint8_t *)stackadr) - (13 * ARCH_PAGE_SIZE));
-}

@@ -4,6 +4,7 @@
 #include <debug.h>
 #include <macros.h>
 #include <mm/kmalloc.h>
+#include <mm/kvmm.h>
 #include <mm/phys.h>
 #include <panic.h>
 #include <stdio.h>
@@ -12,6 +13,33 @@
 
 #define DEBUG_PRINTF_INSANE(...) \
     while (0) {} // disable debug printf for this file
+
+/*
+ * Page allocator
+ */
+
+static void *alloc_pages(size_t pages) {
+#ifdef ARCH_HAS_VIRTUAL_MEM
+    void *area = mm::kv::alloc(pages);
+    for (size_t i = 0; i < pages; i++) {
+        void *phys = mm::phys::phys_malloc(pages);
+        arch::generic::memory::vm_map(((uint8_t *)area) + (i * ARCH_PAGE_SIZE), phys, 1, true, true);
+    }
+#else
+    void *area = mm::phys::phys_malloc(pages);
+#endif
+    return area;
+}
+
+static void free_page(void *address) {
+#ifdef ARCH_HAS_VIRTUAL_MEM
+    void *phys = arch::generic::memory::vm_get_phys_address(address);
+    mm::phys::phys_free(phys, 1);
+    arch::generic::memory::vm_unmap(address);
+#else
+    mm::phys::phys_free(address, 1);
+#endif
+}
 
 /*
  * Freelist allocator
@@ -127,10 +155,10 @@ static void ll_alloc_new_block(size_t required, bool defrag = true) {
     if (required % ARCH_PAGE_SIZE != 0) {
         pages += 1;
     }
-    struct meminfo *new_start = (struct meminfo *)((uint8_t *)heap_base_ptr + (heap_base_size * ARCH_PAGE_SIZE));
+
+    struct meminfo *new_start = (struct meminfo *)alloc_pages(pages);
 
     heap_base_size += pages;
-    mm::phys::kernel_resize(heap_base_ptr, heap_base_size);
     new_start->size = (pages * ARCH_PAGE_SIZE) - sizeof(struct meminfo);
 
     struct meminfo *ptr = heap_start;
@@ -313,7 +341,7 @@ static void ll_allocate_block(struct meminfo *block, size_t wanted_size) {
 
 static void init() {
     DEBUG_PRINTF_INSANE("kmalloc init\n");
-    heap_base_ptr = mm::phys::kernel_malloc(1);
+    heap_base_ptr = alloc_pages(1);
     heap_base_size = 1;
     heap_start = (struct meminfo *)heap_base_ptr;
     *heap_start = {.prev = nullptr, .next = nullptr, .size = ARCH_PAGE_SIZE - sizeof(struct meminfo)};

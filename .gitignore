@@ -21,6 +21,7 @@ shitOS_app.img
 startup/x86/startup
 kernel_shitshell.bin
 kernel.bin
+initramfs.bin
 shitOS.iso
 roramfs_create
 roramfs.fs

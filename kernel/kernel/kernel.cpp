@@ -4,6 +4,7 @@
 #include <kernel.h>
 #include <log.h>
 #include <mm/kmalloc.h>
+#include <mm/kvmm.h>
 #include <mm/phys.h>
 
 #ifdef CONFIG_ENABLE_TESTS
@@ -15,8 +16,8 @@ void kernelstart() {
     LOG_NORMAL("starting shitOS -- built " __DATE__ " " __TIME__);
     mm::phys::phys_init();
     LOG_NORMAL("initialized physical memory manager");
-    mm::phys::kernel_init();
-    LOG_NORMAL("initialized kernel memory manager");
+    mm::kv::init();
+    LOG_NORMAL("initialized kernel virtual memory manager");
     arch::generic::startup::stage2_startup();
     LOG_NORMAL("initializing C++");
     cpp_init();
