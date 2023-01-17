@@ -10,6 +10,7 @@
 *.rlib
 boot/boot
 shitOS.img
+shitOS_uefi.img
 bochsrc
 bx_enh_dbg.ini
 mem.bin

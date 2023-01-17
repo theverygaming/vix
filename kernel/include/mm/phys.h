@@ -1,4 +1,5 @@
 #pragma once
+#include <arch/generic/memory.h>
 #include <types.h>
 
 namespace mm::phys {

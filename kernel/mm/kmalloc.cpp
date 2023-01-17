@@ -22,7 +22,7 @@ static void *alloc_pages(size_t pages) {
 #ifdef ARCH_HAS_VIRTUAL_MEM
     void *area = mm::kv::alloc(pages);
     for (size_t i = 0; i < pages; i++) {
-        void *phys = mm::phys::phys_malloc(pages);
+        void *phys = mm::phys::phys_malloc(1);
         arch::generic::memory::vm_map(((uint8_t *)area) + (i * ARCH_PAGE_SIZE), phys, 1, true, true);
     }
 #else
@@ -31,13 +31,17 @@ static void *alloc_pages(size_t pages) {
     return area;
 }
 
-static void free_page(void *address) {
+static void free_pages(void *address, size_t count) {
 #ifdef ARCH_HAS_VIRTUAL_MEM
-    void *phys = arch::generic::memory::vm_get_phys_address(address);
-    mm::phys::phys_free(phys, 1);
-    arch::generic::memory::vm_unmap(address);
+    for (size_t i = 0; i < count; i++) {
+        void *phys = arch::generic::memory::vm_get_phys_address(((uint8_t *)address) + (i * ARCH_PAGE_SIZE));
+        mm::phys::phys_free(phys, 1);
+        arch::generic::memory::vm_unmap(((uint8_t *)address) + (i * ARCH_PAGE_SIZE));
+    }
 #else
-    mm::phys::phys_free(address, 1);
+    for (size_t i = 0; i < count; i++) {
+        mm::phys::phys_free(((uint8_t *)address) + (i * ARCH_PAGE_SIZE), 1);
+    }
 #endif
 }
 

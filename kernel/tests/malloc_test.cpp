@@ -1,4 +1,5 @@
 #include <mm/kmalloc.h>
+#include <mm/phys.h>
 #include <panic.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,11 +20,12 @@ struct info {
     size_t size;
 };
 
-#define ALLOC_COUNT    256 // max 256
-#define ALLOC_MAX_SIZE 7800
+#define ALLOC_COUNT    256 // max 256 (or it will overflow)
+#define ALLOC_MAX_SIZE 50000
 
 void malloc_test() {
     printf("free size: %u heap frag: %u\n", mm::getFreeSize(), mm::getHeapFragmentation());
+    printf("free phys: %u\n", mm::phys::phys_get_free_blocks() * ARCH_PAGE_SIZE);
     size_t free_size_start = mm::getFreeSize();
     size_t frag_start = mm::getHeapFragmentation();
 
@@ -41,6 +43,7 @@ void malloc_test() {
     alloc_size = 0;
 
     printf("free size: %u heap frag: %u\n", mm::getFreeSize(), mm::getHeapFragmentation());
+    printf("free phys: %u\n", mm::phys::phys_get_free_blocks() * ARCH_PAGE_SIZE);
     // TEST("kmalloc", "kmalloc no additional frag", frag_start == mm::getHeapFragmentation());
 
     bool malloc_corruption = false;
@@ -58,6 +61,7 @@ void malloc_test() {
     TEST("kmalloc", "no malloc corruption", !malloc_corruption);
 
     printf("free size: %u heap frag: %u\n", mm::getFreeSize(), mm::getHeapFragmentation());
+    printf("free phys: %u\n", mm::phys::phys_get_free_blocks() * ARCH_PAGE_SIZE);
 
     bool realloc_corruption = false;
     // realloc
@@ -78,13 +82,13 @@ void malloc_test() {
                 realloc_corruption = true;
             }
         }
-
         memset(bruh[i].block, i, bruh[i].size);
     }
 
     TEST("kmalloc", "no realloc corruption", !realloc_corruption);
 
     printf("free size: %u heap frag: %u\n", mm::getFreeSize(), mm::getHeapFragmentation());
+    printf("free phys: %u\n", mm::phys::phys_get_free_blocks() * ARCH_PAGE_SIZE);
 
     bool realloc_bump_corruption = false;
     // check for things bumping into each other
@@ -112,4 +116,5 @@ void malloc_test() {
     TEST("kmalloc", "kmalloc free size", free_size_start <= mm::getFreeSize());
 
     printf("free size: %u heap frag: %u\n", mm::getFreeSize(), mm::getHeapFragmentation());
+    printf("free phys: %u\n", mm::phys::phys_get_free_blocks() * ARCH_PAGE_SIZE);
 }

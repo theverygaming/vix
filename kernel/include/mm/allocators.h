@@ -88,7 +88,7 @@ namespace mm::allocators {
         }
 
         void p_allocate_blocks(size_t block, size_t blockcount) {
-            for (size_t i = block; i <= block + blockcount; i++) {
+            for (size_t i = block; i < block + blockcount; i++) {
                 p_set_memmap_entry(i, 1);
             }
         }
