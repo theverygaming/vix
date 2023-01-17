@@ -15,4 +15,22 @@ choice
             Allocation is slower but saves more memory.
 endchoice
 
+config KFREE_CLEANUP
+    bool "Enable kfree cleanup"
+    help
+        A cleanup frees physical memory and makes it available to the whole system again.
+        Cleanups cause fragmentation which will make overall allocations slower.
+    default y
+
+config KFREE_CLEANUP_INTERVAL
+	prompt "kfree cleanup interval"
+    depends on KFREE_CLEANUP
+	int
+    default 5
+	range 1 200
+    help
+        kfree will clean up every KFREE_CLEANUP_INTERVAL times it gets called.
+        A cleanup frees physical memory.
+        Bigger value -> less efficient memory usage but kfree runs faster.
+
 endmenu

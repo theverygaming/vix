@@ -211,6 +211,69 @@ static void ll_remove(struct meminfo *ptr) {
     ll_check();
 }
 
+#ifdef CONFIG_KFREE_CLEANUP
+/*
+ * tries to deallocate block from linked list
+ * returns next block (in case linked list has been changed this is important)
+ */
+// TODO: make this function not shatter the heap into 74328943246234892368432 fragments
+static struct meminfo *ll_try_dealloc_block(struct meminfo *ptr) {
+    struct meminfo *next = ptr->next;
+    struct meminfo *removeptr = ptr;
+    size_t size = ptr->size + sizeof(struct meminfo);
+    if (size >= ARCH_PAGE_SIZE) {
+        if (!PTR_IS_ALIGNED(removeptr, ARCH_PAGE_SIZE)) {
+            size_t diff = PTR_ALIGN_UP_DIFF(removeptr, ARCH_PAGE_SIZE);
+            if (diff < sizeof(struct meminfo)) {
+                return next;
+            }
+            if ((diff + sizeof(struct meminfo)) > removeptr->size) {
+                return next;
+            }
+
+            struct meminfo *new_b = (struct meminfo *)((uint8_t *)removeptr + diff);
+            new_b->size = removeptr->size - (diff + sizeof(struct meminfo));
+            removeptr->size = diff - sizeof(struct meminfo);
+            ll_insert(removeptr, new_b, true);
+            ll_check();
+            removeptr = new_b;
+        }
+        size = removeptr->size + sizeof(struct meminfo);
+        size_t diff = ALIGN_DOWN_DIFF(size, ARCH_PAGE_SIZE);
+        if (diff != 0) {
+            if (diff < sizeof(struct meminfo)) {
+                return next;
+            }
+            if ((size - diff) < sizeof(struct meminfo)) {
+                return next;
+            }
+
+            struct meminfo *new_b = (struct meminfo *)((uint8_t *)removeptr + (size - diff));
+            new_b->size = diff - sizeof(struct meminfo);
+            removeptr->size -= diff;
+            ll_insert(removeptr, new_b, true);
+            ll_check();
+            next = new_b;
+        }
+        ll_remove(removeptr);
+        free_pages(removeptr, (removeptr->size + sizeof(struct meminfo)) / ARCH_PAGE_SIZE);
+        ll_check();
+        DEBUG_PRINTF_INSANE("ll_remove: removed 0x%p\n", removeptr);
+    }
+    return next;
+}
+
+/*
+ * tries to free as many blocks as possible
+ */
+static void ll_cleanup() {
+    struct meminfo *ptr = heap_start;
+    while (ptr != nullptr) {
+        ptr = ll_try_dealloc_block(ptr);
+    }
+}
+#endif
+
 /*
  * will replace block already in linked list with a different one
  */
@@ -376,6 +439,14 @@ void mm::kfree(void *ptr) {
     }
     ll_insert(closest, _blk, (uintptr_t)closest < (uintptr_t)_blk);
     ll_defrag();
+#ifdef CONFIG_KFREE_CLEANUP
+    static int cleanup = 0;
+    cleanup++;
+    if (cleanup > CONFIG_KFREE_CLEANUP_INTERVAL) {
+        ll_cleanup();
+        cleanup = 0;
+    }
+#endif
 }
 
 void *mm::kmalloc_aligned(size_t size, size_t alignment) {

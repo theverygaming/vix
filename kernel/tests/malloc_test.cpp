@@ -20,8 +20,8 @@ struct info {
     size_t size;
 };
 
-#define ALLOC_COUNT    256 // max 256 (or it will overflow)
-#define ALLOC_MAX_SIZE 50000
+#define ALLOC_COUNT    500 // max 256 (or it will overflow)
+#define ALLOC_MAX_SIZE 35000
 
 void malloc_test() {
     printf("free size: %u heap frag: %u\n", mm::getFreeSize(), mm::getHeapFragmentation());
@@ -52,7 +52,7 @@ void malloc_test() {
     for (int i = 0; i < ALLOC_COUNT; i++) {
         uint8_t *blk = (uint8_t *)bruh[i].block;
         for (size_t j = 0; j < bruh[i].size; j++) {
-            if (blk[j] != i) {
+            if (blk[j] != (uint8_t)i) {
                 printf("expected: %u got: %u @ %u\n", (uint32_t)i, blk[j], (uint32_t)j);
                 malloc_corruption = true;
             }
@@ -77,7 +77,7 @@ void malloc_test() {
 
         uint8_t *blk = (uint8_t *)bruh[i].block;
         for (size_t j = 0; j < oldsize; j++) {
-            if (blk[j] != i) {
+            if (blk[j] != (uint8_t)i) {
                 printf("expected: %u got: %u @ %u\n", (uint32_t)i, blk[j], (uint32_t)j);
                 realloc_corruption = true;
             }
@@ -95,7 +95,7 @@ void malloc_test() {
     for (int i = 0; i < ALLOC_COUNT; i++) {
         uint8_t *blk = (uint8_t *)bruh[i].block;
         for (size_t j = 0; j < bruh[i].size; j++) {
-            if (blk[j] != i) {
+            if (blk[j] != (uint8_t)i) {
                 printf("blk 0x%p -- expected: %u got: %u @ %u\n", bruh[i].block, (uint32_t)i, blk[j], (uint32_t)j);
                 realloc_bump_corruption = true;
             }
