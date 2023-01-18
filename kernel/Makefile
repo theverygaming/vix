@@ -81,6 +81,7 @@ export CXX LD NM OBJCOPY CXXFLAGS LDFLAGS
 
 # recursive stuff - most of this is based on https://stackoverflow.com/q/56001646/20742078
 OBJS     :=
+EXTRATARGETS :=
 objtree  := .
 srctree  := .
 define build_subdir
@@ -89,10 +90,12 @@ srctree := $$(srctree)/$(1)
 
 obj-y :=
 obj-d :=
+extratargets-y :=
 
 include $$(srctree)/Makefile
 
 OBJS += $$(patsubst %,$$(objtree)/%,$$(obj-y))
+EXTRATARGETS += $$(patsubst %,$$(objtree)/%,$$(extratargets-y))
 
 $$(foreach subdir,$$(obj-d),$$(eval $$(call build_subdir,$$(subdir))))
 
@@ -105,6 +108,6 @@ $(foreach dir, $(BUILD_SUBDIRS), $(eval $(call build_subdir,$(dir))))
 
 # final link
 .PHONY: kernel
-kernel: $(OBJS)
-	@$(LD) $(LDFLAGS) -r $^ -o kernel_partial.o
+kernel: $(EXTRATARGETS) $(OBJS)
+	@$(LD) $(LDFLAGS) -r $(OBJS) -o kernel_partial.o
 	@./arch/$(BUILD_ARCH)/archlink.sh

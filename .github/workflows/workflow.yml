@@ -44,7 +44,17 @@ jobs:
       - name: install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install qemu-system-arm llvm-dev libclang-dev clang python3 pkg-config flex bison gcc-aarch64-linux-gnu g++-aarch64-linux-gnu binutils-aarch64-linux-gnu
+          sudo apt-get install qemu-system-arm qemu-efi-aarch64 llvm-dev libclang-dev clang python3 pkg-config flex bison gcc-aarch64-linux-gnu g++-aarch64-linux-gnu binutils-aarch64-linux-gnu git nasm gzip gawk
+
+      - name: build limine
+        run: |
+          cd $GITHUB_WORKSPACE/../
+          git clone https://github.com/limine-bootloader/limine.git
+          cd limine
+          git checkout v4.20230114.0
+          ./bootstrap
+          ./configure --enable-uefi-aarch64
+          make -j $(nproc)
 
       - name: compile
         run: |
@@ -54,7 +64,7 @@ jobs:
       - name: run
         run: |
           cd $GITHUB_WORKSPACE
-          timeout 30 qemu-system-aarch64 -M raspi3b -nographic -serial mon:stdio -kernel kernel/kernel.o > log.txt || true
+          timeout 30 qemu-system-aarch64 -m 1024m -bios /usr/share/qemu-efi-aarch64/QEMU_EFI.fd -cpu cortex-a53 -smp 4 -machine virt -device ramfb -device qemu-xhci -device usb-kbd -nographic -serial mon:stdio -hda shitOS_uefi.img > log.txt || true
           cat log.txt
 
       - name: upload image

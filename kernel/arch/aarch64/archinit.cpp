@@ -2,6 +2,7 @@
 #include <arch/drivers/timer.h>
 #include <arch/drivers/uart.h>
 #include <arch/generic/startup.h>
+#include <arch/limine.h>
 #include <arch/startup.h>
 #include <config.h>
 #include <framebuffer.h>
@@ -11,13 +12,14 @@
 #include <stdio.h>
 #include <time.h>
 
-#define DEBUG_BUILD
-
 static fb::fb framebuffer;
 static fb::fbconsole fbconsole;
 
-static void fbputc(char c) {
-    fbconsole.putc(c);
+static volatile struct limine_terminal_request terminal_request = {.id = LIMINE_TERMINAL_REQUEST, .revision = 0};
+
+static void limineputc(char c) {
+    struct limine_terminal *terminal = terminal_request.response->terminals[0];
+    terminal_request.response->write(terminal, &c, 1);
 }
 
 static volatile bool done = false;
@@ -29,11 +31,10 @@ static void cpuinit(uint64_t cpu) {
 }
 
 static void kernelinit() {
-#ifdef DEBUG_BUILD
-    // cannot use uninitialized uart on real hardware
-    drivers::uart::init();
-    stdio::set_putc_function(drivers::uart::putc, true);
-#endif
+    if (terminal_request.response == NULL || terminal_request.response->terminal_count < 1) {
+        while (true) {}
+    }
+    stdio::set_putc_function(limineputc, true);
     puts("entry\n");
     // puts("enabling timer\n");
     // drivers::timer::init();
@@ -41,10 +42,7 @@ static void kernelinit() {
     kernelstart();
 }
 
-extern "C" void _kentry(uint64_t mpidr_el1) {
-    if (mpidr_el1 & 3) {
-        // while (true) {}
-    }
+extern "C" void _kentry() {
     kernelinit();
     while (true) {}
 }
@@ -59,45 +57,11 @@ void arch::generic::startup::stage3_startup() {
         fbconsole.init(&framebuffer);
     }
     fbconsole.init2();
-    stdio::set_putc_function(fbputc);
+    // stdio::set_putc_function(fbputc);
     printf("Hello aarch64!\n");
     time::bootupTime = time::getCurrentUnixTime();
 }
 
-extern "C" void _start();
-
-extern "C" void _init_cpu_lock();
-extern "C" void _init_cpu_unlock();
-
 void arch::generic::startup::after_init() {
-    // wake up cores (addresses from https://wiki.osdev.org/Raspberry_Pi_Bare_Bones)
-    *((volatile uint64_t *)0xE0) = (uint64_t)_start;
-    asm volatile("sev");
-    *((volatile uint64_t *)0xE8) = (uint64_t)_start;
-    asm volatile("sev");
-    *((volatile uint64_t *)0xF0) = (uint64_t)_start;
-    asm volatile("sev");
-
-    for (int i = 1; i <= 3; i++) {
-        printf("inititalizing CPU %d\n", i);
-        done = false;
-        _init_cpu_lock();
-        _initcpuadr = (uint64_t)cpuinit;
-        _initcpustack = (uint64_t)mm::kmalloc_aligned(1000, 8);
-        _initcpuid = i;
-        _init_cpu_unlock();
-        asm volatile("sev");
-        while (true) {
-            _init_cpu_lock();
-            if (_initcpuid == 0) {
-                _init_cpu_unlock();
-                break;
-            }
-            _init_cpu_unlock();
-        }
-
-        while (!done) {}
-        done = false;
-    }
     while (true) {}
 }

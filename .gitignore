@@ -35,3 +35,4 @@ kernel/.config
 kernel/include/config/
 kernel/.config.old
 libctest
+kernel/arch/aarch64/include/arch/limine.h

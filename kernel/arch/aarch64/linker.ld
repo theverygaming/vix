@@ -1,24 +1,34 @@
-ENTRY(_start)
+ENTRY(_kentry)
 
 PAGE = 0x1000;
 
+PHDRS
+{
+    text    PT_LOAD    FLAGS((1 << 0) | (1 << 2)) ; /* Execute + Read */
+    rodata  PT_LOAD    FLAGS((1 << 2)) ;            /* Read only */
+    data    PT_LOAD    FLAGS((1 << 1) | (1 << 2)) ; /* Write + Read */
+}
+
 MEMORY
 {
-    ram (rwx) : org = 0x80000, l = 0xF0000
+    ram (rwx) : org = 0xffffffff80000000, l = 0xF0000
 }
 
 SECTIONS
 {
-    . = 0x80000;
+    . = 0xffffffff80000000;
 
     .text ALIGN(PAGE) : {
-        KEEP(*(.text.boot))
 		*(.text)
-	}>ram
+	}>ram :text
+
+    . += CONSTANT(MAXPAGESIZE);
 
     .rodata ALIGN(PAGE) : {
         *(.rodata)
-    }>ram
+    }>ram :rodata
+
+    . += CONSTANT(MAXPAGESIZE);
 
     .data ALIGN(PAGE) : {
         START_CONSTRUCTORS = .;
@@ -26,14 +36,15 @@ SECTIONS
     	KEEP(*(SORT_BY_INIT_PRIORITY( .init_array.* )));
     	END_CONSTRUCTORS = .;
 		KEEP(*(.data))
-    }>ram
+    }>ram :data
 
     .bss ALIGN(PAGE) : {
         . = ALIGN(16);
         __bss_start = .;
         *(.bss)
         __bss_end = .;
-    }>ram
+    }>ram : data
+
     /DISCARD/ : { *(.comment) *(.gnu*) *(.note*) *(.eh_frame*) }   
 }
 
