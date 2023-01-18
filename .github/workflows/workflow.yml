@@ -53,7 +53,7 @@ jobs:
           cd limine
           git checkout v4.20230114.0
           ./bootstrap
-          ./configure --enable-uefi-aarch64
+          CROSS_TOOLCHAIN=aarch64-linux-gnu ./configure --enable-uefi-aarch64
           make -j $(nproc)
 
       - name: compile
@@ -71,7 +71,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: image-aarch64
-          path: ${{runner.workspace}}/shitOS/kernel/kernel.o
+          path: ${{runner.workspace}}/shitOS/shitOS_uefi.img
 
       - name: check tests
         run: |
