@@ -216,7 +216,6 @@ static void ll_remove(struct meminfo *ptr) {
  * tries to deallocate block from linked list
  * returns next block (in case linked list has been changed this is important)
  */
-// TODO: make this function not shatter the heap into 74328943246234892368432 fragments
 static struct meminfo *ll_try_dealloc_block(struct meminfo *ptr) {
     struct meminfo *next = ptr->next;
     struct meminfo *removeptr = ptr;
@@ -232,7 +231,7 @@ static struct meminfo *ll_try_dealloc_block(struct meminfo *ptr) {
             }
 
             struct meminfo *new_b = (struct meminfo *)((uint8_t *)removeptr + diff);
-            new_b->size = removeptr->size - (diff + sizeof(struct meminfo));
+            new_b->size = removeptr->size - diff;
             removeptr->size = diff - sizeof(struct meminfo);
             ll_insert(removeptr, new_b, true);
             ll_check();
@@ -250,7 +249,7 @@ static struct meminfo *ll_try_dealloc_block(struct meminfo *ptr) {
 
             struct meminfo *new_b = (struct meminfo *)((uint8_t *)removeptr + (size - diff));
             new_b->size = diff - sizeof(struct meminfo);
-            removeptr->size -= diff;
+            removeptr->size -= diff - sizeof(struct meminfo);
             ll_insert(removeptr, new_b, true);
             ll_check();
             next = new_b;

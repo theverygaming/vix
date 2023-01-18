@@ -26,7 +26,7 @@ img-x86:
 	@#musl-gcc -m32 -march=i386 -static -static-libgcc -mno-red-zone -fno-pie -fno-stack-protector tools/glibctest.c -o libctest
 	@./roramfs_create roramfs.fs "insert fs label here" shitshell/shitshell modules/module.o libctest fonts/Unifont-APL8x16-15.0.01.psf
 	@cat kernel.bin roramfs.fs /dev/zero | dd status=none iflag=fullblock of=kernel_shitshell.bin bs=65536 count=83
-	@grub/createimg.sh
+	@boot/createimg.sh
 
 img-aarch64:
 	@$(MAKE) --no-print-directory -C kernel

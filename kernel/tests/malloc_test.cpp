@@ -20,8 +20,8 @@ struct info {
     size_t size;
 };
 
-#define ALLOC_COUNT    500 // max 256 (or it will overflow)
-#define ALLOC_MAX_SIZE 35000
+#define ALLOC_COUNT    3000 // max 256 (or it will overflow)
+#define ALLOC_MAX_SIZE 6000
 
 void malloc_test() {
     printf("free size: %u heap frag: %u\n", mm::getFreeSize(), mm::getHeapFragmentation());
