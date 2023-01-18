@@ -44,7 +44,7 @@ jobs:
       - name: install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install qemu-system-arm qemu-efi-aarch64 llvm-dev libclang-dev clang python3 pkg-config flex bison gcc-aarch64-linux-gnu g++-aarch64-linux-gnu binutils-aarch64-linux-gnu git nasm gzip gawk
+          sudo apt-get install qemu-system-arm qemu-efi-aarch64 seabios llvm-dev libclang-dev clang python3 pkg-config flex bison gcc-aarch64-linux-gnu g++-aarch64-linux-gnu binutils-aarch64-linux-gnu git nasm gzip gawk mtools
 
       - name: build limine
         run: |
