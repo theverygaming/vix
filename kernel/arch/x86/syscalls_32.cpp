@@ -6,7 +6,7 @@
 #include <arch/memorymap.h>
 #include <arch/multitasking.h>
 #include <arch/paging.h>
-#include <arch/syscalls.h>
+#include <arch/syscalls_32.h>
 #include <cppstd/string.h>
 #include <debug.h>
 #include <fs/vfs.h>

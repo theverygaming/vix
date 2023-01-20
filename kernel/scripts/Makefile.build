@@ -1,4 +1,4 @@
-CXXFLAGS += -Iinclude/ -Iarch/$(BUILD_ARCH)/include -O$(CXX_OPTIM_LEVEL) -Wall -Wextra -Wno-unused-parameter -g
+override CXXFLAGS += -Iinclude/ -Iarch/$(BUILD_ARCH)/include -O$(CXX_OPTIM_LEVEL) -Wall -Wextra -Wno-unused-parameter -g
 
 %.ocpp: %.cpp
 	@echo "  CXX $<"
@@ -9,5 +9,5 @@ CXXFLAGS += -Iinclude/ -Iarch/$(BUILD_ARCH)/include -O$(CXX_OPTIM_LEVEL) -Wall -
 	@$(CXX) $(CXXFLAGS) -c $< -o $@
 
 ifeq ($(CONFIG_UBSAN), y)
-CXXFLAGS += -fsanitize=undefined
+override CXXFLAGS += -fsanitize=undefined
 endif

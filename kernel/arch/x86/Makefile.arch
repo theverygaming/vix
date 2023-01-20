@@ -1,16 +1,19 @@
-CXXFLAGS += -nostdlib -m32 -march=i386 -fno-pie -mno-red-zone -ffreestanding -fno-exceptions
-LDFLAGS  += -m elf_i386 -z noexecstack
+override CXXFLAGS += -nostdlib -fno-pie -mno-red-zone -ffreestanding -fno-exceptions -mno-mmx -mno-sse -mno-sse2
+
+ifeq ($(CONFIG_ENABLE_KERNEL_64), y)
+override CXXFLAGS += -mcmodel=kernel
+endif
 
 %.onasm: %.asm
 	@echo "  NASM $<"
 	@nasm -f elf $< -o $@
 
 ifeq ($(CONFIG_ENABLE_FTRACE), y)
-CXXFLAGS += -finstrument-functions
+override CXXFLAGS += -finstrument-functions
 endif
 
 ifeq ($(CONFIG_ENABLE_STACKPROTECTOR), y)
-CXXFLAGS += -fstack-protector-strong -mstack-protector-guard=global
+override CXXFLAGS += -fstack-protector-strong -mstack-protector-guard=global
 else
-CXXFLAGS += -fno-stack-protector
+override CXXFLAGS += -fno-stack-protector
 endif

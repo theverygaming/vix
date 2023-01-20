@@ -14,7 +14,12 @@ jobs:
           sudo apt-get install nasm gcc-multilib g++-multilib xorriso grub-common mtools qemu-system-x86 llvm-dev libclang-dev clang python3 pkg-config flex bison
 
       - name: compile
-        run: cd $GITHUB_WORKSPACE && make alldefconfig tests all MAKE_ARCH=x86
+        run: | 
+          cd $GITHUB_WORKSPACE
+          make alldefconfig MAKE_ARCH=x86
+          make tests MAKE_ARCH=x86
+          CXXFLAGS="-m32 -march=i386" LDFLAGS="-m elf_i386" make MAKE_ARCH=x86
+          CXXFLAGS="-m32 -march=i386" LDFLAGS="-m elf_i386" make img_x86_32 MAKE_ARCH=x86
 
       - name: run
         run: |
@@ -34,6 +39,55 @@ jobs:
           python3 tools/testparser.py log.txt >> $GITHUB_STEP_SUMMARY
           python3 tools/testparser.py log.txt -f
   
+  build-x86_64:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install qemu-system-x86 ovmf seabios llvm-dev libclang-dev clang python3 pkg-config flex bison git nasm gzip gawk mtools
+
+      - name: build limine
+        run: |
+          cd $GITHUB_WORKSPACE/../
+          git clone https://github.com/limine-bootloader/limine.git
+          cd limine
+          git checkout v4.20230114.0
+          ./bootstrap
+          ./configure --enable-uefi-x86-64
+          make -j $(nproc)
+
+      - name: compile
+        run: |
+          cd $GITHUB_WORKSPACE
+          make alldefconfig MAKE_ARCH=x86
+          make tests MAKE_ARCH=x86
+          sed -i 's/CONFIG_ENABLE_KERNEL_32=y/# CONFIG_ENABLE_KERNEL_32=y\nCONFIG_ENABLE_KERNEL_64=y/g' kernel/.config
+          make MAKE_ARCH=x86
+          make img_x86_64 MAKE_ARCH=x86
+
+      - name: run
+        run: |
+          cd $GITHUB_WORKSPACE
+          timeout 30 qemu-system-x86_64 -bios /usr/share/ovmf/OVMF.fd -nographic -serial mon:stdio -hda shitOS_uefi.img > log.txt || true
+          cat log.txt
+
+      - name: upload image
+        uses: actions/upload-artifact@v3
+        with:
+          name: image-x86_64
+          path: ${{runner.workspace}}/shitOS/shitOS_uefi.img
+
+      - name: check tests
+        run: |
+          cd $GITHUB_WORKSPACE
+          python3 tools/testparser.py log.txt >> $GITHUB_STEP_SUMMARY
+          python3 tools/testparser.py log.txt -f
+
   build-aarch64:
     runs-on: ubuntu-latest
     steps:

@@ -1,6 +1,6 @@
 #include <arch/drivers/ps2.h>
 #include <arch/multitasking.h>
-#include <arch/syscalls.h>
+#include <arch/syscalls_32.h>
 #include <debug.h>
 #include <log.h>
 #include <mm/kmalloc.h>

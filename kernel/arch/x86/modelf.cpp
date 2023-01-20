@@ -160,7 +160,7 @@ uint32_t elf32_find_symbol(const char *name, void *ELF_baseadr, std::vector<sect
                 struct elf32_section_header *shdr_target = (struct elf32_section_header *)(((uint8_t *)ELF_baseadr) + header->e_shoff + (header->e_shentsize * symtab_entry->st_shndx));
                 for (size_t k = 0; k < sections->size(); k++) {
                     if (strcmp((*sections)[k].name.c_str(), &stringtable_sect[shdr_target->sh_name]) == 0) {
-                        return (uint32_t)(*sections)[k].address + symtab_entry->st_value;
+                        return (uintptr_t)(*sections)[k].address + symtab_entry->st_value;
                     }
                 }
             }
@@ -231,11 +231,11 @@ void elf::load_module(void *ELF_baseadr) {
                     return;
                 }
 
-                uint32_t *rel_sym = (uint32_t *)(((uint8_t *)target_address) + reloc->r_offset);
+                uintptr_t *rel_sym = (uintptr_t *)(((uint8_t *)target_address) + reloc->r_offset);
 
                 char *symname;
                 bool isoffset;
-                uint32_t symval = elf32_get_symbol_value(ELF_baseadr, shdr->sh_link, ELF32_R_SYM(reloc->r_info), &isoffset, &symname);
+                uintptr_t symval = elf32_get_symbol_value(ELF_baseadr, shdr->sh_link, ELF32_R_SYM(reloc->r_info), &isoffset, &symname);
 
                 if (symval == 0 && !isoffset) { // unable to locate symbol
                     LOG_DEBUG("symval == 0 && !isoffset");
@@ -246,7 +246,7 @@ void elf::load_module(void *ELF_baseadr) {
                     bool set = false;
                     for (size_t i = 0; i < sections.size(); i++) {
                         if (strcmp(sections[i].name.c_str(), symname) == 0) {
-                            symval = (uint32_t)sections[i].address + symval;
+                            symval = (uintptr_t)sections[i].address + symval;
                             set = true;
                             break;
                         }
@@ -264,7 +264,7 @@ void elf::load_module(void *ELF_baseadr) {
                     *rel_sym += symval;
                     break;
                 case R_386_PC32:
-                    *rel_sym += symval - ((uint32_t)rel_sym);
+                    *rel_sym += symval - ((uintptr_t)rel_sym);
                     break;
                 default:
                     LOG_DEBUG("Issue: unsupported relocation type");

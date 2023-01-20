@@ -2,7 +2,7 @@
 #include <arch/gdt.h>
 #include <arch/generic/memory.h>
 #include <arch/multitasking.h>
-#include <arch/syscalls.h>
+#include <arch/syscalls_32.h>
 #include <cppstd/vector.h>
 #include <debug.h>
 #include <errno.h>
@@ -56,7 +56,7 @@ void multitasking::initMultitasking() {
     idle->registerContext.gs = GDT_KERNEL_DATA;
     idle->registerContext.ss = GDT_KERNEL_DATA;
     idle->registerContext.esp = 0; // TODO: investigate kernel task stack pointer bug
-    idle->registerContext.eip = (uint32_t)cpuidle;
+    idle->registerContext.eip = (uintptr_t)cpuidle;
     idle->registerContext.eflags = 1 << 9;
     processes.push_back(idle);
 
@@ -102,10 +102,10 @@ static void *init_empty_stack(void *stackadr, std::vector<std::string> *argv, vo
     int nextindex = 1;
 
     if (kernel) {
-        stack[0] = (uint32_t)eip; // EIP
-        stack[1] = 8;             // CS?
-        stack[2] = 1 << 9;        // EFLAGS, set interrupt bit
-        stack[3] = argc;          // argc
+        stack[0] = (uintptr_t)eip; // EIP
+        stack[1] = 8;              // CS?
+        stack[2] = 1 << 9;         // EFLAGS, set interrupt bit
+        stack[3] = argc;           // argc
         nextindex = 4;
     } else {
         stack[0] = argc; // argc
@@ -277,8 +277,8 @@ void multitasking::create_task(
     new_process->registerContext.gs = ds;
     new_process->registerContext.ss = ds;
 
-    new_process->registerContext.esp = (uint32_t)stackadr;
-    new_process->registerContext.eip = (uint32_t)codeadr;
+    new_process->registerContext.esp = (uintptr_t)stackadr;
+    new_process->registerContext.eip = (uintptr_t)codeadr;
     new_process->registerContext.eflags = 1 << 9;
 
     new_process->pages = *pagerange;
@@ -506,14 +506,14 @@ bool multitasking::createPageRange(std::vector<process_pagerange> *range, uint32
 
     size_t prange_counter = 0;
 
-    uint32_t physAddress = 69420;
-    uint32_t lastPhysAddress = 0;
+    uintptr_t physAddress = 69420;
+    uintptr_t lastPhysAddress = 0;
     bool invalidated = true;
 
     for (uint32_t page = 0; page < (max_address / ARCH_PAGE_SIZE); page++) {
         uint32_t virtadr = page * ARCH_PAGE_SIZE;
         if (paging::is_readable((void *)virtadr)) {
-            physAddress = (uint32_t)paging::get_physaddr((void *)virtadr);
+            physAddress = (uintptr_t)paging::get_physaddr((void *)virtadr);
             if ((physAddress - ARCH_PAGE_SIZE) != lastPhysAddress || invalidated) {
                 pages.push_back({0, 0, 0});
                 prange_counter = pages.size() - 1;

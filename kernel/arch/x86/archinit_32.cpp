@@ -15,7 +15,7 @@
 #include <arch/multitasking.h>
 #include <arch/paging.h>
 #include <arch/simd.h>
-#include <arch/syscall.h>
+#include <arch/syscall_32.h>
 #include <config.h>
 #include <cppstd/string.h>
 #include <cppstd/vector.h>

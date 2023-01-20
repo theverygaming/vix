@@ -1,13 +1,13 @@
 # https://gcc.gnu.org/onlinedocs/gcc-9.1.0/gcc/ARM-Options.html
-CXXFLAGS += -fno-pie -ffreestanding -nostdinc -nostdlib -nostartfiles -fno-exceptions -mno-outline-atomics -march=armv8-a+nofp
-LDFLAGS  += -nostdlib
+override CXXFLAGS += -fno-pie -ffreestanding -nostdinc -nostdlib -nostartfiles -fno-exceptions -mno-outline-atomics -march=armv8-a+nofp
+override LDFLAGS  += -nostdlib
 
 ifeq ($(CONFIG_ENABLE_FTRACE), y)
-CXXFLAGS += -finstrument-functions
+override CXXFLAGS += -finstrument-functions
 endif
 
 ifeq ($(CONFIG_ENABLE_STACKPROTECTOR), y)
-CXXFLAGS += -fstack-protector-strong -mstack-protector-guard=global
+override CXXFLAGS += -fstack-protector-strong -mstack-protector-guard=global
 else
-CXXFLAGS += -fno-stack-protector
+override CXXFLAGS += -fno-stack-protector
 endif

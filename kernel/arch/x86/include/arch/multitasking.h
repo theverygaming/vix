@@ -32,9 +32,9 @@ namespace multitasking {
     } context;
 
     typedef struct {
-        uint32_t phys_base;
-        uint32_t virt_base;
-        uint32_t pages;
+        uintptr_t phys_base;
+        uintptr_t virt_base;
+        size_t pages;
         /*
          * static -> code ,bss etc.
          * break -> memory allocated by brk()

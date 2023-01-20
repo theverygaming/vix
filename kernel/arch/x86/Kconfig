@@ -2,6 +2,15 @@ config ARCH_X86
   bool
   default y
 
+config ENABLE_KERNEL_64
+  default n
+  bool "64-bit kernel"
+
+config ENABLE_KERNEL_32
+  bool
+  depends on !ENABLE_KERNEL_64
+  default y
+
 config ENABLE_FTRACE
   default n
   bool "Enable function tracing"

@@ -1,7 +1,7 @@
 #include <arch/errno.h>
 #include <arch/multitasking.h>
-#include <arch/syscall.h>
-#include <arch/syscalls.h>
+#include <arch/syscall_32.h>
+#include <arch/syscalls_32.h>
 #include <config.h>
 #include <debug.h>
 

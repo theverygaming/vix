@@ -22,6 +22,8 @@ sudo apt install nasm gcc-multilib g++-multilib xorriso grub-common grub-pc mtoo
 
 first you have to configure the kernel, you could either simply use the default config (``make alldefconfig``) or configure it yourself (``make menuconfig``)
 
-then you can simply build with ``make``
+then you can simply build with ``make`` and ``make img_x86_32``
 
 a bootable iso named ``shitOS.iso`` will be created
+
+for other architectures look at the [GitHub actions workflow](.github/workflows/workflow.yml)

@@ -87,8 +87,8 @@ void drivers::net::rtl8139::sendPacket(void *data, size_t len) {
     if (reg_counter > 3) {
         reg_counter = 0;
     }
-    outl(io_base + 0x20 + (reg_counter * 4), (uint32_t)paging::get_physaddr_unaligned(data)); // transmit
-    outl(io_base + 0x10 + (reg_counter * 4), len);                                            // status/command
+    outl(io_base + 0x20 + (reg_counter * 4), (uintptr_t)paging::get_physaddr_unaligned(data)); // transmit
+    outl(io_base + 0x10 + (reg_counter * 4), len);                                             // status/command
     reg_counter++;
 }
 
@@ -141,7 +141,7 @@ void drivers::net::rtl8139::init() {
         printf("aligning buffer :troll:\n");
         bufferptr = bufferptr + (((size_t)bufferptr) % 4);
     }
-    outl(io_base + 0x30, (uint32_t)paging::get_physaddr_unaligned(bufferptr));
+    outl(io_base + 0x30, (uintptr_t)paging::get_physaddr_unaligned(bufferptr));
 
     // outw(io_base + 0x3C, 0x0005); // Sets the TOK and ROK bits high
 

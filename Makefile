@@ -14,8 +14,7 @@ tests:
 menuconfig:
 	@$(MAKE) --no-print-directory -C kernel menuconfig
 
-img-x86:
-	@$(MAKE) --no-print-directory -C kernel
+img_x86_32:
 	@$(MAKE) --no-print-directory -C startup/$(MAKE_ARCH)
 	@$(MAKE) --no-print-directory -C shitshell
 	@$(MAKE) --no-print-directory -C modules
@@ -26,7 +25,15 @@ img-x86:
 	@g++ tools/roramfs_create.cpp -o roramfs_create
 	@./roramfs_create roramfs.fs "insert fs label here" shitshell/shitshell modules/module.o libctest fonts/Unifont-APL8x16-15.0.01.psf
 	@cat kernel.bin roramfs.fs /dev/zero | dd status=none iflag=fullblock of=kernel_shitshell.bin bs=65536 count=83
-	@boot/createimg-x86.sh
+	@boot/createimg-x86_32.sh
+
+img_x86_64:
+	@g++ tools/roramfs_create.cpp -o roramfs_create
+	@./roramfs_create roramfs.fs "insert fs label here" fonts/Unifont-APL8x16-15.0.01.psf
+	@boot/createimg-x86_64.sh
+
+img-x86:
+	@$(MAKE) --no-print-directory -C kernel
 
 img-aarch64:
 	@$(MAKE) --no-print-directory -C kernel

@@ -109,7 +109,7 @@ void gdt::init() {
     gdtTable[7] = make_gdt_entry(0, 0, 0, 0);
 
     // LDT
-    gdtTable[8] = make_gdt_entry((uint32_t)&LDT, sizeof(LDT), GDT_ACCESS_PRESENT | GDT_ACCESS_SYSTEM_TYPE_LDT, GDT_FLAG_32BIT | GDT_FLAG_GRANULARITY_1B);
+    gdtTable[8] = make_gdt_entry((uintptr_t)&LDT, sizeof(LDT), GDT_ACCESS_PRESENT | GDT_ACCESS_SYSTEM_TYPE_LDT, GDT_FLAG_32BIT | GDT_FLAG_GRANULARITY_1B);
     LDT[0] = make_gdt_entry(0, 0, 0, 0);
     LDT[1] = make_gdt_entry(0, 0, 0, 0);
 
