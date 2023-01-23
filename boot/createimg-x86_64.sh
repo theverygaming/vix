@@ -28,6 +28,7 @@ mkfs.fat image_extracted.img
 
 mmd -i image_extracted.img ::boot
 
+mcopy -i image_extracted.img ${limine_path}/bin/limine.sys ::boot/
 mcopy -i image_extracted.img rootfs-x86_64/boot/limine.cfg ::boot/
 mcopy -i image_extracted.img ../kernel/kernel.o ::boot/kernel.o
 #mcopy -i image_extracted.img ../roramfs.fs ::boot/initramfs.bin
@@ -37,6 +38,7 @@ mmd -i image_extracted.img ::EFI/BOOT
 mcopy -i image_extracted.img ${limine_path}/common-uefi-x86-64/BOOTX64.EFI ::EFI/BOOT/BOOTX64.EFI
 
 dd if=image_extracted.img of=image.img bs=512 seek=2048 # write partition back to image
+${limine_path}/bin/limine-deploy image.img
 cp image.img ../shitOS_uefi.img
 rm -f image.img
 rm -f image_extracted.img

@@ -2,15 +2,22 @@
 #include <arch/generic/memory.h>
 #include <arch/memorymap.h>
 #include <arch/paging.h>
+#include <config.h>
+
+#ifdef CONFIG_ENABLE_KERNEL_64
+#include <arch/limine.h>
+static volatile struct limine_memmap_request memmap_request = {.id = LIMINE_MEMMAP_REQUEST, .revision = 0};
+#endif
 
 bool arch::generic::memory::get_memory_map(struct memory_map_entry *entry, int n) {
-    if (n == 0) { // lets make zero the kernel memory entry
+#ifdef CONFIG_ENABLE_KERNEL_32
+    int memmap_index = n - 1;
+    if (n == 0) {
         entry->start_address = KERNEL_PHYS_ADDRESS;
         entry->size = KERNEL_FREE_AREA_BEGIN_OFFSET;
         entry->entry_type = memory_map_entry::entry_type::MEMORY_KERNEL;
         return true;
     }
-    int memmap_index = n - 1;
 
     if (memmap_index >= memorymap::map_entrycount) {
         return false;
@@ -42,6 +49,22 @@ bool arch::generic::memory::get_memory_map(struct memory_map_entry *entry, int n
         entry->entry_type = memory_map_entry::entry_type::MEMORY_UNUSABLE;
         break;
     }
+#else
+    if (memmap_request.response == NULL || n >= memmap_request.response->entry_count) {
+        return false;
+    }
+
+    struct limine_memmap_entry *limine_entry = memmap_request.response->entries[n];
+
+    entry->start_address = limine_entry->base;
+    entry->size = limine_entry->length;
+    entry->entry_type = memory_map_entry::entry_type::MEMORY_RAM;
+
+    if (limine_entry->type != LIMINE_MEMMAP_USABLE) {
+        entry->entry_type = memory_map_entry::entry_type::MEMORY_UNUSABLE;
+    }
+
+#endif
     return true;
 }
 

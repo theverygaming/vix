@@ -40,7 +40,7 @@ void memorymap::initMemoryMap(void *mapadr, int entrycount) {
         totalMemory += processed[i].end - processed[i].start;
     }
     total_ram = totalUsableMemory;
-    DEBUG_PRINTF("Total Memory: %uMB, usable memory: %uMB\n", (uint32_t)totalMemory / 1000000, (uint32_t)totalUsableMemory / 1000000);
+    DEBUG_PRINTF("Total Memory: %uMB, usable memory: %uMB\n", (uintptr_t)totalMemory / 1000000, (uintptr_t)totalUsableMemory / 1000000);
     if (totalUsableMemory > 0xFFFFFFFF) {
         DEBUG_PRINTF("^ about that... you have more memory than this, but i have no 64-bit divide function sooo we can't display it here\n");
         if (sizeof(size_t) == 4) {

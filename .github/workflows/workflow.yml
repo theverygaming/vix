@@ -58,7 +58,7 @@ jobs:
           cd limine
           git checkout v4.20230114.0
           ./bootstrap
-          ./configure --enable-uefi-x86-64
+          ./configure --enable-uefi-x86-64 --enable-bios
           make -j $(nproc)
 
       - name: compile
