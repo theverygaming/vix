@@ -1,6 +1,7 @@
 #include <arch/drivers/serial.h>
 #include <arch/generic/startup.h>
 #include <arch/limine.h>
+#include <arch/paging.h>
 #include <config.h>
 #include <framebuffer.h>
 #include <kernel.h>
@@ -27,6 +28,8 @@ static void kernelinit() {
     stdio::set_putc_function(drivers::serial::putc, true);
     stdio::set_putc_function(limineputc, false);
     puts("entry\n");
+    puts("initializing paging\n");
+    paging::init();
     puts("kernelstart()\n");
     kernelstart();
 }

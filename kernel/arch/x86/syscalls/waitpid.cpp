@@ -22,7 +22,7 @@ static bool deth_listener(void *ctx, const pid_t *tid) {
     }
 
     multitasking::x86_process *proc = multitasking::get_tid(info->self_tid);
-    assertm(proc != nullptr, "why it ded??????");
+    assertm(proc != nullptr, "why it dead??????");
 
     proc->state = schedulers::generic_process::state::RUNNABLE;
     proc->registerContext.eax = info->tid;

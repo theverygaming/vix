@@ -60,7 +60,7 @@ static void kernelinit(void *multiboot2_info_ptr) {
     framebuffer.init(multiboot2::findFrameBuffer(multiboot2_info_ptr));
     fbconsole.init(&framebuffer);
     gdt::init();
-    paging::clearPageTables((void *)0x0, KERNEL_VIRT_ADDRESS / ARCH_PAGE_SIZE);
+    paging::init();
     kernelstart();
 }
 

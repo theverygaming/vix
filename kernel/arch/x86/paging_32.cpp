@@ -96,6 +96,10 @@ static inline void invlpg(void *virtaddr) {
     asm volatile("invlpg (%0)" ::"r"(_virtaddr) : "memory");
 }
 
+void paging::init() {
+    clearPageTables((void *)0x0, KERNEL_VIRT_ADDRESS / ARCH_PAGE_SIZE);
+}
+
 void *paging::get_physaddr(void *virtualaddr) {
     unsigned long pdindex = (unsigned long)virtualaddr >> 22;
     unsigned long ptindex = (unsigned long)virtualaddr >> 12 & 0x03FF;

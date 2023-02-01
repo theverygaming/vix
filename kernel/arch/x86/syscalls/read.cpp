@@ -19,7 +19,7 @@ struct read_resume_info {
 static bool key_listener(void *ctx, const char *c) {
     struct read_resume_info *info = (struct read_resume_info *)ctx;
     multitasking::x86_process *proc = multitasking::get_tid(info->tid);
-    assertm(proc != nullptr, "why it ded??????");
+    assertm(proc != nullptr, "why it dead??????");
 
     multitasking::unsetPageRange(&multitasking::getCurrentProcess()->pages);
     multitasking::setPageRange(&proc->pages);

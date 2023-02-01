@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+void paging::init() {}
+
 void *paging::get_physaddr(void *virtualaddr) {
     return virtualaddr;
 }
