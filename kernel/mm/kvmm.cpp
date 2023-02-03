@@ -22,5 +22,5 @@ void *mm::kv::alloc(size_t pages) {
 }
 
 void mm::kv::free(void *address, size_t pages) {
-    kvmm.dealloc(((uint8_t *)address) - ARCH_PHYS_MEM_START, pages);
+    kvmm.dealloc(((uint8_t *)address) - ARCH_KERNEL_HEAP_START, pages);
 }
