@@ -296,7 +296,7 @@ void elf::load_module(void *ELF_baseadr) {
     int (*modinit)() = (int (*)())elf32_find_symbol("__MODULE_INIT", ELF_baseadr, &sections);
     if (modinit != nullptr) {
         if (modinit() != 0) {
-            printf("shitOS module init failed!\n");
+            printf("vix module init failed!\n");
         }
     }
 

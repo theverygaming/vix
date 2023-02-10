@@ -5,7 +5,7 @@ cd "$parent_path"
 
 cp ../kernel_shitshell.bin rootfs-x86_32/boot/kernel.bin
 cp ../roramfs.fs rootfs-x86_32/boot/initramfs.bin
-grub-mkrescue -o ../shitOS.iso rootfs-x86_32/
+grub-mkrescue -o ../vix.iso rootfs-x86_32/
 exit
 limine_path=../../limine/bin # relative from the location of this script
 
@@ -43,7 +43,7 @@ e2cp ../roramfs.fs -G 0 -O 0 image_extracted.img:/boot/initramfs.bin
 
 dd if=image_extracted.img of=image.img bs=512 seek=2048 # write partition back to image
 ${limine_path}/limine-deploy image.img
-cp image.img ../shitOS.img
+cp image.img ../vix.img
 rm -f image.img
 rm -f image_extracted.img
 
@@ -84,6 +84,6 @@ mcopy -i image_extracted.img ${limine_path}/BOOTX64.EFI ::EFI/BOOT/BOOTX64.EFI
 
 dd if=image_extracted.img of=image.img bs=512 seek=2048 # write partition back to image
 ${limine_path}/limine-deploy image.img
-cp image.img ../shitOS_uefi.img
+cp image.img ../vix_uefi.img
 rm -f image.img
 rm -f image_extracted.img

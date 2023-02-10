@@ -230,7 +230,7 @@ uint32_t sys_uname(isr::registers *, int *syscall_ret, uint32_t, uint32_t _old_u
         char machine[65];
     };
     struct sys_uname_utsname *unamestruct = (struct sys_uname_utsname *)_old_utsname;
-    memcpy(unamestruct->sysname, "shitOS", 7);
+    memcpy(unamestruct->sysname, "vix", 7);
     memcpy(unamestruct->nodename, "puter", 6);
     memcpy(unamestruct->release, CONFIG_KVERSION, strlen(CONFIG_KVERSION) + 1);
     memcpy(unamestruct->version, __DATE__ " " __TIME__, strlen(__DATE__ " " __TIME__) + 1);

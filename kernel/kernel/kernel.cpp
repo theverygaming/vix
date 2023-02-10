@@ -13,7 +13,7 @@ void run_all_tests();
 
 void kernelstart() {
     LOG_NORMAL("hewwo");
-    LOG_NORMAL("starting shitOS -- built " __DATE__ " " __TIME__);
+    LOG_NORMAL("starting vix -- built " __DATE__ " " __TIME__);
     mm::phys::phys_init();
     LOG_NORMAL("initialized physical memory manager");
     mm::kv::init();

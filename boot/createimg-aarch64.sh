@@ -37,6 +37,6 @@ mmd -i image_extracted.img ::EFI/BOOT
 mcopy -i image_extracted.img ${limine_path}/common-uefi-aarch64/BOOTAA64.EFI ::EFI/BOOT/BOOTAA64.EFI
 
 dd if=image_extracted.img of=image.img bs=512 seek=2048 # write partition back to image
-cp image.img ../shitOS_uefi.img
+cp image.img ../vix_uefi.img
 rm -f image.img
 rm -f image_extracted.img

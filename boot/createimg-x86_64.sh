@@ -39,6 +39,6 @@ mcopy -i image_extracted.img ${limine_path}/common-uefi-x86-64/BOOTX64.EFI ::EFI
 
 dd if=image_extracted.img of=image.img bs=512 seek=2048 # write partition back to image
 ${limine_path}/bin/limine-deploy image.img
-cp image.img ../shitOS_uefi.img
+cp image.img ../vix_uefi.img
 rm -f image.img
 rm -f image_extracted.img

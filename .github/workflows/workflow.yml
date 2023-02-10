@@ -24,14 +24,14 @@ jobs:
       - name: run
         run: |
           cd $GITHUB_WORKSPACE
-          timeout 30 qemu-system-x86_64 -cdrom shitOS.iso -nographic > log.txt || true
+          timeout 30 qemu-system-x86_64 -cdrom vix.iso -nographic > log.txt || true
           cat log.txt
 
       - name: upload image
         uses: actions/upload-artifact@v3
         with:
           name: image-x86_32
-          path: ${{runner.workspace}}/shitOS/shitOS.iso
+          path: ${{runner.workspace}}/vix/vix.iso
 
       - name: check tests
         run: |
@@ -73,14 +73,14 @@ jobs:
       - name: run
         run: |
           cd $GITHUB_WORKSPACE
-          timeout 30 qemu-system-x86_64 -bios /usr/share/ovmf/OVMF.fd -nographic -serial mon:stdio -hda shitOS_uefi.img > log.txt || true
+          timeout 30 qemu-system-x86_64 -bios /usr/share/ovmf/OVMF.fd -nographic -serial mon:stdio -hda vix_uefi.img > log.txt || true
           cat log.txt
 
       - name: upload image
         uses: actions/upload-artifact@v3
         with:
           name: image-x86_64
-          path: ${{runner.workspace}}/shitOS/shitOS_uefi.img
+          path: ${{runner.workspace}}/vix/vix_uefi.img
 
       - name: check tests
         run: |
@@ -118,14 +118,14 @@ jobs:
       - name: run
         run: |
           cd $GITHUB_WORKSPACE
-          timeout 30 qemu-system-aarch64 -m 1024m -bios /usr/share/qemu-efi-aarch64/QEMU_EFI.fd -cpu cortex-a53 -smp 4 -machine virt -device ramfb -device qemu-xhci -device usb-kbd -nographic -serial mon:stdio -hda shitOS_uefi.img > log.txt || true
+          timeout 30 qemu-system-aarch64 -m 1024m -bios /usr/share/qemu-efi-aarch64/QEMU_EFI.fd -cpu cortex-a53 -smp 4 -machine virt -device ramfb -device qemu-xhci -device usb-kbd -nographic -serial mon:stdio -hda vix_uefi.img > log.txt || true
           cat log.txt
 
       - name: upload image
         uses: actions/upload-artifact@v3
         with:
           name: image-aarch64
-          path: ${{runner.workspace}}/shitOS/shitOS_uefi.img
+          path: ${{runner.workspace}}/vix/vix_uefi.img
 
       - name: check tests
         run: |

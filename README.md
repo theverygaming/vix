@@ -1,7 +1,8 @@
-# shitOS
-a broken operating system with a ton of bad design choices and copypasted code. _It's actually not that bad anymore tho_
+# vix
+a broken kernel with a ton of bad design choices and copypasted code. _It's actually not that bad anymore tho_
 
 #### Goals
+- Run X server
 - Full Linux binary compatibility
 - Load Linux kernel modules/drivers
 
@@ -10,7 +11,7 @@ References: [PenutOS](https://github.com/AlexandreRouma/PenutOS/), [nanobyte_os]
 
 first make sure you have the shitshell submodule. Simply clone like this
 ```
-git clone --recurse-submodules https://github.com/theverygaming/shitOS.git
+git clone --recurse-submodules https://github.com/theverygaming/vix.git
 ```
 
 you already cloned the repo? then run ``git submodule update --init --recursive`` instead
@@ -24,6 +25,6 @@ first you have to configure the kernel, you could either simply use the default 
 
 then you can simply build with ``make`` and then ``make img_x86_32`` (if you have a x86_32 system, otherwise use the ``CROSS_COMPILE`` environment variable or on x86_64 you can use ``CXXFLAGS="-m32 -march=i386" LDFLAGS="-m elf_i386"``)
 
-a bootable iso named ``shitOS.iso`` will be created
+a bootable iso named ``vix.iso`` will be created
 
 for other architectures look at the [GitHub actions workflow](.github/workflows/workflow.yml)

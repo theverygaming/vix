@@ -51,7 +51,7 @@ clean-x86:
 	@$(MAKE) --no-print-directory -C startup/$(MAKE_ARCH) proper
 
 clean: clean-$(MAKE_ARCH)
-	@rm -f shitOS.img shitOS.iso *.o
+	@rm -f vix.img vix.iso *.o
 	@$(MAKE) --no-print-directory -C kernel clean
 	@$(MAKE) --no-print-directory -C shitshell clean
 	@$(MAKE) --no-print-directory -C modules clean

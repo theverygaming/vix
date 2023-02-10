@@ -1,4 +1,4 @@
-mainmenu "shitOS/$(SRCARCH) $(KVERSION) Kernel Configuration"
+mainmenu "vix/$(SRCARCH) $(KVERSION) Kernel Configuration"
 
 source "arch/$(SRCARCH)/Kconfig"
 source "drivers/Kconfig"
