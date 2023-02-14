@@ -21,7 +21,7 @@ namespace std {
 
             assureSize(obj._size);
 
-            for (int i = 0; i < obj._size; i++) {
+            for (size_t i = 0; i < obj._size; i++) {
                 new (&_pointer[i]) T(obj._pointer[i]); // placement new + call copy constructor
             }
         }

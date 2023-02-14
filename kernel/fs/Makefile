@@ -1,1 +1,1 @@
-obj-y := path.ocpp roramfs.ocpp vfs.ocpp
+obj-y := path.ocpp vfs.ocpp roramfs.ocpp

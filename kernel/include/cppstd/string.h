@@ -51,6 +51,10 @@ namespace std {
             return true;
         }
 
+        bool operator!=(const string &str) {
+            return !operator==(str);
+        }
+
         string &operator=(const string &str) {
             assureSize(str._size);
             memcpy(_pointer, str._pointer, str._size);

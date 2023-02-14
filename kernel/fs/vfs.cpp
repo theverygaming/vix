@@ -3,81 +3,23 @@
 #include <fs/path.h>
 #include <fs/vfs.h>
 
-/* the VFS is just a list of mount points an their paths, this will have to be replaced with something a bit better at some point... */
+static std::vector<struct fs::vfs::fsinfo> mountpoints;
 
-std::mutex mountpoint_lock;
-std::vector<struct fs::vfs::vfs_mountpoint> mountpoints;
-
-void fs::vfs::mount(struct vfs_mountpoint mount) {
-    mountpoint_lock.lock();
-    mountpoints.push_back(mount);
-    mountpoint_lock.unlock();
+void fs::vfs::mount_fs(struct fsinfo *fs, std::string *mountpoint) {
+    struct fsinfo info = *fs;
+    info.mount_path = fs::path::split_path(mountpoint);
 }
 
-void fs::vfs::unmount(char *mountpath) {
-    mountpoint_lock.lock();
-    for (size_t i = 0; i < mountpoints.size(); i++) {
-        if (fs::path::path_compare(mountpath, mountpoints[i].mountpath)) {
-            mountpoints.erase(i);
-            break;
-        }
-    }
-    mountpoint_lock.unlock();
+fs::vfs::file *fs::vfs::fopen(std::string *path) {
+    std::vector<std::string> split_path = fs::path::split_path(path);
+    int maxdepth = -1;
+    struct fs::vfs::fsinfo best_mountpoint;
 }
 
-static int find_best_mountpoint_index(char *path) {
-    int bestIndex = -1;
-    int bestDepth = -1;
-    for (size_t i = 0; i < mountpoints.size(); i++) {
-        if (fs::path::startswith_path(mountpoints[i].mountpath, path)) {
-            int depth = fs::path::path_depth(mountpoints[i].mountpath);
-            if (depth > bestDepth) {
-                bestIndex = i;
-                bestDepth = depth;
-            }
-        }
-    }
-    return bestIndex;
-}
+void fs::vfs::fclose(file *file) {}
 
-size_t fs::vfs::fsize(char *path) {
-    mountpoint_lock.lock();
-    int bestindex = find_best_mountpoint_index(path);
-    if (bestindex < 0) {
-        mountpoint_lock.unlock();
-        return 0;
-    }
-    char *rmprefix = fs::path::rm_prefix(mountpoints[bestindex].mountpath, path);
-    size_t size = mountpoints[bestindex].fsize(rmprefix);
-    mm::kfree(rmprefix);
-    mountpoint_lock.unlock();
-    return size;
-}
+size_t fs::vfs::fread(file *file, void *buf, size_t count) {}
 
-bool fs::vfs::fload(char *path, void *memloc) {
-    mountpoint_lock.lock();
-    int bestindex = find_best_mountpoint_index(path);
-    if (bestindex < 0) {
-        mountpoint_lock.unlock();
-        return false;
-    }
-    char *rmprefix = fs::path::rm_prefix(mountpoints[bestindex].mountpath, path);
-    bool loaded = mountpoints[bestindex].fload(rmprefix, memloc);
-    mm::kfree(rmprefix);
-    mountpoint_lock.unlock();
-    return loaded;
-}
+size_t fs::vfs::ftell(file *file) {}
 
-bool fs::vfs::fptr(char *path, void **fileptr) {
-    mountpoint_lock.lock();
-    int bestindex = find_best_mountpoint_index(path);
-    if (bestindex < 0) {
-        mountpoint_lock.unlock();
-        return false;
-    }
-    char *rmprefix = fs::path::rm_prefix(mountpoints[bestindex].mountpath, path);
-    bool loaded = mountpoints[bestindex].fptr(rmprefix, fileptr);
-    mm::kfree(rmprefix);
-    mountpoint_lock.unlock();
-    return loaded;
-}
+void fs::vfs::fseek(file *file, size_t pos, unsigned int flags) {}

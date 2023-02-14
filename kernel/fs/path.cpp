@@ -1,6 +1,8 @@
 #include <fs/path.h>
 #include <mm/kmalloc.h>
+#include <panic.h>
 #include <stdlib.h>
+#include <types.h>
 
 static void format_path(char *path) {
     // remove / at end if there is one
@@ -85,4 +87,35 @@ char *fs::path::rm_prefix(char *prefix, char *path) {
     }
 
     return ret;
+}
+
+bool fs::path::starts_with(std::vector<std::string> *path, std::vector<std::string> *start) {
+    for (size_t i = 0; i < start->size(); i++) {
+        if (i >= path->size()) {
+            return false;
+        }
+        if ((*start)[i] != (*path)[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+std::vector<std::string> fs::path::split_path(std::string *path) {
+    std::vector<std::string> vec;
+    char last = 0;
+
+    if (path->size() == 0 || (*path)[0] != '/') {
+        KERNEL_PANIC("path is not absolute");
+        return vec;
+    }
+    for (size_t i = 0; i < path->size(); i++) {
+        if ((*path)[i] == '/' && last != '/') {
+            vec.push_back("");
+            continue;
+        }
+        last = (*path)[i];
+        vec[vec.size() - 1] += (*path)[i];
+    }
+    return vec;
 }
