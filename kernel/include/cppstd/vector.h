@@ -11,13 +11,21 @@ namespace std {
         vector() {
             _capacity = 1;
             _size = 0;
-            _pointer = (T *)mm::kmalloc(_capacity * sizeof(T));
+            if (alignof(T) > 1) {
+                _pointer = (T *)mm::kmalloc_aligned(_capacity * sizeof(T), alignof(T));
+            } else {
+                _pointer = (T *)mm::kmalloc(_capacity * sizeof(T));
+            }
         }
 
         vector(const vector &obj) {
             _capacity = 1;
             _size = 0;
-            _pointer = (T *)mm::kmalloc(_capacity * sizeof(T));
+            if (alignof(T) > 1) {
+                _pointer = (T *)mm::kmalloc_aligned(_capacity * sizeof(T), alignof(T));
+            } else {
+                _pointer = (T *)mm::kmalloc(_capacity * sizeof(T));
+            }
 
             assureSize(obj._size);
 
@@ -30,7 +38,11 @@ namespace std {
             for (size_t i = 0; i < _size; i++) {
                 _pointer[i].~T();
             }
-            mm::kfree(_pointer);
+            if (alignof(T) > 1) {
+                // mm::kfree_aligned(_pointer);
+            } else {
+                mm::kfree(_pointer);
+            }
         }
 
         T &operator[](size_t i) {
@@ -38,10 +50,19 @@ namespace std {
             return _pointer[i];
         }
 
+        T &operator[](size_t i) const {
+            assertm(i < _size, "out of bounds vector access");
+            return _pointer[i];
+        }
+
         vector<T> &operator=(const vector<T> &obj) {
             _capacity = 1;
             _size = 0;
-            _pointer = (T *)mm::kmalloc(_capacity * sizeof(T));
+            if (alignof(T) > 1) {
+                _pointer = (T *)mm::kmalloc_aligned(_capacity * sizeof(T), alignof(T));
+            } else {
+                _pointer = (T *)mm::kmalloc(_capacity * sizeof(T));
+            }
 
             assureSize(obj._size);
 
@@ -81,8 +102,8 @@ namespace std {
 
         void pop_back() {
             if (_size > 0) {
-                _pointer[_size - 1].~T();
                 _size--;
+                _pointer[_size].~T();
             }
         }
 
@@ -115,7 +136,7 @@ namespace std {
         }
 
     private:
-        T *_pointer = 0;
+        T *_pointer = nullptr;
         size_t _capacity = 0;
         size_t _size = 0;
 
@@ -131,7 +152,16 @@ namespace std {
             if (_capacity == 0) {
                 _capacity = 1;
             }
-            _pointer = (T *)mm::krealloc(_pointer, _capacity * sizeof(T));
+
+            if (alignof(T) > 1) {
+                // TODO: aligned krealloc + aligned free
+                T *newptr = (T *)mm::kmalloc_aligned(_capacity * sizeof(T), alignof(T));
+                memcpy(newptr, _pointer, _capacity * sizeof(T));
+                // mm::kfree_aligned(_pointer);
+                _pointer = newptr;
+            } else {
+                _pointer = (T *)mm::krealloc(_pointer, _capacity * sizeof(T));
+            }
         }
     };
 }

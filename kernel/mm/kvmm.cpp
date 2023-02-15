@@ -18,7 +18,7 @@ void *mm::kv::alloc(size_t pages) {
         KERNEL_PANIC("kvmm -> memory full");
         return nullptr;
     }
-    return ((uint8_t *)allocated) + ARCH_KERNEL_HEAP_START;
+    return (void *)(((uintptr_t)allocated) + ARCH_KERNEL_HEAP_START);
 }
 
 void mm::kv::free(void *address, size_t pages) {

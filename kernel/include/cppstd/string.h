@@ -1,5 +1,6 @@
 #pragma once
 #include <cpp.h>
+#include <cppstd/vector.h>
 #include <debug.h>
 #include <mm/kmalloc.h>
 #include <stdlib.h>
@@ -7,36 +8,28 @@
 namespace std {
     class string {
     public:
-        string() {
-            initString();
-        }
+        string() {}
 
         string(const string &obj) {
-            initString();
-
             operator=(obj);
         }
 
         string(const char *s) {
-            initString();
-
             operator=(s);
         }
 
         string(const char *s, size_t n) {
-            initString();
-
             assureSize(n);
-            memcpy(_pointer, s, n);
+            memcpy(&_data[0], s, n);
         }
 
         ~string() {
-            mm::kfree(_pointer);
+            _data.clear();
         }
 
         char &operator[](size_t i) {
-            assertm(i < _capacity, "out of bounds string access");
-            return _pointer[i];
+            assertm(i < _size, "out of bounds string access");
+            return _data[i];
         }
 
         bool operator==(const string &str) {
@@ -44,7 +37,7 @@ namespace std {
                 return false;
             }
             for (size_t i = 0; i < _size; i++) {
-                if (str._pointer[i] != _pointer[i]) {
+                if (str._data[i] != _data[i]) {
                     return false;
                 }
             }
@@ -57,20 +50,24 @@ namespace std {
 
         string &operator=(const string &str) {
             assureSize(str._size);
-            memcpy(_pointer, str._pointer, str._size);
+            if (_size != 0) {
+                memcpy(&_data[0], &str._data[0], str._size);
+            }
             return *this;
         }
 
         string &operator=(const char *s) {
             size_t len = strlen(s);
             assureSize(len);
-            memcpy(_pointer, s, len);
+            if (_size != 0) {
+                memcpy(&_data[0], s, len);
+            }
             return *this;
         }
 
         string &operator=(char c) {
             assureSize(1);
-            _pointer[0] = c;
+            _data[0] = c;
             return *this;
         }
 
@@ -91,33 +88,33 @@ namespace std {
 
         string &append(const string &str) {
             assureSize(_size + str._size);
-            memcpy(&_pointer[_size - str._size], str._pointer, str._size);
+            memcpy(&_data[_size - str._size], &str._data[0], str._size);
             return *this;
         }
 
         string &append(const char *s) {
             size_t len = strlen(s);
             assureSize(_size + len);
-            memcpy(&_pointer[_size - len], s, len);
+            memcpy(&_data[_size - len], s, len);
             return *this;
         }
 
         string &append(const char *s, size_t n) {
             assureSize(_size + n);
-            memcpy(&_pointer[_size - n], s, n);
+            memcpy(&_data[_size - n], s, n);
             return *this;
         }
 
         const char *c_str() {
-            if (_capacity <= _size) {
-                reallocate(_size + 1);
+            if (_data.size() <= _size) {
+                _data.resize(_size + 1);
             }
-            _pointer[_size] = '\0';
-            return _pointer;
+            _data[_size] = '\0';
+            return &_data[0];
         }
 
         size_t capacity() {
-            return _capacity;
+            return _data.size();
         }
 
         size_t size() {
@@ -126,60 +123,46 @@ namespace std {
 
         void resize(size_t n) {
             _size = n;
-            reallocate(n);
+            _data.resize(_size);
         }
 
         void reserve(size_t n) {
-            if (n > _capacity) {
-                reallocate(n);
+            if (n > _data.capacity()) {
+                _data.reserve(n);
             }
         }
 
         void shrink_to_fit() {
-            reallocate(_size);
+            _data.shrink_to_fit();
         }
 
         void push_back(char c) {
             assureSize(_size + 1);
-            _pointer[_size - 1] = c;
+            _data[_size - 1] = c;
         }
 
         void pop_back() {
             if (_size > 0) {
-                _size--;
+                _data.pop_back();
             }
         }
 
         void clear() {
             _size = 0;
-            reallocate(1);
+            _data.clear();
         }
 
     private:
-        char *_pointer = 0;
-        size_t _capacity = 0;
         size_t _size = 0;
 
         void assureSize(size_t n) {
             _size = n;
-            if (_size > _capacity) {
-                reallocate(_size);
+            if (_size != _data.size()) {
+                _data.resize(_size);
             }
         }
 
-        void reallocate(size_t capacity) {
-            _capacity = capacity;
-            if (_capacity <= 0) {
-                _capacity = 1;
-            }
-            _pointer = (char *)mm::krealloc(_pointer, _capacity * sizeof(char));
-        }
-
-        void initString() {
-            _capacity = 1;
-            _size = 0;
-            _pointer = (char *)mm::kmalloc(_capacity * sizeof(char));
-        }
+        std::vector<char> _data;
     };
 }
 

@@ -32,7 +32,7 @@ namespace fb {
     public:
         void init(fb *framebuffer);
         void init2(); // font init
-        void puts(char *str);
+        void puts(const char *str);
         void putc(char c);
 
     private:

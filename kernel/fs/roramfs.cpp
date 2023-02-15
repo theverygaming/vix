@@ -63,11 +63,9 @@ void fs::filesystems::roramfs::init(void *location) {
 }
 
 void fs::filesystems::roramfs::deinit() {
-    fs::vfs::unmount("/ramfs/");
+    
 }
 
 void fs::filesystems::roramfs::mountInVFS() {
-    struct fs::vfs::vfs_mountpoint mountpoint = {.mountpath = {0}, .uid = 0, .gid = 0, .fsize = &fsize, .fload = &fload, .fptr = &fptr};
-    strcpy(mountpoint.mountpath, "/ramfs/");
-    fs::vfs::mount(mountpoint);
+    log::log_service("roramfs", "mounted");
 }

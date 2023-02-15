@@ -23,7 +23,7 @@ namespace fs::vfs {
         std::vector<std::string> mount_path;
     };
 
-    typedef struct {
+    typedef struct __attribute__ ((packed)) {
         struct fsinfo mount; // do not use directly, currently we do not keep track of all open files so on every operation we have to check if this is still valid
         void *internal_file;
     } file;
@@ -39,14 +39,5 @@ namespace fs::vfs {
     void fseek(file *file, size_t pos, unsigned int flags = 0);
 
     /* old */
-    bool fptr(const char *path, void **fileptr) {
-        std::string path_str = path;
-        file *file = fopen(&path_str);
-        fseek(file, 0, VFS_SEEK_END);
-        size_t filesize = ftell(file);
-        fseek(file, 0);
-        *fileptr = mm::kmalloc(filesize);
-        fread(file, *fileptr, filesize);
-        fclose(file);
-    }
+    bool fptr(const char *path, void **fileptr);
 }

@@ -11,6 +11,8 @@
 #include <stdlib.h>
 #include <types.h>
 
+#define PROTECT_ALLOC_STRUCTS
+
 #define DEBUG_PRINTF_INSANE(...) \
     while (0) {} // disable debug printf for this file
 
@@ -50,9 +52,16 @@ static void free_pages(void *address, size_t count) {
  */
 
 struct __attribute__((packed)) meminfo {
+#ifdef PROTECT_ALLOC_STRUCTS
+    uint64_t p1;
+#endif
     struct meminfo *prev;
     struct meminfo *next;
     size_t size; // holds the size of the area EXCLUDING this struct
+#ifdef PROTECT_ALLOC_STRUCTS
+    uint64_t p2;
+    uintptr_t checksum;
+#endif
 };
 
 static struct meminfo *heap_start = nullptr;
@@ -62,6 +71,43 @@ static size_t heap_base_size = 0;
 /* linked list related functions */
 
 static size_t ll_defrag(bool internal = false);
+
+static uintptr_t ll_get_checksum(struct meminfo *ptr) {
+    uintptr_t checksum = 0;
+#ifdef PROTECT_ALLOC_STRUCTS
+    unsigned char *ptr_c = (unsigned char *)ptr;
+    for (int i = 0; i < sizeof(struct meminfo) - sizeof(uintptr_t); i++) {
+        checksum += *ptr_c++;
+    }
+#endif
+    return checksum;
+}
+
+/* adds protection features to meminfo struct */
+static void ll_protect(struct meminfo *ptr) {
+#ifdef PROTECT_ALLOC_STRUCTS
+    ptr->p1 = 0x2ff8ce70b09deab5;
+    ptr->p2 = 0x7f0dc0fea5239da2;
+    ptr->checksum = ll_get_checksum(ptr);
+#endif
+}
+
+static void ll_unprotect(struct meminfo *ptr) {
+#ifdef PROTECT_ALLOC_STRUCTS
+    ptr->p1 = 0;
+    ptr->p2 = 0;
+    ptr->checksum = 0;
+#endif
+}
+
+static bool ll_check_protect(struct meminfo *ptr) {
+#ifdef PROTECT_ALLOC_STRUCTS
+    if (ptr->p1 != 0x2ff8ce70b09deab5 || ptr->p2 != 0x7f0dc0fea5239da2 || ll_get_checksum(ptr) != ptr->checksum) {
+        return false;
+    }
+#endif
+    return true;
+}
 
 /*
  * For debugging.
@@ -408,7 +454,19 @@ static void init() {
     heap_base_ptr = alloc_pages(1);
     heap_base_size = 1;
     heap_start = (struct meminfo *)heap_base_ptr;
-    *heap_start = {.prev = nullptr, .next = nullptr, .size = ARCH_PAGE_SIZE - sizeof(struct meminfo)};
+
+    *heap_start = {
+#ifdef PROTECT_ALLOC_STRUCTS
+        .p1 = 0,
+#endif
+        .prev = nullptr,
+        .next = nullptr,
+        .size = ARCH_PAGE_SIZE - sizeof(struct meminfo),
+#ifdef PROTECT_ALLOC_STRUCTS
+        .p2 = 0,
+#endif
+    };
+    ll_check();
 }
 
 void *mm::kmalloc(size_t size) {
@@ -421,6 +479,7 @@ void *mm::kmalloc(size_t size) {
         DEBUG_PRINTF_INSANE("    -> smallest block found: %u bytes\n", found->size);
         ll_allocate_block(found, size);
         DEBUG_PRINTF_INSANE("    -> resized block to %u bytes\n", found->size);
+        ll_protect(found);
         return ((uint8_t *)found) + sizeof(struct meminfo);
     }
 
@@ -436,6 +495,10 @@ void mm::kfree(void *ptr) {
     if (closest == _blk) {
         KERNEL_PANIC("double free!\n");
     }
+    if (!ll_check_protect(_blk)) {
+        KERNEL_PANIC("internal kmalloc struct corrupted");
+    }
+    ll_unprotect(_blk);
     ll_insert(closest, _blk, (uintptr_t)closest < (uintptr_t)_blk);
     ll_defrag();
 #ifdef CONFIG_KFREE_CLEANUP
@@ -451,10 +514,7 @@ void mm::kfree(void *ptr) {
 void *mm::kmalloc_aligned(size_t size, size_t alignment) {
     // hack level: insane
     void *ptr = kmalloc(size + alignment);
-    uintptr_t misalign = (uintptr_t)ptr % alignment;
-    if (misalign != 0) {
-        ptr = (void *)((uintptr_t)ptr + (alignment - misalign));
-    }
+    ptr = PTR_ALIGN_UP(ptr, alignment);
     return ptr;
 }
 

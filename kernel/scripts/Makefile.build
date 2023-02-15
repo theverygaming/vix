@@ -9,5 +9,5 @@ override CXXFLAGS += -Iinclude/ -Iarch/$(BUILD_ARCH)/include -O$(CXX_OPTIM_LEVEL
 	@$(CXX) $(CXXFLAGS) -c $< -o $@
 
 ifeq ($(CONFIG_UBSAN), y)
-override CXXFLAGS += -fsanitize=undefined
+override CXXFLAGS += -fsanitize=undefined -fno-strict-overflow
 endif

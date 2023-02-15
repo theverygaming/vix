@@ -149,7 +149,7 @@ void fb::fbconsole::init2() {
 #endif
 }
 
-void fb::fbconsole::puts(char *str) {
+void fb::fbconsole::puts(const char *str) {
     while (*str) {
         this->putc(*str);
         str++;
