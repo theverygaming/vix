@@ -54,9 +54,9 @@ jobs:
       - name: build limine
         run: |
           cd $GITHUB_WORKSPACE/../
-          git clone https://github.com/limine-bootloader/limine.git
-          cd limine
-          git checkout v4.20230114.0
+          wget https://github.com/limine-bootloader/limine/releases/download/v4.20230114.0/limine-4.20230114.0.tar.gz
+          tar -xf limine-4.20230114.0.tar.gz
+          cd limine-4.20230114.0
           ./bootstrap
           ./configure --enable-uefi-x86-64 --enable-bios
           make -j $(nproc)
@@ -103,9 +103,9 @@ jobs:
       - name: build limine
         run: |
           cd $GITHUB_WORKSPACE/../
-          git clone https://github.com/limine-bootloader/limine.git
-          cd limine
-          git checkout v4.20230114.0
+          wget https://github.com/limine-bootloader/limine/releases/download/v4.20230114.0/limine-4.20230114.0.tar.gz
+          tar -xf limine-4.20230114.0.tar.gz
+          cd limine-4.20230114.0
           ./bootstrap
           CROSS_TOOLCHAIN=aarch64-linux-gnu ./configure --enable-uefi-aarch64
           make -j $(nproc)
