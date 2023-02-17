@@ -186,8 +186,8 @@ void elf::load_module(void *ELF_baseadr) {
 
     // read the section header table and allocate all sections
     std::vector<section_alloc> sections;
-    const char *stringtable_base =
-        ((const char *)((struct elf32_section_header *)(((uint8_t *)ELF_baseadr) + header.e_shoff + (header.e_shentsize * header.e_shstrndx)))->sh_offset) + (uintptr_t)ELF_baseadr;
+    // TODO: investigate pointer overflow
+    const char *stringtable_base = ((const char *)((struct elf32_section_header *)(((uint8_t *)ELF_baseadr) + header.e_shoff + (header.e_shentsize * header.e_shstrndx)))->sh_offset) + (uintptr_t)ELF_baseadr;
     for (int i = 0; i < header.e_shnum; i++) {
         struct elf32_section_header *shdr = (struct elf32_section_header *)(((uint8_t *)ELF_baseadr) + header.e_shoff + (header.e_shentsize * i));
         if (!(shdr->sh_flags & SHF_ALLOC)) {

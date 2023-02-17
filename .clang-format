@@ -32,8 +32,6 @@ BraceWrapping:
   SplitEmptyNamespace: false
 BreakBeforeBraces: Custom
 
-ColumnLimit: 200
-
 PointerAlignment: Right
 
 AllowShortBlocksOnASingleLine: Empty
