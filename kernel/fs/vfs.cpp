@@ -75,7 +75,7 @@ bool fs::vfs::fptr(const char *path, void **fileptr) {
     fseek(file, 0, VFS_SEEK_END);
     size_t filesize = ftell(file);
     fseek(file, 0);
-    *fileptr = mm::kmalloc(filesize);
+    *fileptr = mm::kmalloc(filesize + 30000); // TODO: +30000 because kernel module code is broken and i need to sleep
     fread(file, *fileptr, filesize);
     fclose(file);
     return true;
