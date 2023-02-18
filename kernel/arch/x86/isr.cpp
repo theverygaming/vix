@@ -10,6 +10,7 @@
 #include <debug.h>
 #include <log.h>
 #include <mm/kmalloc.h>
+#include <panic.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -41,7 +42,9 @@ extern "C" void i686_ISR_Handler(isr::registers *regs) {
     // get current ring
     uint16_t old_ring = regs->cs & 0x3;
     uint16_t current_ring;
-    asm volatile("mov %%cs, %%ax" : "=a"(current_ring) :);
+    asm volatile("mov %%cs, %%ax"
+                 : "=a"(current_ring)
+                 :);
     current_ring &= 0x3;
 
     if (old_ring != current_ring) {
@@ -67,12 +70,13 @@ extern "C" void i686_ISR_Handler(isr::registers *regs) {
         DEBUG_PRINTF("No interrupt handler for #%u!, ignoring\n", regs->interrupt);
     } else if (regs->interrupt == 14) {
         uint32_t fault_address;
-        asm volatile("mov %%cr2, %0" : "=r"(fault_address)); // get address page fault occurred at
-        int present = !(regs->error & 0x1);                  // page not present
-        int rw = regs->error & 0x2;                          // is caused by write
-        int us = regs->error & 0x4;                          // user or kernel fault?
-        int reserved = regs->error & 0x8;                    // reserved bt fuckup?
-        int id = regs->error & 0x10;                         // instruction access or data?
+        asm volatile("mov %%cr2, %0"
+                     : "=r"(fault_address)); // get address page fault occurred at
+        int present = !(regs->error & 0x1);  // page not present
+        int rw = regs->error & 0x2;          // is caused by write
+        int us = regs->error & 0x4;          // user or kernel fault?
+        int reserved = regs->error & 0x8;    // reserved bt fuckup?
+        int id = regs->error & 0x10;         // instruction access or data?
 
         // Output an error message.
         printf("Page fault! ( ");
@@ -113,7 +117,7 @@ extern "C" void i686_ISR_Handler(isr::registers *regs) {
 #endif
             multitasking::killCurrentProcess(regs);
         } else {
-            debug::debug_loop();
+            KERNEL_PANIC("");
         }
     } else if (regs->interrupt == 8 || regs->interrupt == 18) {
         printf("---RIP---\nException #%lu, cannot recover\n", regs->interrupt);
@@ -127,7 +131,7 @@ extern "C" void i686_ISR_Handler(isr::registers *regs) {
                regs->esp_user,
                regs->ebp,
                regs->eip);
-        debug::debug_loop();
+        KERNEL_PANIC("Exception");
     } else {
         printf("Exception #%u\n", regs->interrupt);
         printf("Error code: 0x%p\n", regs->error);
@@ -151,7 +155,7 @@ extern "C" void i686_ISR_Handler(isr::registers *regs) {
 #endif
             multitasking::killCurrentProcess(regs);
         } else {
-            debug::debug_loop();
+            KERNEL_PANIC("");
         }
     }
 

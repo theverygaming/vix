@@ -101,7 +101,7 @@ uint32_t sys_execve(isr::registers *regs, int *syscall_ret, uint32_t, uint32_t _
 
 uint32_t sys_time(isr::registers *, int *syscall_ret, uint32_t, uint32_t _tloc, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
-    uint64_t *tloc = (uint64_t *)_tloc;
+    int64_t *tloc = (int64_t *)_tloc;
     *tloc = time::getCurrentUnixTime();
     return 0;
 }
@@ -343,7 +343,7 @@ uint32_t sys_stat64(isr::registers *, int *syscall_ret, uint32_t, uint32_t _file
     *syscall_ret = 1;
     const char *filename = (const char *)_filename;
     LOG_INSANE("syscall: sys_stat64");
-    printf("%s\n", filename);
+    DEBUG_PRINTF("stat64: %s\n", filename);
     return -ENOSYS; // TODO: fix up return value
 }
 

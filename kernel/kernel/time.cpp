@@ -1,14 +1,14 @@
 #include <arch/generic/devices.h>
 #include <time.h>
 
-volatile uint64_t time::bootupTime = 0;
+volatile int64_t time::bootupTime = 0;
 
 static const uint8_t monthDays[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
-uint64_t time::convertUTCToUnixTime(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t minute, uint8_t second) {
-    uint64_t unixtime = 0;
+int64_t time::convertUTCToUnixTime(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t minute, uint8_t second) {
+    int64_t unixtime = 0;
 
-    uint64_t unixyears = year - 1970;
+    int64_t unixyears = year - 1970;
     unixtime += ((unixyears + 2) / 4) * 86400; // leap years
     unixtime += unixyears * 86400 * 365;
 
@@ -22,21 +22,21 @@ uint64_t time::convertUTCToUnixTime(uint16_t year, uint8_t month, uint8_t day, u
         unixtime += monthDays[month] * 86400;
     }
 
-    unixtime += (uint64_t)second;
-    unixtime += ((uint64_t)minute) * 60;
-    unixtime += ((uint64_t)hour) * 3600;
-    unixtime += ((uint64_t)day - 1) * 86400;
+    unixtime += (int64_t)second;
+    unixtime += ((int64_t)minute) * 60;
+    unixtime += ((int64_t)hour) * 3600;
+    unixtime += ((int64_t)day - 1) * 86400;
 
     return unixtime;
 }
 
-uint64_t time::getCurrentUnixTime() {
+int64_t time::getCurrentUnixTime() {
     uint16_t year;
     uint8_t month, day, hour, minute, second;
     arch::generic::devices::get_current_rtc_time(&year, &month, &day, &hour, &minute, &second);
     return convertUTCToUnixTime(year, month, day, hour, minute, second);
 }
 
-uint64_t time::getUptimeSeconds() {
+int64_t time::getUptimeSeconds() {
     return getCurrentUnixTime() - bootupTime;
 }
