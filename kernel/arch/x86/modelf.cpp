@@ -227,6 +227,7 @@ void elf::load_module(void *ELF_baseadr) {
                     }
                 }
                 if (target_address == nullptr) {
+                    continue; // required to be able to load binaries with debug symbols
                     LOG_DEBUG("target_address == nullptr");
                     return;
                 }

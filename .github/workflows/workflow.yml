@@ -18,7 +18,7 @@ jobs:
           cd $GITHUB_WORKSPACE
           make alldefconfig MAKE_ARCH=x86
           make tests MAKE_ARCH=x86
-          CXXFLAGS="-m32 -march=i386" LDFLAGS="-m elf_i386" make MAKE_ARCH=x86
+          make MAKE_ARCH=x86 CXXFLAGS="-m32 -march=i386" LDFLAGS="-m elf_i386" 
           make img_x86_32 MAKE_ARCH=x86
 
       - name: run

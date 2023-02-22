@@ -98,6 +98,7 @@ void drivers::mouse::init() {
     ps2_mouse_send_command(0xF4); // enable data reporting
 }
 
+// clang-format off
 char kbd_US[128] = {
     0,   27,  '1', '2', '3', '4', '5', '6', '7', '8', '9',  '0', '-',  '=',  '\b', '\t',                                                    /* <-- Tab */
     'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[',  ']', '\n', 0,                                                                   /* <-- control key */
@@ -147,6 +148,7 @@ char kbd_US_sh[128] = {
     0,                                                                                                                                    /* F12 Key */
     0,                                                                                                                                    /* All other keys are undefined */
 };
+// clang-format on
 
 static bool shiftPressed = false;
 
@@ -201,36 +203,9 @@ static void kbdIntHandler(isr::registers *) {
 
 namespace drivers::keyboard {
     event_dispatcher<char> events;
-    char buffer[100];
-    int bufferlocation = -1;
 }
 
 void drivers::keyboard::init() {
     isr::RegisterHandler(drivers::pic::pic8259::irqToint(1), kbdIntHandler);
     drivers::pic::pic8259::unmask_irq(1);
-}
-
-void drivers::keyboard::poll() {
-    char key = readkbdchar();
-    if (key == '\b') {
-        if (drivers::keyboard::bufferlocation > -1) {
-            if (drivers::keyboard::bufferlocation < 100) {
-                drivers::keyboard::buffer[drivers::keyboard::bufferlocation] = '\0';
-            }
-            drivers::keyboard::bufferlocation--;
-            drivers::textmode::text80x25::delc();
-            puts("\b \b");
-        }
-    } else if (key > 0) {
-        printf("%c", key);
-        if (drivers::keyboard::bufferlocation < 100) {
-            drivers::keyboard::buffer[++drivers::keyboard::bufferlocation] = key;
-        } else {
-            // printf("skill issue: keyboard buffer filled\n");
-        }
-    }
-    if (key == -2) {
-        shiftPressed = !shiftPressed;
-    }
-    while (readkbdchar() == key) {}
 }

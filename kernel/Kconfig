@@ -1,6 +1,6 @@
-mainmenu "vix/$(SRCARCH) $(KVERSION) Kernel Configuration"
+mainmenu "vix/$(ARCH) $(KVERSION) Kernel Configuration"
 
-source "arch/$(SRCARCH)/Kconfig"
+source "arch/$(ARCH)/Kconfig"
 source "drivers/Kconfig"
 source "fs/Kconfig"
 source "net/Kconfig"
@@ -9,7 +9,31 @@ source "kernel/Kconfig"
 
 config ARCH
     string
-    default "$(SRCARCH)"
+    default "$(ARCH)"
+
+config CXX
+    string
+    default "$(CXX)"
+
+config LD
+    string
+    default "$(LD)"
+
+config NM
+    string
+    default "$(NM)"
+
+config OBJCOPY
+    string
+    default "$(OBJCOPY)"
+
+config CXXFLAGS
+    string
+    default "$(CXXFLAGS)"
+
+config LDFLAGS
+    string
+    default "$(LDFLAGS)"    
 
 config KVERSION
     string

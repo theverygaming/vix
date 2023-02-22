@@ -1,13 +1,20 @@
-override CXXFLAGS += -Iinclude/ -Iarch/$(BUILD_ARCH)/include -O$(CXX_OPTIM_LEVEL) -Wall -Wextra -Wno-unused-parameter -g
+INT_CXX := $(CXX)
+INT_LD := $(LD)
+INT_NM := $(NM)
+INT_OBJCOPY := $(OBJCOPY)
+INT_CXXFLAGS := $(CXXFLAGS)
+INT_LDFLAGS := $(LDFLAGS)
+
+override INT_CXXFLAGS += -Iinclude/ -Iarch/$(BUILD_ARCH)/include -O$(CXX_OPTIM_LEVEL) -Wall -Wextra -Wno-unused-parameter -g
 
 %.ocpp: %.cpp
 	@echo "  CXX $<"
-	@$(CXX) $(CXXFLAGS) -c $< -o $@
+	@$(INT_CXX) $(INT_CXXFLAGS) -c $< -o $@
 
 %.oS: %.S
 	@echo "  AS $<"
-	@$(CXX) $(CXXFLAGS) -c $< -o $@
+	@$(INT_CXX) $(INT_CXXFLAGS) -c $< -o $@
 
 ifeq ($(CONFIG_UBSAN), y)
-override CXXFLAGS += -fsanitize=undefined -fno-strict-overflow
+override INT_CXXFLAGS += -fsanitize=undefined -fno-strict-overflow
 endif

@@ -5,6 +5,7 @@
 #include <arch/multitasking.h>
 #include <config.h>
 #include <stdio.h>
+#include <time.h>
 
 static void set_pit_freq(int hz) {
     int divisor = 1193180 / hz; /* Calculate our divisor */
@@ -14,6 +15,7 @@ static void set_pit_freq(int hz) {
 }
 
 static void clockHandler(isr::registers *regs) {
+    time::ms_since_bootup++;
     multitasking::interruptTrigger(regs);
     drivers::pic::pic8259::eoi((uint8_t)regs->interrupt);
 }
