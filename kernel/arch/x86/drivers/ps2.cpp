@@ -5,6 +5,7 @@
 #include <arch/isr.h>
 #include <cppstd/vector.h>
 #include <drivers/ms_mouse.h>
+#include <keyboard.h>
 #include <stdio.h>
 
 #define PS2_DATA    0x60
@@ -72,12 +73,12 @@ static void mouse_int_handler_base() {
     }
 }
 
-static void kbdIntHandlerBase();
+static void kbd_int_handler_base();
 static void mouse_int_handler(isr::registers *) {
     // printf("mouse int\n");
     uint8_t status = inb(PS2_STATUS);
     if (!(status & 0x20)) { // is this not from port 2?
-        kbdIntHandlerBase();
+        kbd_int_handler_base();
         return;
     }
     mouse_int_handler_base();
@@ -88,14 +89,16 @@ void drivers::mouse::init() {
     isr::RegisterHandler(drivers::pic::pic8259::irqToint(12), mouse_int_handler);
     drivers::pic::pic8259::unmask_irq(12);
 
-    // enable mouse interrupt
     ps2_write_command(0x20);
     uint8_t config = ps2_read_data();
-    ps2_write_command(0x60);
-    ps2_write_data(config | 0x22);
+    // enable mouse interrupt
+    if ((config & (1 << 5)) != 0) {
+        ps2_write_command(0x60);
+        ps2_write_data(config | 0x22);
 
-    ps2_mouse_send_command(0xF6); // set defaults
-    ps2_mouse_send_command(0xF4); // enable data reporting
+        ps2_mouse_send_command(0xF6); // set defaults
+        ps2_mouse_send_command(0xF4); // enable data reporting
+    }
 }
 
 // clang-format off
@@ -150,62 +153,71 @@ char kbd_US_sh[128] = {
 };
 // clang-format on
 
-static bool shiftPressed = false;
+// TODO: in the future base on Minix code. https://github.com/Stichting-MINIX-Research-Foundation/minix/blob/master/minix/drivers/hid/pckbd/pckbd.c
 
-static char readkbdchar() {
-    char keycode = inb(0x60);
-    if ((keycode == 0x2A) || (keycode == 0x36)) {
-        return -2;
+static void kbd_int_handler_base() {
+    static bool extended = false;
+    static bool shift = false;
+
+    uint8_t sc = inb(0x60);
+
+    if (sc == 0xE0) {
+        extended = true;
+        return;
     }
-    if (keycode > 0) {
-        if (shiftPressed) {
-            return kbd_US_sh[(unsigned char)keycode];
+
+    if (sc & 0x80) { // key released
+        sc &= 0x7F;
+        drivers::keyboard::raw_release_events.dispatch(sc);
+        if (sc == KEY_LEFTSHIFT || sc == KEY_RIGHTSHIFT) {
+            shift = false;
         }
-        return kbd_US[(unsigned char)keycode];
+        return;
     }
-    return -1;
+
+    if (extended) {
+        extended = false;
+        return;
+    }
+
+    drivers::keyboard::raw_press_events.dispatch(sc);
+
+    if (sc == KEY_LEFTSHIFT || sc == KEY_RIGHTSHIFT) { // hacky, works fine as long as you don't use two shift keys at once lol
+        shift = true;
+        return;
+    }
+
+    char *kbmap = kbd_US;
+    if (shift) {
+        kbmap = kbd_US_sh;
+    }
+
+    if (kbmap[sc] == 0 || kbmap[sc] == 27) {
+        return;
+    }
+
+    putc(kbmap[sc]);
+
+    drivers::keyboard::events.dispatch(kbmap[sc]);
 }
 
-static void kbdIntHandlerBase() {
-    char key = readkbdchar();
-    if (key == '\b') {
-        if (drivers::keyboard::bufferlocation > -1) {
-            if (drivers::keyboard::bufferlocation < 100) {
-                drivers::keyboard::buffer[drivers::keyboard::bufferlocation] = '\0';
-            }
-            drivers::keyboard::bufferlocation--;
-            drivers::textmode::text80x25::delc();
-            puts("\b \b");
-        }
-    } else if (key > 0) {
-        printf("%c", key);
-        drivers::keyboard::events.dispatch(&key);
-        if (drivers::keyboard::bufferlocation < 100) {
-            drivers::keyboard::buffer[++drivers::keyboard::bufferlocation] = key;
-        } else {
-            // printf("skill issue: keyboard buffer filled\n");
-        }
-    }
-    if (key == -2) {
-        shiftPressed = !shiftPressed;
-    }
-}
-
-static void kbdIntHandler(isr::registers *) {
+static void ps2_int(isr::registers *) {
     uint8_t status = inb(PS2_STATUS);
     if (status & 0x20) { // is this from port 2?
         mouse_int_handler_base();
         return;
     }
-    kbdIntHandlerBase();
+    kbd_int_handler_base();
     drivers::pic::pic8259::eoi(drivers::pic::pic8259::irqToint(1));
 }
 
 namespace drivers::keyboard {
     event_dispatcher<char> events;
+    event_dispatcher<uint8_t> raw_press_events;
+    event_dispatcher<uint8_t> raw_release_events;
 }
 
 void drivers::keyboard::init() {
-    isr::RegisterHandler(drivers::pic::pic8259::irqToint(1), kbdIntHandler);
+    isr::RegisterHandler(drivers::pic::pic8259::irqToint(1), ps2_int);
     drivers::pic::pic8259::unmask_irq(1);
 }

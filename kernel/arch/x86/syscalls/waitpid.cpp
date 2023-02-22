@@ -14,10 +14,10 @@ struct waitpid_resume_info {
     pid_t tid;
 };
 
-static bool deth_listener(void *ctx, const pid_t *tid) {
+static bool deth_listener(void *ctx, const pid_t &tid) {
     struct waitpid_resume_info *info = (struct waitpid_resume_info *)ctx;
 
-    if (*tid != info->tid) {
+    if (tid != info->tid) {
         return false;
     }
 

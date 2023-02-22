@@ -16,19 +16,19 @@ struct read_resume_info {
     int read_max;
 };
 
-static bool key_listener(void *ctx, const char *c) {
+static bool key_listener(void *ctx, const char &c) {
     struct read_resume_info *info = (struct read_resume_info *)ctx;
     multitasking::x86_process *proc = multitasking::get_tid(info->tid);
     assertm(proc != nullptr, "why it dead??????");
 
     multitasking::unsetPageRange(&multitasking::getCurrentProcess()->pages);
     multitasking::setPageRange(&proc->pages);
-    info->buf[info->read] = *c;
+    info->buf[info->read] = c;
     info->read++;
     multitasking::unsetPageRange(&proc->pages);
     multitasking::setPageRange(&multitasking::getCurrentProcess()->pages);
 
-    if (info->read >= info->read_max || *c == '\n') {
+    if (info->read >= info->read_max || c == '\n') {
         proc->state = schedulers::generic_process::state::RUNNABLE;
         proc->registerContext.eax = info->read;
         DEBUG_PRINTF("sys_read return: %d\n", info->read);

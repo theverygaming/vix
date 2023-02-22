@@ -242,7 +242,7 @@ multitasking::x86_process *multitasking::fork_current_process(isr::registers *re
 
 void multitasking::killCurrentProcess(isr::registers *regs) {
     x86_process *currentProcess = getCurrentProcess();
-    process_deth_events.dispatch(&currentProcess->tgid);
+    process_deth_events.dispatch(currentProcess->tgid);
     freePageRange(&currentProcess->pages);
     currentProcess->state = schedulers::generic_process::state::KILLED;
     interruptTrigger(regs);
