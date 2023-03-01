@@ -25,7 +25,8 @@ img_x86_32:
 	@g++ tools/roramfs_create.cpp -o roramfs_create
 	@#./roramfs_create roramfs.fs "insert fs label here" shitshell/shitshell modules/module.o libctest fonts/Unifont-APL8x16-15.0.01.psf
 	@mkdir -p sysroot/usr/share/consolefonts/ sysroot/usr/lib/modules sysroot/bin/
-	@cp {shitshell/shitshell,libctest} sysroot/bin/
+	@cp shitshell/shitshell sysroot/bin/
+	@cp libctest sysroot/bin/
 	@cp modules/module.o sysroot/usr/lib/modules
 	@cp fonts/Unifont-APL8x16-15.0.01.psf sysroot/usr/share/consolefonts
 	@find sysroot/ -printf "%P\n" | tar --format=ustar -cf roramfs.fs --no-recursion -C sysroot/ -T -
