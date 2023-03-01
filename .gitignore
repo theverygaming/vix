@@ -38,3 +38,4 @@ libctest
 kernel/arch/aarch64/include/arch/limine.h
 kernel/arch/x86/include/arch/limine.h
 docs/
+sysroot/

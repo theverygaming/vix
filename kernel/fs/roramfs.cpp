@@ -110,7 +110,7 @@ void fs::filesystems::roramfs::mountInVFS() {
         .fseek = fseek,
     };
 
-    fs::vfs::mount_fs(fs, "/ramfs/");
+    fs::vfs::mount_fs(fs, "/");
 
     log::log_service("roramfs", "mounted");
 }

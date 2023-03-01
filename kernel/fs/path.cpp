@@ -37,9 +37,7 @@ std::vector<std::string> fs::path::split_path(std::string *path) {
     char last = 0;
 
     if (path->size() == 0 || (*path)[0] != '/') {
-        printf("invalid path: %s\n", path->c_str());
-        KERNEL_PANIC("path is not absolute");
-        return vec;
+        DEBUG_PRINTF("weird path: [%s] -- processing anyway\n", path->c_str());
     }
     for (size_t i = 0; i < path->size(); i++) {
         while (i < path->size() && (*path)[i] == '/') {

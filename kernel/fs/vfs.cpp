@@ -12,8 +12,8 @@ void fs::vfs::mount_fs(struct fsinfo fs, std::string mountpoint) {
     mountpoints.push_back(fs);
 }
 
-fs::vfs::file *fs::vfs::fopen(std::string *path) {
-    std::vector<std::string> split_path = fs::path::split_path(path);
+fs::vfs::file *fs::vfs::fopen(std::string path) {
+    std::vector<std::string> split_path = fs::path::split_path(&path);
     size_t best_depth = 0;
     struct fs::vfs::fsinfo *best_mountpoint = nullptr;
 
@@ -66,9 +66,7 @@ void fs::vfs::fseek(file *file, size_t pos, unsigned int flags) {
 }
 
 bool fs::vfs::fptr(const char *path, void **fileptr) {
-    std::string path_str = path;
-    DEBUG_PRINTF("path: %s\n", path_str.c_str());
-    file *file = fopen(&path_str);
+    file *file = fopen(path);
     if (file == nullptr) {
         return false;
     }

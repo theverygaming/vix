@@ -314,3 +314,11 @@ void printf_serial(const char *fmt, ...) {
     printf_base(&args, fmt, nullptr, false, 0, true);
     va_end(args);
 }
+
+int snprintf(char *s, size_t n, const char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    int ret = printf_base(&args, fmt, 0, s, true, n);
+    va_end(args);
+    return ret;
+}

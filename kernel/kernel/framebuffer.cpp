@@ -139,7 +139,7 @@ void fb::fbconsole::init2() {
     }
 #else
     void *fontptr;
-    if (fs::vfs::fptr("/ramfs/Unifont-APL8x16-15.0.01.psf", &fontptr)) {
+    if (fs::vfs::fptr("/usr/share/consolefonts/Unifont-APL8x16-15.0.01.psf", &fontptr)) {
         if (!psfreader.init(fontptr)) {
             KERNEL_PANIC("could not initialize font"); // this stupid
         }
@@ -149,9 +149,9 @@ void fb::fbconsole::init2() {
 #endif
 }
 
-void fb::fbconsole::puts(const char *str) {
+void fb::fbconsole::fbputs(const char *str) {
     while (*str) {
-        this->putc(*str);
+        fbputc(*str);
         str++;
     }
 }
@@ -324,7 +324,7 @@ void fb::fbconsole::parse_esc() {
     }
 }
 
-void fb::fbconsole::putc(char c) {
+void fb::fbconsole::fbputc(char c) {
     if (state.escaped) {
         if (state.escapeseq_index < (sizeof(state.escapeseq) / sizeof(state.escapeseq[0]))) {
             state.escapeseq[state.escapeseq_index++] = c;
@@ -353,7 +353,7 @@ void fb::fbconsole::putc_screen(char c) {
         return;
     case '\t':
         for (int i = 0; i < 4; i++) {
-            this->putc_screen(' ');
+            putc_screen(' ');
         }
         return;
     case '\r':

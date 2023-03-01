@@ -157,11 +157,11 @@ endif
 MOD_OBJS := 
 
 define build_mod
-MOD_OBJS += $(addprefix $(dir $(1))/,$($(notdir $(basename $(1)))-y))
+MOD_OBJS += $(addprefix $(dir $(1)),$($(notdir $(basename $(1)))-y))
 
-$(1): $(addprefix $(dir $(1))/,$($(notdir $(basename $(1)))-y))
+$(1): $(addprefix $(dir $(1)),$($(notdir $(basename $(1)))-y))
 	@echo "  LD $(notdir $(1))"
-	@$(INT_LD) $(INT_LDFLAGS) -r $(addprefix $(dir $(1))/,$($(notdir $(basename $(1)))-y)) -o $(1)
+	@$(INT_LD) $(INT_LDFLAGS) -r $(addprefix $(dir $(1)),$($(notdir $(basename $(1)))-y)) -o $(1)
 endef
 
 $(foreach dir, $(MODS), $(eval $(call build_mod,$(dir))))

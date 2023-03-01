@@ -20,7 +20,7 @@
 #include <cppstd/string.h>
 #include <cppstd/vector.h>
 #include <framebuffer.h>
-#include <fs/roramfs.h>
+#include <fs/tarfs.h>
 #include <fs/vfs.h>
 #include <kernel.h>
 #include <macros.h>
@@ -29,11 +29,11 @@
 #include <stdio.h>
 #include <time.h>
 
-static fb::fb framebuffer;
+fb::fb framebuffer; // HACK: exported so modules can use it TODO: have a central framebuffer manager that takes care of this
 static fb::fbconsole fbconsole;
 
 static void fbputc(char c) {
-    fbconsole.putc(c);
+    fbconsole.fbputc(c);
 }
 
 static void *initramfs_start = nullptr;
@@ -69,7 +69,9 @@ extern "C" uint8_t _bss_end;
 
 extern "C" void __attribute__((section(".entry"))) _kentry(void *multiboot2_info_ptr) {
     size_t sp;
-    asm volatile("mov %%esp, %0" : "=a"(sp) :);
+    asm volatile("mov %%esp, %0"
+                 : "=a"(sp)
+                 :);
     if (sp < KERNEL_VIRT_ADDRESS) {
         return;
     }
@@ -95,8 +97,9 @@ void arch::generic::startup::stage3_startup() {
     cpuid::printFeatures();
     simd::enableSSE();
     if (initramfs_size != 0) {
-        fs::filesystems::roramfs::init((void *)(0xFFFFF000 - initramfs_size));
-        fs::filesystems::roramfs::mountInVFS();
+        if (fs::filesystems::tarfs::init((void *)(0xFFFFF000 - initramfs_size))) {
+            fs::filesystems::tarfs::mountInVFS();
+        }
     }
     time::bootupTime = time::getCurrentUnixTime();
     framebuffer.clear();
@@ -107,14 +110,14 @@ void arch::generic::startup::stage3_startup() {
 void arch::generic::startup::after_init() {
     void *elfptr = nullptr;
 
-    if (fs::vfs::fptr("/ramfs/module.o", &elfptr)) {
+    if (fs::vfs::fptr("/usr/lib/modules/module.o", &elfptr)) {
         printf("loading kernel module\n");
         elf::load_module(elfptr);
     }
 
     std::vector<std::string> args;
-    if (fs::vfs::fptr("/ramfs/shitshell", &elfptr)) {
-        args.push_back("/ramfs/shitshell");
+    if (fs::vfs::fptr("/bin/shitshell", &elfptr)) {
+        args.push_back("/bin/shitshell");
         elf::load_program(elfptr, &args);
     }
 

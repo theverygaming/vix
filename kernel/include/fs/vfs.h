@@ -30,7 +30,7 @@ namespace fs::vfs {
 
     void mount_fs(struct fsinfo fs, std::string mountpoint);
 
-    file *fopen(std::string *path);
+    file *fopen(std::string path);
     void fclose(file *file);
 
     size_t fread(file *file, void *buf, size_t count);
