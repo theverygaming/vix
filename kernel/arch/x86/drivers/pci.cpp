@@ -78,7 +78,7 @@ static generic_pciHeader_t readGenericHeader(uint8_t bus, uint8_t slot, uint8_t 
      * +----------+--------+----------+------------+--------------+---------------+
      * | Register | Offset | Byte3    | Byte2      | Byte1        | Byte0         |
      * +----------+--------+----------+------------+--------------+---------------+
-     * | 0x0      | 0x0    |      deviceID         |           vedorID            |
+     * | 0x0      | 0x0    |      deviceID         |           vendorID           |
      * | 0x1      | 0x4    |       status          |           command            |
      * | 0x2      | 0x8    | classID  | subclass   | progIF       | revisionID    |
      * | 0x3      | 0xC    | BIST     | headerType | latencyTimer | cacheLineSize |
