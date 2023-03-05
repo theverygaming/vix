@@ -129,7 +129,7 @@ void fb::fbconsole::init(fb *framebuffer) {
 }
 
 #ifdef CONFIG_ENABLE_BUILTIN_FONT
-extern uint8_t file_Unifont_APL8x16_15_0_01_psf[];
+extern unsigned char file_Unifont_APL8x16_15_0_01_psf[];
 #endif
 
 void fb::fbconsole::init2() {

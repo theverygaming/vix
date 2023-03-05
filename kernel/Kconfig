@@ -1,9 +1,19 @@
 mainmenu "vix/$(ARCH) $(KVERSION) Kernel Configuration"
 
+menu "$(ARCH)-specific"
 source "arch/$(ARCH)/Kconfig"
+endmenu
+
+menu "Drivers"
 source "drivers/Kconfig"
+endmenu
+
 source "fs/Kconfig"
+
+menu "Networking"
 source "net/Kconfig"
+endmenu
+
 source "tests/Kconfig"
 source "kernel/Kconfig"
 

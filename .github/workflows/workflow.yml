@@ -11,7 +11,7 @@ jobs:
       - name: install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install nasm gcc-multilib g++-multilib xorriso grub-common mtools qemu-system-x86 llvm-dev libclang-dev clang python3 pkg-config flex bison
+          sudo apt-get install nasm gcc-multilib g++-multilib xorriso grub-common mtools qemu-system-x86 llvm-dev libclang-dev clang python3 pkg-config flex bison xxd
 
       - name: compile
         run: | 
@@ -48,7 +48,7 @@ jobs:
       - name: install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install qemu-system-x86 ovmf seabios llvm-dev libclang-dev clang python3 pkg-config flex bison git nasm gzip gawk mtools
+          sudo apt-get install qemu-system-x86 ovmf seabios llvm-dev libclang-dev clang python3 pkg-config flex bison git nasm gzip gawk mtools xxd
 
       - name: build limine
         run: |
@@ -96,7 +96,7 @@ jobs:
       - name: install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install qemu-system-arm qemu-efi-aarch64 seabios llvm-dev libclang-dev clang python3 pkg-config flex bison gcc-aarch64-linux-gnu g++-aarch64-linux-gnu binutils-aarch64-linux-gnu git nasm gzip gawk mtools
+          sudo apt-get install qemu-system-arm qemu-efi-aarch64 seabios llvm-dev libclang-dev clang python3 pkg-config flex bison gcc-aarch64-linux-gnu g++-aarch64-linux-gnu binutils-aarch64-linux-gnu git nasm gzip gawk mtools xxd
 
       - name: build limine
         run: |
