@@ -1,8 +1,10 @@
+#include <arch/drivers/pci.h>
 #include <arch/generic/startup.h>
 #include <config.h>
 #include <cpp.h>
+#include <debug.h>
 #include <kernel.h>
-#include <log.h>
+#include <kprintf.h>
 #include <mm/kmalloc.h>
 #include <mm/kvmm.h>
 #include <mm/phys.h>
@@ -12,22 +14,24 @@ void run_all_tests();
 #endif
 
 void kernelstart() {
-    LOG_NORMAL("hewwo");
-    LOG_NORMAL("starting vix -- built " __DATE__ " " __TIME__);
+    // TODO: some of these log messages should be in the called functions instead
+    kprintf(KP_INFO, "kmain: starting vix -- built " __DATE__ " " __TIME__ "\n");
     mm::phys::phys_init();
-    LOG_NORMAL("initialized physical memory manager");
+    kprintf(KP_INFO, "kmain: initialized physical memory manager\n");
     mm::kv::init();
-    LOG_NORMAL("initialized kernel virtual memory manager");
+    kprintf(KP_INFO, "kmain: initialized kernel virtual memory manager\n");
     arch::generic::startup::stage2_startup();
-    LOG_NORMAL("initializing C++");
+    kprintf(KP_INFO, "kmain: initializing C++\n");
     cpp_init();
-    LOG_NORMAL("initialized C++");
+    kprintf(KP_INFO, "kmain: initialized C++\n");
 
     arch::generic::startup::stage3_startup();
 
 #ifdef CONFIG_ENABLE_TESTS
     run_all_tests();
 #endif
+
+    drivers::pci::init();
 
     arch::generic::startup::after_init();
 

@@ -3,7 +3,6 @@
 #include <arch/syscalls_32.h>
 #include <debug.h>
 #include <errno.h>
-#include <log.h>
 #include <mm/kmalloc.h>
 #include <scheduler.h>
 #include <stdlib.h>
@@ -33,7 +32,7 @@ static bool deth_listener(void *ctx, const pid_t &tid) {
 
 uint32_t sys_waitpid(isr::registers *regs, int *syscall_ret, uint32_t, uint32_t pid, uint32_t _stat_addr, uint32_t _options, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 0;
-    LOG_INSANE("syscall: sys_waitpid");
+    DEBUG_PRINTF("syscall: sys_waitpid\n");
     DEBUG_PRINTF("pid: %d\n", pid);
     multitasking::x86_process *proc = multitasking::get_tid(pid);
     if (proc == nullptr) {

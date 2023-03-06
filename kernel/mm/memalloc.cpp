@@ -1,6 +1,6 @@
 #include <arch/generic/memory.h>
 #include <config.h>
-#include <log.h>
+#include <debug.h>
 #include <mm/allocators.h>
 #include <mm/kmalloc.h>
 #include <mm/phys.h>

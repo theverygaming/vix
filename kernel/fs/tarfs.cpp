@@ -1,9 +1,9 @@
 #include <cppstd/string.h>
 #include <cppstd/vector.h>
+#include <debug.h>
 #include <fs/path.h>
 #include <fs/tarfs.h>
 #include <fs/vfs.h>
-#include <log.h>
 #include <macros.h>
 #include <stdlib.h>
 #include <types.h>
@@ -178,7 +178,7 @@ bool fs::filesystems::tarfs::init(void *location) {
     }
 
     DEBUG_PRINTF("    -> total: %u\n", total_size);
-    log::log_service("tarfs", "initialized");
+    kprintf(KP_INFO, "tarfs: initialized\n");
     return true;
 }
 
@@ -196,5 +196,5 @@ void fs::filesystems::tarfs::mountInVFS() {
 
     fs::vfs::mount_fs(fs, "/");
 
-    log::log_service("tarfs", "mounted");
+    kprintf(KP_INFO, "tarfs: mounted\n");
 }

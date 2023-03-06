@@ -6,7 +6,7 @@
 #include <cppstd/vector.h>
 #include <debug.h>
 #include <errno.h>
-#include <log.h>
+#include <kprintf.h>
 #include <macros.h>
 #include <mm/kmalloc.h>
 #include <mm/phys.h>
@@ -60,7 +60,7 @@ void multitasking::initMultitasking() {
     idle->registerContext.eflags = 1 << 9;
     processes.push_back(idle);
 
-    log::log_service("multitasking", "initialized");
+    kprintf(KP_INFO, "multitasking: initialized\n");
     processSwitchingEnabled = true;
     uninitialized = false;
 }
@@ -77,7 +77,7 @@ static void *init_empty_stack(void *stackadr, std::vector<std::string> *argv, vo
     int argc = argv->size();
 
     if (argc < 1) {
-        LOG_DEBUG("issue: argc too small");
+        DEBUG_PRINTF("issue: argc too small\n");
     }
 
     size_t basesize = 3; // argc, argv null termination and envp null termination
@@ -404,7 +404,7 @@ void multitasking::interruptTrigger(isr::registers *regs) {
 
 uint32_t sys_clone(isr::registers *regs, int *syscall_ret, uint32_t, uint32_t _flags, uint32_t _stack, uint32_t _parent_tid, uint32_t _tls, uint32_t _child_tid, uint32_t) {
     *syscall_ret = 1;
-    LOG_INSANE("syscall: sys_clone");
+    DEBUG_PRINTF("syscall: sys_clone\n");
     unsigned long flags = _flags;
     void *stack = (void *)_stack;
     int *parent_tid = (int *)_parent_tid;

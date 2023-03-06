@@ -1,9 +1,10 @@
 #include <cppstd/string.h>
 #include <cppstd/vector.h>
+#include <debug.h>
 #include <fs/path.h>
 #include <fs/roramfs.h>
 #include <fs/vfs.h>
-#include <log.h>
+#include <kprintf.h>
 #include <stdlib.h>
 #include <types.h>
 
@@ -95,7 +96,7 @@ void fs::filesystems::roramfs::init(void *location) {
         file_ptr++;
     }
     DEBUG_PRINTF("    -> total: %u\n", total_size);
-    log::log_service("roramfs", "initialized");
+    kprintf(KP_INFO, "roramfs: initialized\n");
 }
 
 void fs::filesystems::roramfs::deinit() {}
@@ -112,5 +113,5 @@ void fs::filesystems::roramfs::mountInVFS() {
 
     fs::vfs::mount_fs(fs, "/");
 
-    log::log_service("roramfs", "mounted");
+    kprintf(KP_INFO, "roramfs: mounted\n");
 }

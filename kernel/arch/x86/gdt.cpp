@@ -1,7 +1,8 @@
 #include <arch/gdt.h>
 #include <arch/generic/archspecific.h>
 #include <arch/tss.h>
-#include <log.h>
+#include <debug.h>
+#include <kprintf.h>
 #include <stdlib.h>
 #include <types.h>
 
@@ -115,8 +116,10 @@ void gdt::init() {
 
     struct gdtDescriptor descriptor = {sizeof(gdtTable) - 1, gdtTable};
     GDT_load_32(&descriptor, GDT_KERNEL_CODE, GDT_KERNEL_DATA);
-    log::log_service("GDT", "initialized");
+    kprintf(KP_INFO, "GDT: initialized\n");
 
     // load TSS
-    asm volatile("ltr %%ax" : : "a"(5 * 8));
+    asm volatile("ltr %%ax"
+                 :
+                 : "a"(5 * 8));
 }

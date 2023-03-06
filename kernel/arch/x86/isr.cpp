@@ -8,7 +8,7 @@
 #include <arch/tss.h>
 #include <config.h>
 #include <debug.h>
-#include <log.h>
+#include <kprintf.h>
 #include <mm/kmalloc.h>
 #include <panic.h>
 #include <stdio.h>
@@ -59,7 +59,7 @@ extern "C" void i686_ISR_Handler(isr::registers *regs) {
         outb(0x20, 0x0b);
         uint8_t reg = inb(0x20);
         if (!((reg >> 7) & 0x1)) {
-            LOG_INSANE("Spurious interrupt!");
+            DEBUG_PRINTF("Spurious interrupt!\n");
             return;
         }
     }
@@ -79,38 +79,29 @@ extern "C" void i686_ISR_Handler(isr::registers *regs) {
         int id = regs->error & 0x10;         // instruction access or data?
 
         // Output an error message.
-        printf("Page fault! ( ");
+        kprintf(KP_ALERT, "isr: Page fault! (\n");
         if (present) {
-            printf("non-present ");
+            kprintf(KP_ALERT, "isr: non-present\n");
         }
         if (rw) {
-            printf("read-only ");
+            kprintf(KP_ALERT, "isr: read-only\n");
         }
         if (us) {
-            printf("user-mode ");
+            kprintf(KP_ALERT, "isr: user-mode\n");
         }
         if (reserved) {
-            printf("reserved ");
+            kprintf(KP_ALERT, "isr: reserved\n");
         }
         if (id) {
-            printf("instruction-fetch ");
+            kprintf(KP_ALERT, "isr: instruction-fetch\n");
         }
-        printf(") at 0x%p\n", fault_address);
-        printf("Error code: 0x%p\n", regs->error);
-        printf("eax: 0x%p ebx: 0x%p ecx: 0x%p edx: 0x%p\nesi: 0x%p edi: 0x%p esp: 0x%p ebp: 0x%p eip: 0x%p\n",
-               regs->eax,
-               regs->ebx,
-               regs->ecx,
-               regs->edx,
-               regs->esi,
-               regs->edi,
-               regs->esp_user,
-               regs->ebp,
-               regs->eip);
+        kprintf(KP_ALERT, "isr: ) at 0x%p\n", fault_address);
+        kprintf(KP_ALERT, "isr: Error code: 0x%p\n", regs->error);
+        kprintf(KP_ALERT, "isr: eax: 0x%p ebx: 0x%p ecx: 0x%p edx: 0x%p\nesi: 0x%p edi: 0x%p esp: 0x%p ebp: 0x%p eip: 0x%p\n", regs->eax, regs->ebx, regs->ecx, regs->edx, regs->esi, regs->edi, regs->esp_user, regs->ebp, regs->eip);
         if ((regs->eip >= KERNEL_VIRT_ADDRESS) && (regs->eip < KERNEL_VIRT_ADDRESS + KERNEL_MEMORY_END_OFFSET)) {
             KERNEL_PANIC("kernel page fault");
         }
-        printf("Killing current process\n");
+        kprintf(KP_ALERT, "isr: Killing current process\n");
         if (multitasking::isProcessSwitchingEnabled()) {
 #ifdef PANIC_ON_PROGRAM_FAULT
             KERNEL_PANIC("PANIC_ON_PROGRAM_FAULT");
@@ -120,35 +111,17 @@ extern "C" void i686_ISR_Handler(isr::registers *regs) {
             KERNEL_PANIC("");
         }
     } else if (regs->interrupt == 8 || regs->interrupt == 18) {
-        printf("---RIP---\nException #%lu, cannot recover\n", regs->interrupt);
-        printf("eax: 0x%p ebx: 0x%p ecx: 0x%p edx: 0x%p\nesi: 0x%p edi: 0x%p esp: 0x%p ebp: 0x%p eip: 0x%p\n",
-               regs->eax,
-               regs->ebx,
-               regs->ecx,
-               regs->edx,
-               regs->esi,
-               regs->edi,
-               regs->esp_user,
-               regs->ebp,
-               regs->eip);
+        kprintf(KP_EMERG, "isr: ---RIP---\nException #%lu, cannot recover\n", regs->interrupt);
+        kprintf(KP_EMERG, "isr: eax: 0x%p ebx: 0x%p ecx: 0x%p edx: 0x%p\nesi: 0x%p edi: 0x%p esp: 0x%p ebp: 0x%p eip: 0x%p\n", regs->eax, regs->ebx, regs->ecx, regs->edx, regs->esi, regs->edi, regs->esp_user, regs->ebp, regs->eip);
         KERNEL_PANIC("Exception");
     } else {
-        printf("Exception #%u\n", regs->interrupt);
-        printf("Error code: 0x%p\n", regs->error);
-        printf("eax: 0x%p ebx: 0x%p ecx: 0x%p edx: 0x%p\nesi: 0x%p edi: 0x%p esp: 0x%p ebp: 0x%p eip: 0x%p\n",
-               regs->eax,
-               regs->ebx,
-               regs->ecx,
-               regs->edx,
-               regs->esi,
-               regs->edi,
-               regs->esp_user,
-               regs->ebp,
-               regs->eip);
+        kprintf(KP_ALERT, "isr: Exception #%u\n", regs->interrupt);
+        kprintf(KP_ALERT, "isr: Error code: 0x%p\n", regs->error);
+        kprintf(KP_ALERT, "isr: eax: 0x%p ebx: 0x%p ecx: 0x%p edx: 0x%p\nesi: 0x%p edi: 0x%p esp: 0x%p ebp: 0x%p eip: 0x%p\n", regs->eax, regs->ebx, regs->ecx, regs->edx, regs->esi, regs->edi, regs->esp_user, regs->ebp, regs->eip);
         if ((regs->eip >= KERNEL_VIRT_ADDRESS) && (regs->eip < KERNEL_VIRT_ADDRESS + KERNEL_MEMORY_END_OFFSET)) {
             KERNEL_PANIC("kernel exception");
         }
-        printf("Killing current process\n");
+        kprintf(KP_ALERT, "isr: Killing current process\n");
         if (multitasking::isProcessSwitchingEnabled()) {
 #ifdef PANIC_ON_PROGRAM_FAULT
             KERNEL_PANIC("PANIC_ON_PROGRAM_FAULT");

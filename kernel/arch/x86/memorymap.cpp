@@ -1,8 +1,7 @@
 #include <arch/memorymap.h>
 #include <debug.h>
-#include <log.h>
+#include <kprintf.h>
 #include <panic.h>
-#include <stdio.h>
 #include <stdlib.h>
 
 typedef struct {
@@ -19,7 +18,7 @@ namespace memorymap {
 
 void memorymap::initMemoryMap(void *mapadr, int entrycount) {
     if (entrycount > MEMMAP_MAX_ENTRIES) {
-        printf("%d memory map entries, MEMMAP_MAX_ENTRIES too low(%d), go change it bruh\n", entrycount, MEMMAP_MAX_ENTRIES);
+        kprintf(KP_EMERG, "memmap: %d memory map entries, MEMMAP_MAX_ENTRIES too low(%d), go change it bruh\n", entrycount, MEMMAP_MAX_ENTRIES);
         KERNEL_PANIC("memory map issue");
     }
     SMAP_entry *entries = (SMAP_entry *)mapadr;
@@ -47,5 +46,5 @@ void memorymap::initMemoryMap(void *mapadr, int entrycount) {
             total_ram = 0xFFFFFFFF;
         }
     }
-    log::log_service("memorymap", "initialized");
+    kprintf(KP_INFO, "memorymap: initialized\n");
 }

@@ -3,7 +3,7 @@
 #include <arch/multitasking.h>
 #include <cppstd/string.h>
 #include <cppstd/vector.h>
-#include <log.h>
+#include <debug.h>
 #include <mm/kmalloc.h>
 #include <mm/phys.h>
 #include <stdlib.h>
@@ -17,7 +17,7 @@ void elf::load_program(void *ELF_baseadr, std::vector<std::string> *argv, bool r
     uint32_t max = 0;
     uint32_t min = 0xFFFFFFFF;
     if (header.e_phnum == 0) {
-        LOG_DEBUG("Issue: no ELF headers\n");
+        DEBUG_PRINTF("Issue: no ELF headers\n");
         return;
     }
     for (int i = 0; i < header.e_phnum; i++) {

@@ -11,7 +11,6 @@
 #include <debug.h>
 #include <fs/vfs.h>
 #include <generated/autoconf.h>
-#include <log.h>
 #include <mm/kmalloc.h>
 #include <mm/phys.h>
 #include <stdio.h>
@@ -20,7 +19,7 @@
 
 uint32_t sys_dbg(isr::registers *regs, int *syscall_ret, uint32_t, uint32_t n, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
-    LOG_INSANE("syscall: sys_dbg");
+    DEBUG_PRINTF("syscall: sys_dbg\n");
     if (n == 1) {
         multitasking::list_processes();
     }
@@ -36,7 +35,7 @@ uint32_t sys_exit(isr::registers *regs, int *syscall_ret, uint32_t, uint32_t exi
 
 uint32_t sys_fork(isr::registers *regs, int *syscall_ret, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
-    LOG_INSANE("syscall: sys_fork");
+    DEBUG_PRINTF("syscall: sys_fork\n");
     multitasking::x86_process *newprocess = multitasking::fork_current_process(regs);
     if (newprocess) {
         newprocess->registerContext.eax = 0;
@@ -64,7 +63,7 @@ uint32_t sys_write(isr::registers *, int *syscall_ret, uint32_t, uint32_t fd, ui
 
 uint32_t sys_open(isr::registers *, int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _flags, uint32_t _mode, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
-    LOG_INSANE("syscall: sys_open");
+    DEBUG_PRINTF("syscall: sys_open\n");
     const char *filename = (const char *)_filename;
     DEBUG_PRINTF("open: %s\n", filename);
     return -ENOENT;
@@ -72,7 +71,7 @@ uint32_t sys_open(isr::registers *, int *syscall_ret, uint32_t, uint32_t _filena
 
 uint32_t sys_close(isr::registers *, int *syscall_ret, uint32_t, uint32_t _fd, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
-    LOG_INSANE("syscall: sys_close");
+    DEBUG_PRINTF("syscall: sys_close\n");
     int fd = (int)_fd;
     DEBUG_PRINTF("close: %d\n", fd);
     return -EBADF;
@@ -108,7 +107,7 @@ uint32_t sys_time(isr::registers *, int *syscall_ret, uint32_t, uint32_t _tloc, 
 
 uint32_t sys_getpid(isr::registers *, int *syscall_ret, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
-    LOG_INSANE("syscall: sys_getpid");
+    DEBUG_PRINTF("syscall: sys_getpid\n");
     return multitasking::getCurrentProcess()->tgid;
 }
 
@@ -161,7 +160,7 @@ uint32_t sys_ioctl(isr::registers *, int *syscall_ret, uint32_t, uint32_t _brk, 
 
 uint32_t sys_mmap(isr::registers *, int *syscall_ret, uint32_t, uint32_t mmap_struct_ptr, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
-    LOG_INSANE("syscall: sys_mmap -- unstable");
+    DEBUG_PRINTF("syscall: sys_mmap -- unstable\n");
     typedef struct {
         void *start;
         uint32_t length;
@@ -253,10 +252,10 @@ uint32_t sys_modify_ldt(isr::registers *, int *syscall_ret, uint32_t, uint32_t _
     };
     int func = (int)_func;
     struct user_desc *ptr = (struct user_desc *)_ptr;
-    LOG_INSANE("syscall: sys_modify_ldt");
+    DEBUG_PRINTF("syscall: sys_modify_ldt\n");
     DEBUG_PRINTF("func: %d ptr: 0x%p bytecount: %u\n", func, ptr, bytecount);
     if (sizeof(user_desc) != bytecount) {
-        LOG_INSANE("sizeof(user_desc) != bytecount");
+        DEBUG_PRINTF("sizeof(user_desc) != bytecount\n");
         return -1;
     }
     DEBUG_PRINTF("entry_number: %u base_addr: 0x%p limit: %u seg_32bit: %u contents: %u read_exec_only: %u limit_in_pages: %u seg_not_present: %u useable: %u\n",
@@ -274,7 +273,7 @@ uint32_t sys_modify_ldt(isr::registers *, int *syscall_ret, uint32_t, uint32_t _
 
 uint32_t sys_mprotect(isr::registers *, int *syscall_ret, uint32_t, uint32_t addr, uint32_t length, uint32_t prot, uint32_t flags, uint32_t _fd, uint32_t pgoffset) {
     *syscall_ret = 1;
-    LOG_INSANE("syscall: sys_mprotect");
+    DEBUG_PRINTF("syscall: sys_mprotect\n");
     return 0; // sure, worked flawlessly
 }
 
@@ -305,14 +304,14 @@ uint32_t sys_writev(isr::registers *, int *syscall_ret, uint32_t, uint32_t fd, u
 
 uint32_t sys_rt_sigprocmask(isr::registers *, int *syscall_ret, uint32_t, uint32_t _how, uint32_t _set, uint32_t _oset, uint32_t sigsetsize, uint32_t, uint32_t) {
     *syscall_ret = 1;
-    LOG_INSANE("syscall: sys_rt_sigprocmask");
+    DEBUG_PRINTF("syscall: sys_rt_sigprocmask\n");
     return 0;
 }
 
 uint32_t sys_getcwd(isr::registers *, int *syscall_ret, uint32_t, uint32_t _buf, uint32_t size, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     char *buf = (char *)_buf;
-    LOG_INSANE("syscall: sys_getcwd");
+    DEBUG_PRINTF("syscall: sys_getcwd\n");
     if (size < 11) {
         return 0;
     }
@@ -322,7 +321,7 @@ uint32_t sys_getcwd(isr::registers *, int *syscall_ret, uint32_t, uint32_t _buf,
 
 uint32_t sys_mmap2(isr::registers *, int *syscall_ret, uint32_t, uint32_t addr, uint32_t length, uint32_t prot, uint32_t flags, uint32_t _fd, uint32_t pgoffset) {
     *syscall_ret = 1;
-    LOG_INSANE("syscall: sys_mmap2 -- unstable");
+    DEBUG_PRINTF("syscall: sys_mmap2 -- unstable\n");
     int fd = (int)_fd;
 
     void *alloc_adr = (void *)0xB69000;
@@ -341,21 +340,42 @@ uint32_t sys_mmap2(isr::registers *, int *syscall_ret, uint32_t, uint32_t addr, 
 
 uint32_t sys_stat64(isr::registers *, int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _statbuf, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
+    struct stat {
+        uint32_t st_dev;        /* ID of device containing file */
+        unsigned long st_ino;   /* inode number */
+        unsigned short st_mode; /* protection */
+        uint32_t st_nlink;      /* number of hard links */
+        unsigned int st_uid;    /* user ID of owner */
+        unsigned int st_gid;    /* group ID of owner */
+        uint32_t st_rdev;       /* device ID (if special file) */
+        long long st_size;      /* total size, in bytes */
+        signed long st_blksize; /* blocksize for file system I/O */
+        uint64_t st_blocks;     /* number of 512B blocks allocated */
+        signed long st_atime;   /* time of last access */
+        signed long st_mtime;   /* time of last modification */
+        signed long st_ctime;   /* time of last status change */
+    };
+
     const char *filename = (const char *)_filename;
-    LOG_INSANE("syscall: sys_stat64");
+    struct stat *buf = (struct stat *)_statbuf;
+
+    DEBUG_PRINTF("syscall: sys_stat64\n");
     DEBUG_PRINTF("stat64: %s\n", filename);
-    return -ENOSYS; // TODO: fix up return value
+
+    memset(buf, 0, sizeof(struct stat));
+
+    return 0;
 }
 
 uint32_t sys_getuid32(isr::registers *, int *syscall_ret, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
-    LOG_INSANE("syscall: sys_getuid32");
+    DEBUG_PRINTF("syscall: sys_getuid32\n");
     return 0; // with the current state of the system we are always root
 }
 
 uint32_t sys_fcntl64(isr::registers *, int *syscall_ret, uint32_t, uint32_t _fd, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
-    LOG_INSANE("syscall: sys_fcntl64");
+    DEBUG_PRINTF("syscall: sys_fcntl64\n");
     int fd = (int)_fd;
     DEBUG_PRINTF("fd: %d\n", fd);
     return -ENOSYS;
@@ -363,7 +383,7 @@ uint32_t sys_fcntl64(isr::registers *, int *syscall_ret, uint32_t, uint32_t _fd,
 
 uint32_t sys_futex(isr::registers *, int *syscall_ret, uint32_t, uint32_t _uaddr, uint32_t _op, uint32_t val, uint32_t _timeout, uint32_t _uaddr2, uint32_t val3) {
     *syscall_ret = 1;
-    LOG_INSANE("syscall: sys_futex");
+    DEBUG_PRINTF("syscall: sys_futex\n");
     uint32_t *uaddr = (uint32_t *)_uaddr;
     int op = (int)_op;
     uint64_t *timeout = (uint64_t *)_timeout;
@@ -381,7 +401,7 @@ uint32_t sys_futex(isr::registers *, int *syscall_ret, uint32_t, uint32_t _uaddr
 
 uint32_t sys_set_thread_area(isr::registers *, int *syscall_ret, uint32_t, uint32_t _usr_desc, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
-    LOG_INSANE("syscall: sys_set_thread_area");
+    DEBUG_PRINTF("syscall: sys_set_thread_area\n");
     struct user_desc {
         unsigned int entry_number;
         unsigned int base_addr;
@@ -396,19 +416,19 @@ uint32_t sys_set_thread_area(isr::registers *, int *syscall_ret, uint32_t, uint3
     };
     struct user_desc *user_desc_p = (struct user_desc *)_usr_desc;
     if (user_desc_p->entry_number != (unsigned int)-1) {
-        LOG_INSANE("sys_set_thread_area does not support entry_number != -1");
+        DEBUG_PRINTF("sys_set_thread_area does not support entry_number != -1\n");
         return -ENOSYS;
     }
     if (user_desc_p->contents != 0) {
-        LOG_INSANE("sys_set_thread_area does not support contents != 0");
+        DEBUG_PRINTF("sys_set_thread_area does not support contents != 0\n");
         return -ENOSYS;
     }
     if (!user_desc_p->seg_32bit) {
-        LOG_INSANE("sys_set_thread_area does not support seg_32bit = false");
+        DEBUG_PRINTF("sys_set_thread_area does not support seg_32bit = false\n");
         return -ENOSYS;
     }
     if (user_desc_p->base_addr == 0) {
-        LOG_INSANE("sys_set_thread_area does not support base_addr = 0");
+        DEBUG_PRINTF("sys_set_thread_area does not support base_addr = 0\n");
         return -ENOSYS;
     }
 
@@ -451,7 +471,7 @@ uint32_t sys_set_thread_area(isr::registers *, int *syscall_ret, uint32_t, uint3
 
 uint32_t sys_set_tid_address(isr::registers *, int *syscall_ret, uint32_t, uint32_t tidptr_u, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
-    LOG_INSANE("syscall: sys_set_tid_address");
+    DEBUG_PRINTF("syscall: sys_set_tid_address\n");
     int *tidptr = (int *)tidptr_u;
     // TODO: implement together with clone
     return 69;
@@ -460,7 +480,7 @@ uint32_t sys_set_tid_address(isr::registers *, int *syscall_ret, uint32_t, uint3
 
 uint32_t sys_set_robust_list(isr::registers *, int *syscall_ret, uint32_t, uint32_t _robust_list_head, uint32_t _len, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
-    LOG_INSANE("syscall: sys_set_robust_list");
+    DEBUG_PRINTF("syscall: sys_set_robust_list\n");
     struct robust_list {
         struct robust_list *next;
     };
@@ -480,7 +500,7 @@ uint32_t sys_set_robust_list(isr::registers *, int *syscall_ret, uint32_t, uint3
 
 uint32_t sys_rseq(isr::registers *, int *syscall_ret, uint32_t, uint32_t rseq_u, uint32_t rseq_len, uint32_t flags_u, uint32_t sig, uint32_t, uint32_t) {
     *syscall_ret = 1;
-    LOG_INSANE("syscall: sys_rseq");
+    DEBUG_PRINTF("syscall: sys_rseq\n");
     return -ENOSYS;
     // https://lwn.net/Articles/774098/
     // https://lwn.net/Articles/883104/

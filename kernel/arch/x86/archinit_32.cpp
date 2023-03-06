@@ -52,7 +52,7 @@ static void kernelinit(void *multiboot2_info_ptr) {
     memorymap::initMemoryMap(memMap, memMap_count);
     if (multiboot2::find_initramfs(multiboot2_info_ptr, &initramfs_start, &initramfs_size)) {
         initramfs_size = ALIGN_UP(initramfs_size, 4096);
-        printf("initramfs @ 0x%p size: 0x%p\n", initramfs_start, initramfs_size);
+        kprintf(KP_INFO, "archinit: initramfs @ 0x%p size: 0x%p\n", initramfs_start, initramfs_size);
         if (!PTR_IS_ALIGNED(initramfs_start, ARCH_PAGE_SIZE)) {
             initramfs_size = 0;
         }
@@ -111,7 +111,7 @@ void arch::generic::startup::after_init() {
     void *elfptr = nullptr;
 
     if (fs::vfs::fptr("/usr/lib/modules/module.o", &elfptr)) {
-        printf("loading kernel module\n");
+        kprintf(KP_INFO, "archinit: loading kernel module\n");
         elf::load_module(elfptr);
     }
 

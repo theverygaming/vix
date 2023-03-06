@@ -2,7 +2,7 @@
 #include <arch/symbols.h>
 #include <cppstd/string.h>
 #include <cppstd/vector.h>
-#include <log.h>
+#include <debug.h>
 #include <mm/kmalloc.h>
 #include <stdlib.h>
 
@@ -126,7 +126,7 @@ uint32_t elf32_get_symbol_value(void *ELF_baseadr, uint32_t sectionindex, uint32
         DEBUG_PRINTF_INSANE("get_sym -- %s\n", sname);
         return syms::get_sym(sname);
     } else if (symtab_entry->st_shndx == SHN_ABS) {
-        printf("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n");
+        kprintf(KP_EMERG, "isr: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n");
         while (true) {}
         return symtab_entry->st_value;
     } else {
@@ -175,12 +175,12 @@ void elf::load_module(void *ELF_baseadr) {
     memcpy(&header, ELF_baseadr, sizeof(elf32_header));
 
     if (header.e_ident[0] != 0x7f || memcmp(&header.e_ident[1], "ELF", 3) != 0) {
-        LOG_DEBUG("Issue: ELF invalid\n");
+        DEBUG_PRINTF("Issue: ELF invalid\n");
         return;
     }
 
     if (header.e_shstrndx == 0xFFFF || header.e_shstrndx == 0) {
-        LOG_DEBUG("Issue: ELF incompatible\n");
+        DEBUG_PRINTF("Issue: ELF incompatible\n");
         return;
     }
 
@@ -228,7 +228,7 @@ void elf::load_module(void *ELF_baseadr) {
                 }
                 if (target_address == nullptr) {
                     continue; // required to be able to load binaries with debug symbols
-                    LOG_DEBUG("target_address == nullptr");
+                    DEBUG_PRINTF("target_address == nullptr\n");
                     return;
                 }
 
@@ -239,7 +239,7 @@ void elf::load_module(void *ELF_baseadr) {
                 uintptr_t symval = elf32_get_symbol_value(ELF_baseadr, shdr->sh_link, ELF32_R_SYM(reloc->r_info), &isoffset, &symname);
 
                 if (symval == 0 && !isoffset) { // unable to locate symbol
-                    LOG_DEBUG("symval == 0 && !isoffset");
+                    DEBUG_PRINTF("symval == 0 && !isoffset\n");
                     return;
                 }
 
@@ -253,7 +253,7 @@ void elf::load_module(void *ELF_baseadr) {
                         }
                     }
                     if (!set) {
-                        LOG_DEBUG("!set");
+                        DEBUG_PRINTF("!set\n");
                         return;
                     }
                 }
@@ -268,13 +268,13 @@ void elf::load_module(void *ELF_baseadr) {
                     *rel_sym += symval - ((uintptr_t)rel_sym);
                     break;
                 default:
-                    LOG_DEBUG("Issue: unsupported relocation type");
+                    DEBUG_PRINTF("Issue: unsupported relocation type\n");
                     return;
                     break;
                 }
             }
         } else if (shdr->sh_type == SHT_RELA) {
-            printf("rela %s\n", name);
+            kprintf(KP_INFO, "rela %s\n", name);
             return;
         } else {
             continue;
@@ -283,28 +283,28 @@ void elf::load_module(void *ELF_baseadr) {
 
     char **modauthor = (char **)elf32_find_symbol("__MODULE_AUTHOR", ELF_baseadr, &sections);
     if (modauthor != nullptr) {
-        printf("module author: %s\n", *modauthor);
+        kprintf(KP_INFO, "kmod: module author: %s\n", *modauthor);
     }
     char **moddescription = (char **)elf32_find_symbol("__MODULE_DESCRIPTION", ELF_baseadr, &sections);
     if (moddescription != nullptr) {
-        printf("module description: %s\n", *moddescription);
+        kprintf(KP_INFO, "kmod: module description: %s\n", *moddescription);
     }
     char **modversion = (char **)elf32_find_symbol("__MODULE_VERSION", ELF_baseadr, &sections);
     if (modversion != nullptr) {
-        printf("module version: %s\n", *modversion);
+        kprintf(KP_INFO, "kmod: module version: %s\n", *modversion);
     }
 
     int (*modinit)() = (int (*)())elf32_find_symbol("__MODULE_INIT", ELF_baseadr, &sections);
     if (modinit != nullptr) {
         if (modinit() != 0) {
-            printf("vix module init failed!\n");
+            kprintf(KP_INFO, "kmod: vix module init failed!\n");
         }
     }
 
     int (*linux_modinit)() = (int (*)())elf32_find_symbol("init_module", ELF_baseadr, &sections);
     if (linux_modinit != nullptr) {
         if (linux_modinit() != 0) {
-            printf("linux module init failed!\n");
+            kprintf(KP_INFO, "kmod: linux module init failed!\n");
         }
     }
 

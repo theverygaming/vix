@@ -1,5 +1,5 @@
 #include <arch/cpuid.h>
-#include <log.h>
+#include <debug.h>
 
 #define CPUID_MACRO(level, a, b, c, d)           \
     __asm__("xchg{l}\t{%%}ebx, %1\n\t"           \
@@ -35,15 +35,13 @@ void cpuid::printFeatures() {
     DEBUG_PRINTF("CPU vendor: %s\n", vendor);
 
     DEBUG_PRINTF("checking features(EDX)\n");
-    char EDXfeatures[32][8] = {"FPU", "VME",   "DE",  "PSE",     "TSC", "MSR", "PAE",  "MCE", "CX8",  "APIC", "???",  "SEP", "MTRR", "PGE", "MCA",  "CMOV",
-                               "PAT", "PSE36", "PSN", "CLFLUSH", "???", "DS",  "ACPI", "MMX", "FXSR", "SSE",  "SSE2", "SS",  "HTT",  "TM",  "IA64", "PBE"};
+    char EDXfeatures[32][8] = {"FPU", "VME", "DE", "PSE", "TSC", "MSR", "PAE", "MCE", "CX8", "APIC", "???", "SEP", "MTRR", "PGE", "MCA", "CMOV", "PAT", "PSE36", "PSN", "CLFLUSH", "???", "DS", "ACPI", "MMX", "FXSR", "SSE", "SSE2", "SS", "HTT", "TM", "IA64", "PBE"};
     int unused, featuresEDX;
     CPUID_MACRO(1, unused, unused, unused, featuresEDX);
-    DEBUG_PRINTF("CPU Features: ");
+    DEBUG_PRINTF("CPU Features:\n");
     for (int i = 0; i < 32; i++) {
         if (featuresEDX & (1 << i)) {
-            DEBUG_PRINTF("%s ", EDXfeatures[i]);
+            DEBUG_PRINTF("feature: %s\n", EDXfeatures[i]);
         }
     }
-    DEBUG_PRINTF("\n");
 }

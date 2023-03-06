@@ -2,7 +2,6 @@
 #include <arch/multitasking.h>
 #include <arch/syscalls_32.h>
 #include <debug.h>
-#include <log.h>
 #include <mm/kmalloc.h>
 #include <scheduler.h>
 #include <stdlib.h>
@@ -40,7 +39,7 @@ static bool key_listener(void *ctx, const char &c) {
 
 uint32_t sys_read(isr::registers *regs, int *syscall_ret, uint32_t, uint32_t fd, uint32_t _buf, uint32_t count, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 0;
-    LOG_INSANE("syscall: sys_read");
+    DEBUG_PRINTF("syscall: sys_read\n");
     if (count == 0) {
         *syscall_ret = 1;
         return 0;
