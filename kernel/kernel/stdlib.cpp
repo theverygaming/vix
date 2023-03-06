@@ -99,3 +99,91 @@ char *strstr(char *str1, char *str2) {
     }
     return 0;
 }
+
+char *strchr(char *str, int character) {
+    while (*str) {
+        if (*str == character) {
+            return str;
+        }
+        str++;
+    }
+    if (*str == character) {
+        return str;
+    }
+    return 0;
+}
+
+size_t strcspn(const char *s1, const char *s2) {
+    size_t n = 0;
+    if (*s2 == 0) {
+        return 0;
+    }
+    while (*s1) {
+        if (strchr((char *)s2, *s1)) {
+            return n;
+        }
+        s1++;
+        n++;
+    }
+    return n;
+}
+
+char *itoa(size_t value, char *str, size_t base) {
+    char *ptr = str;
+
+    do {
+        size_t mod = value % base;
+        unsigned char start = '0';
+        if ((base == 16) && (mod > 9)) {
+            start = 'a';
+            mod -= 10;
+        }
+        *ptr++ = start + mod;
+    } while ((value /= base) > 0);
+    *ptr = '\0';
+
+    size_t len = strlen(str);
+
+    for (int i = 0; i < len / 2; i++) {
+        char c = str[i];
+        str[i] = str[len - i - 1];
+        str[len - i - 1] = c;
+    }
+
+    return str;
+}
+
+char *itoa_signed(ssize_t value, char *str, size_t base) {
+    bool sign = false;
+    if (value < 0) {
+        sign = true;
+        value = -value;
+    }
+
+    char *ptr = str;
+
+    int dig = 0;
+    do {
+        size_t mod = value % base;
+        unsigned char start = '0';
+        if ((base == 16) && (mod > 9)) {
+            start = 'a';
+            mod -= 10;
+        }
+        *ptr++ = start + mod;
+    } while ((value /= base) > 0);
+    if (sign) {
+        *ptr++ = '-';
+    }
+    *ptr = '\0';
+
+    size_t len = strlen(str);
+
+    for (int i = 0; i < len / 2; i++) {
+        char c = str[i];
+        str[i] = str[len - i - 1];
+        str[len - i - 1] = c;
+    }
+
+    return str;
+}

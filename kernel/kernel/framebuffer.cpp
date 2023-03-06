@@ -129,12 +129,12 @@ void fb::fbconsole::init(fb *framebuffer) {
 }
 
 #ifdef CONFIG_ENABLE_BUILTIN_FONT
-extern unsigned char file_Unifont_APL8x16_15_0_01_psf[];
+extern unsigned char ___fonts_Unifont_APL8x16_15_0_01_psf[];
 #endif
 
 void fb::fbconsole::init2() {
 #ifdef CONFIG_ENABLE_BUILTIN_FONT
-    if (!psfreader.init(file_Unifont_APL8x16_15_0_01_psf)) {
+    if (!psfreader.init(___fonts_Unifont_APL8x16_15_0_01_psf)) {
         KERNEL_PANIC("could not initialize font"); // this stupid
     }
 #else
