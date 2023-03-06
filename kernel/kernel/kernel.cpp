@@ -1,4 +1,3 @@
-#include <arch/drivers/pci.h>
 #include <arch/generic/startup.h>
 #include <config.h>
 #include <cpp.h>
@@ -8,6 +7,10 @@
 #include <mm/kmalloc.h>
 #include <mm/kvmm.h>
 #include <mm/phys.h>
+
+#ifdef ARCH_X86
+#include <arch/drivers/pci.h>
+#endif
 
 #ifdef CONFIG_ENABLE_TESTS
 void run_all_tests();
@@ -31,7 +34,9 @@ void kernelstart() {
     run_all_tests();
 #endif
 
+#ifdef ARCH_X86
     drivers::pci::init();
+#endif
 
     arch::generic::startup::after_init();
 
