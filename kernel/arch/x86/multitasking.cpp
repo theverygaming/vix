@@ -353,7 +353,7 @@ static void(load_process)(multitasking::x86_process *proc, void *ctx) {
     *regs = mt2isr(proc->registerContext);
     setPageRange(&proc->pages);
     if (proc->tgid != 0) {
-        DEBUG_PRINTF("loaded %d\n", proc->tgid);
+        DEBUG_PRINTF_INSANE("loaded %d\n", proc->tgid);
     }
 }
 
@@ -362,7 +362,7 @@ static void(unload_process)(multitasking::x86_process *proc, void *ctx) {
     proc->registerContext = isr2mt(regs);
     unsetPageRange(&proc->pages);
     if (proc->tgid != 0) {
-        DEBUG_PRINTF("unloaded %d\n", proc->tgid);
+        DEBUG_PRINTF_INSANE("unloaded %d\n", proc->tgid);
     }
 }
 

@@ -6,11 +6,11 @@
 
 // clang-format off
 #ifdef CONFIG_LOGLEVEL_INSANE
-    #define DEBUG_PRINTF(...) printf_serial(__VA_ARGS__)
-    #define DEBUG_PRINTF_INSANE(...) printf_serial(__VA_ARGS__)
+    #define DEBUG_PRINTF(...) kp_debug(__VA_ARGS__)
+    #define DEBUG_PRINTF_INSANE(...) kp_debug(__VA_ARGS__)
     #define assertm(condition, msg) do { if(!(condition)) { KERNEL_PANIC("assertion " #condition " failed - " msg); } } while(0)
 #elif CONFIG_LOGLEVEL_DEBUG
-    #define DEBUG_PRINTF(...) printf_serial(__VA_ARGS__)
+    #define DEBUG_PRINTF(...) kp_debug(__VA_ARGS__)
     #define DEBUG_PRINTF_INSANE(...) 
     #define assertm(condition, msg) do { if(!(condition)) { KERNEL_PANIC("assertion " #condition " failed - " msg); } } while(0)
 #elif CONFIG_LOGLEVEL_NORMAL

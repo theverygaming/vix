@@ -17,6 +17,27 @@ choice
 		bool "silent"
 endchoice
 
+config KPRINTF_BUFSIZE
+	prompt "kprintf ring buffer size"
+	int
+	default 16000
+	range 100 1000000
+
+config KPRINTF_LOGLEVEL
+	prompt "kprintf loglevel"
+	int
+	default 6
+	range 0 7
+	help
+		0 = Emergency
+		1 = Alert
+		2 = Critical
+		3 = Error
+		4 = Warning
+		5 = Notice
+		6 = Info
+		7 = Debug
+
 config ENABLE_BUILTIN_FONT
   default y if ARCH_AARCH64
   bool "Compile font into kernel"
