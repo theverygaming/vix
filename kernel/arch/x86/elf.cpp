@@ -8,6 +8,8 @@
 #include <mm/phys.h>
 #include <stdlib.h>
 
+// TODO: generic ELF functions, only few arch specific ones (all i can think of is )
+
 void elf::load_program(void *ELF_baseadr, std::vector<std::string> *argv, bool replace_task, int replace_pid, isr::registers *regs) {
     ElfHeader header;
     ElfProgramHeader pHeader;
@@ -57,11 +59,11 @@ void elf::load_program(void *ELF_baseadr, std::vector<std::string> *argv, bool r
 
     struct multitasking::x86_process::tls_info tls;
 
-    DEBUG_PRINTF("---Program Headers---\n");
+    // DEBUG_PRINTF("---Program Headers---\n");
     for (int i = 0; i < header.e_phnum; i++) {
         memcpy(&pHeader, ((char *)ELF_baseadr) + header.e_phoff + (header.e_phentsize * i), sizeof(pHeader));
 
-        DEBUG_PRINTF("section: align: 0x%p vaddr->0x%p sizef->0x%p sizem->0x%p\n", pHeader.p_align, pHeader.p_vaddr, pHeader.p_filesz, pHeader.p_memsz);
+        // DEBUG_PRINTF("section: align: 0x%p vaddr->0x%p sizef->0x%p sizem->0x%p\n", pHeader.p_align, pHeader.p_vaddr, pHeader.p_filesz, pHeader.p_memsz);
 
         if (!(pHeader.p_type == 1 || pHeader.p_type == 7)) { // only load PT_LOAD and PT_TLS
             DEBUG_PRINTF("    ignoring section of type: 0x%p\n", pHeader.p_type);
@@ -84,11 +86,13 @@ void elf::load_program(void *ELF_baseadr, std::vector<std::string> *argv, bool r
         memset((void *)pHeader.p_vaddr, 0, pHeader.p_memsz);
         memcpy((void *)pHeader.p_vaddr, ((char *)ELF_baseadr) + pHeader.p_offset, pHeader.p_filesz);
     }
+    /*
     DEBUG_PRINTF("max: 0x%p\n", max);
     DEBUG_PRINTF("min: 0x%p\n", min);
     DEBUG_PRINTF("Initial program memory size: %u\n", max - min);
 
     DEBUG_PRINTF("Entry point: 0x%p\n", header.e_entry);
+    */
 
     multitasking::unsetPageRange(&pageranges);
     multitasking::setPageRange(&old_pageranges);

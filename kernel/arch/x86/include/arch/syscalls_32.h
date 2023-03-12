@@ -28,6 +28,7 @@ __SYS_DEFINE(sys_rt_sigprocmask);
 __SYS_DEFINE(sys_getcwd);
 __SYS_DEFINE(sys_mmap2);
 __SYS_DEFINE(sys_stat64);
+__SYS_DEFINE(sys_lstat64);
 __SYS_DEFINE(sys_getuid32);
 __SYS_DEFINE(sys_fcntl64);
 __SYS_DEFINE(sys_futex);

@@ -340,20 +340,29 @@ uint32_t sys_mmap2(isr::registers *, int *syscall_ret, uint32_t, uint32_t addr, 
 
 uint32_t sys_stat64(isr::registers *, int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _statbuf, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
+    
+
     struct stat {
-        uint32_t st_dev;        /* ID of device containing file */
-        unsigned long st_ino;   /* inode number */
-        unsigned short st_mode; /* protection */
-        uint32_t st_nlink;      /* number of hard links */
-        unsigned int st_uid;    /* user ID of owner */
-        unsigned int st_gid;    /* group ID of owner */
-        uint32_t st_rdev;       /* device ID (if special file) */
-        long long st_size;      /* total size, in bytes */
-        signed long st_blksize; /* blocksize for file system I/O */
-        uint64_t st_blocks;     /* number of 512B blocks allocated */
-        signed long st_atime;   /* time of last access */
-        signed long st_mtime;   /* time of last modification */
-        signed long st_ctime;   /* time of last status change */
+        unsigned long st_dev;
+        unsigned long st_ino;
+        unsigned long st_rdev;
+        long st_size;
+        unsigned long st_blocks;
+
+        unsigned int st_mode;
+        unsigned int st_uid;
+        unsigned int st_gid;
+        unsigned int st_blksize;
+        unsigned int st_nlink;
+        unsigned int __pad0;
+
+        unsigned long st_atime;
+        unsigned long st_atime_nsec;
+        unsigned long st_mtime;
+        unsigned long st_mtime_nsec;
+        unsigned long st_ctime;
+        unsigned long st_ctime_nsec;
+        long __unused[3];
     };
 
     const char *filename = (const char *)_filename;
@@ -362,9 +371,71 @@ uint32_t sys_stat64(isr::registers *, int *syscall_ret, uint32_t, uint32_t _file
     DEBUG_PRINTF("syscall: sys_stat64\n");
     DEBUG_PRINTF("stat64: %s\n", filename);
 
-    memset(buf, 0, sizeof(struct stat));
+    // memset(buf, 0, sizeof(struct stat));
+
+    buf->st_dev = 29;
+    buf->st_ino = 1;
+    buf->st_mode = 17407;
+    buf->st_nlink = 25;
+
+    buf->st_size = 1280;
+    buf->st_blksize = 4096;
+    buf->st_blocks = 0;
+    buf->st_atime = 3111113233;
+    buf->st_mtime = 32323233;
+    buf->st_ctime = 232322;
 
     return 0;
+}
+
+
+uint32_t sys_lstat64(isr::registers *, int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _statbuf, uint32_t, uint32_t, uint32_t, uint32_t) {
+    *syscall_ret = 1;
+    
+    struct stat {
+        unsigned long st_dev;
+        unsigned long st_ino;
+        unsigned long st_rdev;
+        long st_size;
+        unsigned long st_blocks;
+
+        unsigned int st_mode;
+        unsigned int st_uid;
+        unsigned int st_gid;
+        unsigned int st_blksize;
+        unsigned int st_nlink;
+        unsigned int __pad0;
+
+        unsigned long st_atime;
+        unsigned long st_atime_nsec;
+        unsigned long st_mtime;
+        unsigned long st_mtime_nsec;
+        unsigned long st_ctime;
+        unsigned long st_ctime_nsec;
+        long __unused[3];
+    };
+
+    const char *filename = (const char *)_filename;
+    struct stat *buf = (struct stat *)_statbuf;
+
+    DEBUG_PRINTF("syscall: sys_lstat64\n");
+    DEBUG_PRINTF("lstat64: %s\n", filename);
+
+    // memset(buf, 0, sizeof(struct stat));
+    /*
+    buf->st_dev = 29;
+    buf->st_ino = 1;
+    buf->st_mode = 17407;
+    buf->st_nlink = 25;
+
+    buf->st_size = 1280;
+    buf->st_blksize = 4096;
+    buf->st_blocks = 0;
+    buf->st_atime = 3111113233;
+    buf->st_mtime = 32323233;
+    buf->st_ctime = 232322;
+    */
+    return -ENOSYS;
 }
 
 uint32_t sys_getuid32(isr::registers *, int *syscall_ret, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {

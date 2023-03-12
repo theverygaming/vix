@@ -8,7 +8,7 @@
 #include <mm/kvmm.h>
 #include <mm/phys.h>
 
-#ifdef ARCH_X86
+#ifdef CONFIG_ARCH_X86
 #include <arch/drivers/pci.h>
 #endif
 
@@ -34,7 +34,7 @@ void kernelstart() {
     run_all_tests();
 #endif
 
-#ifdef ARCH_X86
+#ifdef CONFIG_ARCH_X86
     drivers::pci::init();
 #endif
 
