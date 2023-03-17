@@ -50,6 +50,14 @@ img-aarch64:
 img-lx106_esp8266:
 	@$(MAKE) --no-print-directory -C kernel
 
+img-m68k:
+	@$(MAKE) --no-print-directory -C kernel
+	m68k-elf-objcopy -O binary kernel/kernel.o kernel.bin
+	cat macboot kernel.bin > disk1.dsk
+	truncate -s 100000 disk1.dsk
+	~/Downloads/Mini\ vMac/Mini\ vMac -d .
+
+clean-m68k:
 clean-lx106_esp8266:
 clean-aarch64:
 clean-x86:

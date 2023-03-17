@@ -82,6 +82,15 @@ size_t fb::fb::get_height() {
 }
 
 void fb::fb::write_pixel(size_t x, size_t y, uint8_t r, uint8_t g, uint8_t b) {
+    if(_info.monochrome && _info.bpp == 1) {
+        uint16_t val = (uint16_t)r + g + b;
+        volatile uint8_t *ptr = (volatile uint8_t *)((uintptr_t)_info.address + (y * (_info.width / 8)) + (x / 8));
+        if(val) {
+            val = 0x1;
+        }
+        *ptr ^= (-val ^ *ptr) & (1 << (7 - (x % 8)));
+        return;
+    } 
     size_t offset = _info.pitch * y + (_info.bpp / 8) * x;
     if (_info.rgb) {
         *(((uint8_t *)_info.address) + offset + 0) = r;
@@ -126,6 +135,9 @@ void fb::fbconsole::init(fb *framebuffer) {
     state.escapeseq_index = 0;
     pos_x = 0;
     pos_y = 0;
+
+    memset(color_foreground, 255, 3);
+    memset(color_background, 0, 3);
 }
 
 #ifdef CONFIG_ENABLE_BUILTIN_FONT

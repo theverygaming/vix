@@ -1,0 +1,12 @@
+override INT_CXXFLAGS += -march=68000 -fno-pie -ffreestanding -nostdinc -nostdlib -nostartfiles -fno-exceptions 
+override INT_LDFLAGS  += -nostdlib
+
+ifeq ($(CONFIG_ENABLE_FTRACE), y)
+override INT_CXXFLAGS += -finstrument-functions
+endif
+
+ifeq ($(CONFIG_ENABLE_STACKPROTECTOR), y)
+override INT_CXXFLAGS += -fstack-protector-strong
+else
+override INT_CXXFLAGS += -fno-stack-protector
+endif

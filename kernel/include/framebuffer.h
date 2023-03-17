@@ -9,6 +9,7 @@ namespace fb {
         void *address;
         size_t width, height, pitch, bpp;
         bool rgb;
+        bool monochrome;
     };
 
     class fb {
