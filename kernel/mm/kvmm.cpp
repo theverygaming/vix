@@ -1,4 +1,5 @@
 #include <arch/generic/memory.h>
+#include <kprintf.h>
 #include <mm/allocators.h>
 #include <mm/kvmm.h>
 #include <panic.h>
@@ -9,6 +10,7 @@ static mm::allocators::block_alloc_single<KERNEL_PAGES, ARCH_PAGE_SIZE> kvmm;
 
 void mm::kv::init() {
     kvmm.init();
+    kprintf(KP_INFO, "kvmm: initialized kernel virtual memory manager\n");
 }
 
 void *mm::kv::alloc(size_t pages) {

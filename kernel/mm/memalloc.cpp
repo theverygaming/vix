@@ -1,6 +1,7 @@
 #include <arch/generic/memory.h>
 #include <config.h>
 #include <debug.h>
+#include <kprintf.h>
 #include <mm/allocators.h>
 #include <mm/kmalloc.h>
 #include <mm/phys.h>
@@ -75,4 +76,6 @@ void mm::phys::phys_init() {
         }
         counter++;
     }
+
+    kprintf(KP_INFO, "physmm: initialized physical memory manager\n");
 }

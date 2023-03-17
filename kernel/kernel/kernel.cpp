@@ -1,3 +1,4 @@
+#include <arch/generic/memory.h>
 #include <arch/generic/startup.h>
 #include <config.h>
 #include <cpp.h>
@@ -7,6 +8,7 @@
 #include <mm/kmalloc.h>
 #include <mm/kvmm.h>
 #include <mm/phys.h>
+#include <types.h>
 
 #ifdef CONFIG_ARCH_X86
 #include <arch/drivers/pci.h>
@@ -17,14 +19,10 @@ void run_all_tests();
 #endif
 
 void kernelstart() {
-    // TODO: some of these log messages should be in the called functions instead
     kprintf(KP_INFO, "kmain: starting vix -- built " __DATE__ " " __TIME__ "\n");
     mm::phys::phys_init();
-    kprintf(KP_INFO, "kmain: initialized physical memory manager\n");
     mm::kv::init();
-    kprintf(KP_INFO, "kmain: initialized kernel virtual memory manager\n");
     arch::generic::startup::stage2_startup();
-    kprintf(KP_INFO, "kmain: initializing C++\n");
     cpp_init();
     kprintf(KP_INFO, "kmain: initialized C++\n");
 
@@ -37,6 +35,14 @@ void kernelstart() {
 #ifdef CONFIG_ARCH_X86
     drivers::pci::init();
 #endif
+
+    size_t freemem = (mm::phys::phys_get_free_blocks() * ARCH_PAGE_SIZE) / 1024;
+    char unit = 'K';
+    if (freemem >= 10000) {
+        unit = 'M';
+        freemem /= 1024;
+    }
+    kprintf(KP_INFO, "kmain: free physical memory: %u%ciB\n", freemem, unit);
 
     arch::generic::startup::after_init();
 
