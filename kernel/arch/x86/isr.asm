@@ -28,20 +28,20 @@ i686_ISR%1:
 
 isr_common:
     cli
+    
+    push ds
+    push es
+    push fs
+    push gs
 
-    ; push old stack
-    push esp
-    add dword [esp], 8     ; remove error code and interrupt number
-
-    ; our stack now
-    ; esp_kernel, interrupt, error, eip, cs, eflags, esp_user, ss_user
-
-    pusha               ; pushes in order: eax, ecx, edx, ebx, esp, ebp, esi, edi
-
-    o16 push ds
-    o16 push es
-    o16 push fs
-    o16 push gs
+    push eax
+    push ebx
+    push ecx
+    push edx
+    push esi
+    push edi
+    
+    push ebp
 
     mov ax, 2 * 8        ; use kernel data segment
     mov ds, ax
@@ -53,14 +53,22 @@ isr_common:
     call i686_ISR_Handler
     add esp, 4
 
-    o16 pop gs              ; restore old segments
-    o16 pop fs
-    o16 pop es
-    o16 pop ds
+    pop ebp
 
-    popa                ; pop what we pushed with pusha
-    pop esp
-    sti
+    pop edi
+    pop esi
+    pop edx
+    pop ecx
+    pop ebx
+    pop eax
+
+    pop gs
+    pop fs
+    pop es
+    pop ds
+
+    add esp, 8 ; error code + interrupt number
+    
     iretd                ; will pop: cs, eip, eflags, ss, esp
 
 memcpy32f: ; Arguments: eax->dest, ebx->source, ecx->element count in 32bits

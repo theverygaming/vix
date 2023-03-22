@@ -1,3 +1,4 @@
+#include <arch/common/cpu.h>
 #include <arch/cpubasics.h>
 #include <arch/drivers/pic_8259.h>
 #include <arch/idt.h>
@@ -14,7 +15,7 @@ static void set_pit_freq(int hz) {
     outb(0x40, divisor >> 8);   /* Set high byte of divisor */
 }
 
-static void clockHandler(isr::registers *regs) {
+static void clockHandler(struct arch::cpu_ctx *regs) {
     time::ms_since_bootup++;
     multitasking::interruptTrigger(regs);
     drivers::pic::pic8259::eoi((uint8_t)regs->interrupt);

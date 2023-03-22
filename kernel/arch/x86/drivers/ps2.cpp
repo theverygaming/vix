@@ -1,3 +1,4 @@
+#include <arch/common/cpu.h>
 #include <arch/cpubasics.h>
 #include <arch/drivers/pic_8259.h>
 #include <arch/drivers/ps2.h>
@@ -74,7 +75,7 @@ static void mouse_int_handler_base() {
 }
 
 static void kbd_int_handler_base();
-static void mouse_int_handler(isr::registers *) {
+static void mouse_int_handler(struct arch::cpu_ctx *) {
     // printf("mouse int\n");
     uint8_t status = inb(PS2_STATUS);
     if (!(status & 0x20)) { // is this not from port 2?
@@ -201,7 +202,7 @@ static void kbd_int_handler_base() {
     drivers::keyboard::events.dispatch(kbmap[sc]);
 }
 
-static void ps2_int(isr::registers *) {
+static void ps2_int(struct arch::cpu_ctx *) {
     uint8_t status = inb(PS2_STATUS);
     if (status & 0x20) { // is this from port 2?
         mouse_int_handler_base();

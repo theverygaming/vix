@@ -24,13 +24,13 @@ static bool deth_listener(void *ctx, const pid_t &tid) {
     assertm(proc != nullptr, "why it dead??????");
 
     proc->state = schedulers::generic_process::state::RUNNABLE;
-    proc->registerContext.eax = info->tid;
+    proc->reg_ctx.eax = info->tid;
     DEBUG_PRINTF("sys_waitpid return: %d\n", info->tid);
     mm::kfree(info);
     return true;
 }
 
-uint32_t sys_waitpid(isr::registers *regs, int *syscall_ret, uint32_t, uint32_t pid, uint32_t _stat_addr, uint32_t _options, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_waitpid(struct arch::cpu_ctx *regs, int *syscall_ret, uint32_t, uint32_t pid, uint32_t _stat_addr, uint32_t _options, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 0;
     DEBUG_PRINTF("syscall: sys_waitpid\n");
     DEBUG_PRINTF("pid: %d\n", pid);

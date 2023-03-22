@@ -1,3 +1,4 @@
+#include <arch/common/cpu.h>
 #include <arch/elf.h>
 #include <arch/generic/memory.h>
 #include <arch/multitasking.h>
@@ -10,7 +11,7 @@
 
 // TODO: generic ELF functions, only few arch specific ones (all i can think of is )
 
-void elf::load_program(void *ELF_baseadr, std::vector<std::string> *argv, bool replace_task, int replace_pid, isr::registers *regs) {
+void elf::load_program(void *ELF_baseadr, std::vector<std::string> *argv, bool replace_task, int replace_pid, struct arch::cpu_ctx *regs) {
     ElfHeader header;
     ElfProgramHeader pHeader;
 

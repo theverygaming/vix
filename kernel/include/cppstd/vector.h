@@ -6,12 +6,13 @@
 
 namespace std {
     /* this is not threadsafe! */
-    template <class T> class vector {
+    template <class T>
+    class vector {
     public:
         vector() {
             _capacity = 1;
             _size = 0;
-            if (alignof(T) > 1) {
+            if (alignof(T) > 1 && false) {
                 _pointer = (T *)mm::kmalloc_aligned(_capacity * sizeof(T), alignof(T));
             } else {
                 _pointer = (T *)mm::kmalloc(_capacity * sizeof(T));
@@ -21,7 +22,7 @@ namespace std {
         vector(const vector &obj) {
             _capacity = 1;
             _size = 0;
-            if (alignof(T) > 1) {
+            if (alignof(T) > 1 && false) {
                 _pointer = (T *)mm::kmalloc_aligned(_capacity * sizeof(T), alignof(T));
             } else {
                 _pointer = (T *)mm::kmalloc(_capacity * sizeof(T));
@@ -38,7 +39,7 @@ namespace std {
             for (size_t i = 0; i < _size; i++) {
                 _pointer[i].~T();
             }
-            if (alignof(T) > 1) {
+            if (alignof(T) > 1 && false) {
                 // mm::kfree_aligned(_pointer);
             } else {
                 mm::kfree(_pointer);
@@ -58,7 +59,7 @@ namespace std {
         vector<T> &operator=(const vector<T> &obj) {
             _capacity = 1;
             _size = 0;
-            if (alignof(T) > 1) {
+            if (alignof(T) > 1 && false) {
                 _pointer = (T *)mm::kmalloc_aligned(_capacity * sizeof(T), alignof(T));
             } else {
                 _pointer = (T *)mm::kmalloc(_capacity * sizeof(T));
@@ -153,7 +154,7 @@ namespace std {
                 _capacity = 1;
             }
 
-            if (alignof(T) > 1) {
+            if (alignof(T) > 1 && false) {
                 // TODO: aligned krealloc + aligned free
                 T *newptr = (T *)mm::kmalloc_aligned(_capacity * sizeof(T), alignof(T));
                 memcpy(newptr, _pointer, _capacity * sizeof(T));

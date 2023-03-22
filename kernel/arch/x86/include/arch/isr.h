@@ -1,18 +1,10 @@
 #pragma once
-#include "types.h"
+#include <arch/common/cpu.h>
+#include <types.h>
 
 namespace isr {
-    typedef struct {
-        uint16_t gs, fs, es, ds;                               // segment registers pushed by us
-        uint32_t edi, esi, ebp, esp_pusha, ebx, edx, ecx, eax; // pusha
-        uint32_t esp_kernel;
-        uint32_t interrupt, error;                   // we push interrupt, error is pushed automatically (or our dummy)
-        uint32_t eip, cs, eflags, esp_user, ss_user; // pushed automatically by CPU
-    } __attribute__((packed)) registers;
-    typedef void (*intHandler)(registers *regs);
-
     void i686_ISR_Initialize();
 
-    void RegisterHandler(int, void (*)(registers *));
+    void RegisterHandler(int, void (*)(struct arch::cpu_ctx *));
     void DeregisterHandler(int handler);
 }

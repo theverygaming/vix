@@ -1,3 +1,4 @@
+#include <arch/common/cpu.h>
 #include <arch/cpubasics.h>
 #include <arch/gdt.h>
 #include <arch/generic/memory.h>
@@ -49,15 +50,16 @@ void multitasking::initMultitasking() {
     // TODO: run idle process only when required
     x86_process *idle = new x86_process;
     idle->tgid = 0;
-    idle->registerContext.cs = GDT_KERNEL_CODE;
-    idle->registerContext.ds = GDT_KERNEL_DATA;
-    idle->registerContext.es = GDT_KERNEL_DATA;
-    idle->registerContext.fs = GDT_KERNEL_DATA;
-    idle->registerContext.gs = GDT_KERNEL_DATA;
-    idle->registerContext.ss = GDT_KERNEL_DATA;
-    idle->registerContext.esp = 0; // TODO: investigate kernel task stack pointer bug
-    idle->registerContext.eip = (uintptr_t)cpuidle;
-    idle->registerContext.eflags = 1 << 9;
+    idle->reg_ctx.cs = GDT_KERNEL_CODE;
+    idle->reg_ctx.ds = GDT_KERNEL_DATA;
+    idle->reg_ctx.es = GDT_KERNEL_DATA;
+    idle->reg_ctx.fs = GDT_KERNEL_DATA;
+    idle->reg_ctx.gs = GDT_KERNEL_DATA;
+    idle->reg_ctx.ss = GDT_KERNEL_DATA;
+    idle->reg_ctx.esp = 0; // TODO: investigate kernel task stack pointer bug
+    idle->reg_ctx.eip = (uintptr_t)cpuidle;
+    idle->reg_ctx.eflags = 1 << 9;
+    idle->state = x86_process::state::SLEEP; // FIXME: kernel threads broken
     processes.push_back(idle);
 
     kprintf(KP_INFO, "multitasking: initialized\n");
@@ -143,80 +145,22 @@ static multitasking::x86_process *getProcessByPid(pid_t pid) {
     return nullptr;
 }
 
-static multitasking::context isr2mt(isr::registers *regs) {
-    multitasking::context ret;
-    ret.eax = regs->eax;
-    ret.ebx = regs->ebx;
-    ret.ecx = regs->ecx;
-    ret.edx = regs->edx;
-
-    ret.ds = regs->ds;
-    ret.es = regs->es;
-    ret.fs = regs->fs;
-    ret.gs = regs->gs;
-    ret.ss = regs->ss_user;
-
-    ret.cs = regs->cs;
-
-    ret.edi = regs->edi;
-    ret.esi = regs->esi;
-
-    ret.ebp = regs->ebp;
-    // ret.esp = regs->esp_kernel;
-    ret.esp = regs->esp_user;
-
-    ret.eip = regs->eip;
-
-    ret.eflags = regs->eflags;
-
-    return ret;
-}
-
-static isr::registers mt2isr(multitasking::context ctx) {
-    isr::registers ret;
-    ret.eax = ctx.eax;
-    ret.ebx = ctx.ebx;
-    ret.ecx = ctx.ecx;
-    ret.edx = ctx.edx;
-
-    ret.ds = ctx.ds;
-    ret.es = ctx.es;
-    ret.fs = ctx.fs;
-    ret.gs = ctx.gs;
-    ret.ss_user = ctx.ss;
-
-    ret.cs = ctx.cs;
-
-    ret.edi = ctx.edi;
-    ret.esi = ctx.esi;
-
-    ret.ebp = ctx.ebp;
-    // ret.esp_kernel = ctx.esp;
-    ret.esp_user = ctx.esp;
-
-    ret.eip = ctx.eip;
-
-    ret.eflags = ctx.eflags;
-
-    return ret;
-}
-
 void multitasking::waitForProcess(int pid) {}
 
 void multitasking::refresh_current_process_pagerange() {}
 
-multitasking::x86_process *multitasking::fork_current_process(isr::registers *regs) {
+multitasking::x86_process *multitasking::fork_current_process(struct arch::cpu_ctx *regs) {
     x86_process *currentProcess = getCurrentProcess();
-    currentProcess->registerContext = isr2mt(regs);
+    currentProcess->reg_ctx = *regs;
 
     x86_process *new_process = new x86_process;
 
     new_process->tgid = pidCounter++;
     new_process->parent = currentProcess->tgid;
     new_process->state = schedulers::generic_process::state::RUNNABLE;
-    // new_process->registerContext = currentProcess->registerContext;
+    // new_process->reg_ctx = currentProcess->reg_ctx;
 
-    memcpy(&new_process->registerContext, &currentProcess->registerContext, sizeof(context));
+    memcpy(&new_process->reg_ctx, &currentProcess->reg_ctx, sizeof(new_process->reg_ctx));
 
     new_process->pages.reserve(currentProcess->pages.size());
 
@@ -240,7 +184,7 @@ multitasking::x86_process *multitasking::fork_current_process(isr::registers *re
     return new_process;
 }
 
-void multitasking::killCurrentProcess(isr::registers *regs) {
+void multitasking::killCurrentProcess(struct arch::cpu_ctx *regs) {
     x86_process *currentProcess = getCurrentProcess();
     process_deth_events.dispatch(currentProcess->tgid);
     freePageRange(&currentProcess->pages);
@@ -270,16 +214,16 @@ void multitasking::create_task(
         ds = GDT_KERNEL_DATA;
     }
 
-    new_process->registerContext.cs = cs;
-    new_process->registerContext.ds = ds;
-    new_process->registerContext.es = ds;
-    new_process->registerContext.fs = ds;
-    new_process->registerContext.gs = ds;
-    new_process->registerContext.ss = ds;
+    new_process->reg_ctx.cs = cs;
+    new_process->reg_ctx.ds = ds;
+    new_process->reg_ctx.es = ds;
+    new_process->reg_ctx.fs = ds;
+    new_process->reg_ctx.gs = ds;
+    new_process->reg_ctx.ss = ds;
 
-    new_process->registerContext.esp = (uintptr_t)stackadr;
-    new_process->registerContext.eip = (uintptr_t)codeadr;
-    new_process->registerContext.eflags = 1 << 9;
+    new_process->reg_ctx.esp = (uintptr_t)stackadr;
+    new_process->reg_ctx.eip = (uintptr_t)codeadr;
+    new_process->reg_ctx.eflags = 1 << 9;
 
     new_process->pages = *pagerange;
 
@@ -304,7 +248,7 @@ void multitasking::create_task(
 }
 
 void multitasking::replace_task(
-    void *stackadr, void *codeadr, std::vector<process_pagerange> *pagerange, std::vector<std::string> *argv, struct x86_process::tls_info info, int replacePid, isr::registers *regs, bool kernel) {
+    void *stackadr, void *codeadr, std::vector<process_pagerange> *pagerange, std::vector<std::string> *argv, struct x86_process::tls_info info, int replacePid, struct arch::cpu_ctx *regs, bool kernel) {
     pid_t pid = -1;
     size_t index = 0;
     for (size_t i = 0; i < processes.size(); i++) {
@@ -344,13 +288,13 @@ multitasking::x86_process *multitasking::get_tid(pid_t tid) {
     return nullptr;
 }
 
-void multitasking::reschedule(isr::registers *regs) {
+void multitasking::reschedule(struct arch::cpu_ctx *regs) {
     interruptTrigger(regs);
 }
 
 static void(load_process)(multitasking::x86_process *proc, void *ctx) {
-    isr::registers *regs = (isr::registers *)ctx;
-    *regs = mt2isr(proc->registerContext);
+    struct arch::cpu_ctx *regs = (struct arch::cpu_ctx *)ctx;
+    *regs = proc->reg_ctx;
     setPageRange(&proc->pages);
     if (proc->tgid != 0) {
         DEBUG_PRINTF_INSANE("loaded %d\n", proc->tgid);
@@ -358,8 +302,8 @@ static void(load_process)(multitasking::x86_process *proc, void *ctx) {
 }
 
 static void(unload_process)(multitasking::x86_process *proc, void *ctx) {
-    isr::registers *regs = (isr::registers *)ctx;
-    proc->registerContext = isr2mt(regs);
+    struct arch::cpu_ctx *regs = (struct arch::cpu_ctx *)ctx;
+    proc->reg_ctx = *regs;
     unsetPageRange(&proc->pages);
     if (proc->tgid != 0) {
         DEBUG_PRINTF_INSANE("unloaded %d\n", proc->tgid);
@@ -367,7 +311,7 @@ static void(unload_process)(multitasking::x86_process *proc, void *ctx) {
 }
 
 // fired every timer interrupt, may be called during an ISR to possibly force a process switch
-void multitasking::interruptTrigger(isr::registers *regs) {
+void multitasking::interruptTrigger(struct arch::cpu_ctx *regs) {
     if (unlikely(uninitialized)) {
         return;
     }
@@ -402,7 +346,7 @@ void multitasking::interruptTrigger(isr::registers *regs) {
 #define CLONE_NEWNET         0x40000000 /* New network namespace */
 #define CLONE_IO             0x80000000 /* Clone io context */
 
-uint32_t sys_clone(isr::registers *regs, int *syscall_ret, uint32_t, uint32_t _flags, uint32_t _stack, uint32_t _parent_tid, uint32_t _tls, uint32_t _child_tid, uint32_t) {
+uint32_t sys_clone(struct arch::cpu_ctx *regs, int *syscall_ret, uint32_t, uint32_t _flags, uint32_t _stack, uint32_t _parent_tid, uint32_t _tls, uint32_t _child_tid, uint32_t) {
     *syscall_ret = 1;
     DEBUG_PRINTF("syscall: sys_clone\n");
     unsigned long flags = _flags;
@@ -474,7 +418,7 @@ uint32_t sys_clone(isr::registers *regs, int *syscall_ret, uint32_t, uint32_t _f
     }
 
     multitasking::x86_process *currentProcess = multitasking::getCurrentProcess();
-    currentProcess->registerContext = isr2mt(regs);
+    currentProcess->reg_ctx = *regs;
 
     multitasking::x86_process *new_process = new multitasking::x86_process;
 
@@ -486,12 +430,12 @@ uint32_t sys_clone(isr::registers *regs, int *syscall_ret, uint32_t, uint32_t _f
 
     new_process->parent = currentProcess->tgid;
     new_process->state = schedulers::generic_process::state::RUNNABLE;
-    // new_process->registerContext = currentProcess->registerContext;
+    // new_process->reg_ctx = currentProcess->reg_ctx;
 
-    memcpy(&new_process->registerContext, &currentProcess->registerContext, sizeof(multitasking::context));
-    new_process->registerContext.esp = (uintptr_t)stack;
+    memcpy(&new_process->reg_ctx, &currentProcess->reg_ctx, sizeof(currentProcess->reg_ctx));
+    new_process->reg_ctx.esp = (uintptr_t)stack;
 
-    new_process->registerContext.eax = 0;
+    new_process->reg_ctx.eax = 0;
 
     new_process->pages = currentProcess->pages;
 

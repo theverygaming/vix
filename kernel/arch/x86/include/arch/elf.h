@@ -1,11 +1,12 @@
 #pragma once
+#include <arch/common/cpu.h>
 #include <arch/isr.h>
 #include <cppstd/string.h>
 #include <cppstd/vector.h>
 #include <types.h>
 
 namespace elf {
-    void load_program(void *ELF_baseadr, std::vector<std::string> *argv, bool replace_task = false, int replace_pid = 0, isr::registers *regs = nullptr);
+    void load_program(void *ELF_baseadr, std::vector<std::string> *argv, bool replace_task = false, int replace_pid = 0, struct arch::cpu_ctx *regs = nullptr);
 
     typedef struct ElfHeader {
         unsigned char e_ident[16]; // should start with [0x7f 'E' 'L' 'F']

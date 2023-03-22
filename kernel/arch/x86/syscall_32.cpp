@@ -1,3 +1,4 @@
+#include <arch/common/cpu.h>
 #include <arch/errno.h>
 #include <arch/multitasking.h>
 #include <arch/syscall_32.h>
@@ -8,7 +9,7 @@
 /* syscall arguments correspond to registers eax, ebx, ecx, edx, esi, edi and ebp */
 
 // clang-format off
-uint32_t (*syscall_table[440])(isr::registers *, int *, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) = {
+uint32_t (*syscall_table[440])(struct arch::cpu_ctx *, int *, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) = {
     &sys_dbg,
     &sys_exit,
     &sys_fork,
@@ -452,7 +453,22 @@ uint32_t (*syscall_table[440])(isr::registers *, int *, uint32_t, uint32_t, uint
 };
 // clang-format on
 
-void syscall::syscallHandler(isr::registers *regs) {
+void syscall::syscallHandler(struct arch::cpu_ctx *regs) {
+    if (regs->eax >= (sizeof(syscall_table) / sizeof(syscall_table[0])) || syscall_table[regs->eax] == nullptr) {
+        DEBUG_PRINTF("syscall %u not found\n", regs->eax);
+        regs->eax = -ENOSYS;
+        return;
+    }
+    DEBUG_PRINTF_INSANE("calling syscall %u\n", regs->eax);
+    int syscall_ret;
+    uint32_t returnval = syscall_table[regs->eax](regs, &syscall_ret, regs->eax, regs->ebx, regs->ecx, regs->edx, regs->esi, regs->edi, regs->ebp);
+    if (syscall_ret > 0) {
+        regs->eax = returnval;
+        DEBUG_PRINTF_INSANE("syscall return %d\n", returnval);
+    }
+}
+
+extern "C" void syscallHandler(struct arch::cpu_ctx *regs) {
     if (regs->eax >= (sizeof(syscall_table) / sizeof(syscall_table[0])) || syscall_table[regs->eax] == nullptr) {
         DEBUG_PRINTF("syscall %u not found\n", regs->eax);
         regs->eax = -ENOSYS;

@@ -1,6 +1,6 @@
 #pragma once
-#include <arch/isr.h>
+#include <arch/common/cpu.h>
 
 namespace syscall {
-    void syscallHandler(isr::registers *regs);
+    void syscallHandler(struct arch::cpu_ctx *regs);
 }

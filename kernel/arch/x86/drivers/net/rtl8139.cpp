@@ -1,3 +1,4 @@
+#include <arch/common/cpu.h>
 #include <arch/cpubasics.h>
 #include <arch/drivers/net/rtl8139.h>
 #include <arch/drivers/pci.h>
@@ -31,7 +32,7 @@ static struct drivers::net::generic_card rtl8139_card = {
 
 static net::networkstack networkstack(rtl8139_card);
 
-static void irq_handler(isr::registers *gaming) {
+static void irq_handler(struct arch::cpu_ctx *gaming) {
     if ((((struct packetInfo *)(bufferptr + bufferoffset))->header & 0x1) == 0) {
         printf("ROK not set?? wtf\n");
         KERNEL_PANIC("rtl8139 skill issue");

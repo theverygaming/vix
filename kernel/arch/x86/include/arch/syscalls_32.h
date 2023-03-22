@@ -1,8 +1,9 @@
 #pragma once
+#include <arch/common/cpu.h>
 #include <arch/isr.h>
 #include <types.h>
 
-#define __SYS_DEFINE(x) uint32_t x(isr::registers *, int *, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t)
+#define __SYS_DEFINE(x) uint32_t x(struct arch::cpu_ctx *, int *, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t)
 
 __SYS_DEFINE(sys_dbg);
 __SYS_DEFINE(sys_exit);

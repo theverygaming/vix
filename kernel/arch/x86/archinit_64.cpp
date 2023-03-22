@@ -1,3 +1,4 @@
+#include <arch/common/cpu.h>
 #include <arch/drivers/serial.h>
 #include <arch/generic/startup.h>
 #include <arch/limine.h>
@@ -56,7 +57,7 @@ void arch::generic::startup::after_init() {
 #include <arch/idt.h>
 #include <arch/isr.h>
 
-void isr::RegisterHandler(int, void (*)(isr::registers *)) {}
+void isr::RegisterHandler(int, void (*)(struct arch::cpu_ctx *)) {}
 void drivers::textmode::text80x25::delc() {}
 void drivers::textmode::text80x25::putc(char c) {}
 void drivers::textmode::text80x25::putc(char c, color foreground, color background) {}

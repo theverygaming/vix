@@ -259,6 +259,8 @@ extern "C" void i686_ISR253();
 extern "C" void i686_ISR254();
 extern "C" void i686_ISR255();
 
+extern "C" void syscall_entry();
+
 void isrs::i686_ISR_InitializeGates() {
     idt::i686_IDT_SetGate(0, (void *)&i686_ISR0, GDT_KERNEL_CODE, idt::IDT_FLAG_RING0 | idt::IDT_FLAG_GATE_32BIT_INT);
     idt::i686_IDT_SetGate(1, (void *)&i686_ISR1, GDT_KERNEL_CODE, idt::IDT_FLAG_RING0 | idt::IDT_FLAG_GATE_32BIT_INT);
@@ -388,7 +390,7 @@ void isrs::i686_ISR_InitializeGates() {
     idt::i686_IDT_SetGate(125, (void *)&i686_ISR125, GDT_KERNEL_CODE, idt::IDT_FLAG_RING0 | idt::IDT_FLAG_GATE_32BIT_INT);
     idt::i686_IDT_SetGate(126, (void *)&i686_ISR126, GDT_KERNEL_CODE, idt::IDT_FLAG_RING0 | idt::IDT_FLAG_GATE_32BIT_INT);
     idt::i686_IDT_SetGate(127, (void *)&i686_ISR127, GDT_KERNEL_CODE, idt::IDT_FLAG_RING0 | idt::IDT_FLAG_GATE_32BIT_INT);
-    idt::i686_IDT_SetGate(128, (void *)&i686_ISR128, GDT_KERNEL_CODE, idt::IDT_FLAG_RING3 | idt::IDT_FLAG_GATE_32BIT_INT);
+    idt::i686_IDT_SetGate(128, (void *)&syscall_entry, GDT_KERNEL_CODE, idt::IDT_FLAG_RING3 | idt::IDT_FLAG_GATE_32BIT_INT);
     idt::i686_IDT_SetGate(129, (void *)&i686_ISR129, GDT_KERNEL_CODE, idt::IDT_FLAG_RING0 | idt::IDT_FLAG_GATE_32BIT_INT);
     idt::i686_IDT_SetGate(130, (void *)&i686_ISR130, GDT_KERNEL_CODE, idt::IDT_FLAG_RING0 | idt::IDT_FLAG_GATE_32BIT_INT);
     idt::i686_IDT_SetGate(131, (void *)&i686_ISR131, GDT_KERNEL_CODE, idt::IDT_FLAG_RING0 | idt::IDT_FLAG_GATE_32BIT_INT);

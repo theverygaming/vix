@@ -1,3 +1,4 @@
+#include <arch/common/cpu.h>
 #include <arch/cpubasics.h>
 #include <arch/gdt.h>
 #include <arch/generic/memory.h>
@@ -14,27 +15,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-isr::intHandler handlers[256];
+typedef void (*intHandler)(struct arch::cpu_ctx *regs);
+static intHandler handlers[256];
 
 // #define DEBUG_ENTRY_EXIT
 // #define PANIC_ON_PROGRAM_FAULT
 
-extern "C" void i686_ISR_Handler(isr::registers *regs) {
-#ifdef DEBUG_ENTRY_EXIT
-    DEBUG_PRINTF_INSANE("KENTER(%u) -- eax: 0x%p ebx: 0x%p ecx: 0x%p edx: 0x%p\nesi: 0x%p edi: 0x%p esp_u: 0x%p esp_p: 0x%p ebp: 0x%p eip: 0x%p\n",
-                        regs->interrupt,
-                        regs->eax,
-                        regs->ebx,
-                        regs->ecx,
-                        regs->edx,
-                        regs->esi,
-                        regs->edi,
-                        regs->esp_user,
-                        regs->esp_pusha,
-                        regs->ebp,
-                        regs->eip);
-#endif
-    uint32_t previous_esp_user = regs->esp_user;
+extern "C" void i686_ISR_Handler(struct arch::cpu_ctx *regs) {
+    uint32_t previous_esp_user = regs->esp;
     // TSS stuff
     tss::tss_entry.ss0 = GDT_KERNEL_DATA;
     tss::tss_entry.esp0 = KERNEL_VIRT_ADDRESS + KERNEL_ISR_STACK_POINTER_OFFSET;
@@ -71,12 +59,12 @@ extern "C" void i686_ISR_Handler(isr::registers *regs) {
     } else if (regs->interrupt == 14) {
         uint32_t fault_address;
         asm volatile("mov %%cr2, %0"
-                     : "=r"(fault_address)); // get address page fault occurred at
-        int present = !(regs->error & 0x1);  // page not present
-        int rw = regs->error & 0x2;          // is caused by write
-        int us = regs->error & 0x4;          // user or kernel fault?
-        int reserved = regs->error & 0x8;    // reserved bt fuckup?
-        int id = regs->error & 0x10;         // instruction access or data?
+                     : "=r"(fault_address));     // get address page fault occurred at
+        int present = !(regs->error_code & 0x1); // page not present
+        int rw = regs->error_code & 0x2;         // is caused by write
+        int us = regs->error_code & 0x4;         // user or kernel fault?
+        int reserved = regs->error_code & 0x8;   // reserved bt fuckup?
+        int id = regs->error_code & 0x10;        // instruction access or data?
 
         // Output an error message.
         kprintf(KP_ALERT, "isr: Page fault! (\n");
@@ -96,8 +84,8 @@ extern "C" void i686_ISR_Handler(isr::registers *regs) {
             kprintf(KP_ALERT, "isr: instruction-fetch\n");
         }
         kprintf(KP_ALERT, "isr: ) at 0x%p\n", fault_address);
-        kprintf(KP_ALERT, "isr: Error code: 0x%p\n", regs->error);
-        kprintf(KP_ALERT, "isr: eax: 0x%p ebx: 0x%p ecx: 0x%p edx: 0x%p\nesi: 0x%p edi: 0x%p esp: 0x%p ebp: 0x%p eip: 0x%p\n", regs->eax, regs->ebx, regs->ecx, regs->edx, regs->esi, regs->edi, regs->esp_user, regs->ebp, regs->eip);
+        kprintf(KP_ALERT, "isr: Error code: 0x%p\n", regs->error_code);
+        kprintf(KP_ALERT, "isr: eax: 0x%p ebx: 0x%p ecx: 0x%p edx: 0x%p\nesi: 0x%p edi: 0x%p esp: 0x%p ebp: 0x%p eip: 0x%p\n", regs->eax, regs->ebx, regs->ecx, regs->edx, regs->esi, regs->edi, regs->esp, regs->ebp, regs->eip);
         if ((regs->eip >= KERNEL_VIRT_ADDRESS) && (regs->eip < KERNEL_VIRT_ADDRESS + KERNEL_MEMORY_END_OFFSET)) {
             KERNEL_PANIC("kernel page fault");
         }
@@ -112,12 +100,12 @@ extern "C" void i686_ISR_Handler(isr::registers *regs) {
         }
     } else if (regs->interrupt == 8 || regs->interrupt == 18) {
         kprintf(KP_EMERG, "isr: ---RIP---\nException #%lu, cannot recover\n", regs->interrupt);
-        kprintf(KP_EMERG, "isr: eax: 0x%p ebx: 0x%p ecx: 0x%p edx: 0x%p\nesi: 0x%p edi: 0x%p esp: 0x%p ebp: 0x%p eip: 0x%p\n", regs->eax, regs->ebx, regs->ecx, regs->edx, regs->esi, regs->edi, regs->esp_user, regs->ebp, regs->eip);
+        kprintf(KP_EMERG, "isr: eax: 0x%p ebx: 0x%p ecx: 0x%p edx: 0x%p\nesi: 0x%p edi: 0x%p esp: 0x%p ebp: 0x%p eip: 0x%p\n", regs->eax, regs->ebx, regs->ecx, regs->edx, regs->esi, regs->edi, regs->esp, regs->ebp, regs->eip);
         KERNEL_PANIC("Exception");
     } else {
         kprintf(KP_ALERT, "isr: Exception #%u\n", regs->interrupt);
-        kprintf(KP_ALERT, "isr: Error code: 0x%p\n", regs->error);
-        kprintf(KP_ALERT, "isr: eax: 0x%p ebx: 0x%p ecx: 0x%p edx: 0x%p\nesi: 0x%p edi: 0x%p esp: 0x%p ebp: 0x%p eip: 0x%p\n", regs->eax, regs->ebx, regs->ecx, regs->edx, regs->esi, regs->edi, regs->esp_user, regs->ebp, regs->eip);
+        kprintf(KP_ALERT, "isr: Error code: 0x%p\n", regs->error_code);
+        kprintf(KP_ALERT, "isr: eax: 0x%p ebx: 0x%p ecx: 0x%p edx: 0x%p\nesi: 0x%p edi: 0x%p esp: 0x%p ebp: 0x%p eip: 0x%p\n", regs->eax, regs->ebx, regs->ecx, regs->edx, regs->esi, regs->edi, regs->esp, regs->ebp, regs->eip);
         if ((regs->eip >= KERNEL_VIRT_ADDRESS) && (regs->eip < KERNEL_VIRT_ADDRESS + KERNEL_MEMORY_END_OFFSET)) {
             KERNEL_PANIC("kernel exception");
         }
@@ -136,11 +124,8 @@ extern "C" void i686_ISR_Handler(isr::registers *regs) {
 
     uint16_t new_ring = regs->cs & 0x3;
 
-#ifdef DEBUG_ENTRY_EXIT
-    DEBUG_PRINTF_INSANE("KEXIT(%u)\n", regs->interrupt);
-#endif
     // since we may use a different stack we have to copy some of the data to the old stack
-    memcpy((void *)regs->esp_kernel, &regs->eip, 20);
+    //memcpy((void *)regs->esp_kernel, &regs->eip, 20);
 }
 
 void isr::i686_ISR_Initialize() {
@@ -153,7 +138,7 @@ void isr::i686_ISR_Initialize() {
     }
 }
 
-void isr::RegisterHandler(int handler, void (*_func)(registers *regs)) {
+void isr::RegisterHandler(int handler, void (*_func)(struct arch::cpu_ctx *regs)) {
     handlers[handler] = _func;
 }
 
