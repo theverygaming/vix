@@ -59,7 +59,6 @@ void multitasking::initMultitasking() {
     idle->reg_ctx.esp = 0; // TODO: investigate kernel task stack pointer bug
     idle->reg_ctx.eip = (uintptr_t)cpuidle;
     idle->reg_ctx.eflags = 1 << 9;
-    idle->state = x86_process::state::SLEEP; // FIXME: kernel threads broken
     processes.push_back(idle);
 
     kprintf(KP_INFO, "multitasking: initialized\n");
