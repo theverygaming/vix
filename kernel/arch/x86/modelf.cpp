@@ -1,7 +1,7 @@
 #include <arch/modelf.h>
 #include <arch/symbols.h>
-#include <cppstd/string.h>
-#include <cppstd/vector.h>
+#include <string>
+#include <vector>
 #include <debug.h>
 #include <mm/kmalloc.h>
 #include <stdlib.h>

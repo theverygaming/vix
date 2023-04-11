@@ -2,8 +2,8 @@
 #include <arch/elf.h>
 #include <arch/generic/memory.h>
 #include <arch/multitasking.h>
-#include <cppstd/string.h>
-#include <cppstd/vector.h>
+#include <string>
+#include <vector>
 #include <debug.h>
 #include <mm/kmalloc.h>
 #include <mm/phys.h>

@@ -1,7 +1,7 @@
 #include <arch/generic/memory.h>
 #include <arch/generic/startup.h>
 #include <config.h>
-#include <cpp.h>
+#include <libcxx.h>
 #include <debug.h>
 #include <kernel.h>
 #include <kprintf.h>

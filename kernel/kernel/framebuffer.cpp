@@ -1,5 +1,5 @@
 #include <config.h>
-#include <cppstd/algorithm.h>
+#include <algorithm>
 #include <debug.h>
 #include <drivers/ms_mouse.h>
 #include <framebuffer.h>

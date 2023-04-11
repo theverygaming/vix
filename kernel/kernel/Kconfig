@@ -1,6 +1,5 @@
 menu "core kernel"
 source "mm/Kconfig"
-source "cppstd/Kconfig"
 
 choice
 	prompt "kernel loglevel"

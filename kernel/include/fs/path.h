@@ -1,6 +1,6 @@
 #pragma once
-#include <cppstd/string.h>
-#include <cppstd/vector.h>
+#include <string>
+#include <vector>
 
 namespace fs::path {
     bool starts_with(std::vector<std::string> *path, std::vector<std::string> *start);
