@@ -1,6 +1,6 @@
 #include <arch/generic/memory.h>
 #include <config.h>
-#include <cppstd/algorithm.h>
+#include <algorithm>
 #include <debug.h>
 #include <macros.h>
 #include <mm/kmalloc.h>

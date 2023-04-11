@@ -3,8 +3,8 @@
 #include <arch/isr.h>
 #include <arch/paging.h>
 #include <config.h>
-#include <cppstd/string.h>
-#include <cppstd/vector.h>
+#include <string>
+#include <vector>
 #include <event.h>
 #include <scheduler.h>
 #include <types.h>

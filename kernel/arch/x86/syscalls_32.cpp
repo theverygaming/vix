@@ -8,7 +8,7 @@
 #include <arch/multitasking.h>
 #include <arch/paging.h>
 #include <arch/syscalls_32.h>
-#include <cppstd/string.h>
+#include <string>
 #include <debug.h>
 #include <fs/vfs.h>
 #include <generated/autoconf.h>

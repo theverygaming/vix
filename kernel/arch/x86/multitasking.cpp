@@ -4,7 +4,7 @@
 #include <arch/generic/memory.h>
 #include <arch/multitasking.h>
 #include <arch/syscalls_32.h>
-#include <cppstd/vector.h>
+#include <vector>
 #include <debug.h>
 #include <errno.h>
 #include <kprintf.h>

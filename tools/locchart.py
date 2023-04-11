@@ -73,7 +73,7 @@ excludes = [
 ]
 
 kernel_paths = [
-    "kernel/cppstd",
+    "kernel/libcxx",
     "kernel/include",
     "kernel/drivers",
     "kernel/fs",

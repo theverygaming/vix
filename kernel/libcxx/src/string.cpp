@@ -1,4 +1,4 @@
-#include <cppstd/string.h>
+#include <string>
 
 std::string operator+(const std::string &lhs, const std::string &rhs) {
     std::string ret = lhs;

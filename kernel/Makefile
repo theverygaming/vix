@@ -4,7 +4,7 @@ LD=
 
 include Makefile.version
 
-BUILD_SUBDIRS := kernel drivers fs net tests cppstd mm
+BUILD_SUBDIRS := kernel drivers fs net tests mm libcxx
 
 -include .config
 BUILD_ARCH := $(patsubst "%",%,$(CONFIG_ARCH))
@@ -106,7 +106,7 @@ alldefconfig:
 # clean targets
 clean: modclean
 	@rm -f kernel.o kernel.bin symtab.s symtab.os kernel_partial.o
-	@find ./arch ./drivers ./fs ./include ./kernel ./net ./mm ./cppstd ./tests \( -name '*.oasm' -o -name '*.onasm' -o -name '*.ocpp' -o -name '*.ors' -o -name '*.rlib' -o -name '*.o' -o -name '*.os' \) -type f -delete
+	@find ./arch ./drivers ./fs ./include ./kernel ./net ./mm ./libcxx ./tests \( -name '*.oasm' -o -name '*.onasm' -o -name '*.ocpp' -o -name '*.ors' -o -name '*.rlib' -o -name '*.o' -o -name '*.os' \) -type f -delete
 
 proper: clean
 	@$(MAKE) --quiet -C scripts/kconfig clean

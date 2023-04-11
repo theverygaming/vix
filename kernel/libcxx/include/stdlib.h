@@ -1,15 +1,18 @@
 #pragma once
 #include <types.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef __builtin_va_list va_list;
 #define va_start(v, l)    __builtin_va_start(v, l)
 #define va_end(v)         __builtin_va_end(v)
 #define va_arg(v, l)      __builtin_va_arg(v, l)
 #define va_copy(dst, src) __builtin_va_copy(dst, src)
 
-/* extern "C" because compilers may use memset and memcpy internally */
-extern "C" void *memcpy(void *dst, const void *src, size_t n);
-extern "C" void *memset(void *ptr, int value, size_t n);
+void *memcpy(void *dst, const void *src, size_t n);
+void *memset(void *ptr, int value, size_t n);
 
 int memcmp(const void *ptr1, const void *ptr2, size_t num);
 void *memmove(void *dest, const void *src, size_t n);
@@ -25,3 +28,7 @@ char *strchr(char *str, int character);
 
 char *itoa(size_t value, char *str, size_t base);
 char *itoa_signed(ssize_t value, char *str, size_t base);
+
+#ifdef __cplusplus
+}
+#endif

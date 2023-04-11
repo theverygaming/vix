@@ -17,8 +17,8 @@
 #include <arch/simd.h>
 #include <arch/syscall_32.h>
 #include <config.h>
-#include <cppstd/string.h>
-#include <cppstd/vector.h>
+#include <string>
+#include <vector>
 #include <framebuffer.h>
 #include <fs/tarfs.h>
 #include <fs/vfs.h>
