@@ -1,0 +1,94 @@
+#pragma once
+#include <kprintf.h>
+#include <types.h>
+
+namespace std {
+
+    template <class T>
+    class shared_ptr {
+    public:
+        shared_ptr()
+            : ptr(nullptr), refcount(new uint32_t(0)) {
+        }
+
+        shared_ptr(T *ptr)
+            : ptr(ptr), refcount(new uint32_t(1)) {
+        }
+
+        shared_ptr(const shared_ptr &p)
+            : ptr(p.ptr), refcount(p.refcount) {
+            if (p.ptr != nullptr) {
+                (*refcount)++;
+            }
+        }
+
+        shared_ptr(shared_ptr &&moved) {
+            ptr = moved.ptr;
+            refcount = moved.refcount;
+            moved.ptr = nullptr;
+            moved.refcount = nullptr;
+        }
+
+        ~shared_ptr() {
+            clean();
+        }
+
+        shared_ptr &operator=(shared_ptr &&moved) {
+            clean();
+
+            ptr = moved.ptr;
+            refcount = moved.refcount;
+            moved.ptr = nullptr;
+            moved.refcount = nullptr;
+        }
+
+        shared_ptr &operator=(const shared_ptr &p) {
+            clean();
+
+            ptr = p.ptr;
+            refcount = p.refcount;
+
+            if (p.ptr != nullptr) {
+                (*refcount)++;
+            }
+            return *this;
+        }
+
+        T *get() const noexcept {
+            return ptr;
+        }
+
+        T &operator*() const noexcept {
+            return ptr;
+        }
+
+        T *operator->() const noexcept {
+            return ptr;
+        }
+
+        T &operator[](ssize_t index) const {
+            return &ptr[index];
+        }
+
+        uint32_t use_count() const noexcept {
+            return *refcount;
+        }
+
+    private:
+        T *ptr;
+        uint32_t *refcount;
+
+        void clean() {
+            if (*refcount != 0) {
+                (*refcount)--;
+            }
+
+            if (*refcount == 0) {
+                if (ptr != nullptr) {
+                    delete ptr;
+                }
+                delete refcount;
+            }
+        }
+    };
+}
