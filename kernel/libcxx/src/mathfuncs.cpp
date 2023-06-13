@@ -45,4 +45,16 @@ unsigned int __umodsi3(unsigned int a, unsigned int b) {
 
     return r;
 }
+
+unsigned long __udivdi3(unsigned long a, unsigned long b) {
+    unsigned long r = a;
+    unsigned long q = 0;
+
+    while (b <= r) {
+        r -= b;
+        q++;
+    }
+
+    return r;
+}
 }

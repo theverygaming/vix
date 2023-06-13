@@ -1,18 +1,41 @@
 #pragma once
+#include <types.h>
+#include <utility>
 
 namespace std {
-    template <class T> const T &max(const T &a, const T &b) {
+    template <class T>
+    const T &max(const T &a, const T &b) {
         return (a < b) ? b : a;
     }
 
-    template <class T> const T &min(const T &a, const T &b) {
+    template <class T>
+    const T &min(const T &a, const T &b) {
         return (b < a) ? b : a;
     }
 
-    template <class T> constexpr const T clamp(const T &v, const T &lo, const T &hi) {
+    template <class T>
+    constexpr const T clamp(const T &v, const T &lo, const T &hi) {
         T val = v;
         val = val < lo ? lo : val;
         val = val > hi ? hi : val;
         return val;
+    }
+
+    template <class it, class compare>
+    void bubblesort(it first, it last, compare cmp) {
+        if (last <= first) {
+            return;
+        }
+        size_t len = last - first;
+        bool swapped;
+        do {
+            swapped = false;
+            for (size_t i = 1; i < len; i++) {
+                if (cmp(first[i], first[i - 1])) {
+                    swap(first[i - 1], first[i]);
+                    swapped = true;
+                }
+            }
+        } while (swapped);
     }
 }

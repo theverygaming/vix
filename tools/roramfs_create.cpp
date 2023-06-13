@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <cstdio>
 #include <cstring>
 #include <fstream>
@@ -41,7 +42,7 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < filecount; i++) {
         struct file_entry fileentry;
         memset(fileentry.name, 0, sizeof(fileentry.name));
-        std::string path_cpp_str = argv[i+3];
+        std::string path_cpp_str = argv[i + 3];
         strcpy(fileentry.name, path_cpp_str.substr(path_cpp_str.find_last_of("/\\") + 1).insert(0, "/").c_str());
         fileentry.offset = Offset;
 
@@ -53,7 +54,7 @@ int main(int argc, char *argv[]) {
 
         fileentry.size = input.tellg();
         output.seekp(currentHeaderOffset);
-        output.write((char*)&fileentry, sizeof(fileentry));
+        output.write((char *)&fileentry, sizeof(fileentry));
 
         input.seekg(0);
         char *buf = new char[fileentry.size];

@@ -33,4 +33,10 @@ config KFREE_CLEANUP_INTERVAL
         A cleanup frees physical memory.
         Bigger value -> less efficient memory usage but kfree runs faster.
 
+config MEMMAP_MAX_ENTRIES
+	prompt "maximum amount of entries in memory map"
+	int
+	default 50
+	range 1 256
+        
 endmenu

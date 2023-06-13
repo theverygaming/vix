@@ -47,9 +47,6 @@ img-aarch64:
 	@./roramfs_create roramfs.fs "insert fs label here" fonts/Unifont-APL8x16-15.0.01.psf
 	@boot/createimg-aarch64.sh
 
-img-lx106_esp8266:
-	@$(MAKE) --no-print-directory -C kernel
-
 img-m68k:
 	@$(MAKE) --no-print-directory -C kernel
 	m68k-elf-objcopy -O binary kernel/kernel.o kernel.bin
@@ -58,7 +55,6 @@ img-m68k:
 	~/Downloads/Mini\ vMac/Mini\ vMac -d .
 
 clean-m68k:
-clean-lx106_esp8266:
 clean-aarch64:
 clean-x86:
 	@$(MAKE) --no-print-directory -C startup/$(MAKE_ARCH) clean
