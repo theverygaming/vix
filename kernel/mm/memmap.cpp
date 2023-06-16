@@ -5,7 +5,7 @@
 #include <macros.h>
 #include <mm/memmap.h>
 #include <panic.h>
-#include <string.h>
+#include <stdlib.h>
 
 static bool is_usable(mm::mem_map_entry::type_t type) {
     return type == mm::mem_map_entry::type_t::RAM;
