@@ -53,6 +53,7 @@ endif
 
 export INT_CXX INT_LD INT_NM INT_OBJCOPY INT_CXXFLAGS INT_LDFLAGS
 export CXX LD NM OBJCOPY CXXFLAGS LDFLAGS
+export BUILD_ARCH
 
 # module stuff
 ifdef M
@@ -64,6 +65,9 @@ all: syncconfig
 ifndef M
 	@$(MAKE) kernel
 endif
+
+doxygen:
+	@doxygen
 
 syncconfig:
 	@$(MAKE) --quiet -C scripts/kconfig/ config
