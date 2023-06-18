@@ -36,6 +36,19 @@ with open(sys.argv[1]) as file:
 
 tests.sort(key=operator.attrgetter('group'))
 
+if not fail_on_failed_test:
+    print("<details>\n<summary>qemu output</summary>\n\n```")
+    with open(sys.argv[1]) as file:
+        print(file.read())
+    print("```\n\n</details>\n")
+
+if len(tests) == 0:
+    if fail_on_failed_test:
+        exit(1)
+    else:
+        print("# Tests :x: - zero tests ran")
+        exit(0)
+
 failed = 0
 for test in tests:
     if test.result == "F":

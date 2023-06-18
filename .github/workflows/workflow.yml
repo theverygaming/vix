@@ -11,10 +11,10 @@ jobs:
       - name: install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install nasm gcc-multilib g++-multilib xorriso grub-common mtools qemu-system-x86 llvm-dev libclang-dev clang python3 pkg-config flex bison xxd
+          sudo apt-get install ansifilter nasm gcc-multilib g++-multilib xorriso grub-common mtools qemu-system-x86 llvm-dev libclang-dev clang python3 pkg-config flex bison xxd
 
       - name: compile
-        run: | 
+        run: |
           cd $GITHUB_WORKSPACE
           make alldefconfig MAKE_ARCH=x86
           make tests MAKE_ARCH=x86
@@ -24,7 +24,7 @@ jobs:
       - name: run
         run: |
           cd $GITHUB_WORKSPACE
-          timeout 30 qemu-system-x86_64 -cdrom vix.iso -nographic | tee log.txt || true
+          timeout 30 qemu-system-x86_64 -cdrom vix.iso -nographic | ansifilter | tee log.txt || true
 
       - name: upload image
         uses: actions/upload-artifact@v3
@@ -37,7 +37,7 @@ jobs:
           cd $GITHUB_WORKSPACE
           python3 tools/testparser.py log.txt >> $GITHUB_STEP_SUMMARY
           python3 tools/testparser.py log.txt -f
-  
+
   build-x86_64:
     runs-on: ubuntu-latest
     steps:
@@ -48,14 +48,15 @@ jobs:
       - name: install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install qemu-system-x86 ovmf seabios llvm-dev libclang-dev clang python3 pkg-config flex bison git nasm gzip gawk mtools xxd
+          sudo apt-get install ansifilter qemu-system-x86 ovmf seabios llvm-dev libclang-dev clang python3 pkg-config flex bison git nasm gzip gawk mtools xxd
 
       - name: build limine
         run: |
           cd $GITHUB_WORKSPACE/../
           wget https://github.com/limine-bootloader/limine/releases/download/v4.20230114.0/limine-4.20230114.0.tar.gz
           tar -xf limine-4.20230114.0.tar.gz
-          cd limine-4.20230114.0
+          mv limine-4.20230114.0/ limine/
+          cd limine
           ./bootstrap
           ./configure --enable-uefi-x86-64 --enable-bios
           make -j $(nproc)
@@ -72,7 +73,7 @@ jobs:
       - name: run
         run: |
           cd $GITHUB_WORKSPACE
-          timeout 30 qemu-system-x86_64 -bios /usr/share/ovmf/OVMF.fd -nographic -serial mon:stdio -hda vix_uefi.img | tee log.txt || true
+          timeout 30 qemu-system-x86_64 -bios /usr/share/ovmf/OVMF.fd -nographic -serial mon:stdio -hda vix_uefi.img | ansifilter | tee log.txt || true
 
       - name: upload image
         uses: actions/upload-artifact@v3
@@ -96,14 +97,15 @@ jobs:
       - name: install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install qemu-system-arm qemu-efi-aarch64 seabios llvm-dev libclang-dev clang python3 pkg-config flex bison gcc-aarch64-linux-gnu g++-aarch64-linux-gnu binutils-aarch64-linux-gnu git nasm gzip gawk mtools xxd
+          sudo apt-get install ansifilter qemu-system-arm qemu-efi-aarch64 seabios llvm-dev libclang-dev clang python3 pkg-config flex bison gcc-aarch64-linux-gnu g++-aarch64-linux-gnu binutils-aarch64-linux-gnu git nasm gzip gawk mtools xxd
 
       - name: build limine
         run: |
           cd $GITHUB_WORKSPACE/../
           wget https://github.com/limine-bootloader/limine/releases/download/v4.20230114.0/limine-4.20230114.0.tar.gz
           tar -xf limine-4.20230114.0.tar.gz
-          cd limine-4.20230114.0
+          mv limine-4.20230114.0/ limine/
+          cd limine
           ./bootstrap
           CROSS_TOOLCHAIN=aarch64-linux-gnu ./configure --enable-uefi-aarch64
           make -j $(nproc)
@@ -116,7 +118,7 @@ jobs:
       - name: run
         run: |
           cd $GITHUB_WORKSPACE
-          timeout 30 qemu-system-aarch64 -m 1024m -bios /usr/share/qemu-efi-aarch64/QEMU_EFI.fd -cpu cortex-a53 -smp 4 -machine virt -device ramfb -device qemu-xhci -device usb-kbd -nographic -serial mon:stdio -hda vix_uefi.img | tee log.txt || true
+          timeout 30 qemu-system-aarch64 -m 1024m -bios /usr/share/qemu-efi-aarch64/QEMU_EFI.fd -cpu cortex-a53 -smp 4 -machine virt -device ramfb -device qemu-xhci -device usb-kbd -nographic -serial mon:stdio -hda vix_uefi.img | ansifilter | tee log.txt || true
 
       - name: upload image
         uses: actions/upload-artifact@v3
