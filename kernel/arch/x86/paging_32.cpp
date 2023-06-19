@@ -1,3 +1,4 @@
+#include <arch/common/paging.h>
 #include <arch/generic/memory.h>
 #include <arch/paging.h>
 #include <config.h>
@@ -120,7 +121,8 @@ void *paging::get_physaddr_unaligned(void *virtualaddr) {
 // Both addresses have to be page-aligned!
 void paging::map_page(void *physaddr, void *virtualaddr, size_t count, bool massflush, bool global) {
 
-    uint32_t entry = make_table_entry({.address = physaddr, .global = global, .cache_disabled = false, .write_through = false, .priv = USER, .perms = RW, .present = true});
+    uint32_t entry = make_table_entry(
+        {.address = physaddr, .global = global, .cache_disabled = false, .write_through = false, .priv = USER, .perms = RW, .present = true});
 
     uint32_t pDirIndex;
     uint32_t pTableIndex;
@@ -178,8 +180,10 @@ bool paging::is_readable(const void *virtualaddr) {
 void paging::copyPhysPage(void *dest, void *src) {
     uint32_t before1 = pagetables[0][0];
     uint32_t before2 = pagetables[0][1];
-    pagetables[0][0] = make_table_entry({.address = src, .global = false, .cache_disabled = false, .write_through = false, .priv = SUPERVISOR, .perms = RW, .present = true});
-    pagetables[0][1] = make_table_entry({.address = dest, .global = false, .cache_disabled = false, .write_through = false, .priv = SUPERVISOR, .perms = RW, .present = true});
+    pagetables[0][0] = make_table_entry(
+        {.address = src, .global = false, .cache_disabled = false, .write_through = false, .priv = SUPERVISOR, .perms = RW, .present = true});
+    pagetables[0][1] = make_table_entry(
+        {.address = dest, .global = false, .cache_disabled = false, .write_through = false, .priv = SUPERVISOR, .perms = RW, .present = true});
     invlpg((void *)0);
     invlpg((void *)ARCH_PAGE_SIZE);
     memcpy((char *)ARCH_PAGE_SIZE, (char *)0, ARCH_PAGE_SIZE);
@@ -187,4 +191,34 @@ void paging::copyPhysPage(void *dest, void *src) {
     pagetables[0][1] = before2;
     invlpg((void *)0);
     invlpg((void *)ARCH_PAGE_SIZE);
+}
+
+void arch::vmm::map_page(uintptr_t virt, uintptr_t phys, unsigned int flags) {
+    uint32_t entry = make_table_entry({.address = (void *)phys,
+                                       .global = false,
+                                       .cache_disabled = (flags & arch::vmm::FLAGS_CACHE_DISABLE) ? true : false,
+                                       .write_through = (flags & arch::vmm::FLAGS_WRITE_THROUGH) ? true : false,
+                                       .priv = (flags & arch::vmm::FLAGS_USER) ? USER : SUPERVISOR,
+                                       .perms = (flags & arch::vmm::FLAGS_READ_ONLY) ? R : RW,
+                                       .present = true});
+
+    uint32_t pDirIndex = (uint32_t)virt >> 22;
+    uint32_t pTableIndex = (uint32_t)virt >> 12 & 0x03FF;
+
+    pagetables[pDirIndex][pTableIndex] = entry;
+    invlpg((void *)virt);
+}
+
+bool arch::vmm::unmap_page(uintptr_t virt, uintptr_t *phys) {
+    uint32_t pDirIndex = (uint32_t)virt >> 22;
+    uint32_t pTableIndex = (uint32_t)virt >> 12 & 0x03FF;
+
+    struct pagetableEntry entry = get_table_entry(pagetables[pDirIndex][pTableIndex]);
+
+    if (phys != nullptr && entry.present) {
+        *phys = (uintptr_t)entry.address;
+    }
+    pagetables[pDirIndex][pTableIndex] = 0;
+    invlpg((void *)virt);
+    return entry.present;
 }

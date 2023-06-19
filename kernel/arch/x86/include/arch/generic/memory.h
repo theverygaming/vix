@@ -2,8 +2,6 @@
 #include <arch/generic/archspecific.h>
 #include <types.h>
 
-#define ARCH_HAS_VIRTUAL_MEM
-
 /* alignment for architectures that require it */
 #define ARCH_ALIGNMENT_REQUIRED 1
 
@@ -40,8 +38,4 @@ namespace arch::generic::memory {
     };
     /* call for each memory map entry, returns false when no more entries left -> n is a counter that starts with 0 */
     bool get_memory_map(struct memory_map_entry *entry, int n);
-
-    void vm_map(void *virt, void *phys, size_t pages, bool global, bool kernel);
-    void vm_unmap(void *virt);
-    void *vm_get_phys_address(void *virt);
 }

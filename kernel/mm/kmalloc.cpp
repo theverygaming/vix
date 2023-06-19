@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <arch/common/paging.h>
 #include <arch/generic/memory.h>
 #include <config.h>
 #include <debug.h>
@@ -13,6 +14,7 @@
 
 #define PROTECT_ALLOC_STRUCTS
 
+#undef DEBUG_PRINTF_INSANE
 #define DEBUG_PRINTF_INSANE(...) \
     while (0) {} // disable debug printf for this file
 
@@ -25,7 +27,7 @@ static void *alloc_pages(size_t pages) {
     void *area = mm::kv::alloc(pages);
     for (size_t i = 0; i < pages; i++) {
         void *phys = mm::phys::phys_malloc(1);
-        arch::generic::memory::vm_map(((uint8_t *)area) + (i * ARCH_PAGE_SIZE), phys, 1, true, true);
+        arch::vmm::map_page(((uintptr_t)area) + (i * ARCH_PAGE_SIZE), (uintptr_t)phys, 0);
     }
 #else
     void *area = mm::phys::phys_malloc(pages);
@@ -35,10 +37,12 @@ static void *alloc_pages(size_t pages) {
 
 static void free_pages(void *address, size_t count) {
 #ifdef CONFIG_ARCH_HAS_PAGING
+    uintptr_t phys;
     for (size_t i = 0; i < count; i++) {
-        void *phys = arch::generic::memory::vm_get_phys_address(((uint8_t *)address) + (i * ARCH_PAGE_SIZE));
-        mm::phys::phys_free(phys, 1);
-        arch::generic::memory::vm_unmap(((uint8_t *)address) + (i * ARCH_PAGE_SIZE));
+        if (unlikely(!arch::vmm::unmap_page(((uintptr_t)address) + (i * ARCH_PAGE_SIZE), &phys))) {
+            KERNEL_PANIC("kmalloc page is somehow unmapped");
+        }
+        mm::phys::phys_free((void *)phys, 1);
     }
 #else
     for (size_t i = 0; i < count; i++) {
@@ -76,7 +80,7 @@ static uintptr_t ll_get_checksum(struct meminfo *ptr) {
     uintptr_t checksum = 0;
 #ifdef PROTECT_ALLOC_STRUCTS
     unsigned char *ptr_c = (unsigned char *)ptr;
-    for (int i = 0; i < sizeof(struct meminfo) - sizeof(uintptr_t); i++) {
+    for (unsigned int i = 0; i < sizeof(struct meminfo) - sizeof(uintptr_t); i++) {
         checksum += *ptr_c++;
     }
 #endif
@@ -233,7 +237,6 @@ static void ll_remove(struct meminfo *ptr) {
         ll_alloc_new_block(ARCH_PAGE_SIZE, false);
     }
 
-    struct meminfo *old_prev = ptr->prev;
     struct meminfo *old_next = ptr->next;
 
     // TODO: check if this is heap_start and act accordingly
@@ -464,8 +467,10 @@ static void init() {
         .size = ARCH_PAGE_SIZE - sizeof(struct meminfo),
 #ifdef PROTECT_ALLOC_STRUCTS
         .p2 = 0,
+        .checksum = 0,
 #endif
     };
+    ll_protect(heap_start);
     ll_check();
 }
 

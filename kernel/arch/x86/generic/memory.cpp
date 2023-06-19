@@ -67,15 +67,3 @@ bool arch::generic::memory::get_memory_map(struct memory_map_entry *entry, int n
 #endif
     return true;
 }
-
-void arch::generic::memory::vm_map(void *virt, void *phys, size_t pages, bool global, bool kernel) {
-    paging::map_page(phys, virt, pages, false, global); // TODO: permissions
-}
-
-void arch::generic::memory::vm_unmap(void *virt) {
-    paging::clearPageTables(virt, 1);
-}
-
-void *arch::generic::memory::vm_get_phys_address(void *virt) {
-    return paging::get_physaddr_unaligned(virt);
-}
