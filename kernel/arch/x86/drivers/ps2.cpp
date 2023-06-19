@@ -4,10 +4,10 @@
 #include <arch/drivers/ps2.h>
 #include <arch/drivers/text80x25.h>
 #include <arch/isr.h>
-#include <vector>
 #include <drivers/ms_mouse.h>
 #include <keyboard.h>
 #include <stdio.h>
+#include <vector>
 
 #define PS2_DATA    0x60
 #define PS2_STATUS  0x64

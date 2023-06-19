@@ -1,7 +1,7 @@
-#include <vector>
 #include <drivers/ms_mouse.h>
 #include <panic.h>
 #include <stdio.h>
+#include <vector>
 
 struct event_listener {
     void (*event)(void *, struct drivers::ms_mouse::mouse_packet);
@@ -62,7 +62,7 @@ void drivers::ms_mouse::rx_packet(uint8_t *packet, uint8_t count) {
 void drivers::ms_mouse::register_event_listener(void (*event)(void *, struct mouse_packet), void *arg) {
     for (size_t i = 0; i < listeners.size(); i++) {
         if (listeners[i].event == event && listeners[i].arg == arg) {
-            KERNEL_PANIC("2x same event listener");
+            return;
         }
     }
     listeners.push_back({.event = event, .arg = arg});

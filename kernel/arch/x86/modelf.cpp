@@ -1,10 +1,10 @@
 #include <arch/modelf.h>
 #include <arch/symbols.h>
-#include <string>
-#include <vector>
 #include <debug.h>
 #include <mm/kmalloc.h>
 #include <stdlib.h>
+#include <string>
+#include <vector>
 
 struct __attribute__((packed)) elf32_header {
     unsigned char e_ident[16]; // should start with [0x7f 'E' 'L' 'F']
@@ -31,7 +31,7 @@ struct __attribute__((packed)) elf32_program_header {
     uint32_t p_filesz; // size of data in elf image
     uint32_t p_memsz;  // size of data in memory; any excess over disk size is zero'd
     uint32_t p_flags;
-    uint32_t p_align; // alignment
+    uint32_t p_align;  // alignment
 };
 
 // https://github.com/torvalds/linux/blob/master/include/uapi/linux/elf.h
@@ -113,24 +113,31 @@ uint32_t elf32_get_symbol_value(void *ELF_baseadr, uint32_t sectionindex, uint32
     *offset = false;
     struct elf32_header *header = (struct elf32_header *)ELF_baseadr;
 
-    struct elf32_section_header *shdr = (struct elf32_section_header *)(((uint8_t *)ELF_baseadr) + header->e_shoff + (header->e_shentsize * sectionindex));
+    struct elf32_section_header *shdr =
+        (struct elf32_section_header *)(((uint8_t *)ELF_baseadr) + header->e_shoff + (header->e_shentsize * sectionindex));
 
-    char *stringtable_syms = ((char *)((struct elf32_section_header *)(((uint8_t *)ELF_baseadr) + header->e_shoff + (header->e_shentsize * shdr->sh_link)))->sh_offset) + (uintptr_t)ELF_baseadr;
-    char *stringtable_sect = ((char *)((struct elf32_section_header *)(((uint8_t *)ELF_baseadr) + header->e_shoff + (header->e_shentsize * header->e_shstrndx)))->sh_offset) + (uintptr_t)ELF_baseadr;
+    char *stringtable_syms =
+        ((char *)((struct elf32_section_header *)(((uint8_t *)ELF_baseadr) + header->e_shoff + (header->e_shentsize * shdr->sh_link)))->sh_offset) +
+        (uintptr_t)ELF_baseadr;
+    char *stringtable_sect =
+        ((char *)((struct elf32_section_header *)(((uint8_t *)ELF_baseadr) + header->e_shoff + (header->e_shentsize * header->e_shstrndx)))
+             ->sh_offset) +
+        (uintptr_t)ELF_baseadr;
 
     struct elf32_symtab *symtab_entry = (struct elf32_symtab *)(((uint8_t *)ELF_baseadr) + shdr->sh_offset + (shdr->sh_entsize * symindex));
 
     const char *sname = &stringtable_syms[symtab_entry->st_name];
 
     if (symtab_entry->st_shndx == SHN_UNDEF) {
-        DEBUG_PRINTF_INSANE("get_sym -- %s\n", sname);
+        DEBUG_PRINTF_INSANE("get_sym -- %s -- 0x%p\n", sname, syms::get_sym(sname));
         return syms::get_sym(sname);
     } else if (symtab_entry->st_shndx == SHN_ABS) {
-        kprintf(KP_EMERG, "isr: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n");
+        kprintf(KP_EMERG, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n");
         while (true) {}
         return symtab_entry->st_value;
     } else {
-        struct elf32_section_header *shdr2 = (struct elf32_section_header *)(((uint8_t *)ELF_baseadr) + header->e_shoff + (header->e_shentsize * symtab_entry->st_shndx));
+        struct elf32_section_header *shdr2 =
+            (struct elf32_section_header *)(((uint8_t *)ELF_baseadr) + header->e_shoff + (header->e_shentsize * symtab_entry->st_shndx));
         *name = &stringtable_sect[shdr2->sh_name];
         *offset = true;
         return symtab_entry->st_value;
@@ -150,14 +157,20 @@ uint32_t elf32_find_symbol(const char *name, void *ELF_baseadr, std::vector<sect
         if (!(shdr->sh_type == SHT_SYMTAB)) {
             continue;
         }
-        char *stringtable_syms = ((char *)((struct elf32_section_header *)(((uint8_t *)ELF_baseadr) + header->e_shoff + (header->e_shentsize * shdr->sh_link)))->sh_offset) + (uintptr_t)ELF_baseadr;
+        char *stringtable_syms =
+            ((char *)((struct elf32_section_header *)(((uint8_t *)ELF_baseadr) + header->e_shoff + (header->e_shentsize * shdr->sh_link)))
+                 ->sh_offset) +
+            (uintptr_t)ELF_baseadr;
         char *stringtable_sect =
-            ((char *)((struct elf32_section_header *)(((uint8_t *)ELF_baseadr) + header->e_shoff + (header->e_shentsize * header->e_shstrndx)))->sh_offset) + (uintptr_t)ELF_baseadr;
+            ((char *)((struct elf32_section_header *)(((uint8_t *)ELF_baseadr) + header->e_shoff + (header->e_shentsize * header->e_shstrndx)))
+                 ->sh_offset) +
+            (uintptr_t)ELF_baseadr;
         for (size_t j = 0; j < shdr->sh_size / shdr->sh_entsize; j++) {
             struct elf32_symtab *symtab_entry = (struct elf32_symtab *)(((uint8_t *)ELF_baseadr) + shdr->sh_offset + (shdr->sh_entsize * j));
             if (strcmp(name, &stringtable_syms[symtab_entry->st_name]) == 0) {
                 // find section for this symbol
-                struct elf32_section_header *shdr_target = (struct elf32_section_header *)(((uint8_t *)ELF_baseadr) + header->e_shoff + (header->e_shentsize * symtab_entry->st_shndx));
+                struct elf32_section_header *shdr_target =
+                    (struct elf32_section_header *)(((uint8_t *)ELF_baseadr) + header->e_shoff + (header->e_shentsize * symtab_entry->st_shndx));
                 for (size_t k = 0; k < sections->size(); k++) {
                     if (strcmp((*sections)[k].name.c_str(), &stringtable_sect[shdr_target->sh_name]) == 0) {
                         return (uintptr_t)(*sections)[k].address + symtab_entry->st_value;
@@ -187,7 +200,10 @@ void elf::load_module(void *ELF_baseadr) {
     // read the section header table and allocate all sections
     std::vector<section_alloc> sections;
     // TODO: investigate pointer overflow
-    const char *stringtable_base = ((const char *)((struct elf32_section_header *)(((uint8_t *)ELF_baseadr) + header.e_shoff + (header.e_shentsize * header.e_shstrndx)))->sh_offset) + (uintptr_t)ELF_baseadr;
+    const char *stringtable_base =
+        ((const char *)((struct elf32_section_header *)(((uint8_t *)ELF_baseadr) + header.e_shoff + (header.e_shentsize * header.e_shstrndx)))
+             ->sh_offset) +
+        (uintptr_t)ELF_baseadr;
     for (int i = 0; i < header.e_shnum; i++) {
         struct elf32_section_header *shdr = (struct elf32_section_header *)(((uint8_t *)ELF_baseadr) + header.e_shoff + (header.e_shentsize * i));
         if (!(shdr->sh_flags & SHF_ALLOC)) {
@@ -216,7 +232,8 @@ void elf::load_module(void *ELF_baseadr) {
             size_t count = shdr->sh_size / shdr->sh_entsize;
             for (size_t j = 0; j < count; j++) {
                 struct elf32_rel *reloc = (struct elf32_rel *)(((char *)ELF_baseadr) + shdr->sh_offset + (j * shdr->sh_entsize));
-                struct elf32_section_header *target_shdr = (struct elf32_section_header *)(((uint8_t *)ELF_baseadr) + header.e_shoff + (header.e_shentsize * shdr->sh_info));
+                struct elf32_section_header *target_shdr =
+                    (struct elf32_section_header *)(((uint8_t *)ELF_baseadr) + header.e_shoff + (header.e_shentsize * shdr->sh_info));
 
                 void *target_address = nullptr;
 
@@ -307,6 +324,8 @@ void elf::load_module(void *ELF_baseadr) {
             kprintf(KP_INFO, "kmod: linux module init failed!\n");
         }
     }
+
+    return; // we do not want to exit the GUI module
 
     void (*modexit)() = (void (*)())elf32_find_symbol("__MODULE_EXIT", ELF_baseadr, &sections);
     if (modexit != nullptr) {

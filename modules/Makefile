@@ -1,3 +1,3 @@
 obj-m := module.o
 
-module-y := testmodule.ocpp
+module-y := guimodule.ocpp mouse.ocpp

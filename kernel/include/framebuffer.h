@@ -26,7 +26,6 @@ namespace fb {
 
     private:
         struct fbinfo _info;
-        static void mouse_event(void *self, struct drivers::ms_mouse::mouse_packet packet);
     };
 
     class fbconsole {
