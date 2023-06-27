@@ -28,7 +28,7 @@ size_t fb::fb::get_height() {
 void fb::fb::write_pixel(size_t x, size_t y, uint8_t r, uint8_t g, uint8_t b) {
     if (_info.monochrome && _info.bpp == 1) {
         uint16_t val = (uint16_t)r + g + b;
-        volatile uint8_t *ptr = (volatile uint8_t *)((uintptr_t)_info.address + (y * (_info.width / 8)) + (x / 8));
+        volatile uint8_t *ptr = (volatile uint8_t *)((uintptr_t)_info.address + (y * _info.pitch) + (x / 8));
         if (val) {
             val = 0x1;
         }

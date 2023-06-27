@@ -1,5 +1,7 @@
 extern "C" {
 
+// TODO: make use of templates here
+
 // https://en.wikipedia.org/wiki/Ancient_Egyptian_multiplication#Russian_peasant_multiplication
 unsigned int __mulsi3(unsigned int a, unsigned int b) {
     unsigned int p = 0;
@@ -14,8 +16,21 @@ unsigned int __mulsi3(unsigned int a, unsigned int b) {
     return p;
 }
 
+unsigned long __muldi3(unsigned long a, unsigned long b) {
+    unsigned long p = 0;
+
+    while (a != 0) {
+        if (a & 0x1 != 0) {
+            p += b;
+        }
+        a >>= 1;
+        b <<= 1;
+    }
+    return p;
+}
+
 unsigned int __udivsi3(unsigned int a, unsigned int b) {
-    if (a <= 0xFFFF && b <= 0xFFFF) { // use 16 bit if possible
+    if (sizeof(unsigned int) > sizeof(unsigned short) && a <= 0xFFFF && b <= 0xFFFF) { // use 16 bit if possible
         return (unsigned short)a / (unsigned short)b;
     }
 
@@ -31,7 +46,7 @@ unsigned int __udivsi3(unsigned int a, unsigned int b) {
 }
 
 unsigned int __umodsi3(unsigned int a, unsigned int b) {
-    if (a <= 0xFFFF && b <= 0xFFFF) { // use 16 bit if possible
+    if (sizeof(unsigned int) > sizeof(unsigned short) && a <= 0xFFFF && b <= 0xFFFF) { // use 16 bit if possible
         return (unsigned short)a % (unsigned short)b;
     }
 

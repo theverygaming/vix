@@ -15,7 +15,7 @@ static void fbputc(char c) {
     fbconsole.fbputc(c);
 }
 
-#define BOOT_MAGIC (0x666F7073)
+#define BOOT_MAGIC (0x66786F6573203A33)
 
 struct memmap_entry {
     uint32_t base;
@@ -31,8 +31,17 @@ struct memmap_entry {
     struct memmap_entry *next;
 };
 
+struct boot_fbinfo {
+    void *base;
+    uint32_t width;
+    uint32_t height;
+    uint32_t pitch;
+    uint32_t bpp;
+};
+
 struct bootloaderinfo {
     struct memmap_entry *memmap_first;
+    struct boot_fbinfo *fbinfo;
 };
 
 struct module {
@@ -41,7 +50,7 @@ struct module {
 };
 
 struct bootheader {
-    uint32_t magic;
+    uint64_t magic;
     uint32_t load_adr;  // physical address to load kernel at
     uint32_t size;      // kernel size (including .bss)
     uint32_t disksize;  // kernel size on disk
@@ -78,13 +87,12 @@ struct bootheader __attribute__((section(".entry"))) header = {
 
 static void kernelinit() {
     stdio::set_putc_function(bootloaderputc, true);
-    void (*scrnps)(const char *str) = (void (*)(const char *))0x10312;
     struct fb::fbinfo info = {
-        .address = (void *)(0x400000 - 0x5900),
-        .width = 512,
-        .height = 342,
-        .pitch = 64,
-        .bpp = 1,
+        .address = header.info.fbinfo->base,
+        .width = header.info.fbinfo->width,
+        .height = header.info.fbinfo->height,
+        .pitch = header.info.fbinfo->pitch,
+        .bpp = header.info.fbinfo->bpp,
         .rgb = false,
         .monochrome = true,
     };
@@ -94,7 +102,6 @@ static void kernelinit() {
     fbconsole.init2();
     stdio::set_putc_function(fbputc, true);
     puts("kernelstart()\n");
-    
 
     uint32_t total = 0;
     struct memmap_entry *entry = header.info.memmap_first;
