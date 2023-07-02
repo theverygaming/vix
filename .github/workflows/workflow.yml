@@ -35,8 +35,8 @@ jobs:
       - name: check tests
         run: |
           cd $GITHUB_WORKSPACE
-          python3 tools/testparser.py log.txt >> $GITHUB_STEP_SUMMARY
-          python3 tools/testparser.py log.txt -f
+          nm --format=bsd -n kernel/kernel.o | python3 tools/testparser.py log.txt >> $GITHUB_STEP_SUMMARY
+          nm --format=bsd -n kernel/kernel.o | python3 tools/testparser.py log.txt -f
 
   build-x86_64:
     runs-on: ubuntu-latest
@@ -84,8 +84,8 @@ jobs:
       - name: check tests
         run: |
           cd $GITHUB_WORKSPACE
-          python3 tools/testparser.py log.txt >> $GITHUB_STEP_SUMMARY
-          python3 tools/testparser.py log.txt -f
+          nm --format=bsd -n kernel/kernel.o | python3 tools/testparser.py log.txt >> $GITHUB_STEP_SUMMARY
+          nm --format=bsd -n kernel/kernel.o | python3 tools/testparser.py log.txt -f
 
   build-aarch64:
     runs-on: ubuntu-latest
@@ -129,8 +129,8 @@ jobs:
       - name: check tests
         run: |
           cd $GITHUB_WORKSPACE
-          python3 tools/testparser.py log.txt >> $GITHUB_STEP_SUMMARY
-          python3 tools/testparser.py log.txt -f
+          aarch64-linux-gnu-nm --format=bsd -n kernel/kernel.o | python3 tools/testparser.py log.txt >> $GITHUB_STEP_SUMMARY
+          aarch64-linux-gnu-nm --format=bsd -n kernel/kernel.o | python3 tools/testparser.py log.txt -f
 
   formatting_and_spelling:
     runs-on: ubuntu-latest

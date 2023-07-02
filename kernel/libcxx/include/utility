@@ -1,12 +1,18 @@
 namespace std {
-    template <typename T>
-    void swap(T &a, T &b) {
+    template <typename T> void swap(T &a, T &b) {
         T tmp = a;
         a = b;
         b = tmp;
     }
-    template <class it1, class it2>
-    void iter_swap(it1 a, it2 b) {
+    template <class it1, class it2> void iter_swap(it1 a, it2 b) {
         swap(*a, *b);
     }
+
+    template <class T1, class T2> struct pair {
+        typedef T1 first_type;
+        typedef T2 second_type;
+
+        T1 first;
+        T2 second;
+    };
 }

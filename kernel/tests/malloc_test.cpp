@@ -3,7 +3,7 @@
 #include <panic.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <tests/testprint.h>
+#include <test.h>
 
 static int rand_seed = 420;
 
@@ -23,7 +23,7 @@ struct info {
 #define ALLOC_COUNT    3000 // max 256 (or it will overflow)
 #define ALLOC_MAX_SIZE 6000
 
-void malloc_test() {
+TEST(malloc_test) {
     printf("free size: %u heap frag: %u\n", mm::getFreeSize(), mm::getHeapFragmentation());
     printf("free phys: %u\n", mm::phys::phys_get_free_blocks() * ARCH_PAGE_SIZE);
     size_t free_size_start = mm::getFreeSize();
@@ -44,7 +44,6 @@ void malloc_test() {
 
     printf("free size: %u heap frag: %u\n", mm::getFreeSize(), mm::getHeapFragmentation());
     printf("free phys: %u\n", mm::phys::phys_get_free_blocks() * ARCH_PAGE_SIZE);
-    // TEST("kmalloc", "kmalloc no additional frag", frag_start == mm::getHeapFragmentation());
 
     bool malloc_corruption = false;
 
@@ -58,7 +57,7 @@ void malloc_test() {
             }
         }
     }
-    TEST("kmalloc", "no malloc corruption", !malloc_corruption);
+    test::test_section("no malloc corruption", !malloc_corruption);
 
     printf("free size: %u heap frag: %u\n", mm::getFreeSize(), mm::getHeapFragmentation());
     printf("free phys: %u\n", mm::phys::phys_get_free_blocks() * ARCH_PAGE_SIZE);
@@ -84,8 +83,7 @@ void malloc_test() {
         }
         memset(bruh[i].block, i, bruh[i].size);
     }
-
-    TEST("kmalloc", "no realloc corruption", !realloc_corruption);
+    test::test_section("no realloc corruption", !realloc_corruption);
 
     printf("free size: %u heap frag: %u\n", mm::getFreeSize(), mm::getHeapFragmentation());
     printf("free phys: %u\n", mm::phys::phys_get_free_blocks() * ARCH_PAGE_SIZE);
@@ -101,8 +99,7 @@ void malloc_test() {
             }
         }
     }
-    TEST("kmalloc", "no realloc bump corruption", !realloc_bump_corruption);
-
+    test::test_section("no realloc bump corruption", !realloc_bump_corruption);
     // free
     for (int i = 0; i < ALLOC_COUNT; i++) {
         alloc_size += bruh[i].size;
@@ -112,9 +109,10 @@ void malloc_test() {
     printf("freed %u\n", alloc_size);
     alloc_size = 0;
 
-    // TEST("kmalloc", "kmalloc frag", frag_start == mm::getHeapFragmentation());
-    TEST("kmalloc", "kmalloc free size", free_size_start <= mm::getFreeSize());
+    test::test_section("kmalloc free size", free_size_start <= mm::getFreeSize());
 
     printf("free size: %u heap frag: %u\n", mm::getFreeSize(), mm::getHeapFragmentation());
     printf("free phys: %u\n", mm::phys::phys_get_free_blocks() * ARCH_PAGE_SIZE);
+
+    return !malloc_corruption && !realloc_corruption && !realloc_bump_corruption && (free_size_start <= mm::getFreeSize());
 }

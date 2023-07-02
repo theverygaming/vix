@@ -17,6 +17,8 @@ static const char *type_string(mm::mem_map_entry::type_t type) {
         return "none";
     case mm::mem_map_entry::type_t::RAM:
         return "usable";
+    case mm::mem_map_entry::type_t::RECLAIMABLE:
+        return "reclaimable";
     case mm::mem_map_entry::type_t::RESERVED:
         return "system reserved";
     case mm::mem_map_entry::type_t::ACPI_RECLAIM:
@@ -164,7 +166,13 @@ static struct mm::mem_map_entry memory_map[CONFIG_MEMMAP_MAX_ENTRIES];
 void mm::set_mem_map(const struct mem_map_entry *in, size_t len) {
     memset(memory_map, 0, CONFIG_MEMMAP_MAX_ENTRIES * sizeof(struct mm::mem_map_entry));
     sanitize(in, len, memory_map, CONFIG_MEMMAP_MAX_ENTRIES);
-    std::bubblesort(memory_map, memory_map + CONFIG_MEMMAP_MAX_ENTRIES, [](const struct mm::mem_map_entry a, const struct mm::mem_map_entry b) -> bool { if (a.base == b.base) { return a.size < b.size;} return a.base < b.base; });
+    std::bubblesort(
+        memory_map, memory_map + CONFIG_MEMMAP_MAX_ENTRIES, [](const struct mm::mem_map_entry a, const struct mm::mem_map_entry b) -> bool {
+            if (a.base == b.base) {
+                return a.size < b.size;
+            }
+            return a.base < b.base;
+        });
     kprintf(KP_INFO, "sanitized memory map:\n");
     print_map(memory_map, CONFIG_MEMMAP_MAX_ENTRIES);
     uint64_t total = 0;

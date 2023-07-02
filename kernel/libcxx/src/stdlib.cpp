@@ -75,6 +75,18 @@ int strcmp(const char *str1, const char *str2) {
     return *((const unsigned char *)str1) - *((const unsigned char *)str2);
 }
 
+int strncmp(const char *str1, const char *str2, size_t num) {
+    for (size_t i = 0; (i < num) && *str1; i++) {
+        if (*str1 != *str2) {
+            return *((const unsigned char *)str1) - *((const unsigned char *)str2);
+            break;
+        }
+        str1++;
+        str2++;
+    }
+    return 0;
+}
+
 size_t strlen(const char *str) {
     const char *str2 = str;
     while (*str2) {
