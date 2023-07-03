@@ -20,6 +20,7 @@ SECTIONS {
 
 	.text ALIGN(PAGE) : AT(ADDR(.text) - KERNEL_OFFSET) {
 		KEEP(*(.text))
+		KEEP(*(.tests))
 	}>ram
 
 	.rodata ALIGN(PAGE) : AT(ADDR(.rodata) - KERNEL_OFFSET) {

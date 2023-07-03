@@ -109,10 +109,10 @@ TEST(malloc_test) {
     printf("freed %u\n", alloc_size);
     alloc_size = 0;
 
-    test::test_section("kmalloc free size", free_size_start <= mm::getFreeSize());
-
     printf("free size: %u heap frag: %u\n", mm::getFreeSize(), mm::getHeapFragmentation());
     printf("free phys: %u\n", mm::phys::phys_get_free_blocks() * ARCH_PAGE_SIZE);
+
+    test::test_section("kmalloc free size", free_size_start <= mm::getFreeSize());
 
     return !malloc_corruption && !realloc_corruption && !realloc_bump_corruption && (free_size_start <= mm::getFreeSize());
 }

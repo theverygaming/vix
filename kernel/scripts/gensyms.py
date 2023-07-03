@@ -8,7 +8,7 @@ for line in sys.stdin:
     split = line.split()
     symname = split[2]
     symadr = split[0]
-    print(f".long 0x{symadr}\n.ascii \"{symname}\\0\"")
+    print(f"{sys.argv[1]} 0x{symadr}\n.ascii \"{symname}\\0\"")
 
-print(".long 0x0\n.ascii \"\\0\"")
+print(f"{sys.argv[1]} 0x0\n.ascii \"\\0\"")
 print(".global symtab_end\nsymtab_end:")

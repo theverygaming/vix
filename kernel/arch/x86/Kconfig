@@ -2,15 +2,16 @@ config ARCH_X86
   bool
   default y
 
-config ARCH_HAS_PAGING
-  bool
-  default y
-
 config ENABLE_KERNEL_64
   default n
   bool "64-bit kernel"
 
 config ENABLE_KERNEL_32
+  bool
+  depends on !ENABLE_KERNEL_64
+  default y
+
+config ARCH_HAS_PAGING
   bool
   depends on !ENABLE_KERNEL_64
   default y

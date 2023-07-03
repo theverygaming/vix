@@ -1,11 +1,11 @@
 #include <config.h>
+#include <stdio.h>
 #include <test.h>
+#include <time.h>
 
 #ifdef CONFIG_ARCH_X86
 #include <arch/symbols.h>
-#include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
 #endif
 
 static const char *current_test_name = nullptr;
@@ -18,7 +18,7 @@ void run_all_tests() {
     const char *tfstr = "__test_func_";
     size_t tflen = strlen(tfstr);
     size_t n = 0;
-    std::pair<const char *, uintptr_t> s = syms::get_sym(n);
+    std::pair<const char *, uintptr_t> s = syms::get_sym(n++);
     while (s.first != nullptr) {
         if (strncmp(s.first, tfstr, tflen) == 0) {
             current_test_name = s.first + tflen;

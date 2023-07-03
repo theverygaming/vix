@@ -20,6 +20,7 @@ SECTIONS
 
     .text ALIGN(PAGE) : {
 		*(.text)
+        KEEP(*(.tests))
 	}>ram :text
 
     . += CONSTANT(MAXPAGESIZE);
