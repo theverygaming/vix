@@ -1,6 +1,6 @@
-#include <arch/symbols.h>
 #include <debug.h>
 #include <stdlib.h>
+#include <symbols.h>
 
 extern "C" char symtab_start;
 extern "C" char symtab_end;

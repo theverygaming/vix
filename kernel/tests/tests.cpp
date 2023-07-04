@@ -3,8 +3,8 @@
 #include <test.h>
 #include <time.h>
 
-#ifdef CONFIG_ARCH_X86
-#include <arch/symbols.h>
+#if defined(CONFIG_ARCH_X86) || defined(CONFIG_ARCH_M68K)
+#include <symbols.h>
 #include <stdlib.h>
 #endif
 
@@ -14,7 +14,7 @@ static uint64_t current_section_starttime;
 static uint64_t current_section_extratime;
 
 void run_all_tests() {
-#ifdef CONFIG_ARCH_X86
+#if defined(CONFIG_ARCH_X86) || defined(CONFIG_ARCH_M68K)
     const char *tfstr = "__test_func_";
     size_t tflen = strlen(tfstr);
     size_t n = 0;

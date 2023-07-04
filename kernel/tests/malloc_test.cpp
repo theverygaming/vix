@@ -20,7 +20,7 @@ struct info {
     size_t size;
 };
 
-#define ALLOC_COUNT    3000 // max 256 (or it will overflow)
+#define ALLOC_COUNT    3000
 #define ALLOC_MAX_SIZE 6000
 
 TEST(malloc_test) {

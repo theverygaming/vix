@@ -1,4 +1,4 @@
-config ARCH_AARCH64
+config ARCH_M68K
   bool
   default y
 

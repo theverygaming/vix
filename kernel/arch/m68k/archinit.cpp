@@ -1,3 +1,4 @@
+#include <arch/generic/memory.h>
 #include <arch/generic/startup.h>
 #include <config.h>
 #include <framebuffer.h>
@@ -7,6 +8,7 @@
 #include <mm/kmalloc.h>
 #include <mm/memmap.h>
 #include <mm/memtest.h>
+#include <mm/phys.h>
 #include <panic.h>
 #include <stdio.h>
 #include <time.h>
@@ -137,11 +139,21 @@ static void kernelinit() {
 }
 
 extern "C" void _kentry(uint32_t modadr) {
+    asm volatile("move.w #0x2700, %sr"); // supervisor set, Interrupt priority 7
     kernelinit();
     while (true) {}
 }
 
-void arch::generic::startup::stage2_startup() {}
+void arch::generic::startup::stage2_startup() {
+    struct memmap_entry *entry = header.info.memmap_first;
+    while (entry) {
+        if (entry->type == memmap_entry::type::KERNEL) {
+            break;
+        }
+        entry = entry->next;
+    }
+    mm::phys::phys_alloc((void *)entry->base, ALIGN_UP(entry->size, ARCH_PAGE_SIZE) / ARCH_PAGE_SIZE);
+}
 
 void arch::generic::startup::stage3_startup() {
     time::bootupTime = time::getCurrentUnixTime();

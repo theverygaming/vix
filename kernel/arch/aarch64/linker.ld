@@ -20,6 +20,7 @@ SECTIONS
 
     .text ALIGN(PAGE) : {
 		*(.text)
+        KEEP(*(.tests))
 	}>ram :text
 
     . += CONSTANT(MAXPAGESIZE);
@@ -36,6 +37,9 @@ SECTIONS
     	KEEP(*(SORT_BY_INIT_PRIORITY( .init_array.* )));
     	END_CONSTRUCTORS = .;
 		KEEP(*(.data))
+        KEEP(*(.sym_table))
+        PROVIDE(symtab_start = .);
+        PROVIDE(symtab_end = .);
     }>ram :data
 
     .bss ALIGN(PAGE) : {

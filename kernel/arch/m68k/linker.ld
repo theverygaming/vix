@@ -23,6 +23,7 @@ SECTIONS
     .text ALIGN(2) : {
         *(.entry)
 		*(.text)
+        KEEP(*(.tests))
 	}>ram :text
 
     .rodata ALIGN(2) : {
@@ -35,6 +36,9 @@ SECTIONS
     	KEEP(*(SORT_BY_INIT_PRIORITY( .init_array.* )));
     	END_CONSTRUCTORS = .;
 		KEEP(*(.data))
+        KEEP(*(.sym_table))
+        PROVIDE(symtab_start = .);
+        PROVIDE(symtab_end = .);
     }>ram :data
 
     .bss ALIGN(2) : {
