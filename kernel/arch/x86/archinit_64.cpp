@@ -7,12 +7,15 @@
 #include <framebuffer.h>
 #include <kernel.h>
 #include <mm/kmalloc.h>
+#include <mm/memmap.h>
 #include <panic.h>
 #include <stdio.h>
 #include <time.h>
 
 static fb::fb framebuffer;
 static fb::fbconsole fbconsole;
+
+static volatile struct limine_memmap_request memmap_request = {.id = LIMINE_MEMMAP_REQUEST, .revision = 0};
 
 static volatile struct limine_terminal_request terminal_request = {.id = LIMINE_TERMINAL_REQUEST, .revision = 0};
 
@@ -31,6 +34,35 @@ static void kernelinit() {
     puts("entry\n");
     puts("initializing paging\n");
     paging::init();
+    if (memmap_request.response != NULL) {
+        mm::set_mem_map(
+            [](size_t n) -> struct mm::mem_map_entry {
+                struct mm::mem_map_entry r;
+
+                r.base = memmap_request.response->entries[n]->base;
+                r.size = memmap_request.response->entries[n]->length;
+                switch (memmap_request.response->entries[n]->type) {
+                case LIMINE_MEMMAP_USABLE:
+                    r.type = mm::mem_map_entry::type_t::RAM;
+                    break;
+                case LIMINE_MEMMAP_ACPI_RECLAIMABLE:
+                    r.type = mm::mem_map_entry::type_t::ACPI_RECLAIM;
+                    break;
+                case LIMINE_MEMMAP_ACPI_NVS:
+                    r.type = mm::mem_map_entry::type_t::ACPI_NVS;
+                    break;
+                case LIMINE_MEMMAP_BAD_MEMORY:
+                    r.type = mm::mem_map_entry::type_t::UNUSABLE;
+                    break;
+                default:
+                    r.type = mm::mem_map_entry::type_t::RESERVED;
+                }
+
+                return r;
+            },
+            memmap_request.response->entry_count);
+    }
+
     puts("kernelstart()\n");
     kernelstart();
 }

@@ -1,9 +1,12 @@
+#include <algorithm>
 #include <arch/generic/memory.h>
 #include <config.h>
 #include <debug.h>
 #include <kprintf.h>
+#include <macros.h>
 #include <mm/allocators.h>
 #include <mm/kmalloc.h>
+#include <mm/memmap.h>
 #include <mm/phys.h>
 #include <panic.h>
 #include <stdlib.h>
@@ -41,41 +44,52 @@ void mm::phys::phys_init() {
     physalloc.init();
     physalloc.markAllUsed();
 
-    arch::generic::memory::memory_map_entry entry;
-    int counter = 0;
+    const struct mm::mem_map_entry *entry = nullptr;
+    size_t counter = 0;
 
     // allocate all usable areas
-    while (arch::generic::memory::get_memory_map(&entry, counter)) {
-        size_t end_adr = entry.start_address + entry.size;
-
-        if (entry.entry_type == arch::generic::memory::memory_map_entry::entry_type::MEMORY_RAM) {
-            size_t new_start_address = entry.start_address;
-            if (new_start_address < ARCH_PHYS_MAX_MEM_ADR) {
-                if (new_start_address < ARCH_PHYS_MEM_START) {
-                    new_start_address = ARCH_PHYS_MEM_START;
-                }
-                physalloc.dealloc((uint8_t *)new_start_address - ARCH_PHYS_MEM_START, (end_adr - entry.start_address) / ARCH_PAGE_SIZE);
+    entry = mm::get_mem_map(counter);
+    while (entry != nullptr) {
+        if (entry->size != 0 && mm::memmap_is_usable(entry->type)) {
+            uint64_t start = entry->base;
+            uint64_t end = entry->base + entry->size;
+            if (start < ARCH_PHYS_MAX_MEM_ADR && end > ARCH_PHYS_MEM_START) {
+                start = std::max(start, (uint64_t)ARCH_PHYS_MEM_START);
+                start = ALIGN_UP(start, ARCH_PAGE_SIZE);
+                end = std::min(end, (uint64_t)ARCH_PHYS_MAX_MEM_ADR);
+                end = ALIGN_DOWN(end, ARCH_PAGE_SIZE);
+                physalloc.dealloc((uint8_t *)start - ARCH_PHYS_MEM_START, (end - start) / ARCH_PAGE_SIZE);
             }
         }
         counter++;
+        entry = mm::get_mem_map(counter);
     }
 
-    // now mark all areas that are unusable as allocated. This has to be done to make sure that higher priority entries come first in case of overlaps
+    // now mark all areas that are unusable as allocated. Makes overlaps not be a problem
     counter = 0;
-    while (arch::generic::memory::get_memory_map(&entry, counter)) {
-        size_t end_adr = entry.start_address + entry.size;
-
-        if (entry.entry_type != arch::generic::memory::memory_map_entry::entry_type::MEMORY_RAM) {
-            size_t new_start_address = entry.start_address;
-            if (new_start_address < ARCH_PHYS_MAX_MEM_ADR) {
-                if (new_start_address < ARCH_PHYS_MEM_START) {
-                    new_start_address = ARCH_PHYS_MEM_START;
-                }
-                physalloc.alloc((uint8_t *)entry.start_address - ARCH_PHYS_MEM_START, (end_adr - entry.start_address) / ARCH_PAGE_SIZE);
+    entry = mm::get_mem_map(counter);
+    while (entry != nullptr) {
+        if ((entry->size != 0) && (!mm::memmap_is_usable(entry->type))) {
+            uint64_t start = entry->base;
+            uint64_t end = entry->base + entry->size;
+            if (start < ARCH_PHYS_MAX_MEM_ADR && end > ARCH_PHYS_MEM_START) {
+                start = std::max(start, (uint64_t)ARCH_PHYS_MEM_START);
+                start = ALIGN_DOWN(start, ARCH_PAGE_SIZE);
+                end = std::min(end, (uint64_t)ARCH_PHYS_MAX_MEM_ADR);
+                end = ALIGN_UP(end, ARCH_PAGE_SIZE);
+                physalloc.alloc((uint8_t *)start - ARCH_PHYS_MEM_START, (end - start) / ARCH_PAGE_SIZE);
             }
         }
         counter++;
+        entry = mm::get_mem_map(counter);
     }
 
     kprintf(KP_INFO, "physmm: initialized physical memory manager\n");
+    unsigned int freemem = (mm::phys::phys_get_free_blocks() * ARCH_PAGE_SIZE) / 1024;
+    char unit = 'K';
+    if (freemem >= 10000) {
+        unit = 'M';
+        freemem /= 1024;
+    }
+    kprintf(KP_INFO, "physmm: free physical memory: %u%ciB\n", freemem, unit);
 }

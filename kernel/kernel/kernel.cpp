@@ -1,10 +1,10 @@
 #include <arch/generic/memory.h>
 #include <arch/generic/startup.h>
 #include <config.h>
-#include <libcxx.h>
 #include <debug.h>
 #include <kernel.h>
 #include <kprintf.h>
+#include <libcxx.h>
 #include <mm/kmalloc.h>
 #include <mm/kvmm.h>
 #include <mm/phys.h>
@@ -21,7 +21,9 @@ void run_all_tests();
 void kernelstart() {
     kprintf(KP_INFO, "kmain: starting vix -- built " __DATE__ " " __TIME__ "\n");
     mm::phys::phys_init();
+#ifdef CONFIG_ARCH_HAS_PAGING
     mm::kv::init();
+#endif
     arch::generic::startup::stage2_startup();
     cpp_init();
     kprintf(KP_INFO, "kmain: initialized C++\n");

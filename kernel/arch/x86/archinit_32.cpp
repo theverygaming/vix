@@ -17,8 +17,6 @@
 #include <arch/simd.h>
 #include <arch/syscall_32.h>
 #include <config.h>
-#include <string>
-#include <vector>
 #include <framebuffer.h>
 #include <fs/tarfs.h>
 #include <fs/vfs.h>
@@ -27,7 +25,9 @@
 #include <mm/phys.h>
 #include <panic.h>
 #include <stdio.h>
+#include <string>
 #include <time.h>
+#include <vector>
 
 fb::fb framebuffer; // HACK: exported so modules can use it TODO: have a central framebuffer manager that takes care of this
 static fb::fbconsole fbconsole;
@@ -69,9 +69,7 @@ extern "C" uint8_t _bss_end;
 
 extern "C" void __attribute__((section(".entry"))) _kentry(void *multiboot2_info_ptr) {
     size_t sp;
-    asm volatile("mov %%esp, %0"
-                 : "=a"(sp)
-                 :);
+    asm volatile("mov %%esp, %0" : "=a"(sp) :);
     if (sp < KERNEL_VIRT_ADDRESS) {
         return;
     }
@@ -83,14 +81,19 @@ extern "C" void __attribute__((section(".entry"))) _kentry(void *multiboot2_info
 }
 
 void arch::generic::startup::stage2_startup() {
+    mm::phys::phys_alloc((void *)KERNEL_PHYS_ADDRESS, ALIGN_UP(KERNEL_FREE_AREA_BEGIN_OFFSET, ARCH_PAGE_SIZE) / ARCH_PAGE_SIZE);
     if (initramfs_size != 0) {
-        mm::phys::phys_alloc(initramfs_start, initramfs_size / ARCH_PAGE_SIZE);
-        paging::map_page(initramfs_start, (void *)(0xFFFFF000 - initramfs_size), (initramfs_size / ARCH_PAGE_SIZE), false, true);
+        mm::phys::phys_alloc(initramfs_start, ALIGN_UP(initramfs_size, ARCH_PAGE_SIZE) / ARCH_PAGE_SIZE);
+        paging::map_page(initramfs_start,
+                         (void *)(0xFFFFF000 - ALIGN_UP(initramfs_size, ARCH_PAGE_SIZE)),
+                         (ALIGN_UP(initramfs_size, ARCH_PAGE_SIZE) / ARCH_PAGE_SIZE),
+                         false,
+                         true);
     }
 }
 
 void arch::generic::startup::stage3_startup() {
-    cpubasics::cpuinit(); // interrupt handlers are enabled here, before this all exceptions will cause a triplefault
+    cpubasics::cpuinit();   // interrupt handlers are enabled here, before this all exceptions will cause a triplefault
     drivers::keyboard::init();
     drivers::mouse::init(); // must be disabled when polling is in use for the keyboard
     // isr::RegisterHandler(0x80, syscall::syscallHandler);

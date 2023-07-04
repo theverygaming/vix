@@ -39,8 +39,11 @@ void *multiboot2::findMemMap(void *multiboot2_info_adr, int *memmap_entrycount) 
     multiboot2_memmap_tag_t *tagptr;
     if (multiboot_find_tag(multiboot2_info_adr, 6, (struct multiboot2_tag **)&tagptr)) {
         // TODO: check if tag version is compatible
-        *memmap_entrycount = (tagptr->size - 16) / tagptr->entry_size;
-        return (void *)((char *)tagptr + 16);
+        *memmap_entrycount = (tagptr->size - sizeof(multiboot2_memmap_tag_t)) / tagptr->entry_size;
+        if (tagptr->entry_size != 24) {
+            KERNEL_PANIC("incompatible mb2 memory map");
+        }
+        return (void *)((char *)tagptr + sizeof(multiboot2_memmap_tag_t));
     } else if (multiboot_find_tag(multiboot2_info_adr, 17, (struct multiboot2_tag **)&tagptr)) {
         KERNEL_PANIC("only found EFI memory map tag");
     } else {
@@ -78,7 +81,8 @@ struct fb::fbinfo multiboot2::findFrameBuffer(const void *multiboot2_info_adr) {
         // rather hacky because we have no VMM
         void *fb_virt_adr = (void *)(KERNEL_VIRT_ADDRESS + KERNEL_MEMORY_END_OFFSET);
         mm::phys::phys_alloc((void *)((uintptr_t)tag->framebuffer_addr), fb_bytes / ARCH_PAGE_SIZE);
-        paging::map_page((void *)((uintptr_t)tag->framebuffer_addr), (void *)(KERNEL_VIRT_ADDRESS + KERNEL_MEMORY_END_OFFSET), fb_bytes / ARCH_PAGE_SIZE);
+        paging::map_page(
+            (void *)((uintptr_t)tag->framebuffer_addr), (void *)(KERNEL_VIRT_ADDRESS + KERNEL_MEMORY_END_OFFSET), fb_bytes / ARCH_PAGE_SIZE);
         return {
             .address = fb_virt_adr,
             .width = tag->framebuffer_width,

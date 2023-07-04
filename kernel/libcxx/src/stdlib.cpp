@@ -180,7 +180,6 @@ char *itoa_signed(ssize_t value, char *str, size_t base) {
 
     char *ptr = str;
 
-    int dig = 0;
     do {
         size_t mod = value % base;
         unsigned char start = '0';

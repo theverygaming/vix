@@ -6,6 +6,7 @@
 #include <macros.h>
 #include <mm/kmalloc.h>
 #include <mm/memmap.h>
+#include <mm/memtest.h>
 #include <panic.h>
 #include <stdio.h>
 #include <time.h>
@@ -74,11 +75,7 @@ struct bootheader __attribute__((section(".entry"))) header = {.magic = BOOT_MAG
                                                                        .disk_offset = 0,
                                                                        .size = 0,
                                                                    },
-                                                               .info = {
-                                                                   nullptr,
-                                                               }};
-
-static struct mm::mem_map_entry memory_map[4];
+                                                               .info = {.memmap_first = nullptr, .fbinfo = nullptr}};
 
 static void kernelinit() {
     stdio::set_putc_function(bootloaderputc, true);
@@ -97,39 +94,44 @@ static void kernelinit() {
     fbconsole.init2();
     stdio::set_putc_function(fbputc, true);
 
-    uint32_t total = 0;
-    struct memmap_entry *entry = header.info.memmap_first;
     size_t entrycount = 0;
+    struct memmap_entry *entry = header.info.memmap_first;
     while (entry) {
-        const char *str = "unusable";
-        if (entry->type == memmap_entry::type::USABLE) {
-            str = "usable";
-            total += entry->size;
-        }
-        kprintf(KP_INFO, "memmap: 0x%p-0x%p(%uB): %s\n", entry->base, entry->base + entry->size, entry->size, str);
         if (entry->type != memmap_entry::type::KERNEL) {
-            if (entrycount >= ARRAY_SIZE(memory_map)) {
-                KERNEL_PANIC("too many memory map entries");
-            }
-
-            memory_map[entrycount].base = entry->base;
-            memory_map[entrycount].size = entry->size;
-            switch (entry->type) {
-            case memmap_entry::type::USABLE:
-                memory_map[entrycount].type = mm::mem_map_entry::type_t::RAM;
-                break;
-            case memmap_entry::type::BOOTLOADER_RECLAIMABLE:
-                memory_map[entrycount].type = mm::mem_map_entry::type_t::RECLAIMABLE;
-                break;
-            default:
-                memory_map[entrycount].type = mm::mem_map_entry::type_t::RESERVED;
-            }
-
             entrycount++;
         }
         entry = entry->next;
     }
-    mm::set_mem_map(memory_map, entrycount);
+    mm::set_mem_map(
+        [](size_t n) -> struct mm::mem_map_entry {
+            struct mm::mem_map_entry r;
+            struct memmap_entry *entry = header.info.memmap_first;
+            for (size_t i = 0; i <= n; i++) {
+                if (entry->type == memmap_entry::type::KERNEL) {
+                    entry = entry->next;
+                    i -= 1;
+                    continue;
+                }
+                if (i == n) {
+                    r.base = entry->base;
+                    r.size = entry->size;
+                    switch (entry->type) {
+                    case memmap_entry::type::USABLE:
+                        r.type = mm::mem_map_entry::type_t::RAM;
+                        break;
+                    case memmap_entry::type::BOOTLOADER_RECLAIMABLE:
+                        r.type = mm::mem_map_entry::type_t::RECLAIMABLE;
+                        // r.type = mm::mem_map_entry::type_t::RAM; // we immediately reclaim the bootloader memory
+                        break;
+                    default:
+                        r.type = mm::mem_map_entry::type_t::RESERVED;
+                    }
+                }
+                entry = entry->next;
+            }
+            return r;
+        },
+        entrycount);
 
     kernelstart();
 }

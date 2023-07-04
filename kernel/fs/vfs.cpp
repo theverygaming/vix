@@ -1,9 +1,10 @@
-#include <mutex>
-#include <vector>
 #include <debug.h>
 #include <fs/path.h>
 #include <fs/vfs.h>
+#include <memory>
 #include <mm/kmalloc.h>
+#include <mutex>
+#include <vector>
 
 static std::vector<struct fs::vfs::fsinfo> mountpoints;
 

@@ -49,10 +49,6 @@ img-aarch64:
 
 img-m68k:
 	@$(MAKE) --no-print-directory -C kernel
-	m68k-elf-objcopy -O binary kernel/kernel.o kernel.bin
-	cat ~/Downloads/macboot/startup kernel.bin > disk1.dsk
-	truncate -s 100000 disk1.dsk
-	~/Downloads/Mini\ vMac/Mini\ vMac -r ~/Downloads/Mini\ vMac/vMac.ROM disk1.dsk
 
 clean-m68k:
 clean-aarch64:

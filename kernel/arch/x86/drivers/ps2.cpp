@@ -58,8 +58,6 @@ static void ps2_mouse_send_command(uint8_t cmd) {
     uint8_t status = ps2_read_data();
     if (status != 0xFA) {
         printf("ps2 mouse read failure (0x%p)\n", (uintptr_t)status);
-    } else {
-        printf("wrote 0x%p to mouse\n", (uint32_t)cmd);
     }
 }
 
