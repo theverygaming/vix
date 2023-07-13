@@ -13,12 +13,12 @@ KERNELMEMORY = 90000;
 
 MEMORY
 {
-    ram (rwx) : org = 0x11000, l = KERNELMEMORY
+    ram (rwx) : org = 0x13000, l = KERNELMEMORY
 }
 
 SECTIONS
 {
-    . = 0x11000;
+    . = 0x13000;
 
     .text ALIGN(2) : {
         *(.entry)

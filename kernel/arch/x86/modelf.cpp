@@ -1,9 +1,9 @@
 #include <arch/modelf.h>
-#include <arch/symbols.h>
 #include <debug.h>
 #include <mm/kmalloc.h>
 #include <stdlib.h>
 #include <string>
+#include <symbols.h>
 #include <vector>
 
 struct __attribute__((packed)) elf32_header {

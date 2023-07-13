@@ -12,6 +12,8 @@
 #include <panic.h>
 #include <stdio.h>
 #include <time.h>
+#define MACBOOT_HAS_STDINT
+#include "macboot.h"
 
 static fb::fb framebuffer;
 static fb::fbconsole fbconsole;
@@ -20,139 +22,93 @@ static void fbputc(char c) {
     fbconsole.fbputc(c);
 }
 
-#define BOOT_MAGIC (0x66786F6573203A33)
-
-struct memmap_entry {
-    uint32_t base;
-    uint32_t size;
-    enum class type { USABLE, RESERVED, BAD_MEMORY, BOOTLOADER_RECLAIMABLE, KERNEL, MMIO } type;
-    struct memmap_entry *next;
-};
-
-struct boot_fbinfo {
-    void *base;
-    uint32_t width;
-    uint32_t height;
-    uint32_t pitch;
-    uint32_t bpp;
-};
-
-struct bootloaderinfo {
-    struct memmap_entry *memmap_first;
-    struct boot_fbinfo *fbinfo;
-};
-
-struct module {
-    uint32_t disk_offset;
-    uint32_t size; // no module present if zero
-};
-
-struct bootheader {
-    uint64_t magic;
-    uint32_t load_adr;              // physical address to load kernel at
-    uint32_t size;                  // kernel size (including .bss)
-    uint32_t disksize;              // kernel size on disk
-    void (*kmain)(uint32_t modadr); // kernel init function (if modaddr argument is zero then no module present)
-    struct module mod;
-    struct bootloaderinfo info;
-};
-
-static void bootloaderputc(char c) {
-    void (*scrnps)(const char *str) = (void (*)(const char *))0x10312;
-    static char strx[] = {0, 0};
-    strx[0] = c;
-    scrnps(strx);
-}
-
-extern "C" void _kentry(uint32_t modadr);
+extern "C" void _kentry();
 extern "C" void *KERNELMEMORY;
 extern "C" void *__bss_size;
-struct bootheader __attribute__((section(".entry"))) header = {.magic = BOOT_MAGIC,
-                                                               .load_adr = 0x11000,
-                                                               .size = (uint32_t)&KERNELMEMORY,
-                                                               .disksize = (uint32_t)&KERNELMEMORY,
-                                                               .kmain = &_kentry,
-                                                               .mod =
-                                                                   {
-                                                                       .disk_offset = 0,
-                                                                       .size = 0,
-                                                                   },
-                                                               .info = {.memmap_first = nullptr, .fbinfo = nullptr}};
+static volatile struct macboot_kernel_header __attribute__((section(".entry")))
+header = {.id = MACBOOT_KERNEL_HEADER_ID, .load_address = 0x13000, .size = (uint32_t)&KERNELMEMORY, .kmain = &_kentry};
+
+static volatile struct macboot_framebuffer_request fbreq = {.id = MACBOOT_FRAMEBUFFER_REQUEST_ID, .response = nullptr};
+static volatile struct macboot_memmap_request memmapreq = {.id = MACBOOT_MEMMAP_REQUEST_ID, .response = nullptr};
+static volatile struct macboot_kmem_request kmemreq = {.id = MACBOOT_KMEM_REQUEST_ID, .response = nullptr};
 
 static void kernelinit() {
-    stdio::set_putc_function(bootloaderputc, true);
-    struct fb::fbinfo info = {
-        .address = header.info.fbinfo->base,
-        .width = header.info.fbinfo->width,
-        .height = header.info.fbinfo->height,
-        .pitch = header.info.fbinfo->pitch,
-        .bpp = header.info.fbinfo->bpp,
-        .rgb = false,
-        .monochrome = true,
-    };
+    if (fbreq.response != nullptr) {
+        struct fb::fbinfo info = {
+            .address = (void *)fbreq.response->base,
+            .width = fbreq.response->width,
+            .height = fbreq.response->height,
+            .pitch = fbreq.response->pitch,
+            .bpp = fbreq.response->bpp,
+            .rgb = false,
+            .monochrome = true,
+        };
 
-    framebuffer.init(info);
-    fbconsole.init(&framebuffer);
-    fbconsole.init2();
-    stdio::set_putc_function(fbputc, true);
-
-    size_t entrycount = 0;
-    struct memmap_entry *entry = header.info.memmap_first;
-    while (entry) {
-        if (entry->type != memmap_entry::type::KERNEL) {
-            entrycount++;
-        }
-        entry = entry->next;
+        framebuffer.init(info);
+        fbconsole.init(&framebuffer);
+        fbconsole.init2();
+        stdio::set_putc_function(fbputc, true);
     }
-    mm::set_mem_map(
-        [](size_t n) -> struct mm::mem_map_entry {
-            struct mm::mem_map_entry r;
-            struct memmap_entry *entry = header.info.memmap_first;
-            for (size_t i = 0; i <= n; i++) {
-                if (entry->type == memmap_entry::type::KERNEL) {
-                    entry = entry->next;
-                    i -= 1;
-                    continue;
-                }
-                if (i == n) {
-                    r.base = entry->base;
-                    r.size = entry->size;
-                    switch (entry->type) {
-                    case memmap_entry::type::USABLE:
-                        r.type = mm::mem_map_entry::type_t::RAM;
-                        break;
-                    case memmap_entry::type::BOOTLOADER_RECLAIMABLE:
-                        r.type = mm::mem_map_entry::type_t::RECLAIMABLE;
-                        // r.type = mm::mem_map_entry::type_t::RAM; // we immediately reclaim the bootloader memory
-                        break;
-                    default:
-                        r.type = mm::mem_map_entry::type_t::RESERVED;
+
+    if (memmapreq.response != nullptr) {
+        size_t entrycount = 0;
+        struct macboot_memmap_response *entry = memmapreq.response;
+        while (entry != nullptr) {
+            entrycount++;
+            entry = entry->next;
+        }
+        mm::set_mem_map(
+            [](size_t n) -> struct mm::mem_map_entry {
+                struct mm::mem_map_entry r;
+                struct macboot_memmap_response *entry = memmapreq.response;
+                for (size_t i = 0; i <= n; i++) {
+                    if (i == n) {
+                        r.base = entry->base;
+                        r.size = entry->size;
+                        switch (entry->type) {
+                        case MACBOOT_MEMMAP_USABLE:
+                            r.type = mm::mem_map_entry::type_t::RAM;
+                            break;
+                        case MACBOOT_MEMMAP_BOOTLOADER_RECLAIMABLE:
+                            r.type = mm::mem_map_entry::type_t::RECLAIMABLE;
+                            // r.type = mm::mem_map_entry::type_t::RAM; // we immediately reclaim the bootloader memory
+                            break;
+                        default:
+                            r.type = mm::mem_map_entry::type_t::RESERVED;
+                        }
                     }
+                    entry = entry->next;
                 }
-                entry = entry->next;
-            }
-            return r;
-        },
-        entrycount);
+                return r;
+            },
+            entrycount);
+    }
 
     kernelstart();
 }
 
-extern "C" void _kentry(uint32_t modadr) {
-    asm volatile("move.w #0x2700, %sr"); // supervisor set, Interrupt priority 7
+extern "C" void _vec4();
+
+extern "C" void vec4_cpp(uint32_t pc, uint16_t sr) {
+    kprintf(KP_INFO, "invalid opcode: SR: 0x%p PC: 0x%p\n", (uint32_t)sr, pc);
+    KERNEL_PANIC("exception");
+}
+
+extern "C" void _kentry() {
+    uintptr_t *i_inst = (uintptr_t *)0x10;
+    *i_inst = (uintptr_t)&_vec4;
     kernelinit();
     while (true) {}
 }
 
 void arch::generic::startup::stage2_startup() {
-    struct memmap_entry *entry = header.info.memmap_first;
-    while (entry) {
-        if (entry->type == memmap_entry::type::KERNEL) {
-            break;
-        }
-        entry = entry->next;
+    if (kmemreq.response != nullptr) {
+        mm::phys::phys_alloc((void *)kmemreq.response->base, ALIGN_UP(kmemreq.response->size, ARCH_PAGE_SIZE) / ARCH_PAGE_SIZE);
+        kprintf(KP_INFO,
+                "claimed 0x%p-0x%p as kernel memory\n",
+                kmemreq.response->base,
+                kmemreq.response->base + ALIGN_UP(kmemreq.response->size, ARCH_PAGE_SIZE));
     }
-    mm::phys::phys_alloc((void *)entry->base, ALIGN_UP(entry->size, ARCH_PAGE_SIZE) / ARCH_PAGE_SIZE);
 }
 
 void arch::generic::startup::stage3_startup() {

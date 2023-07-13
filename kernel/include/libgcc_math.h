@@ -14,9 +14,12 @@ template <class T> inline T mul(T a, T b) {
 }
 
 template <class T> inline T div(T a, T b) {
+    if (b == 0) { // bro really tryin to divide by zero :skull:
+        return 0;
+    }
     T r = a;
     T q = 0;
-    while (b <= r) {
+    while (r > b) {
         r -= b;
         q++;
     }
@@ -24,9 +27,12 @@ template <class T> inline T div(T a, T b) {
 }
 
 template <class T> inline T mod(T a, T b) {
+    if (b == 0) { // bro really tryin to divide by zero :skull:
+        return 0;
+    }
     T r = a;
     T q = 0;
-    while (b <= r) {
+    while (r > b) {
         r -= b;
         q++;
     }

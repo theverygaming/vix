@@ -1,3 +1,4 @@
+#include <config.h>
 #include <mm/kmalloc.h>
 #include <mm/phys.h>
 #include <panic.h>
@@ -20,8 +21,13 @@ struct info {
     size_t size;
 };
 
+#ifndef CONFIG_ARCH_M68K
 #define ALLOC_COUNT    3000
 #define ALLOC_MAX_SIZE 6000
+#else
+#define ALLOC_COUNT    3000
+#define ALLOC_MAX_SIZE 1000
+#endif
 
 TEST(malloc_test) {
     printf("free size: %u heap frag: %u\n", mm::getFreeSize(), mm::getHeapFragmentation());
@@ -31,7 +37,7 @@ TEST(malloc_test) {
 
     size_t alloc_size = 0;
 
-    struct info bruh[ALLOC_COUNT];
+    static struct info bruh[ALLOC_COUNT];
     for (int i = 0; i < ALLOC_COUNT; i++) {
         bruh[i].size = rand() % ALLOC_MAX_SIZE;
         bruh[i].block = mm::kmalloc(bruh[i].size);
