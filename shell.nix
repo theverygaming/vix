@@ -231,4 +231,8 @@ in stdenv.mkDerivation {
       xorriso
       qemu
     ];
+
+  shellHook = ''
+    unset SOURCE_DATE_EPOCH
+  '';
 }

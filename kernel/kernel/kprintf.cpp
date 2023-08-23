@@ -12,6 +12,7 @@ static size_t kp_buf_position = 0;
 inline void putc_kbuf(char c, int loglevel) {
     if (unlikely(loglevel <= KP_ALERT)) {
         putc(c, false);
+        return; // FIXME: this is a workaround for double printing
     }
     putc(c, true);
 }
