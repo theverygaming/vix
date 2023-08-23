@@ -8,11 +8,11 @@ move.l #0x420, %sp@-
 
 */
 
-.global _vec4
-.type _vec4, @function
-_vec4:
+.global _vectest
+.type _vectest, @function
+_vectest:
 clrl	%sp@-			/* stk_adj */
 pea	-1:w			/* orig d0 */
 movel	%d0,%sp@-		/* d0 */
 moveml	%d1-%d5/%a0-%a2,%sp@-
-bsr vec4_cpp
+bsr vectest_cpp

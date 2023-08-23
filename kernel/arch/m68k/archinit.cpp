@@ -87,16 +87,17 @@ static void kernelinit() {
     kernelstart();
 }
 
-extern "C" void _vec4();
+extern "C" void _vectest();
 
-extern "C" void vec4_cpp(uint32_t pc, uint16_t sr) {
+extern "C" void vectest_cpp(uint32_t pc, uint16_t sr) {
     kprintf(KP_INFO, "invalid opcode: SR: 0x%p PC: 0x%p\n", (uint32_t)sr, pc);
     KERNEL_PANIC("exception");
 }
 
 extern "C" void _kentry() {
-    uintptr_t *i_inst = (uintptr_t *)0x10;
-    *i_inst = (uintptr_t)&_vec4;
+    uint32_t *i_inst = (uint32_t *)(sizeof(uint32_t) * 31);
+    *i_inst = (uint32_t)&_vectest;
+    //asm volatile("move.w #0x2400, %sr"); // supervisor set, Interrupt priority 6
     kernelinit();
     while (true) {}
 }
