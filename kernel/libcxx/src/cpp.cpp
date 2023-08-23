@@ -1,13 +1,13 @@
 #include <libcxx.h>
 #include <mm/kmalloc.h>
+#include <panic.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <types.h>
 
 extern "C" void __cxa_pure_virtual() {
     // undefined virtual function
-    puts(__func__);
-    putc('\n');
+    KERNEL_PANIC("__cxa_pure_virtual");
 }
 
 extern "C" void __cxa_atexit(void (*func)(void *), void *arg, void *dso_handle) {
@@ -15,17 +15,24 @@ extern "C" void __cxa_atexit(void (*func)(void *), void *arg, void *dso_handle) 
 }
 
 extern "C" void __dso_handle() {
-    puts(__func__);
-    putc('\n');
+    KERNEL_PANIC("__dso_handle(");
 }
 
 typedef void (*constructor)();
-extern "C" constructor START_CONSTRUCTORS;
-extern "C" constructor END_CONSTRUCTORS;
+extern "C" constructor START_CONSTRUCTORS_INITARR;
+extern "C" constructor END_CONSTRUCTORS_INITARR;
+extern "C" constructor START_CONSTRUCTORS_CTORS;
+extern "C" constructor END_CONSTRUCTORS_CTORS;
 
 void cpp_init() {
-    for (constructor *i = &START_CONSTRUCTORS; i < &END_CONSTRUCTORS; i++) {
-        (*i)();
+    if (&START_CONSTRUCTORS_INITARR == &END_CONSTRUCTORS_INITARR) {
+        for (constructor *i = &START_CONSTRUCTORS_CTORS; i < &END_CONSTRUCTORS_CTORS; i++) {
+            (*i)();
+        }
+    } else {
+        for (constructor *i = &START_CONSTRUCTORS_INITARR; i < &END_CONSTRUCTORS_INITARR; i++) {
+            (*i)();
+        }
     }
 }
 
