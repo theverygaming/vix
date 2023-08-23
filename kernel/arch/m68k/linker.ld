@@ -9,16 +9,16 @@ PHDRS
     data    PT_LOAD    FLAGS((1 << 1) | (1 << 2)) ; /* Write + Read */
 }
 
-KERNELMEMORY = 90000;
+PHYS_START = 0x13000;
 
 MEMORY
 {
-    ram (rwx) : org = 0x13000, l = KERNELMEMORY
+    ram (rwx) : org = PHYS_START, l = 120000
 }
 
 SECTIONS
 {
-    . = 0x13000;
+    . = PHYS_START;
 
     .text ALIGN(2) : {
         *(.entry)
@@ -47,7 +47,9 @@ SECTIONS
         __bss_end = .;
     }>ram : data
 
-    /DISCARD/ : { *(.comment) *(.gnu*) *(.note*) *(.eh_frame*) }   
+    /DISCARD/ : { *(.comment) *(.gnu*) *(.note*) *(.eh_frame*) }
+    __kernel_end = .;
 }
 
-__bss_size = (__bss_end - __bss_start);
+__bss_size = __bss_end - __bss_start;
+__kernel_size = __kernel_end - PHYS_START;

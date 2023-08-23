@@ -219,6 +219,7 @@ in stdenv.mkDerivation {
       gcc-aarch64-embedded
 
       gnumake
+      xxd
       ncurses
       pkg-config
       bison

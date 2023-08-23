@@ -23,10 +23,10 @@ static void fbputc(char c) {
 }
 
 extern "C" void _kentry();
-extern "C" void *KERNELMEMORY;
-extern "C" void *__bss_size;
+extern "C" void *PHYS_START;
+extern "C" void *__kernel_size;
 static volatile struct macboot_kernel_header __attribute__((section(".entry")))
-header = {.id = MACBOOT_KERNEL_HEADER_ID, .load_address = 0x13000, .size = (uint32_t)&KERNELMEMORY, .kmain = &_kentry};
+header = {.id = MACBOOT_KERNEL_HEADER_ID, .load_address = (uint32_t)&PHYS_START, .size = (uint32_t)&__kernel_size, .kmain = &_kentry};
 
 static volatile struct macboot_framebuffer_request fbreq = {.id = MACBOOT_FRAMEBUFFER_REQUEST_ID, .response = nullptr};
 static volatile struct macboot_memmap_request memmapreq = {.id = MACBOOT_MEMMAP_REQUEST_ID, .response = nullptr};
@@ -103,11 +103,12 @@ extern "C" void _kentry() {
 
 void arch::generic::startup::stage2_startup() {
     if (kmemreq.response != nullptr) {
-        mm::phys::phys_alloc((void *)kmemreq.response->base, ALIGN_UP(kmemreq.response->size, ARCH_PAGE_SIZE) / ARCH_PAGE_SIZE);
+        mm::phys::phys_alloc((void *)ALIGN_DOWN(kmemreq.response->base, ARCH_PAGE_SIZE),
+                             ALIGN_UP(kmemreq.response->size, ARCH_PAGE_SIZE) / ARCH_PAGE_SIZE);
         kprintf(KP_INFO,
                 "claimed 0x%p-0x%p as kernel memory\n",
-                kmemreq.response->base,
-                kmemreq.response->base + ALIGN_UP(kmemreq.response->size, ARCH_PAGE_SIZE));
+                ALIGN_DOWN(kmemreq.response->base, ARCH_PAGE_SIZE),
+                ALIGN_DOWN(kmemreq.response->base, ARCH_PAGE_SIZE) + ALIGN_UP(kmemreq.response->size, ARCH_PAGE_SIZE));
     }
 }
 

@@ -5,7 +5,7 @@ INT_OBJCOPY := $(OBJCOPY)
 INT_CXXFLAGS := $(CXXFLAGS)
 INT_LDFLAGS := $(LDFLAGS)
 
-override INT_CXXFLAGS += -I arch/$(BUILD_ARCH)/include -I libcxx/include -I include -O$(CXX_OPTIM_LEVEL) -Wall -Wextra -Wno-unused-parameter -Werror=return-type -g
+override INT_CXXFLAGS += -I arch/$(BUILD_ARCH)/include -I libcxx/include -I include -O$(CXX_OPTIM_LEVEL) -std=c++20 -Wall -Wextra -Wpedantic -Wno-unused-parameter -Werror=return-type -g
 
 %.ocpp: %.cpp
 	@echo "  CXX $<"
