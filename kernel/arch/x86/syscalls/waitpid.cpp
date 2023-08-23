@@ -2,7 +2,7 @@
 #include <arch/multitasking.h>
 #include <arch/syscalls_32.h>
 #include <debug.h>
-#include <errno.h>
+#include <arch/errno.h>
 #include <mm/kmalloc.h>
 #include <scheduler.h>
 #include <stdlib.h>

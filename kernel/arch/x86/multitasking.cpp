@@ -6,7 +6,7 @@
 #include <arch/syscalls_32.h>
 #include <vector>
 #include <debug.h>
-#include <errno.h>
+#include <arch/errno.h>
 #include <kprintf.h>
 #include <macros.h>
 #include <mm/kmalloc.h>

@@ -225,6 +225,7 @@ in stdenv.mkDerivation {
       flex
       nasm
       cmake
+      python311
       grub2
       xorriso
       qemu
