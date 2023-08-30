@@ -55,7 +55,7 @@ void test::test_section(const char *name, bool status) {
         printf("--TESTSECTION--|F|%s|%s|%u\n", current_test_name, name, ns);
     }
     current_section_starttime = time::ns_since_bootup;
-    current_section_extratime += current_section_starttime - ms2;
+    current_section_extratime += current_section_starttime - ns2;
 }
 
 TEST(tests_work) {
