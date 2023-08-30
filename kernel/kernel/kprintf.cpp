@@ -84,7 +84,7 @@ static int kprintf_base(va_list *args, const char *fmt, int loglevel) {
             }
         }
         size_t count = strcspn(fmt, "%");
-        for (int i = 0; i < count; i++) {
+        for (size_t i = 0; i < count; i++) {
             putc_kbuf(fmt[i], loglevel);
         }
         chars_written += count;
@@ -114,8 +114,9 @@ static int current_loglevel = CONFIG_KPRINTF_LOGLEVEL;
 
 void kprintf(int loglevel, const char *fmt, ...) {
     if (loglevel <= current_loglevel) {
-        size_t secs = (size_t)time::ms_since_bootup / 1000;
-        size_t ms = (size_t)time::ms_since_bootup % 1000;
+        // shift results in precision loss but it's fast
+        size_t secs = (size_t)(time::ns_since_bootup >> 20) / 1000;
+        size_t ms = (size_t)(time::ns_since_bootup >> 20) % 1000;
         char zeros[] = "00";
         zeros[2 - log10(ms)] = '\0';
         kprintf_internal(loglevel, "<%d>[%u.%s%u] ", loglevel, secs, zeros, ms);

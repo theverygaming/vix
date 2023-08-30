@@ -118,7 +118,7 @@ if not fail_on_failed_test:
         emoji = ":x:"
     print(f"# Tests {emoji}")
     print(f"**{len(testresults)}** tests completed with **{len(testresults)-failed}** passed and **{failed}** failed")
-    print("|name|passed?|total time (ms)|")
+    print("|name|passed?|total time (ns)|")
     print("|:--:|:-----:|:-------------:|")
 
 for test in testresults:
@@ -133,7 +133,7 @@ if fail_on_failed_test:
 
 if len(testsections) != 0:
     print(f"## test sections")
-    print("|name|section name|passed?|time (ms)|")
+    print("|name|section name|passed?|time (ns)|")
     print("|:--:|:----------:|:-----:|:-------:|")
 
 for t in testresults:

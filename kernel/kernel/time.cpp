@@ -2,7 +2,7 @@
 #include <time.h>
 
 volatile time_t time::bootupTime = 0;
-volatile uint64_t time::ms_since_bootup = 0;
+volatile uint64_t time::ns_since_bootup = 0;
 
 static const uint8_t monthDays[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 

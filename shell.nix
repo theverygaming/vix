@@ -230,6 +230,9 @@ in stdenv.mkDerivation {
       grub2
       xorriso
       qemu
+      unixtools.fdisk
+      dosfstools
+      mtools
     ];
 
   shellHook = ''
