@@ -1,7 +1,7 @@
+#include <kprintf.h>
 #include <net/stack/arp.h>
 #include <net/stack/ethernet.h>
 #include <net/stack/stack.h>
-#include <stdio.h>
 #include <stdlib.h>
 
 struct __attribute__((packed)) arp_packet {
@@ -18,12 +18,12 @@ struct __attribute__((packed)) arp_packet {
 
 void net::arp::receive(net::networkstack *netstack, void *data, size_t size) {
     if (size < sizeof(struct arp_packet)) {
-        printf("    -> packet too short for ARP\n");
+        kprintf(KP_INFO, "    -> packet too short for ARP\n");
         return;
     }
     struct arp_packet *packet = (struct arp_packet *)data;
     if (packet->opcode == 0x100) { // big endian...
-        printf("    -> replying to ARP\n");
+        kprintf(KP_INFO, "    -> replying to ARP\n");
         struct arp_packet newpacket;
         memcpy(&newpacket, packet, sizeof(struct arp_packet));
 

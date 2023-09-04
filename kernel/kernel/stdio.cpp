@@ -227,6 +227,7 @@ void printf_serial(const char *fmt, ...) {
     va_end(args);
 }
 
+/*
 int snprintf(char *s, size_t n, const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
@@ -234,3 +235,4 @@ int snprintf(char *s, size_t n, const char *fmt, ...) {
     va_end(args);
     return ret;
 }
+*/

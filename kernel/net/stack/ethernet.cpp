@@ -1,10 +1,10 @@
 #include <endian.h>
+#include <kprintf.h>
 #include <mm/kmalloc.h>
 #include <net/stack/arp.h>
 #include <net/stack/ethernet.h>
 #include <net/stack/ip.h>
 #include <net/stack/stack.h>
-#include <stdio.h>
 #include <stdlib.h>
 
 #define ETHERTYPE_IPV4  0x800
@@ -21,9 +21,9 @@ struct __attribute__((packed)) ethernet_packet {
 
 static void print_mac(uint8_t *mac) {
     for (int i = 0; i < 5; i++) {
-        printf("%p:", (uint32_t)mac[i]);
+        kprintf(KP_INFO, "%p:", (uint32_t)mac[i]);
     }
-    printf("%p", (uint32_t)mac[5]);
+    kprintf(KP_INFO, "%p", (uint32_t)mac[5]);
 }
 
 net::ethernet::ethernet(uint8_t *mac_adr) {
@@ -39,9 +39,9 @@ void net::ethernet::receive(net::networkstack *netstack, void *data, size_t size
     packet->ethertype = BE_16(packet->ethertype);
     // if ethertype 0000-05DC it's length
 
-    printf("src: ");
+    kprintf(KP_INFO, "src: ");
     print_mac(packet->source_mac);
-    printf(" dst: ");
+    kprintf(KP_INFO, " dst: ");
     print_mac(packet->dest_mac);
 
     struct ethernet_packet_processed processed_packet;
@@ -56,21 +56,21 @@ void net::ethernet::receive(net::networkstack *netstack, void *data, size_t size
 
     switch (packet->ethertype) {
     case ETHERTYPE_IPV4:
-        printf("-> ipv4\n");
+        kprintf(KP_INFO, "-> ipv4\n");
         ipv4.receive(netstack, dataptr, packetsize);
         break;
     case ETHERTYPE_IPV6:
-        printf("-> ipv6\n");
+        kprintf(KP_INFO, "-> ipv6\n");
         break;
     case ETHERTYPE_ARP:
-        printf("-> ARP\n");
+        kprintf(KP_INFO, "-> ARP\n");
         arp.receive(netstack, dataptr, packetsize);
         break;
     case ETHERTYPE_FRARP:
-        printf("-> FRARP\n");
+        kprintf(KP_INFO, "-> FRARP\n");
         break;
     default:
-        printf(" -> 0x%p(???)\n", (uint32_t)packet->ethertype);
+        kprintf(KP_INFO, " -> 0x%p(???)\n", (uint32_t)packet->ethertype);
         break;
     }
 }

@@ -6,8 +6,21 @@
 #include <time.h>
 #include <types.h>
 
+#define TMP_BUF_LEN (512)
+
 static char kp_buf[CONFIG_KPRINTF_BUFSIZE];
-static size_t kp_buf_position = 0;
+static char kp_buf_tmp[TMP_BUF_LEN];
+
+#define KP_INFO_MAGIC (0x4B010550)
+struct __attribute__((packed)) kp_buf_info {
+    uint32_t magic; // KP_INFO_MAGIC
+
+    size_t len;
+    bool last;
+
+    int loglevel;
+    uint64_t time;
+};
 
 inline void putc_kbuf(char c, int loglevel) {
     if (unlikely(loglevel <= KP_ALERT)) {
@@ -23,77 +36,6 @@ inline void puts_kbuf(char *s, int loglevel) {
     }
 }
 
-static int kprintf_base(va_list *args, const char *fmt, int loglevel) {
-    size_t chars_written = 0;
-    while (*fmt) {
-        if (*fmt == '%') {
-            fmt++;
-            switch (*fmt) {
-            case '%': {
-                fmt += 1;
-                putc_kbuf('%', loglevel);
-                chars_written += 1;
-                break;
-            }
-            case 's': {
-                fmt += 1;
-                char *arg = va_arg(*args, char *);
-                puts_kbuf(arg, loglevel);
-                chars_written += strlen(arg);
-                break;
-            }
-            case 'u': {
-                fmt += 1;
-                size_t arg = va_arg(*args, size_t);
-                char n_buf[11];
-                char *ret = itoa(arg, n_buf, 10);
-                puts_kbuf(ret, loglevel);
-                chars_written += strlen(ret);
-                break;
-            }
-            case 'p': {
-                fmt += 1;
-                uintptr_t arg = va_arg(*args, uintptr_t);
-                char n_buf[17];
-                char *ret = itoa(arg, n_buf, 16);
-                puts_kbuf(ret, loglevel);
-                chars_written += strlen(ret);
-                break;
-            }
-            case 'd': {
-                fmt += 1;
-                ssize_t arg = va_arg(*args, ssize_t);
-                char n_buf[12];
-                char *ret = itoa_signed(arg, n_buf, 10);
-                puts_kbuf(ret, loglevel);
-                chars_written += strlen(ret);
-                break;
-            }
-            case 'c': {
-                fmt += 1;
-                char arg = va_arg(*args, int);
-                putc_kbuf(arg, loglevel);
-                chars_written++;
-                break;
-            }
-            default:
-                puts_kbuf("[kprintf: unsupported %", loglevel);
-                putc_kbuf(*fmt, loglevel);
-                putc(']', loglevel);
-                break;
-            }
-        }
-        size_t count = strcspn(fmt, "%");
-        for (size_t i = 0; i < count; i++) {
-            putc_kbuf(fmt[i], loglevel);
-        }
-        chars_written += count;
-        fmt += count;
-    }
-
-    return chars_written;
-}
-
 static size_t log10(size_t n) {
     size_t r = 0;
     while (n >= 10) {
@@ -103,26 +45,82 @@ static size_t log10(size_t n) {
     return r;
 }
 
-static void kprintf_internal(int loglevel, const char *fmt, ...) {
-    va_list args;
-    va_start(args, fmt);
-    kprintf_base(&args, fmt, loglevel);
-    va_end(args);
+static void print_kbuf(struct kp_buf_info *info, size_t idx) {
+    if (info->magic != KP_INFO_MAGIC) {
+        return;
+    }
+    // shift results in precision loss but it's fast
+    size_t secs = (size_t)(info->time >> 20) / 1000;
+    size_t ms = (size_t)(info->time >> 20) % 1000;
+    char zeros[] = "00";
+    zeros[2 - log10(ms)] = '\0';
+    char w_buf[19];
+    snprintf(w_buf, 19, "<%d>[%u.%s%u] ", info->loglevel, secs, zeros, ms);
+    puts_kbuf(w_buf, info->loglevel);
+    for (size_t j = 0; j < info->len; j++) {
+        putc_kbuf(kp_buf[idx + j], info->loglevel);
+    }
+    // putc_kbuf('\n', info->loglevel);
+}
+
+static void writeout_kbuf() {
+    for (size_t i = 0; i < CONFIG_KPRINTF_BUFSIZE;) {
+        struct kp_buf_info *infoptr = (struct kp_buf_info *)&kp_buf[i];
+        if (infoptr->magic != KP_INFO_MAGIC) {
+            i++;
+            continue;
+        }
+        i += sizeof(struct kp_buf_info);
+        print_kbuf(infoptr, i);
+        i += infoptr->len;
+    }
+}
+
+static size_t kbuf_idx = 0;
+struct kp_buf_info *last_written = nullptr;
+
+static void write_kbuf(struct kp_buf_info info, char *src, size_t n) {
+    if ((n + sizeof(struct kp_buf_info)) >= CONFIG_KPRINTF_BUFSIZE) {
+        // there is no way we could possibly store this message
+        // TODO: send it out to the terminals anyway
+        return;
+    }
+    if ((kbuf_idx + sizeof(struct kp_buf_info) + n) < CONFIG_KPRINTF_BUFSIZE) {
+        if (kbuf_idx != 0) {
+            last_written->last = false;
+        }
+        struct kp_buf_info *infoptr = (struct kp_buf_info *)&kp_buf[kbuf_idx];
+        kbuf_idx += sizeof(struct kp_buf_info);
+        (*infoptr) = info;
+        infoptr->magic = KP_INFO_MAGIC;
+        infoptr->len = n;
+        infoptr->last = true;
+        memcpy(&kp_buf[kbuf_idx], src, n);
+        print_kbuf(infoptr, kbuf_idx);
+        kbuf_idx += n;
+        last_written = infoptr;
+    } else {
+        kbuf_idx = 0;
+        /*puts_kbuf("!!!buffer overflowed!!! -- BEGIN\n", 0);
+        writeout_kbuf();
+        puts_kbuf("!!!buffer overflowed!!! -- END\n", 0);*/
+        write_kbuf(info, src, n);
+    }
 }
 
 static int current_loglevel = CONFIG_KPRINTF_LOGLEVEL;
 
 void kprintf(int loglevel, const char *fmt, ...) {
+    // TODO: lock
     if (loglevel <= current_loglevel) {
-        // shift results in precision loss but it's fast
-        size_t secs = (size_t)(time::ns_since_bootup >> 20) / 1000;
-        size_t ms = (size_t)(time::ns_since_bootup >> 20) % 1000;
-        char zeros[] = "00";
-        zeros[2 - log10(ms)] = '\0';
-        kprintf_internal(loglevel, "<%d>[%u.%s%u] ", loglevel, secs, zeros, ms);
+        struct kp_buf_info info;
+        info.time = time::ns_since_bootup;
+        info.loglevel = loglevel;
+
         va_list args;
         va_start(args, fmt);
-        kprintf_base(&args, fmt, loglevel);
+        size_t n = vsnprintf(kp_buf_tmp, TMP_BUF_LEN, fmt, args);
         va_end(args);
+        write_kbuf(info, kp_buf_tmp, n);
     }
 }

@@ -1,4 +1,5 @@
 #include <debug.h>
+#include <kprintf.h>
 #include <stdlib.h>
 #include <symbols.h>
 
@@ -21,8 +22,7 @@ uintptr_t syms::get_sym(const char *name) {
         }
         ptr = (struct symtabentry *)(((uint8_t *)ptr) + sizeof(symtabentry) + strlen(ptr->symname) + 1);
     }
-    DEBUG_PRINTF("cannot find symbol %s\n", name);
-    printf("cannot find symbol %s\n", name);
+    kprintf(KP_ERR, "cannot find symbol %s\n", name);
     return 0;
 }
 

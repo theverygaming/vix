@@ -3,7 +3,7 @@
 #include <net/stack/icmp.h>
 #include <net/stack/ip.h>
 #include <net/stack/stack.h>
-#include <stdio.h>
+#include <kprintf.h>
 #include <stdlib.h>
 
 struct __attribute__((packed)) ipv4_packet {
@@ -24,11 +24,11 @@ struct __attribute__((packed)) ipv4_packet {
 };
 
 static void print_ip(uint8_t *ip) {
-    printf("%u.%u.%u.%u", (uint32_t)ip[0], (uint32_t)ip[1], (uint32_t)ip[2], (uint32_t)ip[3]);
+    kprintf(KP_INFO, "%u.%u.%u.%u", (uint32_t)ip[0], (uint32_t)ip[1], (uint32_t)ip[2], (uint32_t)ip[3]);
 }
 
 void net::ipv4::receive(net::networkstack *netstack, void *data, size_t size) {
-    printf("    -> ");
+    kprintf(KP_INFO, "    -> ");
     struct ipv4_packet header;
     struct ipv4_packet *balls = (struct ipv4_packet *)data;
     header = *balls;
@@ -42,12 +42,12 @@ void net::ipv4::receive(net::networkstack *netstack, void *data, size_t size) {
             header.data_start_offset += +i;
             break;
         }
-        printf("option: 0x%p, ", (uint32_t)balls->options[i]);
+        kprintf(KP_INFO, "option: 0x%p, ", (uint32_t)balls->options[i]);
         header.options[i] = balls->options[i];
     }
-    printf("src: ");
+    kprintf(KP_INFO, "src: ");
     print_ip(header.source_address);
-    printf(" dst: ");
+    kprintf(KP_INFO, " dst: ");
     print_ip(header.destination_address);
 
     header.data_start_offset = 21;
@@ -63,12 +63,12 @@ void net::ipv4::receive(net::networkstack *netstack, void *data, size_t size) {
     size_t packetsize = size - (header.data_start_offset - 1);
 
     if (header.protocol == 0x01) {
-        printf(" ICMP\n");
+        kprintf(KP_INFO, " ICMP\n");
         // netstack->icmp->receive_packet(netstack, &processed_packet, dataptr, packetsize);
         icmp.receive(netstack, dataptr, packetsize);
         return;
     }
-    printf("\n");
+    kprintf(KP_INFO, "\n");
 }
 
 void net::ipv4::send(net::networkstack *netstack, struct ipv4_packet_processed *packet, void *data, size_t size) {
@@ -112,7 +112,7 @@ void net::ipv4::send(net::networkstack *netstack, struct ipv4_packet_processed *
         break;
     }
     if (foundindex == -1) {
-        printf("could not find MAC address for IP\n");
+        kprintf(KP_INFO, "could not find MAC address for IP\n");
         return;
     }
 

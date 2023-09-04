@@ -1,9 +1,9 @@
 #include <endian.h>
+#include <kprintf.h>
 #include <net/stack/ethernet.h>
 #include <net/stack/icmp.h>
 #include <net/stack/ip.h>
 #include <net/stack/stack.h>
-#include <stdio.h>
 #include <stdlib.h>
 
 struct __attribute__((packed)) icmp_header {
@@ -19,7 +19,7 @@ struct __attribute__((packed)) icmp_echo {
 
 void net::icmp::receive(net::networkstack *netstack, void *data, size_t size) {
     struct icmp_header *header = (struct icmp_header *)data;
-    printf("        -> ICMP type: 0x%p\n", (uint32_t)header->type);
+    kprintf(KP_INFO, "        -> ICMP type: 0x%p\n", (uint32_t)header->type);
     header->type = 0;
     header->checksum += 0x8;
 
@@ -30,5 +30,5 @@ void net::icmp::receive(net::networkstack *netstack, void *data, size_t size) {
 
     netstack->ethernet->ipv4.send(netstack, &packet, data, size);
 
-    printf("        -> sent ICMP response\n");
+    kprintf(KP_INFO, "        -> sent ICMP response\n");
 }

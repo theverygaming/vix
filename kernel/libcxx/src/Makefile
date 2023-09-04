@@ -1,4 +1,4 @@
-obj-y += string.ocpp cpp.ocpp
+obj-y += string.ocpp cpp.ocpp stdio.ocpp
 
 obj-y += stdlib.ocpp
 

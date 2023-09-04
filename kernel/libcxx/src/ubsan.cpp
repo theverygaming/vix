@@ -1,3 +1,4 @@
+#include <kprintf.h>
 #include <panic.h>
 #include <stdio.h>
 
@@ -8,15 +9,15 @@
     do {                \
     } while (1)
 
-#define UBSAN_GENERIC()                                                                 \
-    do {                                                                                \
-        printf("UBSAN -- %s -- caller: 0x%p\n", __func__, __builtin_return_address(0)); \
-        KERNEL_PANIC("ubsan");                                                          \
+#define UBSAN_GENERIC()                                                                            \
+    do {                                                                                           \
+        kprintf(KP_EMERG, "UBSAN -- %s -- caller: 0x%p\n", __func__, __builtin_return_address(0)); \
+        KERNEL_PANIC("ubsan");                                                                     \
     } while (0)
 
-#define UBSAN_NOPANIC()                                                                 \
-    do {                                                                                \
-        printf("UBSAN -- %s -- caller: 0x%p\n", __func__, __builtin_return_address(0)); \
+#define UBSAN_NOPANIC()                                                                            \
+    do {                                                                                           \
+        kprintf(KP_ALERT, "UBSAN -- %s -- caller: 0x%p\n", __func__, __builtin_return_address(0)); \
     } while (0)
 
 extern "C" void __ubsanfunc __ubsan_handle_pointer_overflow() {
