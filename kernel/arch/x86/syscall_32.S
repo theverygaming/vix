@@ -22,6 +22,11 @@ syscall_entry:
     push %ebp
 
     push %esp
+    mov $(2 * 8), %ax // use kernel data segment
+    mov %ax, %ds
+    mov %ax, %es
+    mov %ax, %fs
+    mov %ax, %gs
     call syscallHandler
     add $4, %esp
 
