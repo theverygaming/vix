@@ -1,8 +1,8 @@
 #pragma once
-#include <string>
-#include <vector>
 #include <mm/kmalloc.h>
+#include <string>
 #include <types.h>
+#include <vector>
 
 #define VFS_SEEK_END (1 << 0)
 
@@ -24,7 +24,8 @@ namespace fs::vfs {
     };
 
     typedef struct __attribute__((packed)) { // TODO: only packed because no aligned malloc
-        struct fsinfo mount;                 // do not use directly, currently we do not keep track of all open files so on every operation we have to check if this is still valid
+        struct fsinfo mount; // do not use directly, currently we do not keep track of all open files so on every operation we have to check if this
+                             // is still valid
         void *internal_file;
     } file;
 
