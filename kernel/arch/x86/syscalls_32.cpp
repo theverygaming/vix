@@ -8,7 +8,6 @@
 #include <arch/multitasking.h>
 #include <arch/paging.h>
 #include <arch/syscalls_32.h>
-#include <string>
 #include <debug.h>
 #include <fs/vfs.h>
 #include <generated/autoconf.h>
@@ -16,6 +15,7 @@
 #include <mm/phys.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string>
 #include <time.h>
 
 uint32_t sys_dbg(struct arch::cpu_ctx *regs, int *syscall_ret, uint32_t, uint32_t n, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
@@ -62,7 +62,8 @@ uint32_t sys_write(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t 
     return count; // return number of written bytes
 }
 
-uint32_t sys_open(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _flags, uint32_t _mode, uint32_t, uint32_t, uint32_t) {
+uint32_t
+sys_open(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _flags, uint32_t _mode, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     DEBUG_PRINTF("syscall: sys_open\n");
     const char *filename = (const char *)_filename;
@@ -78,7 +79,8 @@ uint32_t sys_close(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t 
     return -EBADF;
 }
 
-uint32_t sys_execve(struct arch::cpu_ctx *regs, int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _argv, uint32_t _envp, uint32_t, uint32_t, uint32_t) {
+uint32_t
+sys_execve(struct arch::cpu_ctx *regs, int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _argv, uint32_t _envp, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 0;
     char *filename = (char *)_filename;
     const char *const *argv = (const char *const *)_argv;
@@ -238,7 +240,8 @@ uint32_t sys_uname(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t 
     return 0;
 }
 
-uint32_t sys_modify_ldt(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t _func, uint32_t _ptr, uint32_t bytecount, uint32_t, uint32_t, uint32_t) {
+uint32_t
+sys_modify_ldt(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t _func, uint32_t _ptr, uint32_t bytecount, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     struct user_desc {
         unsigned int entry_number;
@@ -259,7 +262,8 @@ uint32_t sys_modify_ldt(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint
         DEBUG_PRINTF("sizeof(user_desc) != bytecount\n");
         return -1;
     }
-    DEBUG_PRINTF("entry_number: %u base_addr: 0x%p limit: %u seg_32bit: %u contents: %u read_exec_only: %u limit_in_pages: %u seg_not_present: %u useable: %u\n",
+    DEBUG_PRINTF("entry_number: %u base_addr: 0x%p limit: %u seg_32bit: %u contents: %u read_exec_only: %u limit_in_pages: %u seg_not_present: %u "
+                 "useable: %u\n",
                  ptr->entry_number,
                  ptr->base_addr,
                  ptr->limit,
@@ -272,7 +276,15 @@ uint32_t sys_modify_ldt(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint
     return -ENOSYS; // unimplemented
 }
 
-uint32_t sys_mprotect(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t addr, uint32_t length, uint32_t prot, uint32_t flags, uint32_t _fd, uint32_t pgoffset) {
+uint32_t sys_mprotect(struct arch::cpu_ctx *,
+                      int *syscall_ret,
+                      uint32_t,
+                      uint32_t addr,
+                      uint32_t length,
+                      uint32_t prot,
+                      uint32_t flags,
+                      uint32_t _fd,
+                      uint32_t pgoffset) {
     *syscall_ret = 1;
     DEBUG_PRINTF("syscall: sys_mprotect\n");
     return 0; // sure, worked flawlessly
@@ -303,7 +315,8 @@ uint32_t sys_writev(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t
     return written; // return number of written bytes
 }
 
-uint32_t sys_rt_sigprocmask(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t _how, uint32_t _set, uint32_t _oset, uint32_t sigsetsize, uint32_t, uint32_t) {
+uint32_t sys_rt_sigprocmask(
+    struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t _how, uint32_t _set, uint32_t _oset, uint32_t sigsetsize, uint32_t, uint32_t) {
     *syscall_ret = 1;
     DEBUG_PRINTF("syscall: sys_rt_sigprocmask\n");
     return 0;
@@ -320,7 +333,15 @@ uint32_t sys_getcwd(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t
     return 11;
 }
 
-uint32_t sys_mmap2(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t addr, uint32_t length, uint32_t prot, uint32_t flags, uint32_t _fd, uint32_t pgoffset) {
+uint32_t sys_mmap2(struct arch::cpu_ctx *,
+                   int *syscall_ret,
+                   uint32_t,
+                   uint32_t addr,
+                   uint32_t length,
+                   uint32_t prot,
+                   uint32_t flags,
+                   uint32_t _fd,
+                   uint32_t pgoffset) {
     *syscall_ret = 1;
     DEBUG_PRINTF("syscall: sys_mmap2 -- unstable\n");
     int fd = (int)_fd;
@@ -333,16 +354,50 @@ uint32_t sys_mmap2(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t 
         pages += 1;
     }
     multitasking::x86_process *process = multitasking::getCurrentProcess();
-    process->pages.push_back({.phys_base = (uint32_t)mm::phys::phys_malloc(pages), .virt_base = (uint32_t)alloc_adr, .pages = pages, .type = multitasking::process_pagerange::range_type::UNKNOWN});
+    process->pages.push_back({.phys_base = (uint32_t)mm::phys::phys_malloc(pages),
+                              .virt_base = (uint32_t)alloc_adr,
+                              .pages = pages,
+                              .type = multitasking::process_pagerange::range_type::UNKNOWN});
     multitasking::setPageRange(&process->pages);
 
     return (uint32_t)alloc_adr;
 }
 
-uint32_t sys_stat64(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _statbuf, uint32_t, uint32_t, uint32_t, uint32_t) {
+uint32_t
+sys_stat64(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _statbuf, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
 
-    struct stat {
+    struct __attribute__((packed)) stat64 {
+        unsigned long long st_dev;
+        unsigned char __pad0[4];
+
+        unsigned int __st_ino; // broken st_ino
+
+        unsigned int st_mode;
+        unsigned int st_nlink;
+
+        unsigned int st_uid;
+        unsigned int st_gid;
+
+        unsigned long long st_rdev;
+        unsigned char __pad3[4];
+
+        long long st_size;
+        unsigned int st_blksize;
+
+        long long st_blocks; // Number 512-byte blocks allocated
+
+        unsigned st_atime;
+        unsigned st_atime_nsec;
+        unsigned st_mtime;
+        unsigned st_mtime_nsec;
+        unsigned st_ctime;
+        unsigned st_ctime_nsec;
+
+        unsigned long long st_ino;
+    };
+
+    /*struct __attribute__((packed)) stat {
         unsigned long st_dev;
         unsigned long st_ino;
         unsigned long st_rdev;
@@ -363,32 +418,35 @@ uint32_t sys_stat64(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t
         unsigned long st_ctime;
         unsigned long st_ctime_nsec;
         long __unused[3];
-    };
+    };*/
 
     const char *filename = (const char *)_filename;
-    struct stat *buf = (struct stat *)_statbuf;
+    struct stat64 *buf = (struct stat64 *)_statbuf;
 
     DEBUG_PRINTF("syscall: sys_stat64\n");
     DEBUG_PRINTF("stat64: %s\n", filename);
 
-    // memset(buf, 0, sizeof(struct stat));
+    memset(buf, 0, sizeof(struct stat64));
 
     buf->st_dev = 29;
-    buf->st_ino = 1;
-    buf->st_mode = 17407;
-    buf->st_nlink = 25;
+    buf->st_ino = 13375556;
+    buf->st_mode = 0x41ed;
+    buf->st_uid = 0;
+    buf->st_gid = 0;
+    buf->st_nlink = 2;
 
-    buf->st_size = 1280;
+    buf->st_size = 40;
     buf->st_blksize = 4096;
     buf->st_blocks = 0;
-    buf->st_atime = 3111113233;
+    /*buf->st_atime = 3111113233;
     buf->st_mtime = 32323233;
-    buf->st_ctime = 232322;
+    buf->st_ctime = 232322;*/
 
     return 0;
 }
 
-uint32_t sys_lstat64(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _statbuf, uint32_t, uint32_t, uint32_t, uint32_t) {
+uint32_t
+sys_lstat64(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _statbuf, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
 
     struct stat {
@@ -420,21 +478,23 @@ uint32_t sys_lstat64(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_
     DEBUG_PRINTF("syscall: sys_lstat64\n");
     DEBUG_PRINTF("lstat64: %s\n", filename);
 
-    // memset(buf, 0, sizeof(struct stat));
-    /*
+    return -ENOSYS;
+
+    memset(buf, 0, sizeof(struct stat));
+
     buf->st_dev = 29;
-    buf->st_ino = 1;
+    buf->st_ino = 13375556;
     buf->st_mode = 17407;
     buf->st_nlink = 25;
 
     buf->st_size = 1280;
     buf->st_blksize = 4096;
-    buf->st_blocks = 0;
+    buf->st_blocks = 8;
     buf->st_atime = 3111113233;
     buf->st_mtime = 32323233;
     buf->st_ctime = 232322;
-    */
-    return -ENOSYS;
+
+    return 0;
 }
 
 uint32_t sys_getuid32(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
@@ -451,7 +511,15 @@ uint32_t sys_fcntl64(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_
     return -ENOSYS;
 }
 
-uint32_t sys_futex(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t _uaddr, uint32_t _op, uint32_t val, uint32_t _timeout, uint32_t _uaddr2, uint32_t val3) {
+uint32_t sys_futex(struct arch::cpu_ctx *,
+                   int *syscall_ret,
+                   uint32_t,
+                   uint32_t _uaddr,
+                   uint32_t _op,
+                   uint32_t val,
+                   uint32_t _timeout,
+                   uint32_t _uaddr2,
+                   uint32_t val3) {
     *syscall_ret = 1;
     DEBUG_PRINTF("syscall: sys_futex\n");
     uint32_t *uaddr = (uint32_t *)_uaddr;
@@ -461,7 +529,8 @@ uint32_t sys_futex(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t 
 
     DEBUG_PRINTF("futex: uaddr -> 0x%p op -> %d val -> 0x%p timeout -> 0x%p uaddr2 -> 0x%p val3 -> 0x%p\n", _uaddr, op, val, _timeout, _uaddr2, val3);
     op &= 0xF;
-    DEBUG_PRINTF("futex2: uaddr -> 0x%p op -> %d val -> 0x%p timeout -> 0x%p uaddr2 -> 0x%p val3 -> 0x%p\n", _uaddr, op, val, _timeout, _uaddr2, val3);
+    DEBUG_PRINTF(
+        "futex2: uaddr -> 0x%p op -> %d val -> 0x%p timeout -> 0x%p uaddr2 -> 0x%p val3 -> 0x%p\n", _uaddr, op, val, _timeout, _uaddr2, val3);
     if (op == 1) { // FUTEX_WAKE
         return 1;  // :troll:
     }
@@ -469,7 +538,8 @@ uint32_t sys_futex(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t 
     return -ENOSYS;
 }
 
-uint32_t sys_set_thread_area(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t _usr_desc, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
+uint32_t
+sys_set_thread_area(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t _usr_desc, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     DEBUG_PRINTF("syscall: sys_set_thread_area\n");
     struct user_desc {
@@ -502,7 +572,8 @@ uint32_t sys_set_thread_area(struct arch::cpu_ctx *, int *syscall_ret, uint32_t,
         return -ENOSYS;
     }
 
-    DEBUG_PRINTF("entry_number: %u base_addr: 0x%p limit: %u seg_32bit: %u contents: %u read_exec_only: %u limit_in_pages: %u seg_not_present: %u useable: %u\n",
+    DEBUG_PRINTF("entry_number: %u base_addr: 0x%p limit: %u seg_32bit: %u contents: %u read_exec_only: %u limit_in_pages: %u seg_not_present: %u "
+                 "useable: %u\n",
                  user_desc_p->entry_number,
                  user_desc_p->base_addr,
                  user_desc_p->limit,
@@ -539,7 +610,8 @@ uint32_t sys_set_thread_area(struct arch::cpu_ctx *, int *syscall_ret, uint32_t,
     return 0;
 }
 
-uint32_t sys_set_tid_address(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t tidptr_u, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
+uint32_t
+sys_set_tid_address(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t tidptr_u, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     DEBUG_PRINTF("syscall: sys_set_tid_address\n");
     int *tidptr = (int *)tidptr_u;
@@ -548,7 +620,8 @@ uint32_t sys_set_tid_address(struct arch::cpu_ctx *, int *syscall_ret, uint32_t,
     return multitasking::getCurrentProcess()->tgid;
 }
 
-uint32_t sys_set_robust_list(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t _robust_list_head, uint32_t _len, uint32_t, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_set_robust_list(
+    struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t _robust_list_head, uint32_t _len, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     DEBUG_PRINTF("syscall: sys_set_robust_list\n");
     struct robust_list {
@@ -568,7 +641,8 @@ uint32_t sys_set_robust_list(struct arch::cpu_ctx *, int *syscall_ret, uint32_t,
     return 0; // sure, it worked :troll:
 }
 
-uint32_t sys_rseq(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t rseq_u, uint32_t rseq_len, uint32_t flags_u, uint32_t sig, uint32_t, uint32_t) {
+uint32_t
+sys_rseq(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t rseq_u, uint32_t rseq_len, uint32_t flags_u, uint32_t sig, uint32_t, uint32_t) {
     *syscall_ret = 1;
     DEBUG_PRINTF("syscall: sys_rseq\n");
     return -ENOSYS;
@@ -592,11 +666,12 @@ uint32_t sys_rseq(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t r
     struct rseq *rseq = (struct rseq *)rseq_u;
     struct rseq_cs *rseq_cs = (struct rseq_cs *)rseq->rseq_cs;
     if (rseq_cs != nullptr) {
-        DEBUG_PRINTF_INSANE("struct rseq_cs: version -> 0x%p start_ip(lower 32) -> 0x%p post_commit_offset(lower 32) -> 0x%p abort_ip(lower 32) -> 0x%p\n",
-                            rseq_cs->version,
-                            (uint32_t)(rseq_cs->start_ip & 0xFFFFFFFF),
-                            (uint32_t)(rseq_cs->post_commit_offset & 0xFFFFFFFF),
-                            (uint32_t)(rseq_cs->abort_ip & 0xFFFFFFFF));
+        DEBUG_PRINTF_INSANE(
+            "struct rseq_cs: version -> 0x%p start_ip(lower 32) -> 0x%p post_commit_offset(lower 32) -> 0x%p abort_ip(lower 32) -> 0x%p\n",
+            rseq_cs->version,
+            (uint32_t)(rseq_cs->start_ip & 0xFFFFFFFF),
+            (uint32_t)(rseq_cs->post_commit_offset & 0xFFFFFFFF),
+            (uint32_t)(rseq_cs->abort_ip & 0xFFFFFFFF));
     }
     DEBUG_PRINTF_INSANE("struct rseq: cpu_id_start->%u cpu_id->%u rseq_cs(only first u32)->%u rseq_cs(last u32)->%u flags->%u\n",
                         rseq->cpu_id_start,
