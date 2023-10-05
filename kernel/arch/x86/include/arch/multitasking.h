@@ -69,9 +69,4 @@ namespace multitasking {
     void unsetPageRange(std::vector<process_pagerange> *range);
     void freePageRange(std::vector<process_pagerange> *range);
     void printPageRange(std::vector<process_pagerange> *range);
-
-    void set_proc(void *ip, int i);
-    void new_yield();
-
-    void enter_sched();
 }

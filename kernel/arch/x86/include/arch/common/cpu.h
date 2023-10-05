@@ -33,10 +33,18 @@ namespace arch {
         uint32_t esp;
         uint16_t ss, __ssh;
     };
+
+    struct __attribute__((packed)) ctx {
+        uint32_t ebx;
+        uint32_t esi;
+        uint32_t edi;
+        uint32_t ebp;
+        uint32_t eip;
+    };
 #endif
 
 #ifdef CONFIG_ENABLE_KERNEL_64
-    struct __attribute__((packed)) full_ctx { // TODO: 64-bit context struct
+    struct __attribute__((packed)) full_ctx { // FIXME: 64-bit context struct
         uint32_t ebp;
 
         uint32_t edi;
@@ -59,6 +67,14 @@ namespace arch {
         uint16_t cs, __csh;
         uint32_t eflags, esp;
         uint16_t ss, __ssh;
+    };
+
+    struct __attribute__((packed)) ctx { // FIXME: 64-bit context struct
+        uint32_t ebx;
+        uint32_t esi;
+        uint32_t edi;
+        uint32_t ebp;
+        uint32_t eip;
     };
 #endif
 }

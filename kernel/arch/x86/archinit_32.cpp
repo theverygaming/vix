@@ -24,6 +24,7 @@
 #include <macros.h>
 #include <mm/phys.h>
 #include <panic.h>
+#include <sched.h>
 #include <stdio.h>
 #include <string>
 #include <time.h>
@@ -113,21 +114,21 @@ void arch::generic::startup::stage3_startup() {
 static void p1() {
     while (true) {
         kprintf(KP_INFO, "p1\n");
-        multitasking::new_yield();
+        sched::yield();
     }
 }
 
 static void p2() {
     while (true) {
         kprintf(KP_INFO, "p2\n");
-        multitasking::new_yield();
+        sched::yield();
     }
 }
 
 static void p3() {
     while (true) {
         kprintf(KP_INFO, "p3\n");
-        multitasking::new_yield();
+        sched::yield();
     }
 }
 
@@ -148,12 +149,10 @@ void arch::generic::startup::after_init() {
     // a bit of a hack.. we have to call the vector destructor before killing this process
     args.~vector();
 
-    multitasking::set_proc((void *)p1, 0);
-    multitasking::set_proc((void *)p2, 1);
-    multitasking::set_proc((void *)p3, 2);
-    multitasking::set_proc((void *)p3, 3);
-
-    multitasking::enter_sched();
+    sched::start_thread(p1);
+    sched::start_thread(p2);
+    sched::start_thread(p3);
+    sched::enter();
 
     multitasking::initMultitasking(); // this will kill this process
     while (true) {}

@@ -6,7 +6,7 @@ obj-$(CONFIG_ENABLE_STACKPROTECTOR) += stackprotector.ocpp
 
 obj-y += drivers/ps2.ocpp drivers/pci.ocpp drivers/pic_8259.ocpp drivers/rtc.ocpp drivers/serial.ocpp
 obj-y += generic/cpu.ocpp generic/devices.ocpp generic/textoutput.ocpp
-obj-y += cpubasics.ocpp cpuid.ocpp elf.ocpp gdt.ocpp modelf.ocpp multitasking.ocpp multitasking.oS simd.ocpp tss.ocpp
+obj-y += cpubasics.ocpp cpuid.ocpp elf.ocpp gdt.ocpp modelf.ocpp multitasking.ocpp sched.ocpp multitasking.oS simd.ocpp tss.ocpp
 
 obj-$(CONFIG_ENABLE_KERNEL_32) += drivers/text80x25.ocpp
 obj-$(CONFIG_ENABLE_KERNEL_32) += paging.onasm isr.onasm simd.onasm gdt.onasm idt.onasm
