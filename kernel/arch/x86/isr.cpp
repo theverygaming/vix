@@ -15,13 +15,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef void (*intHandler)(struct arch::cpu_ctx *regs);
+typedef void (*intHandler)(struct arch::full_ctx *regs);
 static intHandler handlers[256];
 
 // #define DEBUG_ENTRY_EXIT
 // #define PANIC_ON_PROGRAM_FAULT
 
-extern "C" void i686_ISR_Handler(struct arch::cpu_ctx *regs) {
+extern "C" void i686_ISR_Handler(struct arch::full_ctx *regs) {
     uint32_t previous_esp_user = regs->esp;
     // TSS stuff
     tss::tss_entry.ss0 = GDT_KERNEL_DATA;
@@ -138,7 +138,7 @@ void isr::i686_ISR_Initialize() {
     }
 }
 
-void isr::RegisterHandler(int handler, void (*_func)(struct arch::cpu_ctx *regs)) {
+void isr::RegisterHandler(int handler, void (*_func)(struct arch::full_ctx *regs)) {
     handlers[handler] = _func;
 }
 

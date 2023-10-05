@@ -37,7 +37,7 @@ static bool key_listener(void *ctx, const char &c) {
     return false;
 }
 
-uint32_t sys_read(struct arch::cpu_ctx *regs, int *syscall_ret, uint32_t, uint32_t fd, uint32_t _buf, uint32_t count, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_read(struct arch::full_ctx *regs, int *syscall_ret, uint32_t, uint32_t fd, uint32_t _buf, uint32_t count, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 0;
     DEBUG_PRINTF("syscall: sys_read\n");
     if (count == 0) {

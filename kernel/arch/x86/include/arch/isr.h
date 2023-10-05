@@ -5,6 +5,6 @@
 namespace isr {
     void i686_ISR_Initialize();
 
-    void RegisterHandler(int, void (*)(struct arch::cpu_ctx *));
+    void RegisterHandler(int, void (*)(struct arch::full_ctx *));
     void DeregisterHandler(int handler);
 }

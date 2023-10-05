@@ -4,7 +4,7 @@
 
 namespace arch {
 #ifdef CONFIG_ENABLE_KERNEL_32
-    struct cpu_ctx {
+    struct __attribute__((packed)) full_ctx {
         uint32_t ebp;
 
         uint32_t edi;
@@ -36,7 +36,7 @@ namespace arch {
 #endif
 
 #ifdef CONFIG_ENABLE_KERNEL_64
-    struct cpu_ctx { // TODO: 64-bit context struct
+    struct __attribute__((packed)) full_ctx { // TODO: 64-bit context struct
         uint32_t ebp;
 
         uint32_t edi;

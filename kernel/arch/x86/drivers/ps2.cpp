@@ -73,7 +73,7 @@ static void mouse_int_handler_base() {
 }
 
 static void kbd_int_handler_base();
-static void mouse_int_handler(struct arch::cpu_ctx *) {
+static void mouse_int_handler(struct arch::full_ctx *) {
     // printf("mouse int\n");
     uint8_t status = inb(PS2_STATUS);
     if (!(status & 0x20)) { // is this not from port 2?
@@ -200,7 +200,7 @@ static void kbd_int_handler_base() {
     drivers::keyboard::events.dispatch(kbmap[sc]);
 }
 
-static void ps2_int(struct arch::cpu_ctx *) {
+static void ps2_int(struct arch::full_ctx *) {
     uint8_t status = inb(PS2_STATUS);
     if (status & 0x20) { // is this from port 2?
         mouse_int_handler_base();

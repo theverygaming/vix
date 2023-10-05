@@ -149,7 +149,7 @@ void multitasking::waitForProcess(int pid) {}
 
 void multitasking::refresh_current_process_pagerange() {}
 
-multitasking::x86_process *multitasking::fork_current_process(struct arch::cpu_ctx *regs) {
+multitasking::x86_process *multitasking::fork_current_process(struct arch::full_ctx *regs) {
     x86_process *currentProcess = getCurrentProcess();
     currentProcess->reg_ctx = *regs;
 
@@ -184,7 +184,7 @@ multitasking::x86_process *multitasking::fork_current_process(struct arch::cpu_c
     return new_process;
 }
 
-void multitasking::killCurrentProcess(struct arch::cpu_ctx *regs) {
+void multitasking::killCurrentProcess(struct arch::full_ctx *regs) {
     x86_process *currentProcess = getCurrentProcess();
     process_deth_events.dispatch(currentProcess->tgid);
     freePageRange(&currentProcess->pages);
@@ -258,7 +258,7 @@ void multitasking::replace_task(void *stackadr,
                                 std::vector<std::string> *argv,
                                 struct x86_process::tls_info info,
                                 int replacePid,
-                                struct arch::cpu_ctx *regs,
+                                struct arch::full_ctx *regs,
                                 bool kernel) {
     pid_t pid = -1;
     size_t index = 0;
@@ -300,12 +300,12 @@ multitasking::x86_process *multitasking::get_tid(pid_t tid) {
     return nullptr;
 }
 
-void multitasking::reschedule(struct arch::cpu_ctx *regs) {
+void multitasking::reschedule(struct arch::full_ctx *regs) {
     interruptTrigger(regs);
 }
 
 static void(load_process)(multitasking::x86_process *proc, void *ctx) {
-    struct arch::cpu_ctx *regs = (struct arch::cpu_ctx *)ctx;
+    struct arch::full_ctx *regs = (struct arch::full_ctx *)ctx;
     *regs = proc->reg_ctx;
     setPageRange(&proc->pages);
     if (proc->tgid != 0) {
@@ -314,7 +314,7 @@ static void(load_process)(multitasking::x86_process *proc, void *ctx) {
 }
 
 static void(unload_process)(multitasking::x86_process *proc, void *ctx) {
-    struct arch::cpu_ctx *regs = (struct arch::cpu_ctx *)ctx;
+    struct arch::full_ctx *regs = (struct arch::full_ctx *)ctx;
     proc->reg_ctx = *regs;
     unsetPageRange(&proc->pages);
     if (proc->tgid != 0) {
@@ -323,7 +323,7 @@ static void(unload_process)(multitasking::x86_process *proc, void *ctx) {
 }
 
 // fired every timer interrupt, may be called during an ISR to possibly force a process switch
-void multitasking::interruptTrigger(struct arch::cpu_ctx *regs) {
+void multitasking::interruptTrigger(struct arch::full_ctx *regs) {
     if (unlikely(uninitialized)) {
         return;
     }
@@ -358,7 +358,7 @@ void multitasking::interruptTrigger(struct arch::cpu_ctx *regs) {
 #define CLONE_NEWNET         0x40000000 /* New network namespace */
 #define CLONE_IO             0x80000000 /* Clone io context */
 
-uint32_t sys_clone(struct arch::cpu_ctx *regs,
+uint32_t sys_clone(struct arch::full_ctx *regs,
                    int *syscall_ret,
                    uint32_t,
                    uint32_t _flags,

@@ -1,5 +1,6 @@
 #pragma once
 
 namespace arch {
-    struct cpu_ctx {};
+    struct full_ctx {};
+    struct ctx {};
 }

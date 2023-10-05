@@ -25,7 +25,7 @@ namespace multitasking {
 
     class x86_process : public schedulers::generic_process {
     public:
-        struct arch::cpu_ctx reg_ctx;
+        struct arch::full_ctx reg_ctx;
         std::vector<process_pagerange> pages;
         uintptr_t brk_start = 0;
         struct tls_info {
@@ -39,8 +39,8 @@ namespace multitasking {
 
     void initMultitasking();
     bool isProcessSwitchingEnabled();
-    void killCurrentProcess(struct arch::cpu_ctx *regs);
-    void interruptTrigger(struct arch::cpu_ctx *regs);
+    void killCurrentProcess(struct arch::full_ctx *regs);
+    void interruptTrigger(struct arch::full_ctx *regs);
     void create_task(void *stackadr,
                      void *codeadr,
                      std::vector<process_pagerange> *pagerange,
@@ -54,16 +54,16 @@ namespace multitasking {
                       std::vector<std::string> *argv,
                       struct x86_process::tls_info info,
                       int replacePid,
-                      struct arch::cpu_ctx *regs,
+                      struct arch::full_ctx *regs,
                       bool kernel = false);
     x86_process *getCurrentProcess();
     void waitForProcess(int pid);
     void refresh_current_process_pagerange();
-    x86_process *fork_current_process(struct arch::cpu_ctx *regs);
+    x86_process *fork_current_process(struct arch::full_ctx *regs);
     void setProcessSwitching(bool state);
     size_t getProcessCount();
     x86_process *get_tid(pid_t tid);
-    void reschedule(struct arch::cpu_ctx *regs);
+    void reschedule(struct arch::full_ctx *regs);
     bool createPageRange(std::vector<process_pagerange> *range, uint32_t max_address = KERNEL_VIRT_ADDRESS);
     void setPageRange(std::vector<process_pagerange> *range);
     void unsetPageRange(std::vector<process_pagerange> *range);

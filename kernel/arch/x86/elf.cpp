@@ -11,7 +11,7 @@
 
 // TODO: generic ELF functions, only few arch specific ones (all i can think of is )
 
-void elf::load_program(void *ELF_baseadr, std::vector<std::string> *argv, bool replace_task, int replace_pid, struct arch::cpu_ctx *regs) {
+void elf::load_program(void *ELF_baseadr, std::vector<std::string> *argv, bool replace_task, int replace_pid, struct arch::full_ctx *regs) {
     ElfHeader header;
     ElfProgramHeader pHeader;
 

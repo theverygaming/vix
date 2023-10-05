@@ -30,7 +30,7 @@ static bool deth_listener(void *ctx, const pid_t &tid) {
     return true;
 }
 
-uint32_t sys_waitpid(struct arch::cpu_ctx *regs, int *syscall_ret, uint32_t, uint32_t pid, uint32_t _stat_addr, uint32_t _options, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_waitpid(struct arch::full_ctx *regs, int *syscall_ret, uint32_t, uint32_t pid, uint32_t _stat_addr, uint32_t _options, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 0;
     DEBUG_PRINTF("syscall: sys_waitpid\n");
     DEBUG_PRINTF("pid: %d\n", pid);

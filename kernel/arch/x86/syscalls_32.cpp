@@ -18,7 +18,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-uint32_t sys_dbg(struct arch::cpu_ctx *regs, int *syscall_ret, uint32_t, uint32_t n, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_dbg(struct arch::full_ctx *regs, int *syscall_ret, uint32_t, uint32_t n, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     DEBUG_PRINTF("syscall: sys_dbg\n");
     if (n == 1) {
@@ -27,14 +27,14 @@ uint32_t sys_dbg(struct arch::cpu_ctx *regs, int *syscall_ret, uint32_t, uint32_
     return 0;
 }
 
-uint32_t sys_exit(struct arch::cpu_ctx *regs, int *syscall_ret, uint32_t, uint32_t exit_code, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_exit(struct arch::full_ctx *regs, int *syscall_ret, uint32_t, uint32_t exit_code, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 0;
     DEBUG_PRINTF("syscall: sys_exit code: %d\n", exit_code);
     multitasking::killCurrentProcess(regs);
     return 0;
 }
 
-uint32_t sys_fork(struct arch::cpu_ctx *regs, int *syscall_ret, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_fork(struct arch::full_ctx *regs, int *syscall_ret, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     DEBUG_PRINTF("syscall: sys_fork\n");
     multitasking::x86_process *newprocess = multitasking::fork_current_process(regs);
@@ -46,7 +46,7 @@ uint32_t sys_fork(struct arch::cpu_ctx *regs, int *syscall_ret, uint32_t, uint32
     }
 }
 
-uint32_t sys_write(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t fd, uint32_t _buf, uint32_t count, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_write(struct arch::full_ctx *, int *syscall_ret, uint32_t, uint32_t fd, uint32_t _buf, uint32_t count, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     char *buf = (char *)_buf;
 
@@ -62,7 +62,7 @@ uint32_t sys_write(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t 
     return count; // return number of written bytes
 }
 
-uint32_t sys_open(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _flags, uint32_t _mode, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_open(struct arch::full_ctx *, int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _flags, uint32_t _mode, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     DEBUG_PRINTF("syscall: sys_open\n");
     const char *filename = (const char *)_filename;
@@ -70,7 +70,7 @@ uint32_t sys_open(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t _
     return -ENOENT;
 }
 
-uint32_t sys_close(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t _fd, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_close(struct arch::full_ctx *, int *syscall_ret, uint32_t, uint32_t _fd, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     DEBUG_PRINTF("syscall: sys_close\n");
     int fd = (int)_fd;
@@ -78,7 +78,7 @@ uint32_t sys_close(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t 
     return -EBADF;
 }
 
-uint32_t sys_execve(struct arch::cpu_ctx *regs, int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _argv, uint32_t _envp, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_execve(struct arch::full_ctx *regs, int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _argv, uint32_t _envp, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 0;
     char *filename = (char *)_filename;
     const char *const *argv = (const char *const *)_argv;
@@ -99,20 +99,20 @@ uint32_t sys_execve(struct arch::cpu_ctx *regs, int *syscall_ret, uint32_t, uint
     return -1;
 }
 
-uint32_t sys_time(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t _tloc, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_time(struct arch::full_ctx *, int *syscall_ret, uint32_t, uint32_t _tloc, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     int64_t *tloc = (int64_t *)_tloc;
     *tloc = time::getCurrentUnixTime();
     return 0;
 }
 
-uint32_t sys_getpid(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_getpid(struct arch::full_ctx *, int *syscall_ret, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     DEBUG_PRINTF("syscall: sys_getpid\n");
     return multitasking::getCurrentProcess()->tgid;
 }
 
-uint32_t sys_brk(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t _brk, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_brk(struct arch::full_ctx *, int *syscall_ret, uint32_t, uint32_t _brk, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     DEBUG_PRINTF("syscall: sys_brk -> 0x%p\n", _brk);
     // hacky level: insane
@@ -153,13 +153,13 @@ uint32_t sys_brk(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t _b
     return _brk;
 }
 
-uint32_t sys_ioctl(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t _brk, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_ioctl(struct arch::full_ctx *, int *syscall_ret, uint32_t, uint32_t _brk, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     DEBUG_PRINTF("syscall: sys_ioctl\n");
     return 0;
 }
 
-uint32_t sys_mmap(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t mmap_struct_ptr, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_mmap(struct arch::full_ctx *, int *syscall_ret, uint32_t, uint32_t mmap_struct_ptr, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     DEBUG_PRINTF("syscall: sys_mmap -- unstable\n");
     typedef struct {
@@ -185,7 +185,7 @@ uint32_t sys_mmap(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t m
     return (uint32_t)alloc_adr;
 }
 
-uint32_t sys_sysinfo(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t _info, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_sysinfo(struct arch::full_ctx *, int *syscall_ret, uint32_t, uint32_t _info, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     // https://man7.org/linux/man-pages/man2/sysinfo.2.html
     struct sysinfo {
@@ -220,7 +220,7 @@ uint32_t sys_sysinfo(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_
 
 // sys_clone defined in multitasking.cpp
 
-uint32_t sys_uname(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t _old_utsname, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_uname(struct arch::full_ctx *, int *syscall_ret, uint32_t, uint32_t _old_utsname, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     struct sys_uname_utsname {
         char sysname[65];
@@ -238,7 +238,7 @@ uint32_t sys_uname(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t 
     return 0;
 }
 
-uint32_t sys_modify_ldt(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t _func, uint32_t _ptr, uint32_t bytecount, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_modify_ldt(struct arch::full_ctx *, int *syscall_ret, uint32_t, uint32_t _func, uint32_t _ptr, uint32_t bytecount, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     struct user_desc {
         unsigned int entry_number;
@@ -272,13 +272,13 @@ uint32_t sys_modify_ldt(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint
     return -ENOSYS; // unimplemented
 }
 
-uint32_t sys_mprotect(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t addr, uint32_t length, uint32_t prot, uint32_t flags, uint32_t _fd, uint32_t pgoffset) {
+uint32_t sys_mprotect(struct arch::full_ctx *, int *syscall_ret, uint32_t, uint32_t addr, uint32_t length, uint32_t prot, uint32_t flags, uint32_t _fd, uint32_t pgoffset) {
     *syscall_ret = 1;
     DEBUG_PRINTF("syscall: sys_mprotect\n");
     return 0; // sure, worked flawlessly
 }
 
-uint32_t sys_writev(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t fd, uint32_t _iov, uint32_t iovcnt, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_writev(struct arch::full_ctx *, int *syscall_ret, uint32_t, uint32_t fd, uint32_t _iov, uint32_t iovcnt, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
 
     DEBUG_PRINTF("syscall: sys_writev\n");
@@ -303,13 +303,13 @@ uint32_t sys_writev(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t
     return written; // return number of written bytes
 }
 
-uint32_t sys_rt_sigprocmask(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t _how, uint32_t _set, uint32_t _oset, uint32_t sigsetsize, uint32_t, uint32_t) {
+uint32_t sys_rt_sigprocmask(struct arch::full_ctx *, int *syscall_ret, uint32_t, uint32_t _how, uint32_t _set, uint32_t _oset, uint32_t sigsetsize, uint32_t, uint32_t) {
     *syscall_ret = 1;
     DEBUG_PRINTF("syscall: sys_rt_sigprocmask\n");
     return 0;
 }
 
-uint32_t sys_getcwd(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t _buf, uint32_t size, uint32_t, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_getcwd(struct arch::full_ctx *, int *syscall_ret, uint32_t, uint32_t _buf, uint32_t size, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     char *buf = (char *)_buf;
     DEBUG_PRINTF("syscall: sys_getcwd\n");
@@ -320,7 +320,7 @@ uint32_t sys_getcwd(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t
     return 11;
 }
 
-uint32_t sys_mmap2(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t addr, uint32_t length, uint32_t prot, uint32_t flags, uint32_t _fd, uint32_t pgoffset) {
+uint32_t sys_mmap2(struct arch::full_ctx *, int *syscall_ret, uint32_t, uint32_t addr, uint32_t length, uint32_t prot, uint32_t flags, uint32_t _fd, uint32_t pgoffset) {
     *syscall_ret = 1;
     DEBUG_PRINTF("syscall: sys_mmap2 -- unstable\n");
     int fd = (int)_fd;
@@ -339,7 +339,7 @@ uint32_t sys_mmap2(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t 
     return (uint32_t)alloc_adr;
 }
 
-uint32_t sys_stat64(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _statbuf, uint32_t, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_stat64(struct arch::full_ctx *, int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _statbuf, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
 
     struct stat {
@@ -388,7 +388,7 @@ uint32_t sys_stat64(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t
     return 0;
 }
 
-uint32_t sys_lstat64(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _statbuf, uint32_t, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_lstat64(struct arch::full_ctx *, int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _statbuf, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
 
     struct stat {
@@ -437,13 +437,13 @@ uint32_t sys_lstat64(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_
     return -ENOSYS;
 }
 
-uint32_t sys_getuid32(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_getuid32(struct arch::full_ctx *, int *syscall_ret, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     DEBUG_PRINTF("syscall: sys_getuid32\n");
     return 0; // with the current state of the system we are always root
 }
 
-uint32_t sys_fcntl64(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t _fd, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_fcntl64(struct arch::full_ctx *, int *syscall_ret, uint32_t, uint32_t _fd, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     DEBUG_PRINTF("syscall: sys_fcntl64\n");
     int fd = (int)_fd;
@@ -451,7 +451,7 @@ uint32_t sys_fcntl64(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_
     return -ENOSYS;
 }
 
-uint32_t sys_futex(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t _uaddr, uint32_t _op, uint32_t val, uint32_t _timeout, uint32_t _uaddr2, uint32_t val3) {
+uint32_t sys_futex(struct arch::full_ctx *, int *syscall_ret, uint32_t, uint32_t _uaddr, uint32_t _op, uint32_t val, uint32_t _timeout, uint32_t _uaddr2, uint32_t val3) {
     *syscall_ret = 1;
     DEBUG_PRINTF("syscall: sys_futex\n");
     uint32_t *uaddr = (uint32_t *)_uaddr;
@@ -469,7 +469,7 @@ uint32_t sys_futex(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t 
     return -ENOSYS;
 }
 
-uint32_t sys_set_thread_area(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t _usr_desc, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_set_thread_area(struct arch::full_ctx *, int *syscall_ret, uint32_t, uint32_t _usr_desc, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     DEBUG_PRINTF("syscall: sys_set_thread_area\n");
     struct user_desc {
@@ -539,7 +539,7 @@ uint32_t sys_set_thread_area(struct arch::cpu_ctx *, int *syscall_ret, uint32_t,
     return 0;
 }
 
-uint32_t sys_set_tid_address(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t tidptr_u, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_set_tid_address(struct arch::full_ctx *, int *syscall_ret, uint32_t, uint32_t tidptr_u, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     DEBUG_PRINTF("syscall: sys_set_tid_address\n");
     int *tidptr = (int *)tidptr_u;
@@ -548,7 +548,7 @@ uint32_t sys_set_tid_address(struct arch::cpu_ctx *, int *syscall_ret, uint32_t,
     return multitasking::getCurrentProcess()->tgid;
 }
 
-uint32_t sys_set_robust_list(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t _robust_list_head, uint32_t _len, uint32_t, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_set_robust_list(struct arch::full_ctx *, int *syscall_ret, uint32_t, uint32_t _robust_list_head, uint32_t _len, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     DEBUG_PRINTF("syscall: sys_set_robust_list\n");
     struct robust_list {
@@ -568,7 +568,7 @@ uint32_t sys_set_robust_list(struct arch::cpu_ctx *, int *syscall_ret, uint32_t,
     return 0; // sure, it worked :troll:
 }
 
-uint32_t sys_rseq(struct arch::cpu_ctx *, int *syscall_ret, uint32_t, uint32_t rseq_u, uint32_t rseq_len, uint32_t flags_u, uint32_t sig, uint32_t, uint32_t) {
+uint32_t sys_rseq(struct arch::full_ctx *, int *syscall_ret, uint32_t, uint32_t rseq_u, uint32_t rseq_len, uint32_t flags_u, uint32_t sig, uint32_t, uint32_t) {
     *syscall_ret = 1;
     DEBUG_PRINTF("syscall: sys_rseq\n");
     return -ENOSYS;

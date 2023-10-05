@@ -9,7 +9,7 @@
 /* syscall arguments correspond to registers eax, ebx, ecx, edx, esi, edi and ebp */
 
 // clang-format off
-uint32_t (*syscall_table[440])(struct arch::cpu_ctx *, int *, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) = {
+uint32_t (*syscall_table[440])(struct arch::full_ctx *, int *, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) = {
     &sys_dbg,
     &sys_exit,
     &sys_fork,
@@ -453,7 +453,7 @@ uint32_t (*syscall_table[440])(struct arch::cpu_ctx *, int *, uint32_t, uint32_t
 };
 // clang-format on
 
-extern "C" void syscallHandler(struct arch::cpu_ctx *regs) {
+extern "C" void syscallHandler(struct arch::full_ctx *regs) {
     if (regs->eax >= (sizeof(syscall_table) / sizeof(syscall_table[0])) || syscall_table[regs->eax] == nullptr) {
         DEBUG_PRINTF("syscall %u not found\n", regs->eax);
         regs->eax = -ENOSYS;

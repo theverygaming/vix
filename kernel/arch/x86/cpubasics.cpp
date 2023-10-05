@@ -15,7 +15,7 @@ static void set_pit_freq(int hz) {
     outb(0x40, divisor >> 8);   /* Set high byte of divisor */
 }
 
-static void clockHandler(struct arch::cpu_ctx *regs) {
+static void clockHandler(struct arch::full_ctx *regs) {
     time::ns_since_bootup = time::ns_since_bootup + 1000000;
     uint8_t interrupt = (uint8_t)regs->interrupt; // multitasking may change this value, so we save it
     multitasking::interruptTrigger(regs);
