@@ -1,12 +1,11 @@
 #include <arch/common/cpu.h>
 #include <arch/cpubasics.h>
+#include <arch/errno.h>
 #include <arch/gdt.h>
 #include <arch/generic/memory.h>
 #include <arch/multitasking.h>
 #include <arch/syscalls_32.h>
-#include <vector>
 #include <debug.h>
-#include <arch/errno.h>
 #include <kprintf.h>
 #include <macros.h>
 #include <mm/kmalloc.h>
@@ -15,6 +14,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <vector>
 
 event_dispatcher<pid_t> multitasking::process_deth_events;
 
@@ -24,7 +24,7 @@ static schedulers::generic_scheduler_singlethread scheduler;
 
 static bool processSwitchingEnabled = false;
 
-static bool uninitialized = true;
+static volatile bool uninitialized = true;
 
 static pid_t pidCounter = 1;
 
@@ -44,8 +44,9 @@ static void(load_process)(multitasking::x86_process *proc, void *ctx);
 static void(unload_process)(multitasking::x86_process *proc, void *ctx);
 
 void multitasking::initMultitasking() {
-    scheduler.init(
-        (std::vector<schedulers::generic_process *> *)&processes, (void (*)(schedulers::generic_process *, void *))load_process, (void (*)(schedulers::generic_process *, void *))unload_process);
+    scheduler.init((std::vector<schedulers::generic_process *> *)&processes,
+                   (void (*)(schedulers::generic_process *, void *))load_process,
+                   (void (*)(schedulers::generic_process *, void *))unload_process);
 
     // TODO: run idle process only when required
     x86_process *idle = new x86_process;
@@ -191,8 +192,13 @@ void multitasking::killCurrentProcess(struct arch::cpu_ctx *regs) {
     interruptTrigger(regs);
 }
 
-void multitasking::create_task(
-    void *stackadr, void *codeadr, std::vector<process_pagerange> *pagerange, std::vector<std::string> *argv, struct x86_process::tls_info info, pid_t forced_pid, bool kernel) {
+void multitasking::create_task(void *stackadr,
+                               void *codeadr,
+                               std::vector<process_pagerange> *pagerange,
+                               std::vector<std::string> *argv,
+                               struct x86_process::tls_info info,
+                               pid_t forced_pid,
+                               bool kernel) {
     setPageRange(pagerange);
 
     if (!kernel) {
@@ -246,8 +252,14 @@ void multitasking::create_task(
     unsetPageRange(pagerange);
 }
 
-void multitasking::replace_task(
-    void *stackadr, void *codeadr, std::vector<process_pagerange> *pagerange, std::vector<std::string> *argv, struct x86_process::tls_info info, int replacePid, struct arch::cpu_ctx *regs, bool kernel) {
+void multitasking::replace_task(void *stackadr,
+                                void *codeadr,
+                                std::vector<process_pagerange> *pagerange,
+                                std::vector<std::string> *argv,
+                                struct x86_process::tls_info info,
+                                int replacePid,
+                                struct arch::cpu_ctx *regs,
+                                bool kernel) {
     pid_t pid = -1;
     size_t index = 0;
     for (size_t i = 0; i < processes.size(); i++) {
@@ -280,7 +292,8 @@ size_t multitasking::getProcessCount() {
 
 multitasking::x86_process *multitasking::get_tid(pid_t tid) {
     for (size_t i = 0; i < processes.size(); i++) {
-        if (!((processes[i]->state == x86_process::state::KILLED) || (processes[i]->state == x86_process::state::REPLACED)) && processes[i]->tgid == tid) {
+        if (!((processes[i]->state == x86_process::state::KILLED) || (processes[i]->state == x86_process::state::REPLACED)) &&
+            processes[i]->tgid == tid) {
             return processes[i];
         }
     }
@@ -296,7 +309,7 @@ static void(load_process)(multitasking::x86_process *proc, void *ctx) {
     *regs = proc->reg_ctx;
     setPageRange(&proc->pages);
     if (proc->tgid != 0) {
-        //DEBUG_PRINTF_INSANE("loaded %d\n", proc->tgid);
+        // DEBUG_PRINTF_INSANE("loaded %d\n", proc->tgid);
     }
 }
 
@@ -305,7 +318,7 @@ static void(unload_process)(multitasking::x86_process *proc, void *ctx) {
     proc->reg_ctx = *regs;
     unsetPageRange(&proc->pages);
     if (proc->tgid != 0) {
-        //DEBUG_PRINTF_INSANE("unloaded %d\n", proc->tgid);
+        // DEBUG_PRINTF_INSANE("unloaded %d\n", proc->tgid);
     }
 }
 
@@ -345,7 +358,15 @@ void multitasking::interruptTrigger(struct arch::cpu_ctx *regs) {
 #define CLONE_NEWNET         0x40000000 /* New network namespace */
 #define CLONE_IO             0x80000000 /* Clone io context */
 
-uint32_t sys_clone(struct arch::cpu_ctx *regs, int *syscall_ret, uint32_t, uint32_t _flags, uint32_t _stack, uint32_t _parent_tid, uint32_t _tls, uint32_t _child_tid, uint32_t) {
+uint32_t sys_clone(struct arch::cpu_ctx *regs,
+                   int *syscall_ret,
+                   uint32_t,
+                   uint32_t _flags,
+                   uint32_t _stack,
+                   uint32_t _parent_tid,
+                   uint32_t _tls,
+                   uint32_t _child_tid,
+                   uint32_t) {
     *syscall_ret = 1;
     DEBUG_PRINTF("syscall: sys_clone\n");
     unsigned long flags = _flags;

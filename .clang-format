@@ -10,6 +10,7 @@ FixNamespaceComments: false
 
 AlignAfterOpenBracket: Align
 AlignTrailingComments: true
+ReflowComments: false
 
 BinPackArguments: false
 BinPackParameters: false

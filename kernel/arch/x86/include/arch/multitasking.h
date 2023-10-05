@@ -3,11 +3,11 @@
 #include <arch/isr.h>
 #include <arch/paging.h>
 #include <config.h>
-#include <string>
-#include <vector>
 #include <event.h>
 #include <scheduler.h>
+#include <string>
 #include <types.h>
+#include <vector>
 
 namespace multitasking {
     extern event_dispatcher<pid_t> process_deth_events;
@@ -20,9 +20,7 @@ namespace multitasking {
          * static -> code ,bss etc.
          * break -> memory allocated by brk()
          */
-        enum class range_type { UNKNOWN,
-                                STATIC,
-                                BREAK } type;
+        enum class range_type { UNKNOWN, STATIC, BREAK } type;
     } process_pagerange;
 
     class x86_process : public schedulers::generic_process {
@@ -43,8 +41,13 @@ namespace multitasking {
     bool isProcessSwitchingEnabled();
     void killCurrentProcess(struct arch::cpu_ctx *regs);
     void interruptTrigger(struct arch::cpu_ctx *regs);
-    void create_task(
-        void *stackadr, void *codeadr, std::vector<process_pagerange> *pagerange, std::vector<std::string> *argv, struct x86_process::tls_info info, pid_t forced_pid = -1, bool kernel = false);
+    void create_task(void *stackadr,
+                     void *codeadr,
+                     std::vector<process_pagerange> *pagerange,
+                     std::vector<std::string> *argv,
+                     struct x86_process::tls_info info,
+                     pid_t forced_pid = -1,
+                     bool kernel = false);
     void replace_task(void *stackadr,
                       void *codeadr,
                       std::vector<process_pagerange> *pagerange,

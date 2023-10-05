@@ -20,12 +20,17 @@ namespace arch {
         uint16_t ds, __dsh;
 
         uint32_t interrupt;
+
+        // CPU might push this (otherwise 0 pushed by interrupt handler routine)
         uint32_t error_code;
 
         // CPU pushes these (and iretd pops them)
         uint32_t eip;
         uint16_t cs, __csh;
-        uint32_t eflags, esp;
+        uint32_t eflags;
+
+        // only pushed on stack switch
+        uint32_t esp;
         uint16_t ss, __ssh;
     };
 #endif
