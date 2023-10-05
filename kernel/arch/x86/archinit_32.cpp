@@ -110,6 +110,27 @@ void arch::generic::startup::stage3_startup() {
     stdio::set_putc_function(fbputc);
 }
 
+static void p1() {
+    while (true) {
+        kprintf(KP_INFO, "p1\n");
+        multitasking::new_yield();
+    }
+}
+
+static void p2() {
+    while (true) {
+        kprintf(KP_INFO, "p2\n");
+        multitasking::new_yield();
+    }
+}
+
+static void p3() {
+    while (true) {
+        kprintf(KP_INFO, "p3\n");
+        multitasking::new_yield();
+    }
+}
+
 void arch::generic::startup::after_init() {
     void *elfptr = nullptr;
 
@@ -126,6 +147,13 @@ void arch::generic::startup::after_init() {
 
     // a bit of a hack.. we have to call the vector destructor before killing this process
     args.~vector();
+
+    multitasking::set_proc((void *)p1, 0);
+    multitasking::set_proc((void *)p2, 1);
+    multitasking::set_proc((void *)p3, 2);
+    multitasking::set_proc((void *)p3, 3);
+
+    multitasking::enter_sched();
 
     multitasking::initMultitasking(); // this will kill this process
     while (true) {}

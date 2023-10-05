@@ -534,3 +534,72 @@ void multitasking::printPageRange(std::vector<process_pagerange> *range) {
         }
     }
 }
+
+struct __attribute__((packed)) context {
+    uint32_t ebx;
+    uint32_t esi;
+    uint32_t edi;
+    uint32_t ebp;
+    uint32_t eip;
+};
+
+extern "C" void sched_switch(struct context **old, struct context *_new);
+
+struct proc {
+    int state; // 0 = not active, 1 = active
+    struct context *ctx;
+};
+
+static void procret() {
+    KERNEL_PANIC("returned from process");
+}
+
+static struct proc procs[10];
+static struct context *p_sched;
+static struct proc *current;
+
+static int _lasti = 0;
+static struct proc *get_next() {
+    if (_lasti >= 10) {
+        _lasti = 0;
+    }
+retry:
+    for (int i = _lasti; i < 10; i++) {
+        if (procs[i].state == 0) {
+            continue;
+        }
+        _lasti = i + 1;
+        return &procs[i];
+    }
+    _lasti = 0;
+    goto retry;
+}
+
+void multitasking::new_yield() {
+    struct proc *last = current;
+    current = get_next();
+    if (last->ctx == current->ctx) {
+        return;
+    }
+    sched_switch(&last->ctx, current->ctx);
+}
+
+void multitasking::enter_sched() {
+    current = get_next();
+    struct context *tmp;
+    sched_switch(&tmp, current->ctx);
+    KERNEL_PANIC("unreachable");
+}
+
+void multitasking::set_proc(void *ip, int i) {
+    struct proc *p = &procs[i];
+    uint32_t *stack = (uint32_t *)((uint8_t *)mm::kmalloc(1024) + 1024);
+    stack -= 1;
+    *stack = (uint32_t)procret;
+    stack -= sizeof(struct context) / 4;
+    struct context *ctx = (struct context *)stack;
+    ctx->ebx = ctx->esi = ctx->edi = ctx->ebp = 0;
+    ctx->eip = (uint32_t)ip;
+    procs[i].ctx = ctx;
+    procs[i].state = 1;
+}
