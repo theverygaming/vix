@@ -63,7 +63,7 @@ uint32_t sys_write(struct arch::full_ctx *, int *syscall_ret, uint32_t, uint32_t
 }
 
 uint32_t
-sys_open(struct arch::full_ctx_ctx *, int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _flags, uint32_t _mode, uint32_t, uint32_t, uint32_t) {
+sys_open(struct arch::full_ctx *, int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _flags, uint32_t _mode, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     DEBUG_PRINTF("syscall: sys_open\n");
     const char *filename = (const char *)_filename;
@@ -80,7 +80,7 @@ uint32_t sys_close(struct arch::full_ctx *, int *syscall_ret, uint32_t, uint32_t
 }
 
 uint32_t
-sys_execve(struct arch::full_ctx_ctx *regs, int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _argv, uint32_t _envp, uint32_t, uint32_t, uint32_t) {
+sys_execve(struct arch::full_ctx *regs, int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _argv, uint32_t _envp, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 0;
     char *filename = (char *)_filename;
     const char *const *argv = (const char *const *)_argv;
@@ -241,7 +241,7 @@ uint32_t sys_uname(struct arch::full_ctx *, int *syscall_ret, uint32_t, uint32_t
 }
 
 uint32_t
-sys_modify_ldt(struct arch::full_ctx_ctx *, int *syscall_ret, uint32_t, uint32_t _func, uint32_t _ptr, uint32_t bytecount, uint32_t, uint32_t, uint32_t) {
+sys_modify_ldt(struct arch::full_ctx *, int *syscall_ret, uint32_t, uint32_t _func, uint32_t _ptr, uint32_t bytecount, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     struct user_desc {
         unsigned int entry_number;
@@ -276,7 +276,7 @@ sys_modify_ldt(struct arch::full_ctx_ctx *, int *syscall_ret, uint32_t, uint32_t
     return -ENOSYS; // unimplemented
 }
 
-uint32_t sys_mprotect(struct arch::full_ctx_ctx *,
+uint32_t sys_mprotect(struct arch::full_ctx *,
                       int *syscall_ret,
                       uint32_t,
                       uint32_t addr,
@@ -316,7 +316,7 @@ uint32_t sys_writev(struct arch::full_ctx *, int *syscall_ret, uint32_t, uint32_
 }
 
 uint32_t sys_rt_sigprocmask(
-    struct arch::full_ctx_ctx *, int *syscall_ret, uint32_t, uint32_t _how, uint32_t _set, uint32_t _oset, uint32_t sigsetsize, uint32_t, uint32_t) {
+    struct arch::full_ctx *, int *syscall_ret, uint32_t, uint32_t _how, uint32_t _set, uint32_t _oset, uint32_t sigsetsize, uint32_t, uint32_t) {
     *syscall_ret = 1;
     DEBUG_PRINTF("syscall: sys_rt_sigprocmask\n");
     return 0;
@@ -333,7 +333,7 @@ uint32_t sys_getcwd(struct arch::full_ctx *, int *syscall_ret, uint32_t, uint32_
     return 11;
 }
 
-uint32_t sys_mmap2(struct arch::full_ctx_ctx *,
+uint32_t sys_mmap2(struct arch::full_ctx *,
                    int *syscall_ret,
                    uint32_t,
                    uint32_t addr,
@@ -364,7 +364,7 @@ uint32_t sys_mmap2(struct arch::full_ctx_ctx *,
 }
 
 uint32_t
-sys_stat64(struct arch::full_ctx_ctx *, int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _statbuf, uint32_t, uint32_t, uint32_t, uint32_t) {
+sys_stat64(struct arch::full_ctx *, int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _statbuf, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
 
     struct __attribute__((packed)) stat64 {
@@ -446,7 +446,7 @@ sys_stat64(struct arch::full_ctx_ctx *, int *syscall_ret, uint32_t, uint32_t _fi
 }
 
 uint32_t
-sys_lstat64(struct arch::full_ctx_ctx *, int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _statbuf, uint32_t, uint32_t, uint32_t, uint32_t) {
+sys_lstat64(struct arch::full_ctx *, int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _statbuf, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
 
     struct stat {
@@ -511,7 +511,7 @@ uint32_t sys_fcntl64(struct arch::full_ctx *, int *syscall_ret, uint32_t, uint32
     return -ENOSYS;
 }
 
-uint32_t sys_futex(struct arch::full_ctx_ctx *,
+uint32_t sys_futex(struct arch::full_ctx *,
                    int *syscall_ret,
                    uint32_t,
                    uint32_t _uaddr,
@@ -539,7 +539,7 @@ uint32_t sys_futex(struct arch::full_ctx_ctx *,
 }
 
 uint32_t
-sys_set_thread_area(struct arch::full_ctx_ctx *, int *syscall_ret, uint32_t, uint32_t _usr_desc, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
+sys_set_thread_area(struct arch::full_ctx *, int *syscall_ret, uint32_t, uint32_t _usr_desc, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     DEBUG_PRINTF("syscall: sys_set_thread_area\n");
     struct user_desc {
@@ -611,7 +611,7 @@ sys_set_thread_area(struct arch::full_ctx_ctx *, int *syscall_ret, uint32_t, uin
 }
 
 uint32_t
-sys_set_tid_address(struct arch::full_ctx_ctx *, int *syscall_ret, uint32_t, uint32_t tidptr_u, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
+sys_set_tid_address(struct arch::full_ctx *, int *syscall_ret, uint32_t, uint32_t tidptr_u, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     DEBUG_PRINTF("syscall: sys_set_tid_address\n");
     int *tidptr = (int *)tidptr_u;
@@ -621,7 +621,7 @@ sys_set_tid_address(struct arch::full_ctx_ctx *, int *syscall_ret, uint32_t, uin
 }
 
 uint32_t sys_set_robust_list(
-    struct arch::full_ctx_ctx *, int *syscall_ret, uint32_t, uint32_t _robust_list_head, uint32_t _len, uint32_t, uint32_t, uint32_t, uint32_t) {
+    struct arch::full_ctx *, int *syscall_ret, uint32_t, uint32_t _robust_list_head, uint32_t _len, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
     DEBUG_PRINTF("syscall: sys_set_robust_list\n");
     struct robust_list {
@@ -642,7 +642,7 @@ uint32_t sys_set_robust_list(
 }
 
 uint32_t
-sys_rseq(struct arch::full_ctx_ctx *, int *syscall_ret, uint32_t, uint32_t rseq_u, uint32_t rseq_len, uint32_t flags_u, uint32_t sig, uint32_t, uint32_t) {
+sys_rseq(struct arch::full_ctx *, int *syscall_ret, uint32_t, uint32_t rseq_u, uint32_t rseq_len, uint32_t flags_u, uint32_t sig, uint32_t, uint32_t) {
     *syscall_ret = 1;
     DEBUG_PRINTF("syscall: sys_rseq\n");
     return -ENOSYS;
