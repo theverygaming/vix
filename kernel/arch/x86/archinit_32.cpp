@@ -111,27 +111,6 @@ void arch::generic::startup::stage3_startup() {
     stdio::set_putc_function(fbputc);
 }
 
-static void p1() {
-    while (true) {
-        kprintf(KP_INFO, "p1\n");
-        sched::yield();
-    }
-}
-
-static void p2() {
-    while (true) {
-        kprintf(KP_INFO, "p2\n");
-        sched::yield();
-    }
-}
-
-static void p3() {
-    while (true) {
-        kprintf(KP_INFO, "p3\n");
-        sched::yield();
-    }
-}
-
 void arch::generic::startup::after_init() {
     void *elfptr = nullptr;
 
@@ -147,13 +126,7 @@ void arch::generic::startup::after_init() {
     }
 
     // a bit of a hack.. we have to call the vector destructor before killing this process
-    args.~vector();
+    // args.~vector();
 
-    sched::start_thread(p1);
-    sched::start_thread(p2);
-    sched::start_thread(p3);
-    sched::enter();
-
-    multitasking::initMultitasking(); // this will kill this process
-    while (true) {}
+    // multitasking::initMultitasking(); // this will kill this process
 }

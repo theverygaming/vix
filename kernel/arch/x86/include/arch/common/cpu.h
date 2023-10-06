@@ -69,12 +69,14 @@ namespace arch {
         uint16_t ss, __ssh;
     };
 
-    struct __attribute__((packed)) ctx { // FIXME: 64-bit context struct
-        uint32_t ebx;
-        uint32_t esi;
-        uint32_t edi;
-        uint32_t ebp;
-        uint32_t eip;
+    struct __attribute__((packed)) ctx {
+        uint64_t r12;
+        uint64_t r13;
+        uint64_t r14;
+        uint64_t r15;
+        uint64_t rbx;
+        uint64_t rbp;
+        uint64_t rip;
     };
 #endif
 }

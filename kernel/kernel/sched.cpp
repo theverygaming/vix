@@ -1,27 +1,43 @@
 #include <arch/common/sched.h>
+#include <mm/kmalloc.h>
 #include <panic.h>
 #include <sched.h>
 
-static struct sched::proc procs[8];
 static struct sched::proc *current;
 
+struct proc_ll {
+    struct proc_ll *next;
+    struct sched::proc proc;
+};
+
+static struct proc_ll *ll_begin = nullptr;
+static struct proc_ll *ll_last = nullptr;
+
 static struct sched::proc *get_next() {
-    static int next = 0;
-    next &= 0b111; // %= 8;
-retry:
-    for (int i = next; i < 8; i++) {
-        if (procs[i].state == 0) {
-            continue;
-        }
-        next = i + 1;
-        return &procs[i];
+    if (ll_begin == nullptr) {
+        KERNEL_PANIC("no processes to run");
     }
-    if (next == 0) {
-        KERNEL_PANIC("no processes to run\n");
+
+    if (ll_begin->next == nullptr && ll_last != ll_begin) {
+        KERNEL_PANIC("linked list skill issue");
     }
-    next = 0;
-    goto retry;
+    if (ll_last == nullptr) {
+        KERNEL_PANIC("linked list skill issue 2");
+    }
+
+    if (ll_begin->next == nullptr) {
+        return &ll_begin->proc;
+    }
+
+    struct sched::proc *p = &ll_begin->proc;
+    ll_last->next = ll_begin;
+    ll_last = ll_begin;
+    ll_begin = ll_begin->next;
+
+    return p;
 }
+
+void sched::init() {}
 
 void sched::yield() {
     struct sched::proc *last = current;
@@ -40,12 +56,14 @@ void sched::enter() {
 }
 
 void sched::start_thread(void (*func)()) {
-    static int n = 0;
-    if (n >= 8) {
-        KERNEL_PANIC("cannot start any more threads\n");
-        return;
+    struct sched::proc p;
+    sched::init_proc(&p, func);
+
+    struct proc_ll *pl = (struct proc_ll *)mm::kmalloc(sizeof(struct proc_ll));
+    pl->proc = p;
+    pl->next = ll_begin;
+    ll_begin = pl;
+    if (ll_last == nullptr) {
+        ll_last = ll_begin;
     }
-    struct sched::proc *p = &procs[n++];
-    sched::init_proc(p, func);
-    p->state = 1;
 }

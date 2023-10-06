@@ -5,9 +5,11 @@ extern "C" void sched_switch(struct arch::ctx **old, struct arch::ctx *_new);
 
 namespace sched {
     struct proc {
-        int state; // 0 = not active, 1 = active
         struct arch::ctx *ctx;
     };
+
+    // must be called once - initializes internal data structures
+    void init();
 
     // enters the scheduler - this function will never return
     void __attribute__((noreturn)) enter();

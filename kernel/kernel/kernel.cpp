@@ -8,6 +8,7 @@
 #include <mm/kmalloc.h>
 #include <mm/kvmm.h>
 #include <mm/phys.h>
+#include <sched.h>
 #include <types.h>
 
 #ifdef CONFIG_ARCH_X86
@@ -17,6 +18,16 @@
 #ifdef CONFIG_ENABLE_TESTS
 void run_all_tests();
 #endif
+
+static void testthread() {
+    static int n = 0;
+    n++;
+    int self = n;
+    while (true) {
+        kprintf(KP_INFO, "i am process %d\n", self);
+        sched::yield();
+    }
+}
 
 void kernelstart() {
     kprintf(KP_INFO, "kmain: starting vix -- built " __DATE__ " " __TIME__ "\n");
@@ -48,5 +59,11 @@ void kernelstart() {
 
     arch::generic::startup::after_init();
 
-    while (true) {}
+    sched::init();
+
+    for (int i = 0; i < 10; i++) {
+        sched::start_thread(testthread);
+    }
+
+    sched::enter();
 }
