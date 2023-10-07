@@ -1,0 +1,65 @@
+#pragma once
+#include <macros.h>
+#include <types.h>
+
+#include <kprintf.h>
+
+namespace std {
+    template <class T> class forward_list {
+    public:
+        // Returns number of elements in linked list.
+        size_t size() {
+            struct listentry *c = first;
+            size_t n = 0;
+            while (c != nullptr) {
+                c = c->next;
+                n++;
+            }
+            return n;
+        }
+
+        // Adds the element to the front.
+        void push_front(const T &e) {
+            struct listentry *le = new struct listentry;
+            le->data = e;
+            le->next = first;
+            first = le;
+            if (last == nullptr) {
+                last = first;
+            }
+        }
+
+        // Returns reference to first element. UB when empty.
+        T &front() {
+            return first->data;
+        }
+
+        // Returns reference to last element. UB when empty.
+        T &back() {
+            return last->data;
+        }
+
+        // Swaps the first element with the last one. Returns first (prior to swapping) element. UB when empty.
+        T &swap_first_last() {
+            if (unlikely(first->next == nullptr)) {
+                return first->data;
+            }
+            T *d = &first->data;
+            last->next = first;
+            last = first;
+            first = first->next;
+            last->next = nullptr;
+            return *d;
+        }
+
+    private:
+        struct listentry {
+            T data;
+            struct listentry *next;
+        };
+
+        struct listentry *first = nullptr;
+        struct listentry *last = nullptr;
+    };
+
+}

@@ -1,40 +1,27 @@
 #include <arch/common/sched.h>
+#include <forward_list>
+#include <macros.h>
 #include <mm/kmalloc.h>
 #include <panic.h>
 #include <sched.h>
 
+static std::forward_list<sched::proc> readyqueue;
+
 static struct sched::proc *current;
 
-struct proc_ll {
-    struct proc_ll *next;
-    struct sched::proc proc;
-};
-
-static struct proc_ll *ll_begin = nullptr;
-static struct proc_ll *ll_last = nullptr;
-
 static struct sched::proc *get_next() {
-    if (ll_begin == nullptr) {
+    if (unlikely(readyqueue.size() == 0)) {
         KERNEL_PANIC("no processes to run");
     }
+    // kprintf(KP_INFO, "there are %d threads running\n", readyqueue.size());
 
-    if (ll_begin->next == nullptr && ll_last != ll_begin) {
-        KERNEL_PANIC("linked list skill issue");
-    }
-    if (ll_last == nullptr) {
-        KERNEL_PANIC("linked list skill issue 2");
-    }
+    return &readyqueue.swap_first_last();
+}
 
-    if (ll_begin->next == nullptr) {
-        return &ll_begin->proc;
-    }
-
-    struct sched::proc *p = &ll_begin->proc;
-    ll_last->next = ll_begin;
-    ll_last = ll_begin;
-    ll_begin = ll_begin->next;
-
-    return p;
+static void enter_thread(struct sched::proc *p) {
+    current = p;
+    struct arch::ctx *tmp;
+    sched_switch(&tmp, current->ctx);
 }
 
 void sched::init() {}
@@ -49,9 +36,7 @@ void sched::yield() {
 }
 
 void sched::enter() {
-    current = get_next();
-    struct arch::ctx *tmp;
-    sched_switch(&tmp, current->ctx);
+    enter_thread(get_next());
     KERNEL_PANIC("unreachable");
 }
 
@@ -59,11 +44,5 @@ void sched::start_thread(void (*func)()) {
     struct sched::proc p;
     sched::init_proc(&p, func);
 
-    struct proc_ll *pl = (struct proc_ll *)mm::kmalloc(sizeof(struct proc_ll));
-    pl->proc = p;
-    pl->next = ll_begin;
-    ll_begin = pl;
-    if (ll_last == nullptr) {
-        ll_last = ll_begin;
-    }
+    readyqueue.push_front(p);
 }

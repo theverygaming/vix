@@ -23,9 +23,17 @@ static void testthread() {
     static int n = 0;
     n++;
     int self = n;
+    int i = 0;
     while (true) {
         kprintf(KP_INFO, "i am process %d\n", self);
         sched::yield();
+        if (i > 3 && self > 2) {
+            kprintf(KP_INFO, "process %d dying...\n", self);
+            while (true) {
+                sched::yield();
+            }
+        }
+        i++;
     }
 }
 
