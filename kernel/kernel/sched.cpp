@@ -54,7 +54,7 @@ int sched::mypid() {
 
 void sched::die() {
     static struct sched::proc trash_proc;
-    readyqueue.remove_if_first([](const struct sched::proc &e) -> bool { return e.pid == mypid(); });
+    readyqueue.erase_first_if([](const struct sched::proc &e) -> bool { return e.pid == mypid(); });
     current = &trash_proc;
     sched::yield();
 }

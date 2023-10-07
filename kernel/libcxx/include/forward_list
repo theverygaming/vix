@@ -53,7 +53,7 @@ namespace std {
         }
 
         // Removes first element that matches
-        void remove_if_first(bool (*match)(const T &)) {
+        void erase_first_if(bool (*match)(const T &)) {
             struct list_node *c = first;
             struct list_node *prev = nullptr;
             while (c != nullptr) {
