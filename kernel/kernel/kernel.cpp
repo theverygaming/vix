@@ -59,6 +59,7 @@ void kernelstart() {
 
     arch::generic::startup::after_init();
 
+    kprintf(KP_INFO, "kmain: entering scheduler\n");
     sched::init();
 
     for (int i = 0; i < 10; i++) {

@@ -11,7 +11,7 @@ PHDRS
 
 MEMORY
 {
-    ram (rwx) : org = 0xffffffff80000000, l = 0xF0000
+    ram (rwx) : org = 0xffffffff80000000, l = 0xFF0000
 }
 
 SECTIONS
