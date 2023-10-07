@@ -117,6 +117,4 @@ void arch::generic::startup::stage3_startup() {
     time::bootupTime = time::getCurrentUnixTime();
 }
 
-void arch::generic::startup::after_init() {
-    while (true) {}
-}
+void arch::generic::startup::after_init() {}

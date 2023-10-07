@@ -19,7 +19,7 @@ template <class T> inline T div(T a, T b) {
     }
     T r = a;
     T q = 0;
-    while (r > b) {
+    while (r >= b) {
         r -= b;
         q++;
     }
@@ -32,7 +32,7 @@ template <class T> inline T mod(T a, T b) {
     }
     T r = a;
     T q = 0;
-    while (r > b) {
+    while (r >= b) {
         r -= b;
         q++;
     }
