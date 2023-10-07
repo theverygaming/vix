@@ -5,6 +5,7 @@ extern "C" void sched_switch(struct arch::ctx **old, struct arch::ctx *_new);
 
 namespace sched {
     struct proc {
+        int pid;
         struct arch::ctx *ctx;
     };
 
@@ -17,4 +18,10 @@ namespace sched {
     void yield();
 
     void start_thread(void (*func)());
+
+    // Returns PID of current running thread
+    int mypid();
+
+    // Called from inside a thread to kill it
+    void die();
 }

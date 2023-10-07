@@ -13,7 +13,6 @@ static struct sched::proc *get_next() {
     if (unlikely(readyqueue.size() == 0)) {
         KERNEL_PANIC("no processes to run");
     }
-    // kprintf(KP_INFO, "there are %d threads running\n", readyqueue.size());
 
     return &readyqueue.swap_first_last();
 }
@@ -41,8 +40,21 @@ void sched::enter() {
 }
 
 void sched::start_thread(void (*func)()) {
+    static int pid_counter = 0;
     struct sched::proc p;
     sched::init_proc(&p, func);
+    p.pid = pid_counter++;
 
     readyqueue.push_front(p);
+}
+
+int sched::mypid() {
+    return current->pid;
+}
+
+void sched::die() {
+    static struct sched::proc trash_proc;
+    readyqueue.remove_if_first([](const struct sched::proc &e) -> bool { return e.pid == mypid(); });
+    current = &trash_proc;
+    sched::yield();
 }

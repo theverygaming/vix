@@ -20,18 +20,13 @@ void run_all_tests();
 #endif
 
 static void testthread() {
-    static int n = 0;
-    n++;
-    int self = n;
     int i = 0;
     while (true) {
-        kprintf(KP_INFO, "i am process %d\n", self);
+        kprintf(KP_INFO, "i am PID %d\n", sched::mypid());
         sched::yield();
-        if (i > 3 && self > 2) {
-            kprintf(KP_INFO, "process %d dying...\n", self);
-            while (true) {
-                sched::yield();
-            }
+        if (i > 2 && sched::mypid() > 1) {
+            kprintf(KP_INFO, "PID %d dying...\n", sched::mypid());
+            sched::die();
         }
         i++;
     }
