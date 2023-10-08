@@ -10,7 +10,7 @@ FixNamespaceComments: false
 
 AlignAfterOpenBracket: Align
 AlignTrailingComments: true
-ReflowComments: false
+ReflowComments: false # clang-format seems to have broken comment reflow
 
 BinPackArguments: false
 BinPackParameters: false
