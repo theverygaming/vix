@@ -1,4 +1,5 @@
 #include <arch/archinit.h>
+#include <arch/common/bootup.h>
 #include <arch/cpubasics.h>
 #include <arch/cpuid.h>
 #include <arch/drivers/ps2.h>
@@ -7,7 +8,6 @@
 #include <arch/elf.h>
 #include <arch/gdt.h>
 #include <arch/generic/memory.h>
-#include <arch/generic/startup.h>
 #include <arch/isr.h>
 #include <arch/memorymap.h>
 #include <arch/modelf.h>
@@ -20,6 +20,7 @@
 #include <framebuffer.h>
 #include <fs/tarfs.h>
 #include <fs/vfs.h>
+#include <interrupts.h>
 #include <kernel.h>
 #include <macros.h>
 #include <mm/phys.h>
@@ -81,7 +82,7 @@ extern "C" void __attribute__((section(".entry"))) _kentry(void *multiboot2_info
     while (true) {}
 }
 
-void arch::generic::startup::stage2_startup() {
+void arch::startup::stage2_startup() {
     mm::phys::phys_alloc((void *)KERNEL_PHYS_ADDRESS, ALIGN_UP(KERNEL_FREE_AREA_BEGIN_OFFSET, ARCH_PAGE_SIZE) / ARCH_PAGE_SIZE);
     if (initramfs_size != 0) {
         mm::phys::phys_alloc(initramfs_start, ALIGN_UP(initramfs_size, ARCH_PAGE_SIZE) / ARCH_PAGE_SIZE);
@@ -93,7 +94,7 @@ void arch::generic::startup::stage2_startup() {
     }
 }
 
-void arch::generic::startup::stage3_startup() {
+void arch::startup::stage3_startup() {
     cpubasics::cpuinit(); // interrupt handlers are enabled here, before this all exceptions will cause a triplefault
     drivers::keyboard::init();
     drivers::mouse::init(); // must be disabled when polling is in use for the keyboard
@@ -111,7 +112,20 @@ void arch::generic::startup::stage3_startup() {
     stdio::set_putc_function(fbputc);
 }
 
-void arch::generic::startup::after_init() {
+static void kt1() {
+    static volatile int lastpid = 0;
+    while (true) {
+        push_interrupt_disable();
+        kprintf(KP_INFO, "hi from kernel thread(PID %d)\n", sched::mypid());
+        pop_interrupt_disable();
+        int mypid = sched::mypid();
+        lastpid = mypid;
+        while (mypid == lastpid) {}
+        //sched::yield();
+    }
+}
+
+void arch::startup::kthread0() {
     void *elfptr = nullptr;
 
     if (fs::vfs::fptr("/usr/lib/modules/module.o", &elfptr)) {
@@ -125,8 +139,11 @@ void arch::generic::startup::after_init() {
         elf::load_program(elfptr, &args);
     }
 
+    sched::start_thread(kt1);
+    sched::start_thread(kt1);
+
     // a bit of a hack.. we have to call the vector destructor before killing this process
     // args.~vector();
 
-    // multitasking::initMultitasking(); // this will kill this process
+    multitasking::initMultitasking(); // this will kill this process
 }

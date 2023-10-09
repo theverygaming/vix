@@ -23,5 +23,5 @@ namespace sched {
     int mypid();
 
     // Called from inside a thread to kill it
-    void die();
+    void __attribute__((noreturn)) die();
 }

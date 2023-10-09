@@ -1,6 +1,6 @@
+#include <arch/common/bootup.h>
 #include <arch/common/cpu.h>
 #include <arch/drivers/serial.h>
-#include <arch/generic/startup.h>
 #include <arch/limine.h>
 #include <arch/paging.h>
 #include <config.h>
@@ -72,15 +72,15 @@ extern "C" void _kentry() {
     while (true) {}
 }
 
-void arch::generic::startup::stage2_startup() {}
+void arch::startup::stage2_startup() {}
 
-void arch::generic::startup::stage3_startup() {
+void arch::startup::stage3_startup() {
     // stdio::set_putc_function(fbputc);
     printf("Hello x86_64!\n");
     time::bootupTime = time::getCurrentUnixTime();
 }
 
-void arch::generic::startup::after_init() {}
+void arch::startup::kthread0() {}
 
 // dummy functions
 #include <arch/drivers/text80x25.h>

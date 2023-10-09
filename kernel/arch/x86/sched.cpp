@@ -8,7 +8,7 @@ static void procret() {
     KERNEL_PANIC("returned from process");
 }
 
-void sched::init_proc(struct sched::proc *proc, void (*func)()) {
+void sched::arch_init_proc(struct sched::proc *proc, void (*func)()) {
 #ifdef CONFIG_ENABLE_KERNEL_32
     uint32_t *stack = (uint32_t *)((uint8_t *)mm::kmalloc(1024) + 1024);
     stack -= 1;

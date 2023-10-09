@@ -2,5 +2,5 @@
 #include <sched.h>
 
 namespace sched {
-    void init_proc(struct sched::proc *proc, void (*func)());
+    void arch_init_proc(struct sched::proc *proc, void (*func)());
 }

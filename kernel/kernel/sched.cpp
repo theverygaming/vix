@@ -1,5 +1,6 @@
 #include <arch/common/sched.h>
 #include <forward_list>
+#include <interrupts.h>
 #include <macros.h>
 #include <mm/kmalloc.h>
 #include <panic.h>
@@ -26,11 +27,13 @@ static void enter_thread(struct sched::proc *p) {
 void sched::init() {}
 
 void sched::yield() {
+    push_interrupt_disable();
     struct sched::proc *last = current;
     current = get_next();
     if (last->ctx == current->ctx) {
         return;
     }
+    pop_interrupt_disable();
     sched_switch(&last->ctx, current->ctx);
 }
 
@@ -40,12 +43,14 @@ void sched::enter() {
 }
 
 void sched::start_thread(void (*func)()) {
+    push_interrupt_disable();
     static int pid_counter = 0;
     struct sched::proc p;
-    sched::init_proc(&p, func);
+    sched::arch_init_proc(&p, func);
     p.pid = pid_counter++;
 
     readyqueue.push_front(p);
+    pop_interrupt_disable();
 }
 
 int sched::mypid() {
@@ -53,8 +58,9 @@ int sched::mypid() {
 }
 
 void sched::die() {
-    static struct sched::proc trash_proc;
+    push_interrupt_disable();
     readyqueue.erase_first_if([](const struct sched::proc &e) -> bool { return e.pid == mypid(); });
-    current = &trash_proc;
-    sched::yield();
+    pop_interrupt_disable();
+    enter_thread(get_next());
+    KERNEL_PANIC("unreachable");
 }

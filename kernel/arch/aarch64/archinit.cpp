@@ -1,7 +1,7 @@
+#include <arch/common/bootup.h>
 #include <arch/drivers/gpu/fb.h>
 #include <arch/drivers/timer.h>
 #include <arch/drivers/uart.h>
-#include <arch/generic/startup.h>
 #include <arch/limine.h>
 #include <arch/startup.h>
 #include <config.h>
@@ -57,9 +57,9 @@ extern "C" void _kentry() {
     while (true) {}
 }
 
-void arch::generic::startup::stage2_startup() {}
+void arch::startup::stage2_startup() {}
 
-void arch::generic::startup::stage3_startup() {
+void arch::startup::stage3_startup() {
     /*struct fb::fbinfo info;
     if (drivers::gpu::setup_fb(1280, 720, 32, &info)) {
         puts("got FB!\n");
@@ -72,4 +72,4 @@ void arch::generic::startup::stage3_startup() {
     time::bootupTime = time::getCurrentUnixTime();
 }
 
-void arch::generic::startup::after_init() {}
+void arch::startup::kthread0() {}

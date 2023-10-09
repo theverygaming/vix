@@ -27,8 +27,6 @@ i686_ISR%1:
 %include "include/config.inc"
 
 isr_common:
-    cli
-    
     push ds
     push es
     push fs

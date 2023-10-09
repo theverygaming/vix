@@ -149,14 +149,15 @@ void drivers::pci::init() {
             uint8_t function = 0;
             generic_pciHeader_t pciHeader = readGenericHeader(bus, device, function);
             if (pciHeader.vendorID != 0xFFFF) {
-                kprintf(KP_INFO, "PCI: - %p:%p.%p -> type: 0x%p 0x%p vendor: 0x%p device: 0x%p\n",
-                       (uint32_t)bus,
-                       (uint32_t)device,
-                       (uint32_t)function,
-                       (uint32_t)pciHeader.classID,
-                       (uint32_t)pciHeader.subclass,
-                       (uint32_t)pciHeader.vendorID,
-                       (uint32_t)pciHeader.deviceID);
+                kprintf(KP_INFO,
+                        "PCI: - %p:%p.%p -> type: 0x%p 0x%p vendor: 0x%p device: 0x%p\n",
+                        (uint32_t)bus,
+                        (uint32_t)device,
+                        (uint32_t)function,
+                        (uint32_t)pciHeader.classID,
+                        (uint32_t)pciHeader.subclass,
+                        (uint32_t)pciHeader.vendorID,
+                        (uint32_t)pciHeader.deviceID);
                 if (getHeaderType(pciHeader) != pciHeaderType::HEADER_TYPE_0x0) {
                     kprintf(KP_INFO, "PCI: ^ header not 0x0\n");
                 }
@@ -164,14 +165,15 @@ void drivers::pci::init() {
                     for (function = 1; function < 8; function++) {
                         generic_pciHeader_t pciHeader = readGenericHeader(bus, device, function);
                         if (pciHeader.vendorID != 0xFFFF) {
-                            kprintf(KP_INFO, "PCI: - %p:%p.%p -> type: 0x%p 0x%p vendor: 0x%p device: 0x%p\n",
-                                   (uint32_t)bus,
-                                   (uint32_t)device,
-                                   (uint32_t)function,
-                                   (uint32_t)pciHeader.classID,
-                                   (uint32_t)pciHeader.subclass,
-                                   (uint32_t)pciHeader.vendorID,
-                                   (uint32_t)pciHeader.deviceID);
+                            kprintf(KP_INFO,
+                                    "PCI: - %p:%p.%p -> type: 0x%p 0x%p vendor: 0x%p device: 0x%p\n",
+                                    (uint32_t)bus,
+                                    (uint32_t)device,
+                                    (uint32_t)function,
+                                    (uint32_t)pciHeader.classID,
+                                    (uint32_t)pciHeader.subclass,
+                                    (uint32_t)pciHeader.vendorID,
+                                    (uint32_t)pciHeader.deviceID);
                             if (getHeaderType(pciHeader) != pciHeaderType::HEADER_TYPE_0x0) {
                                 kprintf(KP_INFO, "PCI: ^ header not 0x0\n");
                             }

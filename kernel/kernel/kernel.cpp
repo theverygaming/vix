@@ -1,5 +1,5 @@
+#include <arch/common/bootup.h>
 #include <arch/generic/memory.h>
-#include <arch/generic/startup.h>
 #include <config.h>
 #include <debug.h>
 #include <kernel.h>
@@ -19,17 +19,11 @@
 void run_all_tests();
 #endif
 
-static void testthread() {
-    int i = 0;
-    while (true) {
-        kprintf(KP_INFO, "i am PID %d\n", sched::mypid());
-        sched::yield();
-        if (i > 2 && sched::mypid() > 1) {
-            kprintf(KP_INFO, "PID %d dying...\n", sched::mypid());
-            sched::die();
-        }
-        i++;
-    }
+static void kthread0() {
+    kprintf(KP_INFO, "kmain: first kernel thread started (PID %d)\n", sched::mypid());
+    arch::startup::kthread0();
+    kprintf(KP_INFO, "kmain: first kernel thread dying (PID %d)\n", sched::mypid());
+    sched::die();
 }
 
 void kernelstart() {
@@ -38,11 +32,11 @@ void kernelstart() {
 #ifdef CONFIG_ARCH_HAS_PAGING
     mm::kv::init();
 #endif
-    arch::generic::startup::stage2_startup();
+    arch::startup::stage2_startup();
     cpp_init();
     kprintf(KP_INFO, "kmain: initialized C++\n");
 
-    arch::generic::startup::stage3_startup();
+    arch::startup::stage3_startup();
 
 #ifdef CONFIG_ENABLE_TESTS
     run_all_tests();
@@ -60,14 +54,10 @@ void kernelstart() {
     }
     kprintf(KP_INFO, "kmain: free physical memory: %u%ciB\n", freemem, unit);
 
-    arch::generic::startup::after_init();
-
     kprintf(KP_INFO, "kmain: entering scheduler\n");
     sched::init();
 
-    for (int i = 0; i < 10; i++) {
-        sched::start_thread(testthread);
-    }
+    sched::start_thread(kthread0);
 
     sched::enter();
 }

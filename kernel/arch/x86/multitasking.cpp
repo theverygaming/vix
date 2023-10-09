@@ -6,10 +6,12 @@
 #include <arch/multitasking.h>
 #include <arch/syscalls_32.h>
 #include <debug.h>
+#include <interrupts.h>
 #include <kprintf.h>
 #include <macros.h>
 #include <mm/kmalloc.h>
 #include <mm/phys.h>
+#include <sched.h>
 #include <scheduler.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -327,6 +329,20 @@ void multitasking::interruptTrigger(struct arch::full_ctx *regs) {
     if (unlikely(uninitialized)) {
         return;
     }
+    /*if(arch::get_interrupt_state() != arch::INTERRUPT_STATE_DISABLED) {
+        arch::set_interrupt_state(arch::INTERRUPT_STATE_DISABLED);
+        KERNEL_PANIC("interrupts on in isr");
+    }
+    static volatile int depth = 0;
+    depth++;
+    int mydep = depth;
+    kprintf(KP_INFO, "yieling in int (depth %d)\n", mydep);
+    asm volatile("sti");
+    sched::yield();
+    asm volatile("cli");
+    depth--;
+    kprintf(KP_INFO, "done yieling in int (depth %d)\n", mydep);
+    return;*/
 
     if (!unlikely(scheduler.tick(regs))) {
         list_processes();

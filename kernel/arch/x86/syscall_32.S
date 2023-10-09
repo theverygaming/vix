@@ -2,8 +2,6 @@
 
 .global syscall_entry
 syscall_entry:
-    cli
-
     push $0 // error code
     push $0 // interrupt number
 

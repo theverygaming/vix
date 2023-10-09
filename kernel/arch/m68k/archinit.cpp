@@ -1,5 +1,5 @@
+#include <arch/common/bootup.h>
 #include <arch/generic/memory.h>
-#include <arch/generic/startup.h>
 #include <config.h>
 #include <framebuffer.h>
 #include <kernel.h>
@@ -102,7 +102,7 @@ extern "C" void _kentry() {
     while (true) {}
 }
 
-void arch::generic::startup::stage2_startup() {
+void arch::startup::stage2_startup() {
     if (kmemreq.response != nullptr) {
         mm::phys::phys_alloc((void *)ALIGN_DOWN(kmemreq.response->base, ARCH_PAGE_SIZE),
                              ALIGN_UP(kmemreq.response->size, ARCH_PAGE_SIZE) / ARCH_PAGE_SIZE);
@@ -113,8 +113,8 @@ void arch::generic::startup::stage2_startup() {
     }
 }
 
-void arch::generic::startup::stage3_startup() {
+void arch::startup::stage3_startup() {
     time::bootupTime = time::getCurrentUnixTime();
 }
 
-void arch::generic::startup::after_init() {}
+void arch::startup::kthread0() {}
