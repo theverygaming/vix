@@ -28,6 +28,9 @@ syscall_entry:
     call syscallHandler
     add $4, %esp
 
+.global x86_interrupt_return
+x86_interrupt_return:
+
     pop %ebp
 
     pop %edi
@@ -45,3 +48,9 @@ syscall_entry:
     add $8, %esp // error code + interrupt number
 
     iretl
+
+// extern "C" void x86_load_cpu_full_ctx(struct arch::full_ctx *ctx);
+.global x86_load_cpu_full_ctx
+x86_load_cpu_full_ctx:
+    movl 4(%esp), %esp
+    jmp x86_interrupt_return

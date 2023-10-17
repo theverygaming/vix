@@ -21,8 +21,13 @@ static intHandler handlers[256];
 extern "C" void i686_ISR_Handler(struct arch::full_ctx *regs) {
     uint32_t previous_esp_user = regs->esp;
     // TSS stuff
-    tss::tss_entry.ss0 = GDT_KERNEL_DATA;
-    tss::tss_entry.esp0 = KERNEL_VIRT_ADDRESS + KERNEL_ISR_STACK_POINTER_OFFSET;
+    // FIXME: this should _not_ be here
+    //tss::tss_entry.ss0 = GDT_KERNEL_DATA;
+    //tss::tss_entry.esp0 = KERNEL_VIRT_ADDRESS + KERNEL_ISR_STACK_POINTER_OFFSET;
+    //tss::tss_entry.esp0 = ((uint32_t)regs) + sizeof(arch::full_ctx);
+    if (regs->cs & 0b11 == 3) {
+        kprintf(KP_INFO, "going to ring 3\n");
+    }
 
     // is this a spurious IRQ?
     if ((regs->interrupt == 39)) {

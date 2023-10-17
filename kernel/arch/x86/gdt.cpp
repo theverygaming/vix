@@ -102,8 +102,8 @@ void gdt::init() {
                                  GDT_ACCESS_PRESENT | GDT_ACCESS_RING0 | GDT_ACCESS_SYSTEM_SEGMENT | GDT_ACCESS_SYSTEM_DESCRIPTOR_TSS | GDT_ACCESS_SYSTEM_TYPE_TSS,
                                  GDT_FLAG_GRANULARITY_1B);
     memset(&tss::tss_entry, 0, sizeof(tss::tss_protectedmode));
-    tss::tss_entry.ss0 = GDT_KERNEL_DATA;
-    tss::tss_entry.esp0 = KERNEL_VIRT_ADDRESS + KERNEL_ISR_STACK_POINTER_OFFSET;
+    tss::tss_entry.ss0 = 0;
+    tss::tss_entry.esp0 = 0;
 
     // TLS
     gdtTable[6] = make_gdt_entry(0, 0, 0, 0);

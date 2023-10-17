@@ -27,6 +27,9 @@ static void enter_thread(struct sched::proc *p) {
 void sched::init() {}
 
 void sched::yield() {
+    if (arch::get_interrupt_state() != arch::INTERRUPT_STATE_DISABLED) {
+        KERNEL_PANIC("yield called with interrups enabled");
+    }
     push_interrupt_disable();
     struct sched::proc *last = current;
     current = get_next();

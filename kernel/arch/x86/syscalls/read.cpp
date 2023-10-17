@@ -44,6 +44,16 @@ uint32_t sys_read(struct arch::full_ctx *regs, int *syscall_ret, uint32_t, uint3
         *syscall_ret = 1;
         return 0;
     }
+
+    *syscall_ret = 1;
+    const char *str = "sysinfo\n";
+    if(count > strlen(str)) {
+        count = strlen(str);
+    }
+    memcpy((void *)_buf, str, count);
+    return count;
+
+    /*
     struct read_resume_info *info = (struct read_resume_info *)mm::kmalloc(sizeof(read_resume_info));
     multitasking::x86_process *current = multitasking::getCurrentProcess();
     current->state = schedulers::generic_process::state::UNINTERRUPTIBLE_SLEEP;
@@ -58,5 +68,5 @@ uint32_t sys_read(struct arch::full_ctx *regs, int *syscall_ret, uint32_t, uint3
     };
 
     multitasking::reschedule(regs);
-    return 0;
+    return 0;*/
 }

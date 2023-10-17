@@ -194,6 +194,7 @@ void multitasking::killCurrentProcess(struct arch::full_ctx *regs) {
     interruptTrigger(regs);
 }
 
+multitasking::x86_process *created_x86_proc = nullptr;
 void multitasking::create_task(void *stackadr,
                                void *codeadr,
                                std::vector<process_pagerange> *pagerange,
@@ -208,6 +209,7 @@ void multitasking::create_task(void *stackadr,
     }
 
     x86_process *new_process = new x86_process;
+    created_x86_proc = new_process;
     if (forced_pid != -1) {
         new_process->tgid = forced_pid;
     } else {
@@ -329,20 +331,12 @@ void multitasking::interruptTrigger(struct arch::full_ctx *regs) {
     if (unlikely(uninitialized)) {
         return;
     }
-    /*if(arch::get_interrupt_state() != arch::INTERRUPT_STATE_DISABLED) {
+    if (arch::get_interrupt_state() != arch::INTERRUPT_STATE_DISABLED) {
         arch::set_interrupt_state(arch::INTERRUPT_STATE_DISABLED);
         KERNEL_PANIC("interrupts on in isr");
     }
-    static volatile int depth = 0;
-    depth++;
-    int mydep = depth;
-    kprintf(KP_INFO, "yieling in int (depth %d)\n", mydep);
-    asm volatile("sti");
     sched::yield();
-    asm volatile("cli");
-    depth--;
-    kprintf(KP_INFO, "done yieling in int (depth %d)\n", mydep);
-    return;*/
+    return;
 
     if (!unlikely(scheduler.tick(regs))) {
         list_processes();
