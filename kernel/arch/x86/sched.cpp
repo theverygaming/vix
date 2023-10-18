@@ -12,7 +12,7 @@ static void procret() {
 
 extern "C" void x86_interrupt_return();
 
-void sched::arch_init_proc(struct sched::proc *proc, void (*func)()) {
+void sched::arch_init_proc(struct sched::task *proc, void (*func)()) {
 #ifdef CONFIG_ENABLE_KERNEL_32
     uint32_t *stack = (uint32_t *)((uint8_t *)mm::kmalloc(4096) + 4096);
 

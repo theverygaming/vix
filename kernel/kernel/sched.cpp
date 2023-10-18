@@ -6,20 +6,21 @@
 #include <panic.h>
 #include <sched.h>
 
-static std::forward_list<sched::proc> readyqueue;
+std::forward_list<sched::task> sched::sched_readyqueue;
 
-static struct sched::proc *current;
+static struct sched::task *current;
 
-static struct sched::proc *get_next() {
-    if (unlikely(readyqueue.size() == 0)) {
+static struct sched::task *get_next() {
+    if (unlikely(sched::sched_readyqueue.size() == 0)) {
         KERNEL_PANIC("no processes to run");
     }
 
-    return &readyqueue.swap_first_last();
+    return &sched::sched_readyqueue.swap_first_last();
 }
 
-static void enter_thread(struct sched::proc *p) {
+static void enter_thread(struct sched::task *p) {
     current = p;
+    p->state = sched::task::state::RUNNING;
     struct arch::ctx *tmp;
     sched_switch(&tmp, current->ctx);
 }
@@ -31,11 +32,13 @@ void sched::yield() {
         KERNEL_PANIC("yield called with interrups enabled");
     }
     push_interrupt_disable();
-    struct sched::proc *last = current;
+    struct sched::task *last = current;
     current = get_next();
     if (last->ctx == current->ctx) {
         return;
     }
+    last->state = sched::task::state::RUNNABLE;
+    current->state = sched::task::state::RUNNING;
     pop_interrupt_disable();
     sched_switch(&last->ctx, current->ctx);
 }
@@ -48,11 +51,12 @@ void sched::enter() {
 void sched::start_thread(void (*func)()) {
     push_interrupt_disable();
     static int pid_counter = 0;
-    struct sched::proc p;
+    struct sched::task p;
     sched::arch_init_proc(&p, func);
+    p.state = sched::task::state::RUNNABLE;
     p.pid = pid_counter++;
 
-    readyqueue.push_front(p);
+    sched_readyqueue.push_front(p);
     pop_interrupt_disable();
 }
 
@@ -60,9 +64,13 @@ int sched::mypid() {
     return current->pid;
 }
 
+struct sched::task *sched::myproc() {
+    return current;
+}
+
 void sched::die() {
     push_interrupt_disable();
-    readyqueue.erase_first_if([](const struct sched::proc &e) -> bool { return e.pid == mypid(); });
+    sched_readyqueue.erase_first_if([](const struct sched::task &e) -> bool { return e.pid == mypid(); });
     pop_interrupt_disable();
     enter_thread(get_next());
     KERNEL_PANIC("unreachable");

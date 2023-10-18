@@ -6,6 +6,12 @@
 
 namespace std {
     template <class T> class forward_list {
+    private:
+        struct list_node {
+            T data;
+            struct list_node *next;
+        };
+
     public:
         // Returns number of elements in linked list.
         size_t size() {
@@ -75,12 +81,51 @@ namespace std {
             }
         }
 
-    private:
-        struct list_node {
-            T data;
-            struct list_node *next;
+        struct Iterator {
+            Iterator(struct list_node *ptr) {
+                ll_node = ptr;
+            }
+
+            T &operator*() const {
+                return ll_node->data;
+            }
+
+            T *operator->() {
+                return &ll_node->data;
+            }
+
+            Iterator &operator++() {
+                ll_node = ll_node->next;
+                return *this;
+            }
+
+            Iterator operator++(int) {
+                Iterator tmp = *this;
+                ++(*this);
+                return tmp;
+            }
+
+            bool operator!=(const Iterator &it) {
+                return ll_node != it.ll_node;
+            };
+
+            bool operator==(const Iterator &it) {
+                return ll_node == it.ll_node;
+            };
+
+        private:
+            struct list_node *ll_node;
         };
 
+        Iterator begin() {
+            return Iterator(first);
+        }
+
+        Iterator end() {
+            return Iterator(nullptr);
+        }
+
+    private:
         struct list_node *first = nullptr;
         struct list_node *last = nullptr;
     };

@@ -34,6 +34,9 @@ void multitasking::list_processes() {
     for (size_t i = 0; i < processes.size(); i++) {
         printf("[%u] tgid: %d tid: %d state: %d\n", i, processes[i]->tgid, processes[i]->tid, processes[i]->state);
     }
+    for (auto it = sched::sched_readyqueue.begin(); it != sched::sched_readyqueue.end(); it++) {
+        printf("PID: %d state: %c\n", it->pid, (it->state == sched::task::state::RUNNING) ? 'R' : 'S');
+    }
 }
 
 static void cpuidle() {
