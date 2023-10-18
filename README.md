@@ -1,4 +1,6 @@
 # vix
+![CI](https://github.com/theverygaming/vix/actions/workflows/workflow.yml/badge.svg)
+
 a broken kernel with a ton of bad design choices and copypasted code. _It's actually not that bad anymore tho_
 
 #### Goals
@@ -28,3 +30,13 @@ then you can simply build with ``make`` and then ``make img_x86_32`` (if you hav
 a bootable iso named ``vix.iso`` will be created
 
 for other architectures look at the [GitHub actions workflow](.github/workflows/workflow.yml)
+
+## Star History
+
+<a href="https://star-history.com/#theverygaming/vix&Date">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=theverygaming/vix&type=Date&theme=dark" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=theverygaming/vix&type=Date" />
+    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=theverygaming/vix&type=Date" />
+  </picture>
+</a>
