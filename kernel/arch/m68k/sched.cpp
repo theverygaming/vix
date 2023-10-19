@@ -1,6 +1,6 @@
-#include <arch/common/sched.h>
 #include <mm/kmalloc.h>
 #include <panic.h>
+#include <sched.h>
 #include <types.h>
 
 static void procret() {

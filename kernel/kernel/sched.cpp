@@ -1,4 +1,3 @@
-#include <arch/common/sched.h>
 #include <forward_list>
 #include <interrupts.h>
 #include <macros.h>

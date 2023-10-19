@@ -1,19 +1,22 @@
 #pragma once
+#include <abi/linux/linux.h>
 #include <arch/common/cpu.h>
+#include <arch/common/sched.h>
 #include <forward_list>
 
+// arch-specific
 extern "C" void sched_switch(struct arch::ctx **old, struct arch::ctx *_new);
 
 namespace sched {
-
-    struct linux_task {};
 
     struct task {
         int pid;
         enum class state { RUNNING, RUNNABLE } state;
         struct arch::ctx *ctx;
 
-        struct linux_task task_linux;
+        struct arch_task task_arch;
+
+        struct abi::linux::task task_linux;
     };
 
     extern std::forward_list<sched::task> sched_readyqueue;
@@ -37,4 +40,7 @@ namespace sched {
 
     // Called from inside a thread to kill it
     void __attribute__((noreturn)) die();
+
+    // arch-specific
+    void arch_init_proc(struct sched::task *proc, void (*func)());
 }
