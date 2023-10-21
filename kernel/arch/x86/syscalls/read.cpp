@@ -42,7 +42,7 @@ uint32_t sys_read(struct arch::full_ctx *regs, int *syscall_ret, uint32_t, uint3
     }
 
     struct read_resume_info *info = (struct read_resume_info *)mm::kmalloc(sizeof(read_resume_info));
-    drivers::keyboard::events.register_listener(key_listener, info);
+    drivers::ps2_keyboard::events.register_listener(key_listener, info);
 
     *info = {
         .fd = fd,

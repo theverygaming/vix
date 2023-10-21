@@ -98,7 +98,7 @@ void arch::startup::stage2_startup() {
 
 void arch::startup::stage3_startup() {
     cpubasics::cpuinit(); // interrupt handlers are enabled here, before this all exceptions will cause a triplefault
-    drivers::keyboard::init();
+    drivers::ps2_keyboard::init();
     drivers::mouse::init(); // must be disabled when polling is in use for the keyboard
     // isr::RegisterHandler(0x80, syscall::syscallHandler);
     cpuid::printFeatures();

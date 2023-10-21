@@ -1,6 +1,6 @@
+#include <abi/linux/errno.h>
 #include <arch/common/cpu.h>
 #include <arch/cpubasics.h>
-#include <arch/errno.h>
 #include <arch/gdt.h>
 #include <arch/generic/memory.h>
 #include <arch/multitasking.h>

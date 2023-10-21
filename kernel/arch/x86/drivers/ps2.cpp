@@ -4,6 +4,7 @@
 #include <arch/drivers/ps2.h>
 #include <arch/drivers/text80x25.h>
 #include <arch/isr.h>
+#include <drivers/keyboard.h>
 #include <drivers/ms_mouse.h>
 #include <keyboard.h>
 #include <stdio.h>
@@ -167,7 +168,7 @@ static void kbd_int_handler_base() {
 
     if (sc & 0x80) { // key released
         sc &= 0x7F;
-        drivers::keyboard::raw_release_events.dispatch(sc);
+        drivers::ps2_keyboard::raw_release_events.dispatch(sc);
         if (sc == KEY_LEFTSHIFT || sc == KEY_RIGHTSHIFT) {
             shift = false;
         }
@@ -179,7 +180,7 @@ static void kbd_int_handler_base() {
         return;
     }
 
-    drivers::keyboard::raw_press_events.dispatch(sc);
+    drivers::ps2_keyboard::raw_press_events.dispatch(sc);
 
     if (sc == KEY_LEFTSHIFT || sc == KEY_RIGHTSHIFT) { // hacky, works fine as long as you don't use two shift keys at once lol
         shift = true;
@@ -197,6 +198,7 @@ static void kbd_int_handler_base() {
 
     putc(kbmap[sc]);
 
+    drivers::ps2_keyboard::events.dispatch(kbmap[sc]);
     drivers::keyboard::events.dispatch(kbmap[sc]);
 }
 
@@ -210,13 +212,13 @@ static void ps2_int(struct arch::full_ctx *) {
     drivers::pic::pic8259::eoi(drivers::pic::pic8259::irqToint(1));
 }
 
-namespace drivers::keyboard {
+namespace drivers::ps2_keyboard {
     event_dispatcher<char> events;
     event_dispatcher<uint8_t> raw_press_events;
     event_dispatcher<uint8_t> raw_release_events;
 }
 
-void drivers::keyboard::init() {
+void drivers::ps2_keyboard::init() {
     isr::RegisterHandler(drivers::pic::pic8259::irqToint(1), ps2_int);
     drivers::pic::pic8259::unmask_irq(1);
 }

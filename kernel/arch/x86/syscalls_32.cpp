@@ -1,7 +1,7 @@
+#include <abi/linux/errno.h>
 #include <arch/common/cpu.h>
 #include <arch/drivers/ps2.h>
 #include <arch/elf.h>
-#include <arch/errno.h>
 #include <arch/gdt.h>
 #include <arch/generic/memory.h>
 #include <arch/memorymap.h>
@@ -17,6 +17,16 @@
 #include <stdlib.h>
 #include <string>
 #include <time.h>
+
+abi::linux::syscall_arg_t(sys_dbg_2)(abi::linux::syscall_arg_t a0,
+                                     abi::linux::syscall_arg_t a1,
+                                     abi::linux::syscall_arg_t a2,
+                                     abi::linux::syscall_arg_t a3,
+                                     abi::linux::syscall_arg_t a4,
+                                     abi::linux::syscall_arg_t a5) {
+    multitasking::list_processes();
+    return 0;
+}
 
 uint32_t sys_dbg(struct arch::full_ctx *regs, int *syscall_ret, uint32_t, uint32_t n, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 1;
@@ -79,8 +89,8 @@ uint32_t sys_close(struct arch::full_ctx *, int *syscall_ret, uint32_t, uint32_t
     return -EBADF;
 }
 
-uint32_t
-sys_execve(struct arch::full_ctx *regs, int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _argv, uint32_t _envp, uint32_t, uint32_t, uint32_t) {
+uint32_t sys_execve(
+    struct arch::full_ctx *regs, int *syscall_ret, uint32_t, uint32_t _filename, uint32_t _argv, uint32_t _envp, uint32_t, uint32_t, uint32_t) {
     *syscall_ret = 0;
     char *filename = (char *)_filename;
     const char *const *argv = (const char *const *)_argv;
@@ -641,8 +651,8 @@ uint32_t sys_set_robust_list(
     return 0; // sure, it worked :troll:
 }
 
-uint32_t
-sys_rseq(struct arch::full_ctx *, int *syscall_ret, uint32_t, uint32_t rseq_u, uint32_t rseq_len, uint32_t flags_u, uint32_t sig, uint32_t, uint32_t) {
+uint32_t sys_rseq(
+    struct arch::full_ctx *, int *syscall_ret, uint32_t, uint32_t rseq_u, uint32_t rseq_len, uint32_t flags_u, uint32_t sig, uint32_t, uint32_t) {
     *syscall_ret = 1;
     DEBUG_PRINTF("syscall: sys_rseq\n");
     return -ENOSYS;

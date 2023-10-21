@@ -4,7 +4,7 @@ LD=
 
 include Makefile.version
 
-BUILD_SUBDIRS := kernel drivers fs net tests mm libcxx
+BUILD_SUBDIRS := kernel drivers fs net tests mm libcxx abi
 
 -include .config
 BUILD_ARCH := $(patsubst "%",%,$(CONFIG_ARCH))

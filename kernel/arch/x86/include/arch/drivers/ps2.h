@@ -2,7 +2,7 @@
 #include <event.h>
 #include <types.h>
 
-namespace drivers::keyboard {
+namespace drivers::ps2_keyboard {
     typedef uint8_t keycode_t;
     void init();
 

@@ -1,9 +1,17 @@
 #pragma once
+#include <abi/linux/linux.h>
 #include <arch/common/cpu.h>
 #include <arch/isr.h>
 #include <types.h>
 
 #define __SYS_DEFINE(x) uint32_t x(struct arch::full_ctx *, int *, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t)
+
+abi::linux::syscall_arg_t(sys_dbg_2)(abi::linux::syscall_arg_t a0,
+                                     abi::linux::syscall_arg_t a1,
+                                     abi::linux::syscall_arg_t a2,
+                                     abi::linux::syscall_arg_t a3,
+                                     abi::linux::syscall_arg_t a4,
+                                     abi::linux::syscall_arg_t a5);
 
 __SYS_DEFINE(sys_dbg);
 __SYS_DEFINE(sys_exit);
