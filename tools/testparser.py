@@ -44,30 +44,27 @@ teststarts = []
 testsections = []
 testresults = []
 
-with open(sys.argv[1]) as file:
-    try:
-        for line in file:
-            line = line.rstrip()
-            split = line.split("|")
-            if line.startswith("--TESTSTART--"):
-                start = teststart_t()
-                start.name = split[1]
-                teststarts.append(start)
-            if line.startswith("--TESTSECTION--"):
-                section = testsection_t()
-                section.success = split[1] == "G"
-                section.name = split[2]
-                section.sectionname = split[3]
-                section.time = int(split[4])
-                testsections.append(section)
-            if line.startswith("--TESTRESULT--"):
-                result = testresult_t()
-                result.success = split[1] == "G"
-                result.name = split[2]
-                result.time = int(split[3])
-                testresults.append(result)
-    except Exception as e:
-        print(f"Error reading file: {e}")
+with open(sys.argv[1], errors="ignore") as file:
+    for line in file:
+        line = line.rstrip()
+        split = line.split("|")
+        if line.startswith("--TESTSTART--"):
+            start = teststart_t()
+            start.name = split[1]
+            teststarts.append(start)
+        if line.startswith("--TESTSECTION--"):
+            section = testsection_t()
+            section.success = split[1] == "G"
+            section.name = split[2]
+            section.sectionname = split[3]
+            section.time = int(split[4])
+            testsections.append(section)
+        if line.startswith("--TESTRESULT--"):
+            result = testresult_t()
+            result.success = split[1] == "G"
+            result.name = split[2]
+            result.time = int(split[3])
+            testresults.append(result)
 
 
 def is_in_tarr(name, arr):
@@ -103,7 +100,7 @@ for t in testsections:
 
 if not fail_on_failed_test:
     print("<details>\n<summary>qemu output</summary>\n\n```")
-    with open(sys.argv[1]) as file:
+    with open(sys.argv[1], errors="ignore") as file:
         print(file.read())
     print("```\n\n</details>\n")
 
