@@ -31,7 +31,7 @@ struct __attribute__((packed)) elf32_program_header {
     uint32_t p_filesz; // size of data in elf image
     uint32_t p_memsz;  // size of data in memory; any excess over disk size is zero'd
     uint32_t p_flags;
-    uint32_t p_align;  // alignment
+    uint32_t p_align; // alignment
 };
 
 // https://github.com/torvalds/linux/blob/master/include/uapi/linux/elf.h

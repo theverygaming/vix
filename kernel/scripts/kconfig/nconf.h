@@ -8,29 +8,33 @@
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <form.h>
 #include <limits.h>
+#include <menu.h>
+#include <ncurses.h>
+#include <panel.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <ncurses.h>
-#include <menu.h>
-#include <panel.h>
-#include <form.h>
 
 #include <stdio.h>
-#include <time.h>
 #include <sys/time.h>
+#include <time.h>
 
-#define max(a, b) ({\
-		typeof(a) _a = a;\
-		typeof(b) _b = b;\
-		_a > _b ? _a : _b; })
+#define max(a, b)          \
+    ({                     \
+        typeof(a) _a = a;  \
+        typeof(b) _b = b;  \
+        _a > _b ? _a : _b; \
+    })
 
-#define min(a, b) ({\
-		typeof(a) _a = a;\
-		typeof(b) _b = b;\
-		_a < _b ? _a : _b; })
+#define min(a, b)          \
+    ({                     \
+        typeof(a) _a = a;  \
+        typeof(b) _b = b;  \
+        _a < _b ? _a : _b; \
+    })
 
 extern int attr_normal;
 extern int attr_main_heading;
@@ -54,15 +58,15 @@ extern int attr_function_text;
 extern int attr_function_highlight;
 
 typedef enum {
-	F_HELP = 1,
-	F_SYMBOL = 2,
-	F_INSTS = 3,
-	F_CONF = 4,
-	F_BACK = 5,
-	F_SAVE = 6,
-	F_LOAD = 7,
-	F_SEARCH = 8,
-	F_EXIT = 9,
+    F_HELP = 1,
+    F_SYMBOL = 2,
+    F_INSTS = 3,
+    F_CONF = 4,
+    F_BACK = 5,
+    F_SAVE = 6,
+    F_LOAD = 7,
+    F_SEARCH = 8,
+    F_EXIT = 9,
 } function_key;
 
 void set_colors(void);
@@ -74,10 +78,6 @@ int get_line_no(const char *text);
 const char *get_line(const char *text, int line_no);
 void fill_window(WINDOW *win, const char *text);
 int btn_dialog(WINDOW *main_window, const char *msg, int btn_num, ...);
-int dialog_inputbox(WINDOW *main_window,
-		const char *title, const char *prompt,
-		const char *init, char **resultp, int *result_len);
+int dialog_inputbox(WINDOW *main_window, const char *title, const char *prompt, const char *init, char **resultp, int *result_len);
 void refresh_all_windows(WINDOW *main_window);
-void show_scroll_win(WINDOW *main_window,
-		const char *title,
-		const char *text);
+void show_scroll_win(WINDOW *main_window, const char *title, const char *text);

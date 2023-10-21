@@ -89,17 +89,30 @@ void gdt::init() {
     gdtTable[0] = make_gdt_entry(0, 0, 0, 0); // NULL descriptor
 
     // kernel stuff
-    gdtTable[1] = make_gdt_entry(0, 0xFFFFF, GDT_ACCESS_PRESENT | GDT_ACCESS_RING0 | GDT_ACCESS_CODE_SEGMENT | GDT_ACCESS_CODE_READABLE, GDT_FLAG_32BIT | GDT_FLAG_GRANULARITY_4K);
-    gdtTable[2] = make_gdt_entry(0, 0xFFFFF, GDT_ACCESS_PRESENT | GDT_ACCESS_RING0 | GDT_ACCESS_DATA_SEGMENT | GDT_ACCESS_DATA_WRITEABLE, GDT_FLAG_32BIT | GDT_FLAG_GRANULARITY_4K);
+    gdtTable[1] = make_gdt_entry(0,
+                                 0xFFFFF,
+                                 GDT_ACCESS_PRESENT | GDT_ACCESS_RING0 | GDT_ACCESS_CODE_SEGMENT | GDT_ACCESS_CODE_READABLE,
+                                 GDT_FLAG_32BIT | GDT_FLAG_GRANULARITY_4K);
+    gdtTable[2] = make_gdt_entry(0,
+                                 0xFFFFF,
+                                 GDT_ACCESS_PRESENT | GDT_ACCESS_RING0 | GDT_ACCESS_DATA_SEGMENT | GDT_ACCESS_DATA_WRITEABLE,
+                                 GDT_FLAG_32BIT | GDT_FLAG_GRANULARITY_4K);
 
     // user
-    gdtTable[3] = make_gdt_entry(0, 0xBFFFF, GDT_ACCESS_PRESENT | GDT_ACCESS_RING3 | GDT_ACCESS_CODE_SEGMENT | GDT_ACCESS_CODE_READABLE, GDT_FLAG_32BIT | GDT_FLAG_GRANULARITY_4K);
-    gdtTable[4] = make_gdt_entry(0, 0xBFFFF, GDT_ACCESS_PRESENT | GDT_ACCESS_RING3 | GDT_ACCESS_DATA_SEGMENT | GDT_ACCESS_DATA_WRITEABLE, GDT_FLAG_32BIT | GDT_FLAG_GRANULARITY_4K);
+    gdtTable[3] = make_gdt_entry(0,
+                                 0xBFFFF,
+                                 GDT_ACCESS_PRESENT | GDT_ACCESS_RING3 | GDT_ACCESS_CODE_SEGMENT | GDT_ACCESS_CODE_READABLE,
+                                 GDT_FLAG_32BIT | GDT_FLAG_GRANULARITY_4K);
+    gdtTable[4] = make_gdt_entry(0,
+                                 0xBFFFF,
+                                 GDT_ACCESS_PRESENT | GDT_ACCESS_RING3 | GDT_ACCESS_DATA_SEGMENT | GDT_ACCESS_DATA_WRITEABLE,
+                                 GDT_FLAG_32BIT | GDT_FLAG_GRANULARITY_4K);
 
     // TSS -- this should be moved out of here...
     gdtTable[5] = make_gdt_entry((size_t)&tss::tss_entry,
                                  sizeof(struct tss::tss_protectedmode),
-                                 GDT_ACCESS_PRESENT | GDT_ACCESS_RING0 | GDT_ACCESS_SYSTEM_SEGMENT | GDT_ACCESS_SYSTEM_DESCRIPTOR_TSS | GDT_ACCESS_SYSTEM_TYPE_TSS,
+                                 GDT_ACCESS_PRESENT | GDT_ACCESS_RING0 | GDT_ACCESS_SYSTEM_SEGMENT | GDT_ACCESS_SYSTEM_DESCRIPTOR_TSS |
+                                     GDT_ACCESS_SYSTEM_TYPE_TSS,
                                  GDT_FLAG_GRANULARITY_1B);
     memset(&tss::tss_entry, 0, sizeof(tss::tss_protectedmode));
     tss::tss_entry.ss0 = 0;
@@ -110,7 +123,8 @@ void gdt::init() {
     gdtTable[7] = make_gdt_entry(0, 0, 0, 0);
 
     // LDT
-    gdtTable[8] = make_gdt_entry((uintptr_t)&LDT, sizeof(LDT), GDT_ACCESS_PRESENT | GDT_ACCESS_SYSTEM_TYPE_LDT, GDT_FLAG_32BIT | GDT_FLAG_GRANULARITY_1B);
+    gdtTable[8] =
+        make_gdt_entry((uintptr_t)&LDT, sizeof(LDT), GDT_ACCESS_PRESENT | GDT_ACCESS_SYSTEM_TYPE_LDT, GDT_FLAG_32BIT | GDT_FLAG_GRANULARITY_1B);
     LDT[0] = make_gdt_entry(0, 0, 0, 0);
     LDT[1] = make_gdt_entry(0, 0, 0, 0);
 
@@ -119,7 +133,5 @@ void gdt::init() {
     kprintf(KP_INFO, "GDT: initialized\n");
 
     // load TSS
-    asm volatile("ltr %%ax"
-                 :
-                 : "a"(5 * 8));
+    asm volatile("ltr %%ax" : : "a"(5 * 8));
 }

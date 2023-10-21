@@ -2,7 +2,9 @@
 #include <scheduler.h>
 
 namespace schedulers {
-    void generic_scheduler_singlethread::init(std::vector<generic_process *> *processes, void (*load_process)(generic_process *, void *), void (*unload_process)(generic_process *, void *)) {
+    void generic_scheduler_singlethread::init(std::vector<generic_process *> *processes,
+                                              void (*load_process)(generic_process *, void *),
+                                              void (*unload_process)(generic_process *, void *)) {
         _processes = processes;
         currentProcess = -1;
         currentProcessIndex = 0;
@@ -31,7 +33,8 @@ namespace schedulers {
         }
 
         if ((*_processes)[currentProcessIndex]->state != generic_process::state::RUNNING) {
-            if (((*_processes)[currentProcessIndex]->state == generic_process::state::REPLACED) || ((*_processes)[currentProcessIndex]->state == generic_process::state::KILLED)) {
+            if (((*_processes)[currentProcessIndex]->state == generic_process::state::REPLACED) ||
+                ((*_processes)[currentProcessIndex]->state == generic_process::state::KILLED)) {
                 clearProcessesArray();
             } else {
                 _unload_process((*_processes)[currentProcessIndex], ctx);

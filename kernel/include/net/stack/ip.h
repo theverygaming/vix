@@ -1,7 +1,7 @@
 #pragma once
-#include <vector>
 #include <net/stack/icmp.h>
 #include <types.h>
+#include <vector>
 
 namespace net {
     class networkstack;

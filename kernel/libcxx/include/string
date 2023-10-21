@@ -1,9 +1,9 @@
 #pragma once
-#include <libcxx/pnew.h>
-#include <vector>
 #include <debug.h>
+#include <libcxx/pnew.h>
 #include <mm/kmalloc.h>
 #include <stdlib.h>
+#include <vector>
 
 namespace std {
     class string {

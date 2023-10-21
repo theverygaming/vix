@@ -4,19 +4,13 @@
 
 namespace std {
 
-    template <class T>
-    class shared_ptr {
+    template <class T> class shared_ptr {
     public:
-        shared_ptr()
-            : ptr(nullptr), refcount(new uint32_t(0)) {
-        }
+        shared_ptr() : ptr(nullptr), refcount(new uint32_t(0)) {}
 
-        shared_ptr(T *ptr)
-            : ptr(ptr), refcount(new uint32_t(1)) {
-        }
+        shared_ptr(T *ptr) : ptr(ptr), refcount(new uint32_t(1)) {}
 
-        shared_ptr(const shared_ptr &p)
-            : ptr(p.ptr), refcount(p.refcount) {
+        shared_ptr(const shared_ptr &p) : ptr(p.ptr), refcount(p.refcount) {
             if (p.ptr != nullptr) {
                 (*refcount)++;
             }

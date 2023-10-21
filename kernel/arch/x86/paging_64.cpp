@@ -20,9 +20,7 @@ static uint64_t table_l3[512] __attribute__((aligned(16)));
 static uint64_t table_l2[512] __attribute__((aligned(16)));
 static uint64_t table_l1[512] __attribute__((aligned(16)));
 
-void paging::init() {
-    
-}
+void paging::init() {}
 
 void *paging::get_physaddr(void *virtualaddr) {
     return virtualaddr;

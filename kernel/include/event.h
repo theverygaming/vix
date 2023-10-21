@@ -1,8 +1,7 @@
 #pragma once
 #include <vector>
 
-template <class T>
-class event {
+template <class T> class event {
 public:
     /* when true is returned the event will be destroyed */
     bool (*f)(void *ctx, const T &data);
@@ -15,8 +14,7 @@ public:
 private:
 };
 
-template <class T>
-class event_dispatcher {
+template <class T> class event_dispatcher {
 public:
     void register_listener(bool (*f)(void *ctx, const T &data), void *ctx) {
         event<T> ev;

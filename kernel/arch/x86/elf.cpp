@@ -2,12 +2,12 @@
 #include <arch/elf.h>
 #include <arch/generic/memory.h>
 #include <arch/multitasking.h>
-#include <string>
-#include <vector>
 #include <debug.h>
 #include <mm/kmalloc.h>
 #include <mm/phys.h>
 #include <stdlib.h>
+#include <string>
+#include <vector>
 
 // TODO: generic ELF functions, only few arch specific ones (all i can think of is )
 
@@ -51,8 +51,14 @@ void elf::load_program(void *ELF_baseadr, std::vector<std::string> *argv, bool r
 
     std::vector<multitasking::process_pagerange> pageranges;
 
-    pageranges.push_back({.phys_base = (uintptr_t)mm::phys::phys_malloc(pagecount), .virt_base = min_v, .pages = pagecount, .type = multitasking::process_pagerange::range_type::STATIC});
-    pageranges.push_back({.phys_base = (uintptr_t)mm::phys::phys_malloc(1), .virt_base = max_v + (ARCH_PAGE_SIZE * 47), .pages = 1, .type = multitasking::process_pagerange::range_type::BREAK});
+    pageranges.push_back({.phys_base = (uintptr_t)mm::phys::phys_malloc(pagecount),
+                          .virt_base = min_v,
+                          .pages = pagecount,
+                          .type = multitasking::process_pagerange::range_type::STATIC});
+    pageranges.push_back({.phys_base = (uintptr_t)mm::phys::phys_malloc(1),
+                          .virt_base = max_v + (ARCH_PAGE_SIZE * 47),
+                          .pages = 1,
+                          .type = multitasking::process_pagerange::range_type::BREAK});
 
     std::vector<multitasking::process_pagerange> old_pageranges;
     multitasking::createPageRange(&old_pageranges);

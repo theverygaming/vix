@@ -1,12 +1,12 @@
-#include <string>
-#include <vector>
 #include <debug.h>
 #include <fs/path.h>
 #include <fs/roramfs.h>
 #include <fs/vfs.h>
 #include <kprintf.h>
 #include <stdlib.h>
+#include <string>
 #include <types.h>
+#include <vector>
 
 struct __attribute__((packed)) file_entry {
     char name[100];
@@ -103,12 +103,7 @@ void fs::filesystems::roramfs::deinit() {}
 
 void fs::filesystems::roramfs::mountInVFS() {
     struct fs::vfs::fsinfo fs {
-        .info = nullptr,
-        .fopen = fopen,
-        .fclose = fclose,
-        .fread = fread,
-        .ftell = ftell,
-        .fseek = fseek,
+        .info = nullptr, .fopen = fopen, .fclose = fclose, .fread = fread, .ftell = ftell, .fseek = fseek,
     };
 
     fs::vfs::mount_fs(fs, "/");

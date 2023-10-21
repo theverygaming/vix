@@ -1,12 +1,12 @@
-#include <string>
-#include <vector>
 #include <debug.h>
 #include <fs/path.h>
 #include <fs/tarfs.h>
 #include <fs/vfs.h>
 #include <macros.h>
 #include <stdlib.h>
+#include <string>
 #include <types.h>
+#include <vector>
 
 // https://www.gnu.org/software/tar/manual/html_node/Standard.html
 struct __attribute__((packed)) tarheader {
@@ -186,12 +186,7 @@ void fs::filesystems::tarfs::deinit() {}
 
 void fs::filesystems::tarfs::mountInVFS() {
     struct fs::vfs::fsinfo fs {
-        .info = nullptr,
-        .fopen = fopen,
-        .fclose = fclose,
-        .fread = fread,
-        .ftell = ftell,
-        .fseek = fseek,
+        .info = nullptr, .fopen = fopen, .fclose = fclose, .fread = fread, .ftell = ftell, .fseek = fseek,
     };
 
     fs::vfs::mount_fs(fs, "/");

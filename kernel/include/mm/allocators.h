@@ -51,7 +51,8 @@ namespace mm::allocators {
         }
 
     private:
-        uint8_t allocator_bitmap[(max_block_count / 8) + 1]; // + 1 in case max_block_count is not divisible by 4, could otherwise end up with a too small bitmap
+        uint8_t allocator_bitmap[(max_block_count / 8) +
+                                 1]; // + 1 in case max_block_count is not divisible by 4, could otherwise end up with a too small bitmap
 
         void p_get_memmap_entry(size_t block, uint8_t *allocated) {
             if (block >= max_block_count) {

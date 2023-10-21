@@ -35,7 +35,9 @@ void cpuid::printFeatures() {
     DEBUG_PRINTF("CPU vendor: %s\n", vendor);
 
     DEBUG_PRINTF("checking features(EDX)\n");
-    char EDXfeatures[32][8] = {"FPU", "VME", "DE", "PSE", "TSC", "MSR", "PAE", "MCE", "CX8", "APIC", "???", "SEP", "MTRR", "PGE", "MCA", "CMOV", "PAT", "PSE36", "PSN", "CLFLUSH", "???", "DS", "ACPI", "MMX", "FXSR", "SSE", "SSE2", "SS", "HTT", "TM", "IA64", "PBE"};
+    char EDXfeatures[32][8] = {"FPU",  "VME",  "DE",   "PSE", "TSC",  "MSR", "PAE",   "MCE", "CX8",     "APIC", "???",
+                               "SEP",  "MTRR", "PGE",  "MCA", "CMOV", "PAT", "PSE36", "PSN", "CLFLUSH", "???",  "DS",
+                               "ACPI", "MMX",  "FXSR", "SSE", "SSE2", "SS",  "HTT",   "TM",  "IA64",    "PBE"};
     int unused, featuresEDX;
     CPUID_MACRO(1, unused, unused, unused, featuresEDX);
     DEBUG_PRINTF("CPU Features:\n");

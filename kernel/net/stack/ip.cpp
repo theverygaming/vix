@@ -1,9 +1,9 @@
 #include <endian.h>
+#include <kprintf.h>
 #include <mm/kmalloc.h>
 #include <net/stack/icmp.h>
 #include <net/stack/ip.h>
 #include <net/stack/stack.h>
-#include <kprintf.h>
 #include <stdlib.h>
 
 struct __attribute__((packed)) ipv4_packet {

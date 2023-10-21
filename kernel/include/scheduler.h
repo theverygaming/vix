@@ -1,6 +1,6 @@
 #pragma once
-#include <vector>
 #include <types.h>
+#include <vector>
 
 namespace schedulers {
     class generic_process {
@@ -32,7 +32,9 @@ namespace schedulers {
      */
     class generic_scheduler_singlethread {
     public:
-        void init(std::vector<generic_process *> *processes, void (*load_process)(generic_process *proc, void *ctx), void (*unload_process)(generic_process *proc, void *ctx));
+        void init(std::vector<generic_process *> *processes,
+                  void (*load_process)(generic_process *proc, void *ctx),
+                  void (*unload_process)(generic_process *proc, void *ctx));
 
         /*
          * called every tick(timer interrupt or similar)

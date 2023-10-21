@@ -4,8 +4,8 @@
 #include <time.h>
 
 #if defined(CONFIG_ARCH_X86) || defined(CONFIG_ARCH_M68K)
-#include <symbols.h>
 #include <stdlib.h>
+#include <symbols.h>
 #endif
 
 static const char *current_test_name = nullptr;

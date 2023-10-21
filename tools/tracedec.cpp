@@ -54,7 +54,10 @@ int main(int argc, char *argv[]) {
     }
 
     if (parsed_args != 2) {
-        fprintf(stderr, "usage: %s -i [input file] -s [symbol table]\nexample: nm -C --format=bsd -n kernel/kernel.o | ./tracedec -s /dev/stdin -i /tmp/ftrace.bin\n", argv[0]);
+        fprintf(stderr,
+                "usage: %s -i [input file] -s [symbol table]\nexample: nm -C --format=bsd -n kernel/kernel.o | ./tracedec -s /dev/stdin -i "
+                "/tmp/ftrace.bin\n",
+                argv[0]);
         return 1;
     }
 

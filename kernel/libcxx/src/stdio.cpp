@@ -138,7 +138,7 @@ static int printf_base(va_list args, const char *fmt, char *buf, size_t buf_len)
         chars_written += count;
         fmt += count;
     }
-    finish:
+finish:
     if (chars_written < (buf_len - 1)) {
         buf[chars_written] = '\0';
     } else {
