@@ -12,7 +12,7 @@ struct __attribute__((packed)) symtabentry {
 };
 
 uintptr_t syms::get_sym(const char *name) {
-    if (&symtab_start == &symtab_end || &symtab_start == nullptr) { // there is no symbol table
+    if (&symtab_start == &symtab_end) { // there is no symbol table
         return 0;
     }
     struct symtabentry *ptr = (struct symtabentry *)&symtab_start;
@@ -28,7 +28,7 @@ uintptr_t syms::get_sym(const char *name) {
 
 std::pair<const char *, uintptr_t> syms::get_sym(size_t n) {
     std::pair<const char *, uintptr_t> ret = {nullptr, 0};
-    if (&symtab_start == &symtab_end || &symtab_start == nullptr) { // there is no symbol table
+    if (&symtab_start == &symtab_end) { // there is no symbol table
         return ret;
     }
     struct symtabentry *ptr = (struct symtabentry *)&symtab_start;

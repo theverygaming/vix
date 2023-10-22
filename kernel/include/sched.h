@@ -47,6 +47,12 @@ namespace sched {
     // Called from inside a thread to kill it
     void __attribute__((noreturn)) die();
 
+    // FIXME: we need a proper critical section thingy
+    // disables scheduling
+    void disable();
+    // re-enables scheduling
+    void enable();
+
     // arch-specific
     void arch_init_thread(struct sched::task *proc, void (*func)());
 }

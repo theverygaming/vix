@@ -128,22 +128,6 @@ static void kt1() {
     }
 }
 
-extern "C" void x86_load_cpu_full_ctx(struct arch::full_ctx *ctx);
-//extern multitasking::x86_process *created_x86_proc;
-static void ut1() {
-    static volatile int lastpid = 0;
-    while (true) {
-        push_interrupt_disable();
-        volatile int test = 5;
-        kprintf(KP_INFO, "hi from user thread(PID %d) stack: 0x%p\n", sched::mypid(), &test);
-        pop_interrupt_disable();
-        tss::tss_entry.ss0 = GDT_KERNEL_DATA;
-        tss::tss_entry.esp0 = KERNEL_VIRT_ADDRESS + KERNEL_ISR_STACK_POINTER_OFFSET;
-        //multitasking::setPageRange(&created_x86_proc->pages);
-        //x86_load_cpu_full_ctx(&created_x86_proc->reg_ctx);
-    }
-}
-
 void arch::startup::kthread0() {
     void *elfptr = nullptr;
 
@@ -160,7 +144,6 @@ void arch::startup::kthread0() {
 
     sched::start_thread(kt1);
     sched::start_thread(kt1);
-    sched::start_thread(ut1);
 
     // a bit of a hack.. we have to call the vector destructor before killing this process
     // args.~vector();

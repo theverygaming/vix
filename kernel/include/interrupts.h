@@ -6,11 +6,12 @@ extern unsigned int pushpop_interrupt_state;
 extern unsigned int pushpop_interrupt_count;
 
 static inline void push_interrupt_disable() {
+    unsigned int state = arch::get_interrupt_state();
+    arch::set_interrupt_state(arch::INTERRUPT_STATE_DISABLED);
     if (pushpop_interrupt_count == 0) {
-        pushpop_interrupt_state = arch::get_interrupt_state();
+        pushpop_interrupt_state = state;
     }
     pushpop_interrupt_count++;
-    arch::set_interrupt_state(arch::INTERRUPT_STATE_DISABLED);
 }
 
 static inline void pop_interrupt_disable() {

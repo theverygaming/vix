@@ -332,8 +332,8 @@ void fb::fbconsole::putc_screen(char c) {
     int count = 0;
     char fontbuf[(psfreader.get_width() * psfreader.get_height()) / 8]; // hacky af
     psfreader.get_glyph(fontbuf, c);
-    for (int y = pos_y; y < pos_y + psfreader.get_height(); y++) {
-        for (int x = pos_x; x < pos_x + psfreader.get_width(); x++) {
+    for (size_t y = pos_y; y < pos_y + psfreader.get_height(); y++) {
+        for (size_t x = pos_x; x < pos_x + psfreader.get_width(); x++) {
             size_t bufindex = count / 8;
             size_t offset = count % 8;
             offset = 7 - offset; // invert offset

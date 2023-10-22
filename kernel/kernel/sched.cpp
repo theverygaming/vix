@@ -9,7 +9,7 @@ std::forward_list<sched::task> sched::sched_readyqueue;
 
 static struct sched::task *current = nullptr;
 
-static bool sched_initialized = false;
+static volatile bool sched_disabled = true;
 
 static struct sched::task *get_next() {
     if (unlikely(sched::sched_readyqueue.size() == 0)) {
@@ -27,11 +27,11 @@ static void enter_thread(struct sched::task *p) {
 }
 
 void sched::init() {
-    sched_initialized = true;
+    sched_disabled = false;
 }
 
 void sched::yield() {
-    if (unlikely(!sched_initialized)) {
+    if (unlikely(sched_disabled)) {
         return;
     }
     if (arch::get_interrupt_state() != arch::INTERRUPT_STATE_DISABLED) {
@@ -41,6 +41,7 @@ void sched::yield() {
     struct sched::task *last = current;
     current = get_next();
     if (last->ctx == current->ctx) {
+        pop_interrupt_disable();
         return;
     }
     last->state = sched::task::state::RUNNABLE;
@@ -88,4 +89,12 @@ void sched::die() {
     pop_interrupt_disable();
     enter_thread(get_next());
     KERNEL_PANIC("unreachable");
+}
+
+void sched::disable() {
+    sched_disabled = true;
+}
+
+void sched::enable() {
+    sched_disabled = false;
 }

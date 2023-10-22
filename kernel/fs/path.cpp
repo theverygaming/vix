@@ -34,7 +34,6 @@ bool fs::path::equals(std::vector<std::string> *path1, std::vector<std::string> 
 // TODO: this 3am code needs cleanup
 std::vector<std::string> fs::path::split_path(std::string *path) {
     std::vector<std::string> vec;
-    char last = 0;
 
     if (path->size() == 0 || (*path)[0] != '/') {
         DEBUG_PRINTF("weird path: [%s] -- processing anyway\n", path->c_str());

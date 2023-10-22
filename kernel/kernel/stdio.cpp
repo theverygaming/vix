@@ -186,7 +186,7 @@ static int printf_base(va_list *args, const char *fmt, char *buf, bool buf_write
                 memcpy(&buf[chars_written], fmt, can_write);
             }
         } else {
-            for (int i = 0; i < count; i++) {
+            for (size_t i = 0; i < count; i++) {
                 putc(fmt[i], serialonly);
             }
         }

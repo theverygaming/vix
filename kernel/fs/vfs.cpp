@@ -15,12 +15,12 @@ void fs::vfs::mount_fs(struct fsinfo fs, std::string mountpoint) {
 
 fs::vfs::file *fs::vfs::fopen(std::string path) {
     std::vector<std::string> split_path = fs::path::split_path(&path);
-    size_t best_depth = 0;
+    ssize_t best_depth = -1;
     struct fs::vfs::fsinfo *best_mountpoint = nullptr;
 
     for (size_t i = 0; i < mountpoints.size(); i++) {
         if (fs::path::starts_with(&split_path, &mountpoints[i].mount_path)) {
-            if (mountpoints[i].mount_path.size() >= best_depth) {
+            if ((ssize_t)mountpoints[i].mount_path.size() >= best_depth) {
                 best_depth = mountpoints[i].mount_path.size();
                 best_mountpoint = &mountpoints[i];
             }

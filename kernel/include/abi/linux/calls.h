@@ -15,4 +15,5 @@ namespace abi::linux {
     __DECL_LINUX_SYSCALL(sys_exit);
     __DECL_LINUX_SYSCALL(sys_read);
     __DECL_LINUX_SYSCALL(sys_write);
+    __DECL_LINUX_SYSCALL(sys_sysinfo);
 }

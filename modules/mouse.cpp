@@ -45,9 +45,9 @@ static void mouse_event(void *, struct drivers::ms_mouse::mouse_packet packet) {
     mouse_y = std::clamp(mouse_y, (ssize_t)0, (ssize_t)framebuffer.get_height());
 
     if (mouse_x + mouse_w < framebuffer.get_width() && mouse_y + mouse_h < framebuffer.get_height()) {
-        for (int y = 0; y < mouse_h; y++) {
-            for (int x = 0; x < mouse_w; x++) {
-                int index_o = (y * mouse_w * 3) + (x * 3);
+        for (size_t y = 0; y < mouse_h; y++) {
+            for (size_t x = 0; x < mouse_w; x++) {
+                size_t index_o = (y * mouse_w * 3) + (x * 3);
                 framebuffer.read_pixel(mouse_x + x, mouse_y + y, &mouse_bg[index_o], &mouse_bg[index_o + 1], &mouse_bg[index_o + 2]);
                 if (bitget(cursor[y], x)) {
                     framebuffer.write_pixel(mouse_x + x, mouse_y + y, 255, 255, 255);

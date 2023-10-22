@@ -22,4 +22,5 @@ namespace mm {
     void set_mem_map(struct mem_map_entry (*get_entry)(size_t n), size_t len);
     bool memmap_is_usable(mm::mem_map_entry::type_t type);
     const struct mem_map_entry *get_mem_map(size_t index);
+    uint64_t mem_map_get_total_usable_bytes();
 }

@@ -8,8 +8,8 @@
 
 namespace fs::vfs {
     /* new */
-    struct __attribute__((packed)) fsinfo { // TODO: only packed because no aligned malloc
-        void *info;                         // for internal use by the filesystem
+    struct fsinfo {
+        void *info; // for internal use by the filesystem
 
         void *(*fopen)(void *info, std::vector<std::string> *path);
         void (*fclose)(void *info, void *file);
@@ -23,7 +23,7 @@ namespace fs::vfs {
         std::vector<std::string> mount_path;
     };
 
-    typedef struct __attribute__((packed)) { // TODO: only packed because no aligned malloc
+    typedef struct {
         struct fsinfo mount; // do not use directly, currently we do not keep track of all open files so on every operation we have to check if this
                              // is still valid
         void *internal_file;

@@ -220,3 +220,15 @@ const struct mm::mem_map_entry *mm::get_mem_map(size_t index) {
     }
     return &memory_map[index];
 }
+
+uint64_t mm::mem_map_get_total_usable_bytes() {
+    uint64_t total = 0;
+    size_t i = 0;
+    const mem_map_entry *e;
+    while ((e = mm::get_mem_map(i++)) != nullptr) {
+        if (memmap_is_usable(e->type)) {
+            total += e->size;
+        }
+    }
+    return total;
+}
