@@ -17,6 +17,9 @@ namespace sched {
         struct arch_task task_arch;
 
         struct abi::linux::task task_linux;
+
+        // TLS
+        void *data;
     };
 
     extern std::forward_list<sched::task> sched_readyqueue;
@@ -30,7 +33,10 @@ namespace sched {
     // should only be called with interrupts disabled
     void yield();
 
-    void start_thread(void (*func)());
+    struct task init_thread(void (*func)(), void *data = nullptr);
+
+    void start_thread(void (*func)(), void *data = nullptr);
+    void start_thread(struct task);
 
     // Returns PID of current running thread
     int mypid();
@@ -42,5 +48,5 @@ namespace sched {
     void __attribute__((noreturn)) die();
 
     // arch-specific
-    void arch_init_proc(struct sched::task *proc, void (*func)());
+    void arch_init_thread(struct sched::task *proc, void (*func)());
 }

@@ -4,6 +4,8 @@ import os
 textchars = bytearray({7,8,9,10,12,13,27} | set(range(0x20, 0x100)) - {0x7f})
 is_binary_string = lambda bytes: bool(bytes.translate(None, textchars))
 
+all_files = []
+
 def list_dir(path, exclude_dirs):
     files_l = []
     for subdir, dirs, files in os.walk(path):
@@ -25,7 +27,9 @@ def loc_dir(path, exclude_dirs):
     lines = 0
     for file in files:
         if not is_binary_string(open(file, 'rb').read(1024)):
-            lines += sum(1 for line in open(file))
+            flines = sum(1 for line in open(file))
+            all_files.append((file, flines))
+            lines += flines
     if lines == 0:
         return None
     return path, lines
@@ -82,6 +86,7 @@ kernel_paths = [
     "kernel/net",
     "kernel/tests",
 ]
+
 kernel_paths = append_subdirs("kernel/arch/", kernel_paths)
 
 startup_paths = []
@@ -89,3 +94,8 @@ startup_paths = append_subdirs("startup/", startup_paths)
 
 print(gen_chart("Kernel LOC", kernel_paths, excludes))
 print(gen_chart("Startup LOC", startup_paths, excludes))
+
+all_files.sort(key=lambda x:x[1], reverse=True)
+print("\nTop 50 files with most LOC:\n\n| Filename | LOC |\n| -------- | --- |")
+for file in all_files[:50]:
+    print(f"|{file[0]}|{file[1]}|")

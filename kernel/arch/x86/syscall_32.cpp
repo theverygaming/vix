@@ -4,9 +4,18 @@
 #include <arch/common/cpu.h>
 #include <arch/multitasking.h>
 #include <arch/syscall_32.h>
-#include <arch/syscalls_32.h>
 #include <config.h>
 #include <debug.h>
+
+static abi::linux::syscall_arg_t(sys_dbg_2)(abi::linux::syscall_arg_t a0,
+                                            abi::linux::syscall_arg_t a1,
+                                            abi::linux::syscall_arg_t a2,
+                                            abi::linux::syscall_arg_t a3,
+                                            abi::linux::syscall_arg_t a4,
+                                            abi::linux::syscall_arg_t a5) {
+    multitasking::list_processes();
+    return 0;
+}
 
 abi::linux::syscall_arg_t (*syscall_table[440])(abi::linux::syscall_arg_t sysarg0,
                                                 abi::linux::syscall_arg_t sysarg1,

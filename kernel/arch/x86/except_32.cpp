@@ -2,8 +2,6 @@
 #include <arch/multitasking.h>
 #include <panic.h>
 
-#define PANIC_ON_PROGRAM_FAULT
-
 extern "C" void handle_x86_except(struct arch::full_ctx *regs) {
     switch (regs->interrupt) {
     case 14: {
@@ -49,14 +47,7 @@ extern "C" void handle_x86_except(struct arch::full_ctx *regs) {
             KERNEL_PANIC("kernel page fault");
         }
         kprintf(KP_ALERT, "isr: Killing current process\n");
-        if (multitasking::isProcessSwitchingEnabled()) {
-#ifdef PANIC_ON_PROGRAM_FAULT
-            KERNEL_PANIC("PANIC_ON_PROGRAM_FAULT");
-#endif
-            multitasking::killCurrentProcess(regs);
-        } else {
-            KERNEL_PANIC("");
-        }
+        KERNEL_PANIC("PANIC_ON_PROGRAM_FAULT");
     }
     default: {
         kprintf(KP_EMERG,

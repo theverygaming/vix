@@ -7,7 +7,7 @@ static void procret() {
     KERNEL_PANIC("returned from process");
 }
 
-void sched::arch_init_proc(struct sched::task *proc, void (*func)()) {
+void sched::arch_init_thread(struct sched::task *proc, void (*func)()) {
     uint32_t *stack = (uint32_t *)((uint8_t *)mm::kmalloc(1024) + 1024);
     stack -= 1;
     *stack = (uint32_t)procret;

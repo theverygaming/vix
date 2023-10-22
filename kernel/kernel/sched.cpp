@@ -7,7 +7,9 @@
 
 std::forward_list<sched::task> sched::sched_readyqueue;
 
-static struct sched::task *current;
+static struct sched::task *current = nullptr;
+
+static bool sched_initialized = false;
 
 static struct sched::task *get_next() {
     if (unlikely(sched::sched_readyqueue.size() == 0)) {
@@ -24,9 +26,14 @@ static void enter_thread(struct sched::task *p) {
     sched_switch(&tmp, current->ctx);
 }
 
-void sched::init() {}
+void sched::init() {
+    sched_initialized = true;
+}
 
 void sched::yield() {
+    if (unlikely(!sched_initialized)) {
+        return;
+    }
     if (arch::get_interrupt_state() != arch::INTERRUPT_STATE_DISABLED) {
         KERNEL_PANIC("yield called with interrupts enabled");
     }
@@ -47,16 +54,24 @@ void sched::enter() {
     KERNEL_PANIC("unreachable");
 }
 
-void sched::start_thread(void (*func)()) {
-    push_interrupt_disable();
+struct sched::task sched::init_thread(void (*func)(), void *data) {
     static int pid_counter = 0;
-    struct sched::task p;
-    sched::arch_init_proc(&p, func);
-    p.state = sched::task::state::RUNNABLE;
-    p.pid = pid_counter++;
+    struct sched::task t;
+    sched::arch_init_thread(&t, func);
+    t.state = sched::task::state::RUNNABLE;
+    t.pid = pid_counter++;
+    t.data = data;
+    return t;
+}
 
-    sched_readyqueue.push_front(p);
+void sched::start_thread(struct sched::task t) {
+    push_interrupt_disable();
+    sched_readyqueue.push_front(t);
     pop_interrupt_disable();
+}
+
+void sched::start_thread(void (*func)(), void *data) {
+    start_thread(init_thread(func, data));
 }
 
 int sched::mypid() {

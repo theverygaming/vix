@@ -64,7 +64,7 @@ void elf::load_program(void *ELF_baseadr, std::vector<std::string> *argv, bool r
     multitasking::createPageRange(&old_pageranges);
     multitasking::setPageRange(&pageranges);
 
-    struct multitasking::x86_process::tls_info tls;
+    //struct multitasking::x86_process::tls_info tls;
 
     // DEBUG_PRINTF("---Program Headers---\n");
     for (int i = 0; i < header.e_phnum; i++) {
@@ -77,7 +77,7 @@ void elf::load_program(void *ELF_baseadr, std::vector<std::string> *argv, bool r
             continue;
         }
 
-        if (pHeader.p_type == 7) {        // PT_TLS
+        /*if (pHeader.p_type == 7) {        // PT_TLS
             if (tls.tlsdata == nullptr) { // can't have two of em (i think you can but not with this loader for now)
                 DEBUG_PRINTF("    loaded TLS\n");
                 tls.tls_size = pHeader.p_memsz;
@@ -88,7 +88,7 @@ void elf::load_program(void *ELF_baseadr, std::vector<std::string> *argv, bool r
             } else {
                 KERNEL_PANIC("skill issue");
             }
-        }
+        }*/
 
         memset((void *)pHeader.p_vaddr, 0, pHeader.p_memsz);
         memcpy((void *)pHeader.p_vaddr, ((char *)ELF_baseadr) + pHeader.p_offset, pHeader.p_filesz);
@@ -105,8 +105,8 @@ void elf::load_program(void *ELF_baseadr, std::vector<std::string> *argv, bool r
     multitasking::setPageRange(&old_pageranges);
 
     if (replace_task) {
-        multitasking::replace_task((void *)(max + (ARCH_PAGE_SIZE * 40)), (void *)header.e_entry, &pageranges, argv, tls, replace_pid, regs);
+        //multitasking::replace_task((void *)(max + (ARCH_PAGE_SIZE * 40)), (void *)header.e_entry, &pageranges, argv, tls, replace_pid, regs);
     } else {
-        multitasking::create_task((void *)(max + (ARCH_PAGE_SIZE * 40)), (void *)header.e_entry, &pageranges, argv, tls);
+        multitasking::create_task((void *)(max + (ARCH_PAGE_SIZE * 40)), (void *)header.e_entry, &pageranges, argv);
     }
 }
