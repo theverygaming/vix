@@ -1,4 +1,4 @@
-obj-y += debug.ocpp framebuffer.ocpp kernel.ocpp psf.ocpp sched.ocpp stdio.ocpp time.ocpp kprintf.ocpp symbols.ocpp interrupts.ocpp
+obj-y += debug.ocpp framebuffer.ocpp kernel.ocpp psf.ocpp sched.ocpp stdio.ocpp time.ocpp kprintf.ocpp symbols.ocpp interrupts.ocpp elf.ocpp
 
 obj-$(CONFIG_ENABLE_BUILTIN_FONT) += unifont.bin.ocpp
 

@@ -98,3 +98,7 @@ void sched::disable() {
 void sched::enable() {
     sched_disabled = false;
 }
+
+bool sched::is_disabled() {
+    return sched_disabled;
+}

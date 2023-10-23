@@ -52,6 +52,8 @@ namespace sched {
     void disable();
     // re-enables scheduling
     void enable();
+    // returns true if scheduler is disabled
+    bool is_disabled();
 
     // arch-specific
     void arch_init_thread(struct sched::task *proc, void (*func)());

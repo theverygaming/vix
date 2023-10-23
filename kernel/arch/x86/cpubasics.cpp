@@ -17,8 +17,7 @@ static void set_pit_freq(int hz) {
 
 static void clockHandler(struct arch::full_ctx *regs) {
     time::ns_since_bootup = time::ns_since_bootup + 1000000;
-    uint8_t interrupt = (uint8_t)regs->interrupt; // multitasking may change this value, so we save it
-    drivers::pic::pic8259::eoi(interrupt);
+    drivers::pic::pic8259::eoi((uint8_t)regs->interrupt);
     multitasking::interruptTrigger(regs);
 }
 
