@@ -81,6 +81,7 @@ namespace std {
         }
 
         void resize(size_t n) {
+            // BUG: destructors not called here??
             _size = n;
             reallocate(n);
         }
@@ -107,24 +108,22 @@ namespace std {
             }
         }
 
-        void erase(size_t first, size_t last) { // TODO: have this not call the other erase function so it's faster
+        void erase(size_t first, size_t last) {
             if (first > last) {
                 return;
             }
             size_t count = (last - first) + 1;
             for (size_t i = 0; i < count; i++) {
-                erase(first);
+                _pointer[first + i].~T();
             }
+            if ((last + 1) < _size) {
+                memmove(&_pointer[first], &_pointer[last + 1], (_size - (first + 1)) * sizeof(T));
+            }
+            _size -= count;
         }
 
         void erase(size_t index) {
-            if (index < _size) {
-                _pointer[index].~T();
-                if ((index + 1) < _size) {
-                    memmove(&_pointer[index], &_pointer[index + 1], (_size - (index + 1)) * sizeof(T));
-                }
-                _size--;
-            }
+            erase(index, index);
         }
 
         void clear() {

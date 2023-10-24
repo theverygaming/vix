@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 #include <mm/kmalloc.h>
 #include <string>
 #include <types.h>
@@ -23,11 +24,21 @@ namespace fs::vfs {
         std::vector<std::string> mount_path;
     };
 
+    struct node {
+        std::string name;
+        enum class type { REGULAR_FILE, DIRECTORY } type;
+        std::vector<std::shared_ptr<struct node>> children;
+    };
+
     typedef struct {
         struct fsinfo mount; // do not use directly, currently we do not keep track of all open files so on every operation we have to check if this
                              // is still valid
         void *internal_file;
     } file;
+
+    void init();
+
+    void print_tree();
 
     void mount_fs(struct fsinfo fs, std::string mountpoint);
 

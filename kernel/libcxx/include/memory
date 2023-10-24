@@ -34,6 +34,7 @@ namespace std {
             refcount = moved.refcount;
             moved.ptr = nullptr;
             moved.refcount = nullptr;
+            return *this;
         }
 
         shared_ptr &operator=(const shared_ptr &p) {
@@ -73,6 +74,9 @@ namespace std {
         uint32_t *refcount;
 
         void clean() {
+            if (refcount == nullptr) {
+                return;
+            }
             if (*refcount != 0) {
                 (*refcount)--;
             }

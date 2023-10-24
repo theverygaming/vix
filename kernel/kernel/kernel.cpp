@@ -2,6 +2,7 @@
 #include <arch/generic/memory.h>
 #include <config.h>
 #include <debug.h>
+#include <fs/vfs.h>
 #include <kernel.h>
 #include <kprintf.h>
 #include <libcxx.h>
@@ -22,6 +23,7 @@ void run_all_tests();
 static void kthread0() {
     kprintf(KP_INFO, "kmain: first kernel thread started (PID %d)\n", sched::mypid());
     arch::startup::kthread0();
+    //fs::vfs::print_tree();
     kprintf(KP_INFO, "kmain: first kernel thread dying (PID %d)\n", sched::mypid());
     sched::die();
 }
@@ -35,6 +37,8 @@ void kernelstart() {
     arch::startup::stage2_startup();
     cpp_init();
     kprintf(KP_INFO, "kmain: initialized C++\n");
+    fs::vfs::init();
+    kprintf(KP_INFO, "kmain: initialized VFS\n");
 
     arch::startup::stage3_startup();
 

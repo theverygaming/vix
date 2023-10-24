@@ -6,6 +6,64 @@
 #include <mutex>
 #include <vector>
 
+static std::shared_ptr<struct fs::vfs::node> root;
+
+void fs::vfs::init() {
+    root = std::shared_ptr<struct fs::vfs::node>(new struct fs::vfs::node);
+    root->type = fs::vfs::node::type::DIRECTORY;
+    root->name = "";
+
+    struct fs::vfs::node *node = new struct fs::vfs::node;
+    node->name = "dir 1";
+    node->type = fs::vfs::node::type::DIRECTORY;
+    root->children.push_back(std::shared_ptr<struct fs::vfs::node>(node));
+
+    node = new struct fs::vfs::node;
+    node->name = "file 1";
+    node->type = fs::vfs::node::type::REGULAR_FILE;
+    root->children.push_back(std::shared_ptr<struct fs::vfs::node>(node));
+
+    node = new struct fs::vfs::node;
+    node->type = fs::vfs::node::type::DIRECTORY;
+    node->name = "file 3";
+
+    struct fs::vfs::node *node2 = new struct fs::vfs::node;
+    node2->name = "another file";
+    node2->type = fs::vfs::node::type::REGULAR_FILE;
+    node->children.push_back(std::shared_ptr<struct fs::vfs::node>(node2));
+
+    root->children.push_back(std::shared_ptr<struct fs::vfs::node>(node));
+}
+
+static std::shared_ptr<struct fs::vfs::node> get_node(std::vector<std::string> &path) {
+    std::shared_ptr<struct fs::vfs::node> current;
+    return current;
+    //for ()
+}
+
+static void print_node(std::shared_ptr<struct fs::vfs::node> node, size_t depth) {
+    std::string spaces;
+    spaces.resize(depth * 4);
+    for (size_t i = 0; i < depth * 4; i++) {
+        spaces[i] = ' ';
+    }
+
+    kprintf(KP_INFO, "%s-> VFS node \"%s\"\n", spaces.c_str(), node->name.c_str());
+
+    if (node->type == fs::vfs::node::type::DIRECTORY) {
+        for (size_t i = 0; i < node->children.size(); i++) {
+            print_node(node->children[i].get(), depth + 1);
+        }
+    }
+}
+
+void fs::vfs::print_tree() {
+    sched::disable();
+    kprintf(KP_INFO, "VFS tree:\n");
+    print_node(root, 0);
+    KERNEL_PANIC("done");
+}
+
 static std::vector<struct fs::vfs::fsinfo> mountpoints;
 
 void fs::vfs::mount_fs(struct fsinfo fs, std::string mountpoint) {

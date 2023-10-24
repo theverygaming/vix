@@ -64,6 +64,11 @@ void elf::load_program(void *ELF_baseadr, std::vector<std::string> *argv, bool r
     multitasking::createPageRange(&old_pageranges);
     multitasking::setPageRange(&pageranges);
 
+    // zero all allocated memory
+    for (size_t i = 0; i < pageranges.size(); i++) {
+        memset((void *)pageranges[i].virt_base, 0, pageranges[i].pages * ARCH_PAGE_SIZE);
+    }
+
     //struct multitasking::x86_process::tls_info tls;
 
     // DEBUG_PRINTF("---Program Headers---\n");
