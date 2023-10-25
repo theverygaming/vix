@@ -1,6 +1,31 @@
 #include <arch/common/cpu.h>
 #include <arch/multitasking.h>
 #include <panic.h>
+#include <symbols.h>
+
+struct stackframe {
+    struct stackframe *ebp;
+    uint32_t eip;
+};
+
+static void st_print_ip(uint32_t ip) {
+    std::pair<const char *, uintptr_t> sr = syms::find_func_sym(ip);
+    if (sr.first == nullptr) {
+        return;
+    }
+    kprintf(KP_ALERT, "TRACE: [0x%p] %s+0x%p\n", ip, sr.first, ip - sr.second);
+}
+
+static void do_stack_trace(uint32_t ebp) {
+    struct stackframe *p = (struct stackframe *)ebp;
+    while (p != nullptr) {
+        st_print_ip(p->eip);
+        p = p->ebp;
+        if ((uint32_t)p->ebp < 0xC0000000) {
+            break;
+        }
+    }
+}
 
 extern "C" void handle_x86_except(struct arch::full_ctx *regs) {
     switch (regs->interrupt) {
@@ -44,9 +69,13 @@ extern "C" void handle_x86_except(struct arch::full_ctx *regs) {
                 regs->ebp,
                 regs->eip);
         if ((regs->eip >= KERNEL_VIRT_ADDRESS) && (regs->eip < KERNEL_VIRT_ADDRESS + KERNEL_MEMORY_END_OFFSET)) {
+            st_print_ip(regs->eip);
+            do_stack_trace(regs->ebp);
             KERNEL_PANIC("kernel page fault");
         }
         kprintf(KP_ALERT, "isr: Killing current process\n");
+        st_print_ip(regs->eip);
+        do_stack_trace(regs->ebp);
         KERNEL_PANIC("PANIC_ON_PROGRAM_FAULT");
     }
     default: {
@@ -62,6 +91,8 @@ extern "C" void handle_x86_except(struct arch::full_ctx *regs) {
                 regs->ebp,
                 regs->eip);
         kprintf(KP_EMERG, "unhandled exception %u\n", (unsigned int)regs->interrupt);
+        st_print_ip(regs->eip);
+        do_stack_trace(regs->ebp);
         KERNEL_PANIC("unhandled exception");
     }
     }

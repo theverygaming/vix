@@ -43,3 +43,34 @@ std::pair<const char *, uintptr_t> syms::get_sym(size_t n) {
     }
     return ret;
 }
+
+std::pair<const char *, uintptr_t> syms::find_func_sym(uintptr_t addr) {
+    std::pair<const char *, uintptr_t> ret = {nullptr, 0};
+    if (&symtab_start == &symtab_end) { // there is no symbol table
+        return ret;
+    }
+
+    struct symtabentry *ptr = (struct symtabentry *)&symtab_start;
+
+    struct symtabentry *best_ptr = (struct symtabentry *)&symtab_start;
+    uintptr_t best_addr = 0;
+
+    while (ptr->value != 0 || strlen(ptr->symname) != 0) {
+        if (ptr->value < addr) {
+            if (ptr->value > best_addr) {
+                best_addr = ptr->value;
+                best_ptr = ptr;
+            }
+        }
+        ptr = (struct symtabentry *)(((uint8_t *)ptr) + sizeof(symtabentry) + strlen(ptr->symname) + 1);
+    }
+
+    if (best_ptr->value != best_addr) {
+        return ret;
+    }
+
+    ret.first = best_ptr->symname;
+    ret.second = best_ptr->value;
+
+    return ret;
+}
