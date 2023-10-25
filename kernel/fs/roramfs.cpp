@@ -8,6 +8,7 @@
 #include <types.h>
 #include <vector>
 
+/*
 struct __attribute__((packed)) file_entry {
     char name[100];
     uint32_t size;
@@ -32,7 +33,7 @@ static void *fopen(void *info, std::vector<std::string> *path) {
     struct file_entry *file_ptr = (struct file_entry *)(((uint8_t *)locationptr) + sizeof(struct header));
     for (uint32_t i = 0; i < fsheader.filecount; i++) {
         std::string p = file_ptr->name;
-        std::vector<std::string> p_s = fs::path::split_path(&p);
+        std::vector<std::string> p_s = fs::path::split_path(p);
         if (fs::path::equals(path, &p_s)) {
             struct file *f = new struct file;
             f->position = 0;
@@ -110,3 +111,4 @@ void fs::filesystems::roramfs::mountInVFS() {
 
     kprintf(KP_INFO, "roramfs: mounted\n");
 }
+*/

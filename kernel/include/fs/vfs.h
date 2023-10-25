@@ -8,25 +8,24 @@
 #define VFS_SEEK_END (1 << 0)
 
 namespace fs::vfs {
-    /* new */
     struct fsinfo {
         void *info; // for internal use by the filesystem
 
-        void *(*fopen)(void *info, std::vector<std::string> *path);
-        void (*fclose)(void *info, void *file);
+        size_t (*fread)(std::shared_ptr<struct node> node, size_t offset, void *buf, size_t count);
 
-        size_t (*fread)(void *info, void *file, void *buf, size_t count);
+        void *(*fopen)(std::shared_ptr<struct node> node);
+        void (*fclose)(std::shared_ptr<struct node> node, void *);
 
-        size_t (*ftell)(void *info, void *file);
-        void (*fseek)(void *info, void *file, size_t pos, unsigned int flags);
-
-        /* private to VFS */
-        std::vector<std::string> mount_path;
+        std::vector<std::shared_ptr<struct node>> (*readdir)(std::shared_ptr<struct node> node);
     };
 
     struct node {
-        std::string name;
         enum class type { REGULAR_FILE, DIRECTORY } type;
+
+        std::shared_ptr<struct fsinfo> fs;
+
+        std::string name;
+
         std::vector<std::shared_ptr<struct node>> children;
     };
 

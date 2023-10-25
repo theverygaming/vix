@@ -28,6 +28,7 @@ struct __attribute__((packed)) tarheader {
     char prefix[155];
 };
 
+/*
 // all the tar stuff is based on https://opensource.apple.com/source/libarchive/libarchive-32/libarchive/contrib/untar.c.auto.html
 
 static void *locationptr;
@@ -68,11 +69,13 @@ static bool verify_checksum(const void *mem) {
     const uint8_t *ptr = (const uint8_t *)mem;
     int n, u = 0;
     for (n = 0; n < 512; ++n) {
-        if (n < 148 || n > 155)
-            /* Standard tar checksum adds unsigned bytes. */
+        if (n < 148 || n > 155) {
+            // Standard tar checksum adds unsigned bytes.
             u += ptr[n];
-        else
+        }
+        else {
             u += 0x20;
+        }
     }
     return (u == parse_octal((const char *)ptr + 148, 8));
 }
@@ -94,7 +97,7 @@ static void *fopen(void *info, std::vector<std::string> *path) {
 
         if (file_ptr->typeflag == '0') {
             std::string p = file_ptr->name;
-            std::vector<std::string> p_s = fs::path::split_path(&p);
+            std::vector<std::string> p_s = fs::path::split_path(p);
             if (fs::path::equals(path, &p_s)) {
                 struct file *f = new struct file;
                 f->position = 0;
@@ -148,8 +151,25 @@ static void fseek(void *info, void *file, size_t pos, unsigned int flags) {
 
     f->position = pos;
 }
+*/
+
+static size_t fread(std::shared_ptr<struct fs::vfs::node> node, size_t offset, void *buf, size_t count) {
+    return 0;
+}
+
+static void *fopen(std::shared_ptr<struct fs::vfs::node> node) {
+    return nullptr;
+}
+
+static void fclose(std::shared_ptr<struct fs::vfs::node> node, void *) {}
+
+static std::vector<std::shared_ptr<struct fs::vfs::node>> readdir(std::shared_ptr<struct fs::vfs::node> node) {
+    std::vector<std::shared_ptr<struct fs::vfs::node>> dir;
+    return dir;
+}
 
 bool fs::filesystems::tarfs::init(void *location) {
+    /*
     locationptr = location;
     uint32_t total_size = 0;
 
@@ -180,13 +200,16 @@ bool fs::filesystems::tarfs::init(void *location) {
     DEBUG_PRINTF("    -> total: %u\n", total_size);
     kprintf(KP_INFO, "tarfs: initialized\n");
     return true;
+    */
+    return true;
 }
 
 void fs::filesystems::tarfs::deinit() {}
 
 void fs::filesystems::tarfs::mountInVFS() {
+
     struct fs::vfs::fsinfo fs {
-        .info = nullptr, .fopen = fopen, .fclose = fclose, .fread = fread, .ftell = ftell, .fseek = fseek,
+        .info = nullptr, .fread = fread, .fopen = fopen, .fclose = fclose, .readdir = readdir,
     };
 
     fs::vfs::mount_fs(fs, "/");

@@ -36,9 +36,24 @@ void fs::vfs::init() {
 }
 
 static std::shared_ptr<struct fs::vfs::node> get_node(std::vector<std::string> &path) {
-    std::shared_ptr<struct fs::vfs::node> current;
+    std::shared_ptr<struct fs::vfs::node> current = root;
+    for (size_t i = 0; i < path.size(); i++) {
+        bool found = false;
+        kprintf(KP_INFO, "a: %s\n", path[i].c_str());
+        for (size_t j = 0; j < current->children.size(); j++) {
+            if (current->children[j]->name == path[i]) {
+                found = true;
+                current = current->children[j];
+                break;
+            }
+        }
+        if (!found) {
+            kprintf(KP_INFO, "could not find: %s\n", path[i].c_str());
+            current = std::shared_ptr<struct fs::vfs::node>(nullptr);
+            break;
+        }
+    }
     return current;
-    //for ()
 }
 
 static void print_node(std::shared_ptr<struct fs::vfs::node> node, size_t depth) {
@@ -49,7 +64,6 @@ static void print_node(std::shared_ptr<struct fs::vfs::node> node, size_t depth)
     }
 
     kprintf(KP_INFO, "%s-> VFS node \"%s\"\n", spaces.c_str(), node->name.c_str());
-
     if (node->type == fs::vfs::node::type::DIRECTORY) {
         for (size_t i = 0; i < node->children.size(); i++) {
             print_node(node->children[i].get(), depth + 1);
@@ -64,15 +78,26 @@ void fs::vfs::print_tree() {
     KERNEL_PANIC("done");
 }
 
-static std::vector<struct fs::vfs::fsinfo> mountpoints;
-
 void fs::vfs::mount_fs(struct fsinfo fs, std::string mountpoint) {
-    fs.mount_path = fs::path::split_path(&mountpoint);
-    mountpoints.push_back(fs);
+    //kprintf(KP_INFO, "VFS tree:\n");
+    //print_node(root, 0);
+    std::vector<std::string> mp = fs::path::split_path(mountpoint);
+    std::shared_ptr<struct fs::vfs::node> mountnode = get_node(mp);
+    if (mountnode.get() == nullptr) {
+        return;
+    }
+    if (mountnode->type != fs::vfs::node::type::DIRECTORY) {
+        return;
+    }
+    mountnode->children.clear();
+    mountnode->fs = new struct fsinfo(fs);
+    //kprintf(KP_INFO, "VFS tree:\n");
+    //print_node(root, 0);
 }
 
 fs::vfs::file *fs::vfs::fopen(std::string path) {
-    std::vector<std::string> split_path = fs::path::split_path(&path);
+    /*
+    std::vector<std::string> split_path = fs::path::split_path(path);
     ssize_t best_depth = -1;
     struct fs::vfs::fsinfo *best_mountpoint = nullptr;
 
@@ -86,7 +111,7 @@ fs::vfs::file *fs::vfs::fopen(std::string path) {
     }
 
     if (best_depth == -1) {
-        DEBUG_PRINTF("no mountpoint for %s\n", fs::path::unsplit_path(&split_path).c_str());
+        DEBUG_PRINTF("no mountpoint for %s\n", fs::path::unsplit_path(split_path).c_str());
         return nullptr;
     }
 
@@ -94,34 +119,41 @@ fs::vfs::file *fs::vfs::fopen(std::string path) {
 
     void *internal = best_mountpoint->fopen(best_mountpoint->info, &split_path);
     if (internal == nullptr) {
-        DEBUG_PRINTF("no file for %s\n", fs::path::unsplit_path(&split_path).c_str());
+        DEBUG_PRINTF("no file for %s\n", fs::path::unsplit_path(split_path).c_str());
         return nullptr;
     }
 
     fs::vfs::file *f = new fs::vfs::file;
     f->mount = *best_mountpoint;
     f->internal_file = internal;
-    return f;
+    return f;*/
+    return nullptr;
 }
 
 void fs::vfs::fclose(file *file) {
+    /*
     if (file == nullptr) {
         return;
     }
     file->mount.fclose(file->mount.info, file->internal_file);
-    delete file;
+    delete file;*/
 }
 
 size_t fs::vfs::fread(file *file, void *buf, size_t count) {
-    return file->mount.fread(file->mount.info, file->internal_file, buf, count);
+    /*
+    return file->mount.fread(file->mount.info, file->internal_file, buf, count);*/
+    return 0;
 }
 
 size_t fs::vfs::ftell(file *file) {
-    return file->mount.ftell(file->mount.info, file->internal_file);
+    /*
+    return file->mount.ftell(file->mount.info, file->internal_file);*/
+    return 0;
 }
 
 void fs::vfs::fseek(file *file, size_t pos, unsigned int flags) {
-    file->mount.fseek(file->mount.info, file->internal_file, pos, flags);
+    /*
+    file->mount.fseek(file->mount.info, file->internal_file, pos, flags);*/
 }
 
 bool fs::vfs::fptr(const char *path, void **fileptr) {

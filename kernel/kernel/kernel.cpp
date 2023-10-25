@@ -23,7 +23,7 @@ void run_all_tests();
 static void kthread0() {
     kprintf(KP_INFO, "kmain: first kernel thread started (PID %d)\n", sched::mypid());
     arch::startup::kthread0();
-    //fs::vfs::print_tree();
+    fs::vfs::print_tree();
     kprintf(KP_INFO, "kmain: first kernel thread dying (PID %d)\n", sched::mypid());
     sched::die();
 }

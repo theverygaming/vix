@@ -32,32 +32,32 @@ bool fs::path::equals(std::vector<std::string> *path1, std::vector<std::string> 
 }
 
 // TODO: this 3am code needs cleanup
-std::vector<std::string> fs::path::split_path(std::string *path) {
+std::vector<std::string> fs::path::split_path(std::string &path) {
     std::vector<std::string> vec;
 
-    if (path->size() == 0 || (*path)[0] != '/') {
-        DEBUG_PRINTF("weird path: [%s] -- processing anyway\n", path->c_str());
+    if (path.size() == 0 || path[0] != '/') {
+        DEBUG_PRINTF("weird path: [%s] -- processing anyway\n", path.c_str());
     }
-    for (size_t i = 0; i < path->size(); i++) {
-        while (i < path->size() && (*path)[i] == '/') {
+    for (size_t i = 0; i < path.size(); i++) {
+        while (i < path.size() && path[i] == '/') {
             i++;
         }
-        if (i < path->size()) {
+        if (i < path.size()) {
             vec.push_back("");
         }
-        while (i < path->size() && (*path)[i] != '/') {
-            vec[vec.size() - 1] += (*path)[i];
+        while (i < path.size() && path[i] != '/') {
+            vec[vec.size() - 1] += path[i];
             i++;
         }
     }
     return vec;
 }
 
-std::string fs::path::unsplit_path(std::vector<std::string> *path) {
+std::string fs::path::unsplit_path(std::vector<std::string> &path) {
     std::string unsplit;
-    for (size_t i = 0; i < path->size(); i++) {
+    for (size_t i = 0; i < path.size(); i++) {
         unsplit += "/";
-        unsplit += (*path)[i];
+        unsplit += path[i];
     }
     return unsplit;
 }
