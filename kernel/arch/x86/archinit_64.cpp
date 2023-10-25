@@ -95,3 +95,4 @@ void idt::i686_IDT_Initialize() {}
 void isr::i686_ISR_Initialize() {}
 extern "C" void GDT_load_32() {}
 extern "C" void simd_enable_sse() {}
+extern "C" void x86_load_cpu_full_ctx() {}
