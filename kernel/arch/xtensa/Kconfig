@@ -1,0 +1,11 @@
+config ARCH_XTENSA
+  bool
+  default y
+
+menu "Security"
+
+config ENABLE_STACKPROTECTOR
+  default y
+  bool "Enable Stack Smashing Protector"
+
+endmenu
