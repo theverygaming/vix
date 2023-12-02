@@ -34,10 +34,28 @@ static void kernelinit() {
     kernelstart();
 }
 
+inline void write_addr_32(uint32_t *addr, uint32_t value) {
+    volatile uint32_t *ptr = (volatile uint32_t *)addr;
+    *ptr = value;
+}
+
 extern "C" void _kentry() {
     for (uint8_t *addr = &__bss_start; addr < &__bss_end; addr++) {
         *addr = 0;
     }
+
+    // HACK: disable the WDT's
+    // RTC WDT
+    write_addr_32((uint32_t *)0x3FF480A4, 0x050D83AA1); // RTC_CNTL_WDTWPROTECT_REG
+    write_addr_32((uint32_t *)0x3FF4808C, 0x00);        // RTC_CNTL_WDTCONFIG0_REG
+    // system WDT
+    /*
+    write_addr_32((uint32_t *)0x3FF5F064, 0x050D83AA1); // TIMG0_T0_WDTWPROTECT_REG
+    write_addr_32((uint32_t *)0x3FF60064, 0x050D83AA1); // TIMG1_T1_WDTWPROTECT_REG
+    write_addr_32((uint32_t *)0x3FF5F048, 0x00);        // TIMG0_T0_WDTCONFIG0_REG
+    write_addr_32((uint32_t *)0x3FF60048, 0x00);        // TIMG1_T1_WDTCONFIG0_REG
+    */
+
     kernelinit();
     while (true) {}
 }

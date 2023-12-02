@@ -2,6 +2,10 @@
 .section .text
 .global sched_switch
 sched_switch:
+    entry	sp, 32
+    mov.n	a7, sp
+    retw.n
+
     // FIXME
     /*
     move.l 4(%sp), %a0 // old

@@ -58,10 +58,12 @@ void kernelstart() {
     }
     kprintf(KP_INFO, "kmain: free physical memory: %u%ciB\n", freemem, unit);
 
-    kprintf(KP_INFO, "kmain: entering scheduler\n");
+    kprintf(KP_INFO, "kmain: initializing scheduler\n");
     sched::init();
 
+    kprintf(KP_INFO, "kmain: starting first scheduler thread\n");
     sched::start_thread(kthread0);
 
+    kprintf(KP_INFO, "kmain: entering scheduler\n");
     sched::enter();
 }
