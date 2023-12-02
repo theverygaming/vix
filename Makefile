@@ -41,6 +41,9 @@ img_x86_64:
 img-x86:
 	@$(MAKE) --no-print-directory -C kernel
 
+img-xtensa:
+	@$(MAKE) --no-print-directory -C kernel
+
 img-aarch64:
 	@$(MAKE) --no-print-directory -C kernel
 	@g++ tools/roramfs_create.cpp -o roramfs_create
@@ -50,6 +53,7 @@ img-aarch64:
 img-m68k:
 	@$(MAKE) --no-print-directory -C kernel
 
+clean-xtensa:
 clean-m68k:
 clean-aarch64:
 clean-x86:

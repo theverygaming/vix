@@ -15,14 +15,24 @@
 // ESP32 ROM
 void (*ets_write_char_uart)(char c) = (void (*)(char))0x40007cf8;
 
-static void kernelinit() {
-
-    stdio::set_putc_function(ets_write_char_uart, true);
-    kernelstart();
-}
-
 extern "C" uint8_t __bss_start;
 extern "C" uint8_t __bss_end;
+
+static void kernelinit() {
+    stdio::set_putc_function(ets_write_char_uart, true);
+    mm::set_mem_map(
+        [](size_t n) -> struct mm::mem_map_entry {
+            struct mm::mem_map_entry r;
+
+            r.base = (uintptr_t)&__bss_end;
+            r.size = (0x3FFF0000 + 0x70001) - (uintptr_t)&__bss_end;
+            r.type = mm::mem_map_entry::type_t::RAM;
+
+            return r;
+        },
+        1);
+    kernelstart();
+}
 
 extern "C" void _kentry() {
     for (uint8_t *addr = &__bss_start; addr < &__bss_end; addr++) {
