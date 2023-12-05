@@ -5,6 +5,7 @@ namespace arch {
     struct __attribute__((packed)) full_ctx {};
 
     struct __attribute__((packed)) ctx {
+        uint32_t ra;
         // FIXME
         /*uint32_t a2;
         uint32_t a3;
