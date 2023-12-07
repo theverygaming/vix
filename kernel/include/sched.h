@@ -14,7 +14,11 @@ namespace sched {
     struct task {
         int pid;
         enum class state { RUNNING, RUNNABLE } state;
+#ifndef SCHED_ARCH_HAS_CUSTOM_SWITCH
         struct arch::ctx *ctx;
+#else
+        SCHED_ARCH_CUSTOM_SWITCH_STRUCT_TASK_CTX_DEF;
+#endif
 
         struct arch_task task_arch;
 
