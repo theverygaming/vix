@@ -118,7 +118,7 @@ jobs:
       - name: run
         run: |
           cd $GITHUB_WORKSPACE
-          timeout 30 xvfb-run sh -c "qemu-system-aarch64 -m 1024m -bios /usr/share/qemu-efi-aarch64/QEMU_EFI.fd -cpu cortex-a53 -smp 4 -machine virt -device ramfb -device qemu-xhci -device usb-kbd -full-screen -serial mon:stdio -hda vix_uefi.img | ansifilter | tee log.txt & ffmpeg -y -framerate 25 -f x11grab -i +0,0 output.mp4"
+          timeout 30 xvfb-run sh -c "qemu-system-aarch64 -m 1024m -bios /usr/share/qemu-efi-aarch64/QEMU_EFI.fd -cpu cortex-a53 -smp 4 -machine virt -device ramfb -device qemu-xhci -device usb-kbd -full-screen -serial mon:stdio -hda vix_uefi.img | ansifilter | tee log.txt & ffmpeg -y -loglevel error -hide_banner -framerate 25 -f x11grab -i +0,0 output.mp4" || true
 
       - name: upload image
         uses: actions/upload-artifact@v3
