@@ -24,7 +24,7 @@ jobs:
       - name: run
         run: |
           cd $GITHUB_WORKSPACE
-          timeout 30 xvfb-run sh -c "qemu-system-x86_64 -cdrom vix.iso -full-screen | ansifilter | tee log.txt & ffmpeg -y -loglevel error -hide_banner -framerate 25 -f x11grab -i +0,0 output.mp4" || true
+          timeout 30 xvfb-run sh -c "qemu-system-x86_64 -cdrom vix.iso -serial mon:stdio | ansifilter | tee log.txt & ffmpeg -y -loglevel error -hide_banner -framerate 25 -f x11grab -i +0,0 output.mp4" || true
 
       - name: upload files
         uses: actions/upload-artifact@v3
