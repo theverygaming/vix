@@ -22,8 +22,12 @@ static struct sched::task *get_next() {
 static void enter_thread(struct sched::task *p) {
     current = p;
     p->state = sched::task::state::RUNNING;
+#ifndef SCHED_ARCH_HAS_CUSTOM_SWITCH
     struct arch::ctx *tmp;
     sched_switch(&tmp, current->ctx);
+#else
+    SCHED_ARCH_CUSTOM_SWITCH_ENTRY(tmp, current);
+#endif
 }
 
 void sched::init() {
@@ -47,7 +51,11 @@ void sched::yield() {
     last->state = sched::task::state::RUNNABLE;
     current->state = sched::task::state::RUNNING;
     pop_interrupt_disable();
+#ifndef SCHED_ARCH_HAS_CUSTOM_SWITCH
     sched_switch(&last->ctx, current->ctx);
+#else
+    SCHED_ARCH_CUSTOM_SWITCH(last, current);
+#endif
 }
 
 void sched::enter() {
