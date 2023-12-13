@@ -66,6 +66,22 @@ int strcmp(const char *lhs, const char *rhs) {
     return *((const unsigned char *)lhs) - *((const unsigned char *)rhs);
 }
 
+int strncmp(const char *lhs, const char *rhs, size_t count) {
+    size_t i;
+    for (i = 0; (i < count) && *lhs; i++) {
+        if (*lhs != *rhs) {
+            return *((const unsigned char *)lhs) - *((const unsigned char *)rhs);
+            break;
+        }
+        lhs++;
+        rhs++;
+    }
+    if (i == count) {
+        return 0;
+    }
+    return *((const unsigned char *)lhs) - *((const unsigned char *)rhs);
+}
+
 char *strstr(const char *str, const char *substr) {
     size_t substrlen = strlen(substr);
     while (*str) {

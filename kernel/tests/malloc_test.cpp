@@ -3,7 +3,7 @@
 #include <mm/phys.h>
 #include <panic.h>
 #include <stdio.h>
-#include <stdlib.h>
+#include <string.h>
 #include <test.h>
 
 static int rand_seed = 420;

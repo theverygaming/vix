@@ -4,7 +4,7 @@
 #include <time.h>
 
 #if defined(CONFIG_ARCH_X86) || defined(CONFIG_ARCH_M68K)
-#include <stdlib.h>
+#include <string.h>
 #include <symbols.h>
 #endif
 
