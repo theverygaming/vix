@@ -3,7 +3,7 @@
 #include <arch/tss.h>
 #include <debug.h>
 #include <kprintf.h>
-#include <stdlib.h>
+#include <string.h>
 #include <types.h>
 
 struct __attribute__((packed)) gdtEntry {

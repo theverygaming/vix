@@ -10,7 +10,7 @@
 #include <net/stack/stack.h>
 #include <panic.h>
 #include <stdio.h>
-#include <stdlib.h>
+#include <string.h>
 
 static uint8_t bus;
 static uint8_t device;

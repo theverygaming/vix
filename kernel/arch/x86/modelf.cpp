@@ -1,7 +1,7 @@
 #include <arch/modelf.h>
 #include <debug.h>
 #include <mm/kmalloc.h>
-#include <stdlib.h>
+#include <string.h>
 #include <string>
 #include <symbols.h>
 #include <vector>
@@ -87,7 +87,7 @@ struct __attribute__((packed)) elf32_section_header {
 #define R_386_PC32 2
 
 #define ELF32_R_SYM(x)  ((x) >> 8)
-#define ELF32_R_TYPE(x) ((x)&0xff)
+#define ELF32_R_TYPE(x) ((x) & 0xff)
 
 struct __attribute__((packed)) elf32_rel {
     uint32_t r_offset;

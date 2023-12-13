@@ -13,7 +13,8 @@
 			"extensions": [
 				"ms-vscode.cpptools-extension-pack",
 				"ms-vscode.makefile-tools",
-				"Gruntfuggly.todo-tree"
+				"Gruntfuggly.todo-tree",
+				"ms-vscode.hexeditor"
 			]
 		}
 	},

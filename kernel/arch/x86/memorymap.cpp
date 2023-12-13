@@ -3,7 +3,7 @@
 #include <kprintf.h>
 #include <mm/memmap.h>
 #include <panic.h>
-#include <stdlib.h>
+#include <string.h>
 
 typedef struct {
     uint64_t start;

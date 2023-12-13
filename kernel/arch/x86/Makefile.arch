@@ -1,6 +1,8 @@
+override INT_CFLAGS += -nostdlib -fno-pie -mno-red-zone -ffreestanding -fno-exceptions -mno-mmx -mno-sse -mno-sse2
 override INT_CXXFLAGS += -nostdlib -fno-pie -mno-red-zone -ffreestanding -fno-exceptions -mno-mmx -mno-sse -mno-sse2
 
 ifeq ($(CONFIG_ENABLE_KERNEL_64), y)
+override INT_CFLAGS += -mcmodel=kernel
 override INT_CXXFLAGS += -mcmodel=kernel
 endif
 
@@ -9,11 +11,14 @@ endif
 	@nasm -f elf $< -o $@
 
 ifeq ($(CONFIG_ENABLE_FTRACE), y)
+override INT_CFLAGS += -finstrument-functions
 override INT_CXXFLAGS += -finstrument-functions
 endif
 
 ifeq ($(CONFIG_ENABLE_STACKPROTECTOR), y)
+override INT_CFLAGS += -fstack-protector-strong -mstack-protector-guard=global
 override INT_CXXFLAGS += -fstack-protector-strong -mstack-protector-guard=global
 else
+override INT_CFLAGS += -fno-stack-protector
 override INT_CXXFLAGS += -fno-stack-protector
 endif

@@ -3,7 +3,7 @@
 #include <framebuffer.h>
 #include <fs/vfs.h>
 #include <panic.h>
-#include <stdlib.h>
+#include <string.h>
 
 static inline uint8_t bitget(uint32_t num, uint8_t bit) {
     return (num & (0x1 << bit)) >> bit;

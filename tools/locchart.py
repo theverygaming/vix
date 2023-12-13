@@ -48,7 +48,7 @@ def gen_chart(title, paths, exclude_dirs):
         str += f"    \"{count[0]}\" : {count[1]}\n"
         total += count[1]
     str += f"```\ntotal: {total}\n"
-    str += "| directory | LOC |\n|---|---|\n"
+    str += "| Directory | LOC |\n|---|---|\n"
     for count in counts:
         str += f"| {count[0]} | {count[1]} |\n"
     str += "\n"
@@ -68,6 +68,7 @@ excludes = [
     "kernel/arch/example/",
 
     "*.o",
+    "*.oc",
     "*.ocpp",
     "*.oS",
     "*.oasm",
@@ -82,7 +83,7 @@ excludes = [
 ]
 
 kernel_paths = [
-    "kernel/libcxx",
+    "kernel/stdlibs",
     "kernel/include",
     "kernel/drivers",
     "kernel/fs",

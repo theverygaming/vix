@@ -5,7 +5,7 @@
 #include <debug.h>
 #include <mm/kmalloc.h>
 #include <mm/phys.h>
-#include <stdlib.h>
+#include <string.h>
 #include <string>
 #include <vector>
 

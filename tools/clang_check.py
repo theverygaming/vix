@@ -40,6 +40,7 @@ excludes = [
     "kernel/arch/example/",
 
     "*.o",
+    "*.oc",
     "*.ocpp",
     "*.oS",
     "*.oasm",
@@ -60,7 +61,7 @@ excludes = [
 ]
 
 kernel_paths = [
-    "kernel/libcxx",
+    "kernel/stdlibs",
     "kernel/include",
     "kernel/drivers",
     "kernel/fs",

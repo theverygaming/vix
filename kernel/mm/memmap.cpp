@@ -5,7 +5,7 @@
 #include <macros.h>
 #include <mm/memmap.h>
 #include <panic.h>
-#include <stdlib.h>
+#include <string.h>
 
 static const char *type_string(mm::mem_map_entry::type_t type) {
     switch (type) {

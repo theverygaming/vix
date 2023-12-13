@@ -3,7 +3,6 @@
 #include <config.h>
 #include <debug.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <types.h>
 
 #define AVAILABLE       (1 << 0)

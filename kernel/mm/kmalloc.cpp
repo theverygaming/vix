@@ -9,7 +9,7 @@
 #include <mm/phys.h>
 #include <panic.h>
 #include <stdio.h>
-#include <stdlib.h>
+#include <string.h>
 #include <types.h>
 
 #define PROTECT_ALLOC_STRUCTS

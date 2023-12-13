@@ -2,7 +2,7 @@
 #include <debug.h>
 #include <libcxx/pnew.h>
 #include <mm/kmalloc.h>
-#include <stdlib.h>
+#include <string.h>
 
 namespace std {
     /* this is not threadsafe! */

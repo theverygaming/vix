@@ -4,7 +4,7 @@ LD=
 
 include Makefile.version
 
-BUILD_SUBDIRS := kernel drivers fs net tests mm libcxx abi
+BUILD_SUBDIRS := kernel drivers fs net tests mm stdlibs abi
 
 -include .config
 BUILD_ARCH := $(patsubst "%",%,$(CONFIG_ARCH))
@@ -23,6 +23,7 @@ $(eval $(call getcfgvar,CXX))
 $(eval $(call getcfgvar,LD))
 $(eval $(call getcfgvar,NM))
 $(eval $(call getcfgvar,OBJCOPY))
+$(eval $(call getcfgvar,CFLAGS))
 $(eval $(call getcfgvar,CXXFLAGS))
 $(eval $(call getcfgvar,LDFLAGS))
 endif
@@ -36,10 +37,12 @@ export ARCH
 
 # compiler stuff
 ifndef M
+CC      = $(CROSS_COMPILE)gcc
 CXX      = $(CROSS_COMPILE)g++
 LD       = $(CROSS_COMPILE)ld
 NM       = $(CROSS_COMPILE)nm
 OBJCOPY  = $(CROSS_COMPILE)objcopy
+CFLAGS = 
 CXXFLAGS = 
 LDFLAGS  = 
 endif
@@ -51,8 +54,8 @@ BUILD_SUBDIRS += arch/$(BUILD_ARCH)
 include arch/$(BUILD_ARCH)/Makefile.arch
 endif
 
-export INT_CXX INT_LD INT_NM INT_OBJCOPY INT_CXXFLAGS INT_LDFLAGS
-export CXX LD NM OBJCOPY CXXFLAGS LDFLAGS
+export INT_CC INT_CXX INT_LD INT_NM INT_OBJCOPY INT_CFLAGS INT_CXXFLAGS INT_LDFLAGS
+export CXX LD NM OBJCOPY CFLAGS CXXFLAGS LDFLAGS
 export BUILD_ARCH
 
 # module stuff
@@ -110,7 +113,7 @@ alldefconfig:
 # clean targets
 clean: modclean
 	@rm -f kernel.o kernel.bin symtab.s symtab.os kernel_partial.o
-	@find ./arch ./drivers ./fs ./include ./kernel ./net ./mm ./libcxx ./tests ./abi \( -name '*.oasm' -o -name '*.onasm' -o -name '*.ocpp' -o -name '*.ors' -o -name '*.rlib' -o -name '*.o' -o -name '*.os' -o -name '*.oS' \) -type f -delete
+	@find ./arch ./drivers ./fs ./include ./kernel ./net ./mm ./stdlibs ./tests ./abi \( -name '*.oasm' -o -name '*.onasm' -o -name '*.oc' -o -name '*.ocpp' -o -name '*.ors' -o -name '*.rlib' -o -name '*.o' -o -name '*.os' -o -name '*.oS' \) -type f -delete
 
 proper: clean
 	@$(MAKE) --quiet -C scripts/kconfig clean

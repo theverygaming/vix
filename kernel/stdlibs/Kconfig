@@ -1,0 +1,2 @@
+source "stdlibs/libc/Kconfig"
+source "stdlibs/libcxx/Kconfig"

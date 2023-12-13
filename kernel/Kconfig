@@ -14,7 +14,7 @@ menu "Networking"
 source "net/Kconfig"
 endmenu
 
-source "libcxx/Kconfig"
+source "stdlibs/Kconfig"
 source "tests/Kconfig"
 source "kernel/Kconfig"
 
@@ -37,6 +37,10 @@ config NM
 config OBJCOPY
     string
     default "$(OBJCOPY)"
+
+config CFLAGS
+    string
+    default "$(CFLAGS)"
 
 config CXXFLAGS
     string

@@ -13,7 +13,7 @@
 #include <mm/kmalloc.h>
 #include <panic.h>
 #include <stdio.h>
-#include <stdlib.h>
+#include <string.h>
 
 typedef void (*intHandler)(struct arch::full_ctx *regs);
 static intHandler handlers[256];

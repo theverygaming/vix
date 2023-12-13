@@ -1,6 +1,6 @@
 #include <debug.h>
 #include <kprintf.h>
-#include <stdlib.h>
+#include <string.h>
 #include <symbols.h>
 
 extern "C" char symtab_start;
