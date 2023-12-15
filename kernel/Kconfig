@@ -17,6 +17,7 @@ endmenu
 source "stdlibs/Kconfig"
 source "tests/Kconfig"
 source "kernel/Kconfig"
+source "rust/Kconfig"
 
 config ARCH
     string

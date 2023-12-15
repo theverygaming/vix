@@ -137,8 +137,8 @@ void arch::startup::kthread0() {
     }
 
     std::vector<std::string> args;
-    if (fs::vfs::fptr("/bin/shitshell", &elfptr)) {
-        args.push_back("/bin/shitshell");
+    if (fs::vfs::fptr("/bin/sh", &elfptr)) {
+        args.push_back("/bin/sh");
         elf::load_program(elfptr, &args);
     }
 

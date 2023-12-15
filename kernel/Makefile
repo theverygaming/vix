@@ -4,7 +4,7 @@ LD=
 
 include Makefile.version
 
-BUILD_SUBDIRS := kernel drivers fs net tests mm stdlibs abi
+BUILD_SUBDIRS := kernel drivers fs net tests mm stdlibs abi rust
 
 -include .config
 BUILD_ARCH := $(patsubst "%",%,$(CONFIG_ARCH))
@@ -113,7 +113,7 @@ alldefconfig:
 # clean targets
 clean: modclean
 	@rm -f kernel.o kernel.bin symtab.s symtab.os kernel_partial.o
-	@find ./arch ./drivers ./fs ./include ./kernel ./net ./mm ./stdlibs ./tests ./abi \( -name '*.oasm' -o -name '*.onasm' -o -name '*.oc' -o -name '*.ocpp' -o -name '*.ors' -o -name '*.rlib' -o -name '*.o' -o -name '*.os' -o -name '*.oS' \) -type f -delete
+	@find ./arch ./drivers ./fs ./include ./kernel ./net ./mm ./stdlibs ./tests ./abi ./rust \( -name '*.oasm' -o -name '*.onasm' -o -name '*.oc' -o -name '*.ocpp' -o -name '*.ors' -o -name '*.rlib' -o -name '*.o' -o -name '*.os' -o -name '*.oS' \) -type f -delete
 
 proper: clean
 	@$(MAKE) --quiet -C scripts/kconfig clean
@@ -121,6 +121,7 @@ proper: clean
 
 # recursive stuff - most of this is based on https://stackoverflow.com/q/56001646/20742078
 OBJS         :=
+LIBS         :=
 MODS         :=
 EXTRATARGETS :=
 objtree      := .
@@ -131,12 +132,14 @@ srctree := $$(srctree)/$(1)
 
 obj-m :=
 obj-y :=
+lib-y := 
 obj-d :=
 extratargets-y :=
 
 include $$(srctree)/Makefile
 
 OBJS += $$(patsubst %,$$(objtree)/%,$$(obj-y))
+LIBS += $$(patsubst %,$$(objtree)/%,$$(lib-y))
 MODS += $$(patsubst %,$$(objtree)/%,$$(obj-m))
 EXTRATARGETS += $$(patsubst %,$$(objtree)/%,$$(extratargets-y))
 
@@ -150,10 +153,20 @@ ifndef M
 $(foreach dir, $(BUILD_SUBDIRS), $(eval $(call build_subdir,$(dir))))
 endif
 
+.PHONY: pre_build
+pre_build: $(EXTRATARGETS)
+
+.PHONY: build_libs
+build_libs: $(LIBS)
+
+.PHONY: build_objs
+build_objs: $(OBJS)
+
 # final link
+# use .WAIT when GNU Make 4.4 is finally common
 .PHONY: kernel
-kernel: $(EXTRATARGETS) $(OBJS)
-	@$(INT_LD) $(INT_LDFLAGS) -r $(OBJS) -o kernel_partial.o
+kernel: | pre_build build_libs build_objs
+	@$(INT_LD) $(INT_LDFLAGS) -r $(OBJS) $(LIBS) -o kernel_partial.o
 	@./arch/$(BUILD_ARCH)/archlink.sh
 
 # kernel module stuff

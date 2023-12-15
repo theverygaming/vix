@@ -8,13 +8,15 @@
 			"password": "vscode"
 		}
 	},
+	"postCreateCommand": "./setup-devcontainer.sh",
 	"customizations": {
 		"vscode": {
 			"extensions": [
 				"ms-vscode.cpptools-extension-pack",
 				"ms-vscode.makefile-tools",
 				"Gruntfuggly.todo-tree",
-				"ms-vscode.hexeditor"
+				"ms-vscode.hexeditor",
+				"rust-lang.rust-analyzer"
 			]
 		}
 	},

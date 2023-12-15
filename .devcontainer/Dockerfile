@@ -8,6 +8,9 @@ RUN apt-get install --no-install-suggests -y wget bash-completion
 # deps
 RUN apt-get install --no-install-suggests -y python3 cmake pkg-config flex bison libncurses5-dev xxd
 
+# rust (bindgen dependency)
+RUN apt-get install --no-install-suggests -y libclang-dev
+
 # x86_32
 RUN apt-get install --no-install-suggests -y crossbuild-essential-i386 nasm xorriso grub-common grub-pc mtools
 RUN apt-get install --no-install-suggests -y qemu-system-x86

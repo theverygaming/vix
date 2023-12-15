@@ -22,6 +22,15 @@ override INT_CXXFLAGS += -I arch/$(BUILD_ARCH)/include -I stdlibs/libc/include -
 	@echo "  AS $<"
 	@$(INT_CXX) $(INT_CXXFLAGS) -c $< -o $@
 
+%.ors: %.rs
+	@echo "  RS $<"
+	rustc --extern kernel=rust/libkernel/libkernel.rlib --target i686-unknown-linux-gnu -C panic=abort --emit=obj $< -o $@
+
+%.rlib: %.rs
+	@echo "  RLIB $<"
+	@rustc --target i686-unknown-linux-gnu -C panic=abort --crate-type=rlib $< -o $@
+
+
 ifeq ($(CONFIG_UBSAN), y)
 override INT_CFLAGS += -fsanitize=undefined -fno-strict-overflow
 override INT_CXXFLAGS += -fsanitize=undefined -fno-strict-overflow

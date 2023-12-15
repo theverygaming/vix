@@ -110,7 +110,7 @@ static void write_kbuf(struct kp_buf_info info, char *src, size_t n) {
 
 static int current_loglevel = CONFIG_KPRINTF_LOGLEVEL;
 
-void kprintf(int loglevel, const char *fmt, ...) {
+extern "C" void kprintf(int loglevel, const char *fmt, ...) {
     // TODO: lock
     if (loglevel <= current_loglevel) {
         struct kp_buf_info info;

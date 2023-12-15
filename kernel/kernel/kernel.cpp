@@ -20,6 +20,10 @@
 void run_all_tests();
 #endif
 
+#ifdef CONFIG_RUST_SUPPORT
+extern "C" uint32_t rust_test(uint32_t);
+#endif
+
 static void kthread0() {
     kprintf(KP_INFO, "kmain: first kernel thread started (PID %d)\n", sched::mypid());
     arch::startup::kthread0();
@@ -48,6 +52,15 @@ void kernelstart() {
 
 #ifdef CONFIG_ARCH_X86
     drivers::pci::init();
+#endif
+
+#ifdef CONFIG_RUST_SUPPORT
+    kprintf(KP_INFO, "Calling Rust..\n");
+    if (rust_test(5) == 5) {
+        kprintf(KP_INFO, "Rust is working!\n");
+    } else {
+        kprintf(KP_INFO, "Rust returned the wrong value...\n");
+    }
 #endif
 
     size_t freemem = (mm::phys::phys_get_free_blocks() * ARCH_PAGE_SIZE) / 1024;
