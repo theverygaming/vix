@@ -7,5 +7,5 @@ pub const KP_NOTICE: core::ffi::c_int = 5;
 pub const KP_INFO: core::ffi::c_int = 6;
 pub const KP_DEBUG: core::ffi::c_int = 7;
 extern "C" {
-    pub fn kprintf(loglevel: ::c_int, fmt: *const ::c_char, ...);
+    pub fn kprintf(loglevel: core::ffi::c_int, fmt: *const core::ffi::c_char, ...);
 }
