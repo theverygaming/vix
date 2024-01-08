@@ -22,11 +22,11 @@ startup: $(OBJECTS_ASM) $(OBJECTS_CPP)
 	@
 
 %.ocpp: %.cpp $(HEADERS_CPP)
-	@echo "-> compiling startup/$<"
+	@echo "-> compiling prekernel/$<"
 	@$(CC) $(CFLAGS) -c $< -o $@
 
 %.oasm: %.asm
-	@echo "-> compiling startup/$<"
+	@echo "-> compiling prekernel/$<"
 	@nasm -f elf -o $@ $< 
 
 clean:

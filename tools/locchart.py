@@ -95,11 +95,11 @@ kernel_paths = [
 
 kernel_paths = append_subdirs("kernel/arch/", kernel_paths)
 
-startup_paths = []
-startup_paths = append_subdirs("startup/", startup_paths)
+prekernel_paths = []
+prekernel_paths = append_subdirs("prekernel/", prekernel_paths)
 
 print(gen_chart("Kernel LOC", kernel_paths, excludes))
-print(gen_chart("Startup LOC", startup_paths, excludes))
+print(gen_chart("Prekernel LOC", prekernel_paths, excludes))
 
 all_files.sort(key=lambda x:x[1], reverse=True)
 print("\nTop 50 files with most LOC:\n\n| Filename | LOC |\n| -------- | --- |")

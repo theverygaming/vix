@@ -15,10 +15,10 @@ menuconfig:
 	@$(MAKE) --no-print-directory -C kernel menuconfig
 
 img_x86_32:
-	@$(MAKE) --no-print-directory -C startup/$(MAKE_ARCH)
+	@$(MAKE) --no-print-directory -C prekernel/$(MAKE_ARCH)
 	@$(MAKE) --no-print-directory -C shitshell
 	@$(MAKE) --no-print-directory -C kernel/ M=$(PWD)/modules modules
-	@cat startup/$(MAKE_ARCH)/startup kernel/kernel.bin /dev/zero | dd status=none iflag=fullblock of=kernel.bin bs=65536 count=16 # make the ramfs land right at KERNEL_CODE_SIZE
+	@cat prekernel/$(MAKE_ARCH)/startup kernel/kernel.bin /dev/zero | dd status=none iflag=fullblock of=kernel.bin bs=65536 count=16 # make the ramfs land right at KERNEL_CODE_SIZE
 	@#g++ -m32 -march=i386 -static -static-libgcc -static-libstdc++ -mno-red-zone -fno-pie -fno-stack-protector tools/glibctest.cpp -o libctest
 	@#gcc -m32 -march=i386 -static -static-libgcc -mno-red-zone -fno-pie -fno-stack-protector tools/glibctest.c -o libctest -pthread
 	@#musl-gcc -m32 -march=i386 -static -static-libgcc -mno-red-zone -fno-pie -fno-stack-protector tools/glibctest.c -o libctest
@@ -56,8 +56,8 @@ clean-xtensa:
 clean-m68k:
 clean-aarch64:
 clean-x86:
-	@$(MAKE) --no-print-directory -C startup/$(MAKE_ARCH) clean
-	@$(MAKE) --no-print-directory -C startup/$(MAKE_ARCH) proper
+	@$(MAKE) --no-print-directory -C prekernel/$(MAKE_ARCH) clean
+	@$(MAKE) --no-print-directory -C prekernel/$(MAKE_ARCH) proper
 
 clean: clean-$(MAKE_ARCH)
 	@rm -f vix.img vix.iso *.o

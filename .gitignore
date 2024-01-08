@@ -24,7 +24,7 @@ initramfs.bin
 /boot/stage1
 /shitshell/shitshell
 /vix_app.img
-/startup/x86/startup
+/prekernel/x86/startup
 /vix.iso
 /roramfs_create
 /roramfs.fs
