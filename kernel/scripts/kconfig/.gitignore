@@ -1,9 +1,0 @@
-config
-nconfig
-menuconfig
-xconfig
-gconfig
-parser.tab.c
-parser.tab.h
-lexer.lex.c
-qconf-moc.cpp

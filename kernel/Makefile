@@ -72,11 +72,17 @@ endif
 doxygen:
 	@doxygen
 
-syncconfig:
+scripts/kconfig/Makefile:
+	@curl https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.7.5.tar.xz -o linux-6.7.5.tar.xz
+	@tar -xvf linux-6.7.5.tar.xz linux-6.7.5/scripts/kconfig/ -C scripts/kconfig --strip-components=1
+	@rm -f linux-6.7.5.tar.xz
+	@cp scripts/kconfig_Makefile scripts/kconfig/Makefile
+
+syncconfig: scripts/kconfig/Makefile
 	@$(MAKE) --quiet -C scripts/kconfig/ config
 	@scripts/kconfig/config Kconfig --silent --syncconfig
 
-help:
+help: scripts/kconfig/Makefile
 	@echo 'Cleaning targets:'
 	@echo '  clean           - remove everything not required for building modules'
 	@echo '  proper          - clean + remove everything generated'
@@ -86,27 +92,27 @@ help:
 	@echo 'Execute "make" or "make all" to build all targets marked with [*]'
 
 # kconfig targets
-config:
+config: scripts/kconfig/Makefile
 	@$(MAKE) --quiet -C scripts/kconfig/ config
 	@scripts/kconfig/config Kconfig --oldaskconfig
 
-nconfig: 
+nconfig: scripts/kconfig/Makefile
 	@$(MAKE) --quiet -C scripts/kconfig/ nconfig
 	@scripts/kconfig/nconfig Kconfig
 
-menuconfig: 
+menuconfig: scripts/kconfig/Makefile
 	@$(MAKE) --quiet -C scripts/kconfig/ menuconfig
 	@scripts/kconfig/menuconfig Kconfig
 
-xconfig: 
+xconfig: scripts/kconfig/Makefile
 	@$(MAKE) --quiet -C scripts/kconfig/ xconfig
 	@scripts/kconfig/xconfig Kconfig
 
-gconfig: 
+gconfig: scripts/kconfig/Makefile
 	@$(MAKE) --quiet -C scripts/kconfig/ gconfig
 	@scripts/kconfig/gconfig Kconfig
 
-alldefconfig: 
+alldefconfig: scripts/kconfig/Makefile
 	@$(MAKE) --quiet -C scripts/kconfig/ config
 	@scripts/kconfig/config Kconfig --silent --alldefconfig
 
