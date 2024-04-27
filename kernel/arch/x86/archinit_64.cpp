@@ -7,6 +7,8 @@
 #include <framebuffer.h>
 #include <kernel.h>
 #include <mm/kmalloc.h>
+#include <fs/tarfs.h>
+#include <fs/vfs.h>
 #include <mm/memmap.h>
 #include <panic.h>
 #include <stdio.h>
@@ -17,6 +19,7 @@ static fb::fbconsole fbconsole;
 
 static volatile struct limine_memmap_request memmap_request = {.id = LIMINE_MEMMAP_REQUEST, .revision = 0};
 static volatile struct limine_framebuffer_request framebuffer_request = {.id = LIMINE_FRAMEBUFFER_REQUEST, .revision = 0};
+static volatile struct limine_module_request module_request = {.id = LIMINE_MODULE_REQUEST, .revision = 0};
 
 
 static void fbputc(char c) {
@@ -86,6 +89,11 @@ void arch::startup::stage2_startup() {}
 
 void arch::startup::stage3_startup() {
     time::bootupTime = time::getCurrentUnixTime();
+    if (module_request.response != nullptr && module_request.response->module_count > 0) {
+        if (fs::filesystems::tarfs::init(module_request.response->modules[0]->address)) {
+            fs::filesystems::tarfs::mountInVFS();
+        }
+    }
     framebuffer.clear();
     fbconsole.init2();
     stdio::set_putc_function(fbputc);

@@ -32,7 +32,7 @@ mmd -i image_extracted.img ::boot
 
 mcopy -i image_extracted.img rootfs-aarch64/boot/limine.cfg ::boot/
 mcopy -i image_extracted.img ../kernel/kernel.o ::boot/kernel.o
-#mcopy -i image_extracted.img ../roramfs.fs ::boot/initramfs.bin
+mcopy -i image_extracted.img ../roramfs.fs ::boot/initramfs.bin
 
 mmd -i image_extracted.img ::EFI
 mmd -i image_extracted.img ::EFI/BOOT

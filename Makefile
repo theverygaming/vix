@@ -22,8 +22,6 @@ bootimg-x86-32:
 	@#g++ -m32 -march=i386 -static -static-libgcc -static-libstdc++ -mno-red-zone -fno-pie -fno-stack-protector tools/glibctest.cpp -o libctest
 	@#gcc -m32 -march=i386 -static -static-libgcc -mno-red-zone -fno-pie -fno-stack-protector tools/glibctest.c -o libctest -pthread
 	@#musl-gcc -m32 -march=i386 -static -static-libgcc -mno-red-zone -fno-pie -fno-stack-protector tools/glibctest.c -o libctest
-	@g++ tools/roramfs_create.cpp -o roramfs_create
-	@#./roramfs_create roramfs.fs "insert fs label here" shitshell/shitshell modules/module.o fonts/Unifont-APL8x16-15.0.01.psf
 	@mkdir -p sysroot/usr/share/consolefonts/ sysroot/usr/lib/modules sysroot/bin/
 	@cp shitshell/shitshell sysroot/bin/sh
 	@cp modules/module.o sysroot/usr/lib/modules
@@ -33,8 +31,9 @@ bootimg-x86-32:
 	@boot/createimg-x86_32.sh
 
 bootimg-x86-64:
-	@g++ tools/roramfs_create.cpp -o roramfs_create
-	@./roramfs_create roramfs.fs "insert fs label here" fonts/Unifont-APL8x16-15.0.01.psf
+	@mkdir -p sysroot/usr/share/consolefonts/
+	@cp fonts/Unifont-APL8x16-15.0.01.psf sysroot/usr/share/consolefonts
+	@find sysroot/ -printf "%P\n" | tar --format=ustar -cf roramfs.fs --no-recursion -C sysroot/ -T -
 	@boot/createimg-x86_64.sh
 
 bootimg-m68k:
@@ -49,8 +48,9 @@ bootimg-m68k:
 	@cat ../macboot/startup fs.img > disk.img
 
 bootimg-aarch64:
-	@g++ tools/roramfs_create.cpp -o roramfs_create
-	@./roramfs_create roramfs.fs "insert fs label here" fonts/Unifont-APL8x16-15.0.01.psf
+	@mkdir -p sysroot/usr/share/consolefonts/
+	@cp fonts/Unifont-APL8x16-15.0.01.psf sysroot/usr/share/consolefonts
+	@find sysroot/ -printf "%P\n" | tar --format=ustar -cf roramfs.fs --no-recursion -C sysroot/ -T -
 	@boot/createimg-aarch64.sh
 
 kernel-x86:
@@ -80,3 +80,4 @@ clean: clean-$(MAKE_ARCH)
 
 distclean: clean
 	@$(MAKE) --no-print-directory -C kernel distclean
+	@rm -rf sysroot/
