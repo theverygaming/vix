@@ -29,6 +29,7 @@ References: [PenutOS](https://github.com/AlexandreRouma/PenutOS/), [nanobyte_os]
 
 
 ## Building locally
+### NOTE: THIS MAY BE OUTDATED
 
 first make sure you have all submodules. Simply clone like this
 ```
@@ -45,6 +46,7 @@ sudo apt install nasm gcc-multilib g++-multilib xorriso grub-common grub-pc mtoo
 Now refer to the [general build instructions](#general-build-instructions)
 
 ## Building inside devcontainer
+### NOTE: THIS MAY BE OUTDATED
 
 run ``git submodule update --init --recursive`` to get all submodules
 
@@ -53,10 +55,11 @@ in the devcontainer there is a window manager and a VNC server running. You can 
 Now refer to the [general build instructions](#general-build-instructions)
 
 ## General build instructions
+### NOTE: THIS MAY BE OUTDATED
 
 first you have to configure the kernel, you could either simply use the default config (``make alldefconfig``) or configure it yourself (``make menuconfig``)
 
-then you can simply build with ``make`` and then ``make img_x86_32`` (if you have a x86_32 system, otherwise use the ``CROSS_COMPILE`` environment variable or on x86_64 you can use ``CXXFLAGS="-m32 -march=i386" LDFLAGS="-m elf_i386"``)
+then you can simply build with ``make`` and then ``make bootimg-x86-32`` (if you have a x86_32 system, otherwise use the ``CROSS_COMPILE`` environment variable or on x86_64 you can use ``CXXFLAGS="-m32 -march=i386" LDFLAGS="-m elf_i386"``)
 
 a bootable iso named ``vix.iso`` will be created
 

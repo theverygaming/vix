@@ -33,7 +33,7 @@
 #include <time.h>
 #include <vector>
 
-fb::fb framebuffer; // HACK: exported so modules can use it TODO: have a central framebuffer manager that takes care of this
+fb::fb framebuffer; // HACK: exported so modules can use it // TODO: have a central framebuffer manager that takes care of this
 static fb::fbconsole fbconsole;
 
 static void fbputc(char c) {

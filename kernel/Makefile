@@ -85,7 +85,7 @@ syncconfig: scripts/kconfig/Makefile
 help: scripts/kconfig/Makefile
 	@echo 'Cleaning targets:'
 	@echo '  clean           - remove everything not required for building modules'
-	@echo '  proper          - clean + remove everything generated'
+	@echo '  distclean          - clean + remove everything generated'
 	@echo 'Configuration targets:'
 	@$(MAKE) --quiet -C scripts/kconfig/ help
 	@echo ''
@@ -121,7 +121,7 @@ clean: modclean
 	@rm -f kernel.o kernel.bin symtab.s symtab.os kernel_partial.o
 	@find ./arch ./drivers ./fs ./include ./kernel ./net ./mm ./stdlibs ./tests ./abi ./rust \( -name '*.oasm' -o -name '*.onasm' -o -name '*.oc' -o -name '*.ocpp' -o -name '*.ors' -o -name '*.rlib' -o -name '*.o' -o -name '*.os' -o -name '*.oS' \) -type f -delete
 
-proper: clean
+distclean: clean
 	@$(MAKE) --quiet -C scripts/kconfig clean
 	@rm -f .config .config_old
 

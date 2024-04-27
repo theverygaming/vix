@@ -19,7 +19,7 @@ jobs:
           make alldefconfig MAKE_ARCH=x86
           make tests MAKE_ARCH=x86
           make MAKE_ARCH=x86 CFLAGS="-m32 -march=i386" LDFLAGS="-m elf_i386" CXXFLAGS="-m32 -march=i386" LDFLAGS="-m elf_i386" 
-          make img_x86_32 MAKE_ARCH=x86
+          make bootimg-x86-32 MAKE_ARCH=x86
 
       - name: run
         run: |
@@ -53,9 +53,8 @@ jobs:
       - name: build limine
         run: |
           cd $GITHUB_WORKSPACE/../
-          wget https://github.com/limine-bootloader/limine/releases/download/v4.20230114.0/limine-4.20230114.0.tar.gz
-          tar -xf limine-4.20230114.0.tar.gz
-          mv limine-4.20230114.0/ limine/
+          wget https://github.com/limine-bootloader/limine/releases/download/v7.4.0/limine-7.4.0.tar.gz
+          tar -xf limine-7.4.0.tar.gz && mv limine-7.4.0/ limine/
           cd limine
           ./bootstrap
           ./configure --enable-uefi-x86-64 --enable-bios
@@ -68,7 +67,7 @@ jobs:
           make tests MAKE_ARCH=x86
           sed -i 's/CONFIG_ENABLE_KERNEL_32=y/# CONFIG_ENABLE_KERNEL_32=y\nCONFIG_ENABLE_KERNEL_64=y/g' kernel/.config
           make MAKE_ARCH=x86
-          make img_x86_64 MAKE_ARCH=x86
+          PATH="$GITHUB_WORKSPACE/../limine/bin:$PATH" make bootimg-x86-64 MAKE_ARCH=x86
 
       - name: run
         run: |
@@ -102,9 +101,8 @@ jobs:
       - name: build limine
         run: |
           cd $GITHUB_WORKSPACE/../
-          wget https://github.com/limine-bootloader/limine/releases/download/v4.20230114.0/limine-4.20230114.0.tar.gz
-          tar -xf limine-4.20230114.0.tar.gz
-          mv limine-4.20230114.0/ limine/
+          wget https://github.com/limine-bootloader/limine/releases/download/v7.4.0/limine-7.4.0.tar.gz
+          tar -xf limine-7.4.0.tar.gz && mv limine-7.4.0/ limine/
           cd limine
           ./bootstrap
           CROSS_TOOLCHAIN=aarch64-linux-gnu ./configure --enable-uefi-aarch64
@@ -114,6 +112,7 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE
           make alldefconfig tests all MAKE_ARCH=aarch64 CROSS_COMPILE=aarch64-linux-gnu-
+          PATH="$GITHUB_WORKSPACE/../limine/bin:$PATH" make bootimg-aarch64
 
       - name: run
         run: |

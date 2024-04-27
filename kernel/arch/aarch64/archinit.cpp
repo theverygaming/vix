@@ -34,7 +34,7 @@ static void cpuinit(uint64_t cpu) {
 }
 
 static void kernelinit() {
-    if (terminal_request.response == NULL || terminal_request.response->terminal_count < 1) {
+    if (terminal_request.response == nullptr || terminal_request.response->terminal_count < 1) {
         while (true) {}
     }
     stdio::set_putc_function(limineputc, true);

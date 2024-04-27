@@ -3,7 +3,7 @@ ARCH := $(MAKE_ARCH)
 export MAKE_ARCH
 export ARCH
 
-all: img-$(MAKE_ARCH)
+all: kernel-$(MAKE_ARCH)
 
 alldefconfig:
 	@$(MAKE) --no-print-directory -C kernel alldefconfig
@@ -14,7 +14,7 @@ tests:
 menuconfig:
 	@$(MAKE) --no-print-directory -C kernel menuconfig
 
-img_x86_32:
+bootimg-x86-32:
 	@$(MAKE) --no-print-directory -C prekernel/$(MAKE_ARCH)
 	@$(MAKE) --no-print-directory -C shitshell
 	@$(MAKE) --no-print-directory -C kernel/ M=$(PWD)/modules modules
@@ -32,24 +32,37 @@ img_x86_32:
 	@cat kernel.bin roramfs.fs /dev/zero | dd status=none iflag=fullblock of=kernel_shitshell.bin bs=65536 count=83
 	@boot/createimg-x86_32.sh
 
-img_x86_64:
+bootimg-x86-64:
 	@g++ tools/roramfs_create.cpp -o roramfs_create
 	@./roramfs_create roramfs.fs "insert fs label here" fonts/Unifont-APL8x16-15.0.01.psf
 	@boot/createimg-x86_64.sh
 
-img-x86:
-	@$(MAKE) --no-print-directory -C kernel
+bootimg-m68k:
+	@touch fs.img
+	@truncate --size 1M fs.img
+	@mkfs.fat -F12 fs.img -v
+	@mmd -i fs.img ::boot
+	@mcopy -i fs.img kernel/kernel.bin ::/boot/kernel
+	@mcopy -i fs.img ../macboot/example/boot.cfg ::/
+	@mdir -i fs.img ::/
+	@mdir -i fs.img ::/boot
+	@cat ../macboot/startup fs.img > disk.img
 
-img-xtensa:
-	@$(MAKE) --no-print-directory -C kernel
-
-img-aarch64:
-	@$(MAKE) --no-print-directory -C kernel
+bootimg-aarch64:
 	@g++ tools/roramfs_create.cpp -o roramfs_create
 	@./roramfs_create roramfs.fs "insert fs label here" fonts/Unifont-APL8x16-15.0.01.psf
 	@boot/createimg-aarch64.sh
 
-img-m68k:
+kernel-x86:
+	@$(MAKE) --no-print-directory -C kernel
+
+kernel-xtensa:
+	@$(MAKE) --no-print-directory -C kernel
+
+kernel-aarch64:
+	@$(MAKE) --no-print-directory -C kernel
+
+kernel-m68k:
 	@$(MAKE) --no-print-directory -C kernel
 
 clean-xtensa:
@@ -57,7 +70,7 @@ clean-m68k:
 clean-aarch64:
 clean-x86:
 	@$(MAKE) --no-print-directory -C prekernel/$(MAKE_ARCH) clean
-	@$(MAKE) --no-print-directory -C prekernel/$(MAKE_ARCH) proper
+	@$(MAKE) --no-print-directory -C prekernel/$(MAKE_ARCH) distclean
 
 clean: clean-$(MAKE_ARCH)
 	@rm -f vix.img vix.iso *.o
@@ -65,5 +78,5 @@ clean: clean-$(MAKE_ARCH)
 	@$(MAKE) --no-print-directory -C shitshell clean
 	@$(MAKE) --no-print-directory -C kernel/ M=$(PWD)/modules clean
 
-proper: clean
-	@$(MAKE) --no-print-directory -C kernel proper
+distclean: clean
+	@$(MAKE) --no-print-directory -C kernel distclean
