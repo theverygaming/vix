@@ -59,6 +59,7 @@ jobs:
           ./bootstrap
           ./configure --enable-uefi-x86-64 --enable-bios
           make -j $(nproc)
+          sudo make install
 
       - name: compile
         run: |
@@ -67,7 +68,7 @@ jobs:
           make tests MAKE_ARCH=x86
           sed -i 's/CONFIG_ENABLE_KERNEL_32=y/# CONFIG_ENABLE_KERNEL_32=y\nCONFIG_ENABLE_KERNEL_64=y/g' kernel/.config
           make MAKE_ARCH=x86
-          PATH="$GITHUB_WORKSPACE/../limine/bin:$PATH" make bootimg-x86-64 MAKE_ARCH=x86
+          make bootimg-x86-64 MAKE_ARCH=x86
 
       - name: run
         run: |
@@ -107,12 +108,13 @@ jobs:
           ./bootstrap
           CROSS_TOOLCHAIN=aarch64-linux-gnu ./configure --enable-uefi-aarch64
           make -j $(nproc)
+          sudo make install
 
       - name: compile
         run: |
           cd $GITHUB_WORKSPACE
           make alldefconfig tests all MAKE_ARCH=aarch64 CROSS_COMPILE=aarch64-linux-gnu-
-          PATH="$GITHUB_WORKSPACE/../limine/bin:$PATH" make bootimg-aarch64
+          make bootimg-aarch64
 
       - name: run
         run: |
