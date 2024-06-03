@@ -69,8 +69,10 @@ ifndef M
 	@$(MAKE) kernel
 endif
 
-doxygen:
-	@doxygen
+clangd_compile_flags_txt:
+	@echo -working-directory=$(CURDIR) > compile_flags.txt
+	@echo --language=c++ >> compile_flags.txt
+	@echo "${INT_CXXFLAGS}" | sed -e 's/ /\n/g' >> compile_flags.txt
 
 scripts/kconfig/Makefile:
 	@curl https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.7.5.tar.xz -o linux-6.7.5.tar.xz
@@ -122,8 +124,7 @@ clean: modclean
 	@find ./arch ./drivers ./fs ./include ./kernel ./net ./mm ./stdlibs ./tests ./abi ./rust \( -name '*.oasm' -o -name '*.onasm' -o -name '*.oc' -o -name '*.ocpp' -o -name '*.ors' -o -name '*.rlib' -o -name '*.o' -o -name '*.os' -o -name '*.oS' \) -type f -delete
 
 distclean: clean
-	@$(MAKE) --quiet -C scripts/kconfig clean
-	@rm -f .config .config_old
+	@rm -f .config .config_old scripts/kconfig
 
 # recursive stuff - most of this is based on https://stackoverflow.com/q/56001646/20742078
 OBJS         :=

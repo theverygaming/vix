@@ -40,3 +40,4 @@ initramfs.bin
 /kernel/docs/
 /sysroot/
 /scripts/
+/kernel/compile_flags.txt

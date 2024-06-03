@@ -34,7 +34,7 @@ lxdialog := $(addprefix lxdialog/, checklist.o inputbox.o menubox.o textbox.o ut
 
 config: conf.o $(common-objs)
 	@echo "  CC $@"
-	@$(CC) $^ -o $@ $(HOST_LDFLAGS)
+	@$(HOST_CC) $^ -o $@ $(HOST_LDFLAGS)
 
 menuconfig: HOST_CFLAGS+=$(shell pkg-config ncurses --cflags)
 menuconfig: HOST_LDFLAGS+=$(shell pkg-config ncurses --libs)

@@ -64,3 +64,11 @@ then you can simply build with ``make`` and then ``make bootimg-x86-32`` (if you
 a bootable iso named ``vix.iso`` will be created
 
 for other architectures look at the [GitHub actions workflow](.github/workflows/workflow.yml)
+
+
+## clangd how?
+
+```
+cd kernel
+make clangd_compile_flags_txt
+```
