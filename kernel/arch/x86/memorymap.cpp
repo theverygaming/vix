@@ -43,12 +43,11 @@ static mm::mem_map_entry::type_t convert_from_e820(uint32_t e820_type) {
 void memorymap::initMemoryMap(void *mapadr, int entrycount) {
     memset(converted_entries, 0, MEMMAP_MAX_ENTRIES * sizeof(struct mm::mem_map_entry));
     if (entrycount > MEMMAP_MAX_ENTRIES) {
-        kprintf(KP_EMERG, "memmap: %d memory map entries, MEMMAP_MAX_ENTRIES too low(%d), go change it bruh\n", entrycount, MEMMAP_MAX_ENTRIES);
+        kprintf(KP_EMERG, "memmap: got %d memory map entries, MEMMAP_MAX_ENTRIES too low(%d)\n", entrycount, MEMMAP_MAX_ENTRIES);
         KERNEL_PANIC("memory map issue");
     }
     SMAP_entry *entries = (SMAP_entry *)mapadr;
     memcpy(&map_entries, entries, entrycount * sizeof(map_entries[0]));
-    MemMapEntry processed[entrycount];
     for (int i = 0; i < entrycount; i++) {
         DEBUG_PRINTF("#%d -> base: %u, length: %u type: %u\n",
                      i,
