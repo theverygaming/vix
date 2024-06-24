@@ -15,6 +15,7 @@
         IA-32 = import ./nix-shells/IA-32.nix { inherit pkgs; };
         x86-64 = import ./nix-shells/x86-64.nix { inherit pkgs; };
         aarch64 = import ./nix-shells/aarch64.nix { inherit pkgs; };
+        arm = import ./nix-shells/arm.nix { inherit pkgs; };
         m68k = import ./nix-shells/m68k.nix { inherit pkgs; };
       };
     });

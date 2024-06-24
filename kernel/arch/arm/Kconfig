@@ -1,0 +1,11 @@
+config ARCH_ARM
+  bool
+  default y
+
+menu "Security"
+
+config ENABLE_STACKPROTECTOR
+  default y
+  bool "Enable Stack Smashing Protector"
+
+endmenu

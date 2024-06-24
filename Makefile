@@ -53,6 +53,8 @@ bootimg-aarch64:
 	@find sysroot/ -printf "%P\n" | tar --format=ustar -cf roramfs.fs --no-recursion -C sysroot/ -T -
 	@boot/createimg-aarch64.sh
 
+bootimg-arm:
+
 kernel-x86:
 	@$(MAKE) --no-print-directory -C kernel
 
@@ -62,12 +64,16 @@ kernel-xtensa:
 kernel-aarch64:
 	@$(MAKE) --no-print-directory -C kernel
 
+kernel-arm:
+	@$(MAKE) --no-print-directory -C kernel
+
 kernel-m68k:
 	@$(MAKE) --no-print-directory -C kernel
 
 clean-xtensa:
 clean-m68k:
 clean-aarch64:
+clean-arm:
 clean-x86:
 	@$(MAKE) --no-print-directory -C prekernel/$(MAKE_ARCH) clean
 	@$(MAKE) --no-print-directory -C prekernel/$(MAKE_ARCH) distclean
