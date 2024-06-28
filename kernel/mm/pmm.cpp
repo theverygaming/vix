@@ -181,7 +181,7 @@ static void populate_pmm_info() {
     pm_bitmap = bitmap(((uint8_t *)vaddr) + (pm_n_areas * sizeof(struct area_info)), ALIGN_UP(pm_n_total_pages, 8) / 8);
 #else
     pm_areas = (struct area_info *)entry_phys_start;
-    pm_bitmap = bitmap(entry_phys_start + (pm_n_areas * sizeof(struct area_info)), ALIGN_UP(pm_n_total_pages, 8) / 8);
+    pm_bitmap = bitmap((uint8_t *)entry_phys_start + (pm_n_areas * sizeof(struct area_info)), ALIGN_UP(pm_n_total_pages, 8) / 8);
 #endif
 }
 
