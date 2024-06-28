@@ -1,3 +1,4 @@
+#include <arch/generic/memory.h>
 #include <config.h>
 #include <mm/kmalloc.h>
 #include <mm/pmm.h>
