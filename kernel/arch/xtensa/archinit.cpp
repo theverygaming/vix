@@ -7,7 +7,7 @@
 #include <mm/kmalloc.h>
 #include <mm/memmap.h>
 #include <mm/memtest.h>
-#include <mm/phys.h>
+#include <mm/pmm.h>
 #include <panic.h>
 #include <stdio.h>
 #include <time.h>

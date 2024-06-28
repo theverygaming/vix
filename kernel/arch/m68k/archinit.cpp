@@ -8,7 +8,7 @@
 #include <mm/kmalloc.h>
 #include <mm/memmap.h>
 #include <mm/memtest.h>
-#include <mm/phys.h>
+#include <mm/pmm.h>
 #include <panic.h>
 #include <stdio.h>
 #include <time.h>
@@ -104,8 +104,8 @@ extern "C" void _kentry() {
 
 void arch::startup::stage2_startup() {
     if (kmemreq.response != nullptr) {
-        mm::phys::phys_alloc((void *)ALIGN_DOWN(kmemreq.response->base, ARCH_PAGE_SIZE),
-                             ALIGN_UP(kmemreq.response->size, ARCH_PAGE_SIZE) / ARCH_PAGE_SIZE);
+        mm::pmm::force_alloc_contiguous((void *)ALIGN_DOWN(kmemreq.response->base, ARCH_PAGE_SIZE),
+                                        ALIGN_UP(kmemreq.response->size, ARCH_PAGE_SIZE) / ARCH_PAGE_SIZE);
         kprintf(KP_INFO,
                 "claimed 0x%p-0x%p as kernel memory\n",
                 ALIGN_DOWN(kmemreq.response->base, ARCH_PAGE_SIZE),

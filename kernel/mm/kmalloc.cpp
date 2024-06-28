@@ -6,7 +6,7 @@
 #include <macros.h>
 #include <mm/kmalloc.h>
 #include <mm/kvmm.h>
-#include <mm/phys.h>
+#include <mm/pmm.h>
 #include <panic.h>
 #include <stdio.h>
 #include <string.h>
@@ -26,11 +26,11 @@ static void *alloc_pages(size_t pages) {
 #ifdef CONFIG_ARCH_HAS_PAGING
     void *area = mm::kv::alloc(pages);
     for (size_t i = 0; i < pages; i++) {
-        void *phys = mm::phys::phys_malloc(1);
+        void *phys = mm::pmm::alloc_contiguous(1);
         arch::vmm::map_page(((uintptr_t)area) + (i * ARCH_PAGE_SIZE), (uintptr_t)phys, 0);
     }
 #else
-    void *area = mm::phys::phys_malloc(pages);
+    void *area = mm::pmm::alloc_contiguous(pages);
 #endif
     return area;
 }
@@ -42,11 +42,11 @@ static void free_pages(void *address, size_t count) {
         if (unlikely(!arch::vmm::unmap_page(((uintptr_t)address) + (i * ARCH_PAGE_SIZE), &phys))) {
             KERNEL_PANIC("kmalloc page is somehow unmapped");
         }
-        mm::phys::phys_free((void *)phys, 1);
+        mm::pmm::free_contiguous((void *)phys, 1);
     }
 #else
     for (size_t i = 0; i < count; i++) {
-        mm::phys::phys_free(((uint8_t *)address) + (i * ARCH_PAGE_SIZE), 1);
+        mm::pmm::free_contiguous(((uint8_t *)address) + (i * ARCH_PAGE_SIZE), 1);
     }
 #endif
 }

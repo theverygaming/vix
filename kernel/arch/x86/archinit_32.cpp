@@ -25,7 +25,7 @@
 #include <interrupts.h>
 #include <kernel.h>
 #include <macros.h>
-#include <mm/phys.h>
+#include <mm/pmm.h>
 #include <panic.h>
 #include <sched.h>
 #include <stdio.h>
@@ -85,9 +85,9 @@ extern "C" void __attribute__((section(".entry"))) _kentry(void *multiboot2_info
 }
 
 void arch::startup::stage2_startup() {
-    mm::phys::phys_alloc((void *)KERNEL_PHYS_ADDRESS, ALIGN_UP(KERNEL_FREE_AREA_BEGIN_OFFSET, ARCH_PAGE_SIZE) / ARCH_PAGE_SIZE);
+    mm::pmm::force_alloc_contiguous((void *)KERNEL_PHYS_ADDRESS, ALIGN_UP(KERNEL_FREE_AREA_BEGIN_OFFSET, ARCH_PAGE_SIZE) / ARCH_PAGE_SIZE);
     if (initramfs_size != 0) {
-        mm::phys::phys_alloc(initramfs_start, ALIGN_UP(initramfs_size, ARCH_PAGE_SIZE) / ARCH_PAGE_SIZE);
+        mm::pmm::force_alloc_contiguous(initramfs_start, ALIGN_UP(initramfs_size, ARCH_PAGE_SIZE) / ARCH_PAGE_SIZE);
         paging::map_page(initramfs_start,
                          (void *)(0xFFFFF000 - ALIGN_UP(initramfs_size, ARCH_PAGE_SIZE)),
                          (ALIGN_UP(initramfs_size, ARCH_PAGE_SIZE) / ARCH_PAGE_SIZE),

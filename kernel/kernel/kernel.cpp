@@ -8,7 +8,7 @@
 #include <libcxx.h>
 #include <mm/kmalloc.h>
 #include <mm/kvmm.h>
-#include <mm/phys.h>
+#include <mm/pmm.h>
 #include <sched.h>
 #include <types.h>
 
@@ -38,7 +38,7 @@ void kernelstart() {
 #ifdef CONFIG_ARCH_HAS_PAGING
     mm::kv::init();
 #endif
-    mm::phys::phys_init();
+    mm::pmm::init();
     arch::startup::stage2_startup();
     cpp_init();
     kprintf(KP_INFO, "kmain: initialized C++\n");
@@ -64,7 +64,7 @@ void kernelstart() {
     }
 #endif
 
-    size_t freemem = (mm::phys::phys_get_free_blocks() * ARCH_PAGE_SIZE) / 1024;
+    size_t freemem = (mm::pmm::get_free_blocks() * ARCH_PAGE_SIZE) / 1024;
     char unit = 'K';
     if (freemem >= 10000) {
         unit = 'M';

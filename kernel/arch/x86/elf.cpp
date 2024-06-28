@@ -4,7 +4,7 @@
 #include <arch/multitasking.h>
 #include <debug.h>
 #include <mm/kmalloc.h>
-#include <mm/phys.h>
+#include <mm/pmm.h>
 #include <string.h>
 #include <string>
 #include <vector>
@@ -49,11 +49,11 @@ void elf::load_program(void *ELF_baseadr, std::vector<std::string> *argv, bool r
 
     std::vector<multitasking::process_pagerange> pageranges;
 
-    pageranges.push_back({.phys_base = (uintptr_t)mm::phys::phys_malloc(pagecount),
+    pageranges.push_back({.phys_base = (uintptr_t)mm::pmm::alloc_contiguous(pagecount),
                           .virt_base = min_v,
                           .pages = pagecount,
                           .type = multitasking::process_pagerange::range_type::STATIC});
-    pageranges.push_back({.phys_base = (uintptr_t)mm::phys::phys_malloc(1),
+    pageranges.push_back({.phys_base = (uintptr_t)mm::pmm::alloc_contiguous(1),
                           .virt_base = max_v + (ARCH_PAGE_SIZE * 47),
                           .pages = 1,
                           .type = multitasking::process_pagerange::range_type::BREAK});

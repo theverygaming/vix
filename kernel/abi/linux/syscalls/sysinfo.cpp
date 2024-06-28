@@ -1,7 +1,8 @@
 #include <abi/linux/calls.h>
+#include <arch/generic/memory.h>
 #include <kprintf.h>
 #include <mm/memmap.h>
-#include <mm/phys.h>
+#include <mm/pmm.h>
 #include <sched.h>
 #include <time.h>
 
@@ -33,7 +34,7 @@ __DEF_LINUX_SYSCALL(sys_sysinfo) {
     info->loads[1] = 0; //  5-minute load average
     info->loads[2] = 0; // 15-minute load average
     info->totalram = mm::mem_map_get_total_usable_bytes() / ARCH_PAGE_SIZE;
-    info->freeram = mm::phys::phys_get_free_blocks();
+    info->freeram = mm::pmm::get_free_blocks();
     info->sharedram = 0;
     info->bufferram = 0;
     info->totalswap = 0;
