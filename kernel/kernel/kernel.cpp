@@ -34,10 +34,11 @@ static void kthread0() {
 
 void kernelstart() {
     kprintf(KP_INFO, "kmain: starting vix -- built " __DATE__ " " __TIME__ "\n");
-    mm::phys::phys_init();
+    // the PMM needs the VMM to map it's bitmap etc. - so the VMM must be initialized before the PMM
 #ifdef CONFIG_ARCH_HAS_PAGING
     mm::kv::init();
 #endif
+    mm::phys::phys_init();
     arch::startup::stage2_startup();
     cpp_init();
     kprintf(KP_INFO, "kmain: initialized C++\n");
