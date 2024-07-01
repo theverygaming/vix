@@ -173,7 +173,7 @@ static void populate_pmm_info() {
     uintptr_t required_pages = required_bytes / ARCH_PAGE_SIZE;
     pm_phys_addr = entry_phys_start;
 #ifdef CONFIG_ARCH_HAS_PAGING
-    void *vaddr = mm::kv::alloc(required_pages);
+    void *vaddr = mm::vmm::kalloc(required_pages);
     for (uintptr_t i = 0; i < required_pages; i++) {
         arch::vmm::map_page(((uintptr_t)vaddr) + (i * ARCH_PAGE_SIZE), entry_phys_start + (i * ARCH_PAGE_SIZE), 0);
     }

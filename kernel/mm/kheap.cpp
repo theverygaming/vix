@@ -24,7 +24,7 @@
 
 static void *alloc_pages(size_t pages) {
 #ifdef CONFIG_ARCH_HAS_PAGING
-    void *area = mm::kv::alloc(pages);
+    void *area = mm::vmm::kalloc(pages);
     for (size_t i = 0; i < pages; i++) {
         void *phys = mm::pmm::alloc_contiguous(1);
         arch::vmm::map_page(((uintptr_t)area) + (i * ARCH_PAGE_SIZE), (uintptr_t)phys, 0);

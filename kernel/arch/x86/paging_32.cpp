@@ -222,3 +222,9 @@ bool arch::vmm::unmap_page(uintptr_t virt, uintptr_t *phys) {
     invlpg((void *)virt);
     return entry.present;
 }
+
+bool arch::vmm::get_page(uintptr_t virt, uintptr_t *phys, unsigned int *flags) {
+    // FIXME: draw the rest of the fucking owl
+    // mapped?
+    return paging::is_readable((void *)virt);
+}

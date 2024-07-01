@@ -124,7 +124,8 @@ clean: modclean
 	@find ./arch ./drivers ./fs ./include ./kernel ./net ./mm ./stdlibs ./tests ./abi ./rust \( -name '*.oasm' -o -name '*.onasm' -o -name '*.oc' -o -name '*.ocpp' -o -name '*.ors' -o -name '*.rlib' -o -name '*.o' -o -name '*.os' -o -name '*.oS' \) -type f -delete
 
 distclean: clean
-	@rm -f .config .config_old scripts/kconfig
+	@rm -f .config .config_old
+	@rm -rf scripts/kconfig
 
 # recursive stuff - most of this is based on https://stackoverflow.com/q/56001646/20742078
 OBJS         :=

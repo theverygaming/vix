@@ -3,9 +3,10 @@
 #include <types.h>
 
 #ifdef CONFIG_ARCH_HAS_PAGING
-namespace mm::kv {
+namespace mm::vmm {
     void init();
-    void *alloc(size_t pages);
-    void free(void *address, size_t pages);
+    void *alloc(void *start, void *end, size_t pages);
+    void *kalloc(size_t pages);
+    void dealloc(void *start, size_t pages);
 }
 #endif

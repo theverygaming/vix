@@ -42,7 +42,7 @@ namespace arch::vmm {
      * @param [out] flags constants arch::vmm::FLAGS_* ORed together
      * @return if page was mapped (if not \p phys and \p flags must be disregarded)
      */
-    bool get_page(uintptr_t virt, unsigned int *phys, unsigned int *flags); // returns true if page is mapped
+    bool get_page(uintptr_t virt, uintptr_t *phys, unsigned int *flags); // returns true if page is mapped
 
     /**
      * flushes single page out of TLB
