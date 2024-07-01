@@ -1,1 +1,1 @@
-obj-y += kheap.ocpp kvmm.ocpp pmm.ocpp memmap.ocpp memtest.ocpp
+obj-y += kheap.ocpp vmm.ocpp pmm.ocpp memmap.ocpp memtest.ocpp

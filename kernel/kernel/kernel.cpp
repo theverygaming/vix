@@ -7,8 +7,8 @@
 #include <kprintf.h>
 #include <libcxx.h>
 #include <mm/kheap.h>
-#include <mm/kvmm.h>
 #include <mm/pmm.h>
+#include <mm/vmm.h>
 #include <sched.h>
 #include <types.h>
 

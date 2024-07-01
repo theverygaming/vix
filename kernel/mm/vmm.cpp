@@ -2,7 +2,7 @@
 #include <config.h>
 #include <kprintf.h>
 #include <mm/allocators.h>
-#include <mm/kvmm.h>
+#include <mm/vmm.h>
 #include <panic.h>
 
 #define KERNEL_PAGES ((ARCH_KERNEL_HEAP_END / ARCH_PAGE_SIZE) - (ARCH_KERNEL_HEAP_START / ARCH_PAGE_SIZE))

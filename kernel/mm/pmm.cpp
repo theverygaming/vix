@@ -2,9 +2,9 @@
 #include <arch/generic/memory.h>
 #include <kprintf.h>
 #include <macros.h>
-#include <mm/kvmm.h>
 #include <mm/memmap.h>
 #include <mm/pmm.h>
+#include <mm/vmm.h>
 #include <panic.h>
 #include <string.h>
 #include <types.h>

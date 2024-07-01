@@ -5,8 +5,8 @@
 #include <debug.h>
 #include <macros.h>
 #include <mm/kheap.h>
-#include <mm/kvmm.h>
 #include <mm/pmm.h>
+#include <mm/vmm.h>
 #include <panic.h>
 #include <stdio.h>
 #include <string.h>
