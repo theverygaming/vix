@@ -6,7 +6,7 @@
 #include <arch/isr.h>
 #include <arch/paging.h>
 #include <drivers/net/generic_card.h>
-#include <mm/kmalloc.h>
+#include <mm/kheap.h>
 #include <net/stack/stack.h>
 #include <panic.h>
 #include <stdio.h>

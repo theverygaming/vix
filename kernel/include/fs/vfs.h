@@ -1,6 +1,6 @@
 #pragma once
 #include <memory>
-#include <mm/kmalloc.h>
+#include <mm/kheap.h>
 #include <string>
 #include <types.h>
 #include <vector>

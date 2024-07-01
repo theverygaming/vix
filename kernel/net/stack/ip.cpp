@@ -1,6 +1,6 @@
 #include <endian.h>
 #include <kprintf.h>
-#include <mm/kmalloc.h>
+#include <mm/kheap.h>
 #include <net/stack/icmp.h>
 #include <net/stack/ip.h>
 #include <net/stack/stack.h>

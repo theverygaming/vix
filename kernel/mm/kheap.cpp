@@ -4,7 +4,7 @@
 #include <config.h>
 #include <debug.h>
 #include <macros.h>
-#include <mm/kmalloc.h>
+#include <mm/kheap.h>
 #include <mm/kvmm.h>
 #include <mm/pmm.h>
 #include <panic.h>
@@ -380,7 +380,7 @@ static struct meminfo *ll_find_block(size_t minsize) {
             ptr = ptr->next;
             continue;
         }
-#ifdef CONFIG_KMALLOC_BEST_SIZE
+#ifdef CONFIG_KHEAP_BEST_SIZE
         if (ptr->size < smallest_size) {
             smallest = ptr;
             smallest_size = ptr->size;

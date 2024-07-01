@@ -25,7 +25,7 @@
 
 #include <arch/drivers/gpu/fb.h>
 #include <arch/drivers/gpu/mbox.h>
-#include <mm/kmalloc.h>
+#include <mm/kheap.h>
 #include <stdio.h>
 #include <types.h>
 

@@ -3,7 +3,7 @@
 #include <arch/generic/memory.h>
 #include <arch/multitasking.h>
 #include <debug.h>
-#include <mm/kmalloc.h>
+#include <mm/kheap.h>
 #include <mm/pmm.h>
 #include <string.h>
 #include <string>

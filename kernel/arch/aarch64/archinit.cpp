@@ -7,7 +7,7 @@
 #include <config.h>
 #include <framebuffer.h>
 #include <kernel.h>
-#include <mm/kmalloc.h>
+#include <mm/kheap.h>
 #include <mm/memmap.h>
 #include <panic.h>
 #include <stdio.h>

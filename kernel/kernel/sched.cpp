@@ -1,7 +1,7 @@
 #include <forward_list>
 #include <interrupts.h>
 #include <macros.h>
-#include <mm/kmalloc.h>
+#include <mm/kheap.h>
 #include <panic.h>
 #include <sched.h>
 

@@ -10,7 +10,7 @@
 #include <config.h>
 #include <debug.h>
 #include <kprintf.h>
-#include <mm/kmalloc.h>
+#include <mm/kheap.h>
 #include <panic.h>
 #include <stdio.h>
 #include <string.h>

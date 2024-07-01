@@ -1,5 +1,5 @@
 #include <libcxx.h>
-#include <mm/kmalloc.h>
+#include <mm/kheap.h>
 #include <panic.h>
 #include <stdio.h>
 #include <stdlib.h>

@@ -1,5 +1,5 @@
 #include <fs/path.h>
-#include <mm/kmalloc.h>
+#include <mm/kheap.h>
 #include <panic.h>
 #include <stdlib.h>
 #include <types.h>

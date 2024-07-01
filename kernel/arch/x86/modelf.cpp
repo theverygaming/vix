@@ -1,6 +1,6 @@
 #include <arch/modelf.h>
 #include <debug.h>
-#include <mm/kmalloc.h>
+#include <mm/kheap.h>
 #include <string.h>
 #include <string>
 #include <symbols.h>

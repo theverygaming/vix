@@ -5,7 +5,7 @@
 #include <kernel.h>
 #include <kprintf.h>
 #include <macros.h>
-#include <mm/kmalloc.h>
+#include <mm/kheap.h>
 #include <mm/memmap.h>
 #include <mm/memtest.h>
 #include <mm/pmm.h>

@@ -9,7 +9,7 @@
 #include <interrupts.h>
 #include <kprintf.h>
 #include <macros.h>
-#include <mm/kmalloc.h>
+#include <mm/kheap.h>
 #include <mm/pmm.h>
 #include <sched.h>
 #include <stdio.h>

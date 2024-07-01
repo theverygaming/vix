@@ -6,7 +6,7 @@
 #include <kernel.h>
 #include <kprintf.h>
 #include <libcxx.h>
-#include <mm/kmalloc.h>
+#include <mm/kheap.h>
 #include <mm/kvmm.h>
 #include <mm/pmm.h>
 #include <sched.h>

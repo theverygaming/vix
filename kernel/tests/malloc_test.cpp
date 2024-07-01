@@ -1,6 +1,6 @@
 #include <arch/generic/memory.h>
 #include <config.h>
-#include <mm/kmalloc.h>
+#include <mm/kheap.h>
 #include <mm/pmm.h>
 #include <panic.h>
 #include <stdio.h>

@@ -5,10 +5,10 @@
 #include <arch/paging.h>
 #include <config.h>
 #include <framebuffer.h>
-#include <kernel.h>
-#include <mm/kmalloc.h>
 #include <fs/tarfs.h>
 #include <fs/vfs.h>
+#include <kernel.h>
+#include <mm/kheap.h>
 #include <mm/memmap.h>
 #include <panic.h>
 #include <stdio.h>
@@ -20,7 +20,6 @@ static fb::fbconsole fbconsole;
 static volatile struct limine_memmap_request memmap_request = {.id = LIMINE_MEMMAP_REQUEST, .revision = 0};
 static volatile struct limine_framebuffer_request framebuffer_request = {.id = LIMINE_FRAMEBUFFER_REQUEST, .revision = 0};
 static volatile struct limine_module_request module_request = {.id = LIMINE_MODULE_REQUEST, .revision = 0};
-
 
 static void fbputc(char c) {
     fbconsole.fbputc(c);

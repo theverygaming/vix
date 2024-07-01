@@ -2,7 +2,7 @@
 #include <fs/path.h>
 #include <fs/vfs.h>
 #include <memory>
-#include <mm/kmalloc.h>
+#include <mm/kheap.h>
 #include <mutex>
 #include <vector>
 

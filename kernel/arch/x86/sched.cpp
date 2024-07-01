@@ -1,7 +1,7 @@
 #include <arch/common/cpu.h>
 #include <arch/gdt.h>
 #include <config.h>
-#include <mm/kmalloc.h>
+#include <mm/kheap.h>
 #include <panic.h>
 #include <sched.h>
 #include <types.h>
