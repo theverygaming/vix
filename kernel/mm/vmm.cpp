@@ -13,8 +13,8 @@ void mm::vmm::init() {
     void *addr = (void *)ARCH_KERNEL_HEAP_START;
     // BUG: ARCH_PAGE_SIZE * 1 due to seemingly conflicts with the multiboot2 framebuffer thing??????
     while ((uintptr_t)addr < (ARCH_KERNEL_HEAP_END - (ARCH_PAGE_SIZE * 1))) {
-        uintptr_t phys;
-        arch::vmm::unmap_page((uintptr_t)addr, &phys);
+        arch::vmm::set_page((uintptr_t)addr, 0, 0);
+        arch::vmm::flush_tlb_single((uintptr_t)addr);
         addr = (void *)((uintptr_t)addr + ARCH_PAGE_SIZE);
     }
     kprintf(KP_INFO, "vmm: initialized virtual memory manager\n");
@@ -26,10 +26,9 @@ static void *find_free_pages(void *start, void *end, size_t pages) {
     size_t pages_found = 0;
     void *start_found = nullptr;
     while ((uintptr_t)start < (uintptr_t)end && pages_found != pages) {
-        uintptr_t phys;
         unsigned int flags;
-        bool mapped = arch::vmm::get_page((uintptr_t)start, &phys, &flags);
-        if (!mapped) {
+        arch::vmm::get_page((uintptr_t)start, &flags);
+        if (!(flags & arch::vmm::FLAGS_PRESENT)) {
             if (pages_found == 0) {
                 start_found = start;
             }

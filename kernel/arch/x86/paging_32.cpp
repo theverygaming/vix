@@ -28,6 +28,7 @@ struct directoryEntry {
 struct pagetableEntry {
     void *address;
     bool global;
+    bool dirty;
     bool cache_disabled;
     bool write_through;
     enum page_priv priv;
@@ -49,7 +50,8 @@ static uint32_t make_directory_entry(struct directoryEntry de) {
 static uint32_t make_table_entry(struct pagetableEntry pe) {
     uint32_t entry = ((uint32_t)pe.address) & 0xFFFFF000;
     entry |= pe.global << 8;
-    entry |= pe.cache_disabled << 6;
+    entry |= pe.dirty << 6;
+    entry |= pe.cache_disabled << 4;
     entry |= pe.write_through << 3;
     entry |= pe.priv << 2;
     entry |= pe.perms << 1;
@@ -85,7 +87,7 @@ static struct pagetableEntry get_table_entry(uint32_t tableEntry) {
     entry.write_through = (tableEntry >> 3) & 0x1;
     entry.cache_disabled = (tableEntry >> 4) & 0x1;
     // entry.accessed = (tableEntry >> 5) & 0x1;
-    // entry.dirty = (tableEntry >> 6) & 0x1;
+    entry.dirty = (tableEntry >> 6) & 0x1;
     // entry.PAT = (tableEntry >> 7) & 0x1;
     entry.global = (tableEntry >> 8) & 0x1;
     // entry.available = (tableEntry >> 9) & 0x1;
@@ -193,55 +195,65 @@ void paging::copyPhysPage(void *dest, void *src) {
     invlpg((void *)ARCH_PAGE_SIZE);
 }
 
-void arch::vmm::map_page(uintptr_t virt, uintptr_t phys, unsigned int flags) {
-    uint32_t entry = make_table_entry({.address = (void *)phys,
-                                       .global = false,
-                                       .cache_disabled = (flags & arch::vmm::FLAGS_CACHE_DISABLE) ? true : false,
-                                       .write_through = (flags & arch::vmm::FLAGS_WRITE_THROUGH) ? true : false,
-                                       .priv = (flags & arch::vmm::FLAGS_USER) ? USER : SUPERVISOR,
-                                       .perms = (flags & arch::vmm::FLAGS_READ_ONLY) ? R : RW,
-                                       .present = true});
-
-    uint32_t pDirIndex = (uint32_t)virt >> 22;
-    uint32_t pTableIndex = (uint32_t)virt >> 12 & 0x03FF;
-
-    pagetables[pDirIndex][pTableIndex] = entry;
-    invlpg((void *)virt);
-}
-
-bool arch::vmm::unmap_page(uintptr_t virt, uintptr_t *phys) {
-    uint32_t pDirIndex = (uint32_t)virt >> 22;
-    uint32_t pTableIndex = (uint32_t)virt >> 12 & 0x03FF;
-
-    struct pagetableEntry entry = get_table_entry(pagetables[pDirIndex][pTableIndex]);
-
-    if (phys != nullptr && entry.present) {
-        *phys = (uintptr_t)entry.address;
+static unsigned int entry_get_vmm_flags(struct pagetableEntry entry) {
+    unsigned int flags = 0;
+    if (entry.present) {
+        flags |= arch::vmm::FLAGS_PRESENT;
     }
-    pagetables[pDirIndex][pTableIndex] = 0;
-    invlpg((void *)virt);
-    return entry.present;
-}
-
-bool arch::vmm::get_page(uintptr_t virt, uintptr_t *phys, unsigned int *flags) {
-    uint32_t pDirIndex = (uint32_t)virt >> 22;
-    uint32_t pTableIndex = (uint32_t)virt >> 12 & 0x03FF;
-
-    struct pagetableEntry entry = get_table_entry(pagetables[pDirIndex][pTableIndex]);
-
-    *phys = (uintptr_t)entry.address;
-    *flags = 0;
+    if (entry.dirty) {
+        flags |= arch::vmm::FLAGS_DIRTY;
+    }
     if (entry.cache_disabled) {
-        *flags |= arch::vmm::FLAGS_CACHE_DISABLE;
+        flags |= arch::vmm::FLAGS_CACHE_DISABLE;
     }
     if (entry.write_through) {
-        *flags |= arch::vmm::FLAGS_WRITE_THROUGH;
+        flags |= arch::vmm::FLAGS_WRITE_THROUGH;
     }
     if (entry.priv == page_priv::USER) {
-        *flags |= arch::vmm::FLAGS_USER;
+        flags |= arch::vmm::FLAGS_USER;
     }
     if (entry.perms == page_perms::R) {
-        *flags |= arch::vmm::FLAGS_READ_ONLY;
+        flags |= arch::vmm::FLAGS_READ_ONLY;
     }
-    return entry.present;
+    // IA-32 has no no-execute bit
+    return flags;
+}
+
+static void entry_set_vmm_flags(struct pagetableEntry *entry, unsigned int flags) {
+    entry->present = flags & arch::vmm::FLAGS_PRESENT;
+    entry->dirty = flags & arch::vmm::FLAGS_DIRTY;
+    entry->cache_disabled = flags & arch::vmm::FLAGS_CACHE_DISABLE;
+    entry->write_through = flags & arch::vmm::FLAGS_WRITE_THROUGH;
+    entry->priv = flags & arch::vmm::FLAGS_USER ? page_priv::USER : page_priv::SUPERVISOR;
+    entry->perms = flags & arch::vmm::FLAGS_READ_ONLY ? page_perms::R : page_perms::RW;
+}
+
+uintptr_t arch::vmm::get_page(uintptr_t virt, unsigned int *flags) {
+    uint32_t pDirIndex = (uint32_t)virt >> 22;
+    uint32_t pTableIndex = (uint32_t)virt >> 12 & 0x03FF;
+
+    struct pagetableEntry entry = get_table_entry(pagetables[pDirIndex][pTableIndex]);
+
+    *flags = entry_get_vmm_flags(entry);
+    return (uintptr_t)entry.address;
+}
+
+unsigned int arch::vmm::set_page(uintptr_t virt, uintptr_t phys, unsigned int flags) {
+    uint32_t pDirIndex = (uint32_t)virt >> 22;
+    uint32_t pTableIndex = (uint32_t)virt >> 12 & 0x03FF;
+
+    struct pagetableEntry entry = get_table_entry(pagetables[pDirIndex][pTableIndex]);
+    unsigned int flags_old = entry_get_vmm_flags(entry);
+    entry = {.address = (void *)phys, .global = false};
+    entry_set_vmm_flags(&entry, flags);
+    pagetables[pDirIndex][pTableIndex] = make_table_entry(entry);
+    return flags_old;
+}
+
+void arch::vmm::flush_tlb_single(uintptr_t virt) {
+    invlpg((void *)virt);
+}
+
+void arch::vmm::flush_tlb_all() {
+    loadPageDirectory(paging::get_physaddr(page_directory));
 }

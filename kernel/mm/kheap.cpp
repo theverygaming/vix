@@ -27,7 +27,9 @@ static void *alloc_pages(size_t pages) {
     void *area = mm::vmm::kalloc(pages);
     for (size_t i = 0; i < pages; i++) {
         void *phys = mm::pmm::alloc_contiguous(1);
-        arch::vmm::map_page(((uintptr_t)area) + (i * ARCH_PAGE_SIZE), (uintptr_t)phys, 0);
+        uintptr_t virt = ((uintptr_t)area) + (i * ARCH_PAGE_SIZE);
+        arch::vmm::set_page(virt, (uintptr_t)phys, arch::vmm::FLAGS_PRESENT);
+        arch::vmm::flush_tlb_single(virt);
     }
 #else
     void *area = mm::pmm::alloc_contiguous(pages);
@@ -37,9 +39,10 @@ static void *alloc_pages(size_t pages) {
 
 static void free_pages(void *address, size_t count) {
 #ifdef CONFIG_ARCH_HAS_PAGING
-    uintptr_t phys;
+    unsigned int flags;
     for (size_t i = 0; i < count; i++) {
-        if (unlikely(!arch::vmm::unmap_page(((uintptr_t)address) + (i * ARCH_PAGE_SIZE), &phys))) {
+        uintptr_t phys = arch::vmm::get_page(((uintptr_t)address) + (i * ARCH_PAGE_SIZE), &flags);
+        if (unlikely(!(arch::vmm::set_page(((uintptr_t)address) + (i * ARCH_PAGE_SIZE), 0, 0) & arch::vmm::FLAGS_PRESENT))) {
             KERNEL_PANIC("kmalloc page is somehow unmapped");
         }
         mm::pmm::free_contiguous((void *)phys, 1);

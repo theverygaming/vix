@@ -175,7 +175,9 @@ static void populate_pmm_info() {
 #ifdef CONFIG_ARCH_HAS_PAGING
     void *vaddr = mm::vmm::kalloc(required_pages);
     for (uintptr_t i = 0; i < required_pages; i++) {
-        arch::vmm::map_page(((uintptr_t)vaddr) + (i * ARCH_PAGE_SIZE), entry_phys_start + (i * ARCH_PAGE_SIZE), 0);
+        uintptr_t virt = ((uintptr_t)vaddr) + (i * ARCH_PAGE_SIZE);
+        arch::vmm::set_page(virt, entry_phys_start + (i * ARCH_PAGE_SIZE), arch::vmm::FLAGS_PRESENT);
+        arch::vmm::flush_tlb_single(virt);
     }
     pm_areas = (struct area_info *)vaddr;
     pm_bitmap = bitmap(((uint8_t *)vaddr) + (pm_n_areas * sizeof(struct area_info)), ALIGN_UP(pm_n_total_pages, 8) / 8);

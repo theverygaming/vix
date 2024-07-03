@@ -44,3 +44,5 @@ AllowShortEnumsOnASingleLine: true
 
 AlignEscapedNewlines: Left
 AlignConsecutiveMacros: true
+
+InsertNewlineAtEOF: true
