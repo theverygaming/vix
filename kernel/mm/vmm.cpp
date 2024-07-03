@@ -11,8 +11,8 @@ void mm::vmm::init() {
     // unmap all that nonsense the prekernel does...
     // TODO: fix that x86 prekernel paging nonsense
     void *addr = (void *)ARCH_KERNEL_HEAP_START;
-    // BUG: ARCH_PAGE_SIZE * 1 due to seemingly conflicts with the multiboot2 framebuffer thing??????
-    while ((uintptr_t)addr < (ARCH_KERNEL_HEAP_END - (ARCH_PAGE_SIZE * 1))) {
+    // BUG: - ARCH_PAGE_SIZE due to seemingly conflicts with the multiboot2 framebuffer thing??????
+    while ((uintptr_t)addr < (ARCH_KERNEL_HEAP_END - ARCH_PAGE_SIZE)) {
         arch::vmm::set_page((uintptr_t)addr, 0, 0);
         arch::vmm::flush_tlb_single((uintptr_t)addr);
         addr = (void *)((uintptr_t)addr + ARCH_PAGE_SIZE);
