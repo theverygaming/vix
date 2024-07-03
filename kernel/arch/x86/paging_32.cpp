@@ -224,7 +224,24 @@ bool arch::vmm::unmap_page(uintptr_t virt, uintptr_t *phys) {
 }
 
 bool arch::vmm::get_page(uintptr_t virt, uintptr_t *phys, unsigned int *flags) {
-    // FIXME: draw the rest of the fucking owl
-    // mapped?
-    return paging::is_readable((void *)virt);
+    uint32_t pDirIndex = (uint32_t)virt >> 22;
+    uint32_t pTableIndex = (uint32_t)virt >> 12 & 0x03FF;
+
+    struct pagetableEntry entry = get_table_entry(pagetables[pDirIndex][pTableIndex]);
+
+    *phys = (uintptr_t)entry.address;
+    *flags = 0;
+    if (entry.cache_disabled) {
+        *flags |= arch::vmm::FLAGS_CACHE_DISABLE;
+    }
+    if (entry.write_through) {
+        *flags |= arch::vmm::FLAGS_WRITE_THROUGH;
+    }
+    if (entry.priv == page_priv::USER) {
+        *flags |= arch::vmm::FLAGS_USER;
+    }
+    if (entry.perms == page_perms::R) {
+        *flags |= arch::vmm::FLAGS_READ_ONLY;
+    }
+    return entry.present;
 }
