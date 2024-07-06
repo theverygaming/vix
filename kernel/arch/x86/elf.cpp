@@ -5,6 +5,7 @@
 #include <debug.h>
 #include <mm/kheap.h>
 #include <mm/pmm.h>
+#include <status.h>
 #include <string.h>
 #include <string>
 #include <vector>
@@ -49,11 +50,14 @@ void elf::load_program(void *ELF_baseadr, std::vector<std::string> *argv, bool r
 
     std::vector<multitasking::process_pagerange> pageranges;
 
-    pageranges.push_back({.phys_base = (uintptr_t)mm::pmm::alloc_contiguous(pagecount),
+    void *allocated_phys;
+    ASSIGN_OR_PANIC(allocated_phys, mm::pmm::alloc_contiguous(pagecount));
+    pageranges.push_back({.phys_base = (uintptr_t)allocated_phys,
                           .virt_base = min_v,
                           .pages = pagecount,
                           .type = multitasking::process_pagerange::range_type::STATIC});
-    pageranges.push_back({.phys_base = (uintptr_t)mm::pmm::alloc_contiguous(1),
+    ASSIGN_OR_PANIC(allocated_phys, mm::pmm::alloc_contiguous(1));
+    pageranges.push_back({.phys_base = (uintptr_t)allocated_phys,
                           .virt_base = max_v + (ARCH_PAGE_SIZE * 47),
                           .pages = 1,
                           .type = multitasking::process_pagerange::range_type::BREAK});

@@ -8,6 +8,7 @@
 #include <mm/pmm.h>
 #include <mm/vmm.h>
 #include <panic.h>
+#include <status.h>
 #include <stdio.h>
 #include <string.h>
 #include <types.h>
@@ -26,13 +27,15 @@ static void *alloc_pages(size_t pages) {
 #ifdef CONFIG_ARCH_HAS_PAGING
     void *area = mm::vmm::kalloc(pages);
     for (size_t i = 0; i < pages; i++) {
-        void *phys = mm::pmm::alloc_contiguous(1);
+        void *phys;
+        ASSIGN_OR_PANIC(phys, mm::pmm::alloc_contiguous(1));
         uintptr_t virt = ((uintptr_t)area) + (i * ARCH_PAGE_SIZE);
         arch::vmm::set_page(virt, (uintptr_t)phys, arch::vmm::FLAGS_PRESENT);
         arch::vmm::flush_tlb_single(virt);
     }
 #else
-    void *area = mm::pmm::alloc_contiguous(pages);
+    void *area;
+    ASSIGN_OR_PANIC(area, mm::pmm::alloc_contiguous(pages));
 #endif
     return area;
 }

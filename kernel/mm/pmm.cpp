@@ -6,6 +6,7 @@
 #include <mm/pmm.h>
 #include <mm/vmm.h>
 #include <panic.h>
+#include <status.h>
 #include <string.h>
 #include <types.h>
 
@@ -262,7 +263,7 @@ void mm::pmm::init() {
     kprintf(KP_INFO, "pmm: initialized\n");
 }
 
-void *mm::pmm::alloc_contiguous(size_t pages) {
+status::StatusOr<void *> mm::pmm::alloc_contiguous(size_t pages) {
     size_t pages_before = 0;
     for (size_t i = 0; i < pm_n_areas; i++) {
         size_t found_start;
@@ -273,7 +274,7 @@ void *mm::pmm::alloc_contiguous(size_t pages) {
         }
         pages_before += pm_areas[i].n_pages;
     }
-    KERNEL_PANIC("pmm: ran OOM!");
+    return status::StatusCode::OOM_ERROR;
 }
 
 void mm::pmm::free_contiguous(void *paddr, size_t pages) {

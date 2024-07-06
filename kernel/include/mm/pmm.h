@@ -1,10 +1,11 @@
 #pragma once
+#include <status.h>
 #include <types.h>
 
 namespace mm::pmm {
     void init();
 
-    void *alloc_contiguous(size_t pages);
+    status::StatusOr<void *> alloc_contiguous(size_t pages);
     void free_contiguous(void *paddr, size_t pages);
 
     size_t get_free_blocks();
