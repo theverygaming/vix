@@ -40,3 +40,7 @@ config MEMMAP_MAX_ENTRIES
 	range 1 256
         
 endmenu
+
+config ENABLE_MEMMAP_SANITIZE
+    bool "Enable Memory map Sanitization"
+    default y

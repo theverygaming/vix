@@ -16,7 +16,12 @@ choice
 		bool "silent"
 endchoice
 
+config KPRINTF_ENABLE_BUF
+  	default y
+  	bool "enable kprintf buffer"
+
 config KPRINTF_BUFSIZE
+	depends on KPRINTF_ENABLE_BUF
 	prompt "kprintf ring buffer size"
 	int
 	default 16000
@@ -37,8 +42,13 @@ config KPRINTF_LOGLEVEL
 		6 = Info
 		7 = Debug
 
+config FB_SUPPORT
+  	default y
+  	bool "support for framebuffers in the kernel"
+
 config ENABLE_BUILTIN_FONT
-  default y if ARCH_AARCH64
-  bool "Compile font into kernel"
+  	depends on FB_SUPPORT
+  	default y if ARCH_AARCH64
+  	bool "Compile font into kernel"
 
 endmenu

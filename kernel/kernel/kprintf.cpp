@@ -8,7 +8,9 @@
 
 #define TMP_BUF_LEN (512)
 
+#ifdef CONFIG_KPRINTF_ENABLE_BUF
 static char kp_buf[CONFIG_KPRINTF_BUFSIZE];
+#endif // CONFIG_KPRINTF_ENABLE_BUF
 static char kp_buf_tmp[TMP_BUF_LEN];
 
 #define KP_INFO_MAGIC (0x4B010550)
@@ -45,7 +47,7 @@ static size_t log10(size_t n) {
     return r;
 }
 
-static void print_kbuf(struct kp_buf_info *info, size_t idx) {
+static void print_kbuf(struct kp_buf_info *info, size_t idx, const char *buf) {
     if (info->magic != KP_INFO_MAGIC) {
         return;
     }
@@ -58,11 +60,12 @@ static void print_kbuf(struct kp_buf_info *info, size_t idx) {
     snprintf(w_buf, 19, "<%d>[%u.%s%u] ", info->loglevel, secs, zeros, ms);
     puts_kbuf(w_buf, info->loglevel);
     for (size_t j = 0; j < info->len; j++) {
-        putc_kbuf(kp_buf[idx + j], info->loglevel);
+        putc_kbuf(buf[idx + j], info->loglevel);
     }
     // putc_kbuf('\n', info->loglevel);
 }
 
+#ifdef CONFIG_KPRINTF_ENABLE_BUF
 static void writeout_kbuf() {
     for (size_t i = 0; i < CONFIG_KPRINTF_BUFSIZE;) {
         struct kp_buf_info *infoptr = (struct kp_buf_info *)&kp_buf[i];
@@ -71,7 +74,7 @@ static void writeout_kbuf() {
             continue;
         }
         i += sizeof(struct kp_buf_info);
-        print_kbuf(infoptr, i);
+        print_kbuf(infoptr, i, kp_buf);
         i += infoptr->len;
     }
 }
@@ -96,7 +99,7 @@ static void write_kbuf(struct kp_buf_info info, char *src, size_t n) {
         infoptr->len = n;
         infoptr->last = true;
         memcpy(&kp_buf[kbuf_idx], src, n);
-        print_kbuf(infoptr, kbuf_idx);
+        print_kbuf(infoptr, kbuf_idx, kp_buf);
         kbuf_idx += n;
         last_written = infoptr;
     } else {
@@ -107,6 +110,11 @@ static void write_kbuf(struct kp_buf_info info, char *src, size_t n) {
         write_kbuf(info, src, n);
     }
 }
+#else  // CONFIG_KPRINTF_ENABLE_BUF
+static void write_kbuf(struct kp_buf_info info, char *src, size_t n) {
+    print_kbuf(&info, 0, src);
+}
+#endif // CONFIG_KPRINTF_ENABLE_BUF
 
 static int current_loglevel = CONFIG_KPRINTF_LOGLEVEL;
 

@@ -45,6 +45,7 @@ static void align_map(struct mm::mem_map_entry *map, size_t len) {
 }
 */
 
+#ifdef CONFIG_ENABLE_MEMMAP_SANITIZE
 static void sanitize(const struct mm::mem_map_entry *in,
                      struct mm::mem_map_entry (*get_entry)(size_t n),
                      bool use_func,
@@ -166,6 +167,7 @@ static void sanitize(const struct mm::mem_map_entry *in,
         out[i].size = f_size;
     }
 }
+#endif // CONFIG_ENABLE_MEMMAP_SANITIZE
 
 static void print_map(const struct mm::mem_map_entry *map, size_t len) {
     for (size_t i = 0; i < len; i++) {
@@ -186,7 +188,7 @@ static void init_map() {
             }
             return a.base < b.base;
         });
-    kprintf(KP_INFO, "sanitized memory map:\n");
+    kprintf(KP_INFO, "final memory map:\n");
     print_map(memory_map, CONFIG_MEMMAP_MAX_ENTRIES);
     uint64_t total = 0;
     for (size_t i = 0; i < CONFIG_MEMMAP_MAX_ENTRIES; i++) {
@@ -199,14 +201,30 @@ static void init_map() {
 }
 
 void mm::set_mem_map(const struct mem_map_entry *in, size_t len) {
+    if (len > CONFIG_MEMMAP_MAX_ENTRIES) {
+        KERNEL_PANIC("too many memory map entries. There is space for %u but we got %u", CONFIG_MEMMAP_MAX_ENTRIES, len);
+    }
     memset(memory_map, 0, CONFIG_MEMMAP_MAX_ENTRIES * sizeof(struct mm::mem_map_entry));
+#ifdef CONFIG_ENABLE_MEMMAP_SANITIZE
     sanitize(in, nullptr, false, len, memory_map, CONFIG_MEMMAP_MAX_ENTRIES);
+#else
+    memcpy(memory_map, in, len * sizeof(struct mm::mem_map_entry));
+#endif
     init_map();
 }
 
 void mm::set_mem_map(struct mem_map_entry (*get_entry)(size_t n), size_t len) {
+    if (len > CONFIG_MEMMAP_MAX_ENTRIES) {
+        KERNEL_PANIC("too many memory map entries. There is space for %u but we got %u", CONFIG_MEMMAP_MAX_ENTRIES, len);
+    }
     memset(memory_map, 0, CONFIG_MEMMAP_MAX_ENTRIES * sizeof(struct mm::mem_map_entry));
+#ifdef CONFIG_ENABLE_MEMMAP_SANITIZE
     sanitize(nullptr, get_entry, true, len, memory_map, CONFIG_MEMMAP_MAX_ENTRIES);
+#else
+    for (size_t i = 0; i < len; i++) {
+        memory_map[i] = get_entry(i);
+    }
+#endif
     init_map();
 }
 

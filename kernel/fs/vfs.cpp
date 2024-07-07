@@ -6,9 +6,14 @@
 #include <mutex>
 #include <vector>
 
+//#define TEST_NEW_VFS // FIXME: this VFS testing stuff blows code up by 2K on m68k!! Fix IT!!!!
+
+#ifdef TEST_NEW_VFS
 static std::shared_ptr<struct fs::vfs::node> root;
+#endif // TEST_NEW_VFS
 
 void fs::vfs::init() {
+#ifdef TEST_NEW_VFS
     root = std::shared_ptr<struct fs::vfs::node>(new struct fs::vfs::node);
     root->type = fs::vfs::node::type::DIRECTORY;
     root->name = "";
@@ -33,8 +38,10 @@ void fs::vfs::init() {
     node->children.push_back(std::shared_ptr<struct fs::vfs::node>(node2));
 
     root->children.push_back(std::shared_ptr<struct fs::vfs::node>(node));
+#endif // TEST_NEW_VFS
 }
 
+#ifdef TEST_NEW_VFS
 static std::shared_ptr<struct fs::vfs::node> get_node(std::vector<std::string> &path) {
     std::shared_ptr<struct fs::vfs::node> current;
     return current;
@@ -56,12 +63,15 @@ static void print_node(std::shared_ptr<struct fs::vfs::node> node, size_t depth)
         }
     }
 }
+#endif // TEST_NEW_VFS
 
 void fs::vfs::print_tree() {
+#ifdef TEST_NEW_VFS
     sched::disable();
     kprintf(KP_INFO, "VFS tree:\n");
     print_node(root, 0);
     KERNEL_PANIC("done");
+#endif // TEST_NEW_VFS
 }
 
 static std::vector<struct fs::vfs::fsinfo> mountpoints;

@@ -9,3 +9,7 @@ config ENABLE_STACKPROTECTOR
   bool "Enable Stack Smashing Protector"
 
 endmenu
+
+config PLAIN_BINARY
+  default n
+  bool "Create a plain binary instead of a macboot-compatible one"

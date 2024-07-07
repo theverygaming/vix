@@ -12,9 +12,10 @@
 #include <panic.h>
 #include <stdio.h>
 #include <time.h>
+
+#ifndef CONFIG_PLAIN_BINARY
 #define MACBOOT_HAS_STDINT
 #include "macboot.h"
-
 static fb::fb framebuffer;
 static fb::fbconsole fbconsole;
 
@@ -31,8 +32,17 @@ header = {.id = MACBOOT_KERNEL_HEADER_ID, .load_address = (uint32_t)&PHYS_START,
 static volatile struct macboot_framebuffer_request fbreq = {.id = MACBOOT_FRAMEBUFFER_REQUEST_ID, .response = nullptr};
 static volatile struct macboot_memmap_request memmapreq = {.id = MACBOOT_MEMMAP_REQUEST_ID, .response = nullptr};
 static volatile struct macboot_kmem_request kmemreq = {.id = MACBOOT_KMEM_REQUEST_ID, .response = nullptr};
+#else
+extern "C" uint8_t __bss_start;
+extern "C" uint8_t __bss_end;
+
+static void mmio_putc(char c) {
+    *((volatile char *)0xef00) = c;
+}
+#endif
 
 static void kernelinit() {
+#ifndef CONFIG_PLAIN_BINARY
     if (fbreq.response != nullptr) {
         struct fb::fbinfo info = {
             .address = (void *)fbreq.response->base,
@@ -83,6 +93,16 @@ static void kernelinit() {
             },
             entrycount);
     }
+#else
+    mmio_putc('C');
+    mmio_putc('P');
+    mmio_putc('P');
+    mmio_putc('\n');
+    for (uint8_t *addr = &__bss_start; addr < &__bss_end; addr++) {
+        *addr = 0;
+    }
+    stdio::set_putc_function(mmio_putc, true);
+#endif
 
     kernelstart();
 }
@@ -95,14 +115,15 @@ extern "C" void vectest_cpp(uint32_t pc, uint16_t sr) {
 }
 
 extern "C" void _kentry() {
-    uint32_t *i_inst = (uint32_t *)(sizeof(uint32_t) * 31);
-    *i_inst = (uint32_t)&_vectest;
+    //uint32_t *i_inst = (uint32_t *)(sizeof(uint32_t) * 31);
+    //*i_inst = (uint32_t)&_vectest;
     //asm volatile("move.w #0x2400, %sr"); // supervisor set, Interrupt priority 6
     kernelinit();
     while (true) {}
 }
 
 void arch::startup::stage2_startup() {
+#ifndef CONFIG_PLAIN_BINARY
     if (kmemreq.response != nullptr) {
         mm::pmm::force_alloc_contiguous((void *)ALIGN_DOWN(kmemreq.response->base, ARCH_PAGE_SIZE),
                                         ALIGN_UP(kmemreq.response->size, ARCH_PAGE_SIZE) / ARCH_PAGE_SIZE);
@@ -111,6 +132,7 @@ void arch::startup::stage2_startup() {
                 ALIGN_DOWN(kmemreq.response->base, ARCH_PAGE_SIZE),
                 ALIGN_DOWN(kmemreq.response->base, ARCH_PAGE_SIZE) + ALIGN_UP(kmemreq.response->size, ARCH_PAGE_SIZE));
     }
+#endif
 }
 
 void arch::startup::stage3_startup() {
