@@ -120,7 +120,7 @@ alldefconfig: scripts/kconfig/Makefile
 
 # clean targets
 clean: modclean
-	@rm -f kernel.o kernel.bin symtab.s symtab.os kernel_partial.o
+	@rm -f kernel.o kernel.bin symtab.S symtab.oS kernel_partial.o
 	@find ./arch ./drivers ./fs ./include ./kernel ./net ./mm ./stdlibs ./tests ./abi ./rust \( -name '*.oasm' -o -name '*.onasm' -o -name '*.oc' -o -name '*.ocpp' -o -name '*.ors' -o -name '*.rlib' -o -name '*.o' -o -name '*.os' -o -name '*.oS' \) -type f -delete
 
 distclean: clean

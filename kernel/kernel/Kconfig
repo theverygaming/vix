@@ -51,4 +51,8 @@ config ENABLE_BUILTIN_FONT
   	default y if ARCH_AARCH64
   	bool "Compile font into kernel"
 
+config ENABLE_SYMBOL_TABLE
+  	default y
+  	bool "Enable symbol table"
+
 endmenu
