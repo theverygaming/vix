@@ -1,5 +1,4 @@
 #pragma once
-#include <arch/generic/textoutput.h>
 #include <drivers/ms_mouse.h>
 #include <psf.h>
 #include <types.h>
