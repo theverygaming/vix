@@ -30,7 +30,7 @@ initramfs.bin
 /roramfs.fs
 /kernel/include/generated
 /kernel/config_gen
-/kernel/symtab.s
+/kernel/symtab.S
 /kernel/.config
 /kernel/include/config/
 /kernel/.config.old

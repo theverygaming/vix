@@ -112,6 +112,8 @@ static void write_kbuf(struct kp_buf_info info, char *src, size_t n) {
 }
 #else  // CONFIG_KPRINTF_ENABLE_BUF
 static void write_kbuf(struct kp_buf_info info, char *src, size_t n) {
+    info.magic = KP_INFO_MAGIC;
+    info.len = n;
     print_kbuf(&info, 0, src);
 }
 #endif // CONFIG_KPRINTF_ENABLE_BUF
