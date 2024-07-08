@@ -2,6 +2,7 @@
 #include <arch/generic/memory.h>
 #include <config.h>
 #include <framebuffer.h>
+#include <interrupts.h>
 #include <kernel.h>
 #include <kprintf.h>
 #include <macros.h>
@@ -10,6 +11,7 @@
 #include <mm/memtest.h>
 #include <mm/pmm.h>
 #include <panic.h>
+#include <sched.h>
 #include <stdio.h>
 #include <time.h>
 
@@ -35,9 +37,10 @@ static volatile struct macboot_kmem_request kmemreq = {.id = MACBOOT_KMEM_REQUES
 #else
 extern "C" uint8_t __bss_start;
 extern "C" uint8_t __bss_end;
+extern "C" uint8_t __kernel_end;
 
 static void mmio_putc(char c) {
-    *((volatile char *)0xef00) = c;
+    *((volatile char *)0xfef00) = c;
 }
 #endif
 
@@ -102,6 +105,16 @@ static void kernelinit() {
         *addr = 0;
     }
     stdio::set_putc_function(mmio_putc, true);
+
+    mm::set_mem_map(
+        [](size_t n) -> struct mm::mem_map_entry {
+            struct mm::mem_map_entry r;
+            r.base = (uintptr_t)&__kernel_end;
+            r.size = (0xFFFC - 0x1000 /* stack.. */) - ((uintptr_t)&__kernel_end);
+            r.type = mm::mem_map_entry::type_t::RAM;
+            return r;
+        },
+        1);
 #endif
 
     kernelstart();
@@ -139,4 +152,17 @@ void arch::startup::stage3_startup() {
     time::bootupTime = time::getCurrentUnixTime();
 }
 
-void arch::startup::kthread0() {}
+static void kt() {
+    while (true) {
+        push_interrupt_disable();
+        volatile int test = 5;
+        kprintf(KP_INFO, "hi from kernel thread(PID %d) stack: 0x%p\n", sched::mypid(), &test);
+        pop_interrupt_disable();
+        sched::yield();
+    }
+}
+
+void arch::startup::kthread0() {
+    sched::start_thread(kt);
+    sched::start_thread(kt);
+}

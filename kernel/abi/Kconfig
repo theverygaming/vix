@@ -1,0 +1,3 @@
+config ENABLE_LINUX_ABI
+    default y
+    bool "Enable Linux ABI"

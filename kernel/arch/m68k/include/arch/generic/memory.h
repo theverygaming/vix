@@ -12,7 +12,7 @@
 /*
  * page size(if this architecture has virtual memory), otherwise just a block size used for some memory allocators and stuff
  */
-#define ARCH_PAGE_SIZE 4096
+#define ARCH_PAGE_SIZE 128
 
 /* start address of physical memory, used by physical memory allocator */
 #define ARCH_PHYS_MEM_START 0

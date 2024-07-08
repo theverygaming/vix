@@ -1,5 +1,9 @@
 mainmenu "vix/$(ARCH) $(KVERSION) Kernel Configuration"
 
+menu "ABI's"
+source "abi/Kconfig"
+endmenu
+
 menu "$(ARCH)-specific"
 source "arch/$(ARCH)/Kconfig"
 endmenu

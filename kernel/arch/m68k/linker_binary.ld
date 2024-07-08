@@ -20,17 +20,17 @@ SECTIONS
 {
     . = PHYS_START;
 
-    .text ALIGN(2) : {
+    .text ALIGN(4) : {
         *(.entry)
 		*(.text)
         KEEP(*(.tests))
 	}>ram :text
 
-    .rodata ALIGN(2) : {
+    .rodata ALIGN(4) : {
         *(.rodata)
     }>ram :rodata
 
-    .data ALIGN(2) : {
+    .data ALIGN(4) : {
         START_CONSTRUCTORS_INITARR = .;
         KEEP(*(.init_array));
         KEEP(*(SORT_BY_INIT_PRIORITY(.init_array.*)));
@@ -45,7 +45,7 @@ SECTIONS
         PROVIDE(symtab_end = .);
     }>ram :data
 
-    .bss ALIGN(2) : {
+    .bss ALIGN(4) : {
         __bss_start = .;
         *(.bss)
         __bss_end = .;

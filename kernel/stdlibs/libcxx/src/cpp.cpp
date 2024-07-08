@@ -1,3 +1,4 @@
+#include <kprintf.h>
 #include <libcxx.h>
 #include <mm/kheap.h>
 #include <panic.h>
@@ -27,10 +28,12 @@ extern "C" constructor END_CONSTRUCTORS_CTORS;
 void cpp_init() {
     if (&START_CONSTRUCTORS_INITARR == &END_CONSTRUCTORS_INITARR) {
         for (constructor *i = &START_CONSTRUCTORS_CTORS; i < &END_CONSTRUCTORS_CTORS; i++) {
+            kprintf(KP_DEBUG, "calling ctor constructor - ptr: 0x%p *ptr: 0x%p\n", i, *i);
             (*i)();
         }
     } else {
         for (constructor *i = &START_CONSTRUCTORS_INITARR; i < &END_CONSTRUCTORS_INITARR; i++) {
+            kprintf(KP_DEBUG, "calling initarr constructor ptr: 0x%p *ptr: 0x%p\n", i, *i);
             (*i)();
         }
     }
