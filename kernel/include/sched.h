@@ -1,5 +1,7 @@
 #pragma once
+#include <abi/abi.h>
 #include <abi/linux/linux.h>
+#include <abi/vix/vix.h>
 #include <arch/common/cpu.h>
 #include <arch/common/sched.h>
 #include <forward_list>
@@ -22,7 +24,15 @@ namespace sched {
 
         struct arch_task task_arch;
 
+        enum abi::type abi_type;
+
+#ifdef CONFIG_ENABLE_ABI_LINUX
         struct abi::linux::task task_linux;
+#endif
+
+#ifdef CONFIG_ENABLE_ABI_VIX
+        struct abi::vix::task task_vix;
+#endif
 
         // TLS
         void *data;

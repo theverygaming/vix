@@ -171,9 +171,9 @@ static void populate_pmm_info() {
     uintptr_t required_bytes = ALIGN_UP(get_memmap_required_space(&pm_n_areas, &pm_n_total_pages), ARCH_PAGE_SIZE);
     const mm::mem_map_entry *entry = get_suitable_memmap_entry(required_bytes);
     uintptr_t entry_phys_start = ALIGN_UP(entry->base, ARCH_PAGE_SIZE);
-    uintptr_t required_pages = required_bytes / ARCH_PAGE_SIZE;
     pm_phys_addr = entry_phys_start;
 #ifdef CONFIG_ARCH_HAS_PAGING
+    uintptr_t required_pages = required_bytes / ARCH_PAGE_SIZE;
     void *vaddr = mm::vmm::kalloc(required_pages);
     for (uintptr_t i = 0; i < required_pages; i++) {
         uintptr_t virt = ((uintptr_t)vaddr) + (i * ARCH_PAGE_SIZE);

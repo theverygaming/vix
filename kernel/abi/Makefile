@@ -1,1 +1,1 @@
-obj-d += linux
+obj-d += linux vix

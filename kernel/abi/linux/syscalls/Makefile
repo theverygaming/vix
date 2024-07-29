@@ -1,1 +1,1 @@
-obj-$(CONFIG_ENABLE_LINUX_ABI) += exit.ocpp write.ocpp read.ocpp sysinfo.ocpp
+obj-$(CONFIG_ENABLE_ABI_LINUX) += exit.ocpp write.ocpp read.ocpp sysinfo.ocpp

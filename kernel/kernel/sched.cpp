@@ -44,11 +44,7 @@ void sched::yield() {
     push_interrupt_disable();
     struct sched::task *last = current;
     current = get_next();
-#ifndef SCHED_ARCH_HAS_CUSTOM_SWITCH
-    if (last->ctx == current->ctx) {
-#else
-    if (SCHED_ARCH_CUSTOM_SWITCH_YIELD_IGNORE_IF(last, current)) {
-#endif
+    if (last->pid == current->pid) {
         pop_interrupt_disable();
         return;
     }
