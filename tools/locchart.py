@@ -83,6 +83,7 @@ excludes = [
 ]
 
 kernel_paths = [
+    "kernel/abi",
     "kernel/stdlibs",
     "kernel/include",
     "kernel/drivers",
