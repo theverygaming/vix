@@ -1,10 +1,10 @@
+#include <string.h>
 #include <vix/arch/generic/memory.h>
 #include <vix/config.h>
 #include <vix/mm/kheap.h>
 #include <vix/mm/pmm.h>
 #include <vix/panic.h>
 #include <vix/stdio.h>
-#include <string.h>
 #include <vix/test.h>
 
 static int rand_seed = 420;

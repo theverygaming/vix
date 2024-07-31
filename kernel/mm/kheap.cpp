@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <string.h>
 #include <vix/arch/common/paging.h>
 #include <vix/arch/generic/memory.h>
 #include <vix/config.h>
@@ -10,7 +11,6 @@
 #include <vix/panic.h>
 #include <vix/status.h>
 #include <vix/stdio.h>
-#include <string.h>
 #include <vix/types.h>
 
 #define PROTECT_ALLOC_STRUCTS

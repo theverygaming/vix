@@ -1,7 +1,7 @@
+#include <vector>
 #include <vix/drivers/ms_mouse.h>
 #include <vix/panic.h>
 #include <vix/stdio.h>
-#include <vector>
 
 struct event_listener {
     void (*event)(void *, struct drivers::ms_mouse::mouse_packet);

@@ -1,3 +1,5 @@
+#include <string.h>
+#include <vector>
 #include <vix/abi/linux/errno.h>
 #include <vix/arch/common/cpu.h>
 #include <vix/arch/cpubasics.h>
@@ -13,9 +15,7 @@
 #include <vix/mm/pmm.h>
 #include <vix/sched.h>
 #include <vix/stdio.h>
-#include <string.h>
 #include <vix/time.h>
-#include <vector>
 
 static volatile bool uninitialized = true;
 

@@ -1,3 +1,4 @@
+#include <libcxx.h>
 #include <vix/arch/common/bootup.h>
 #include <vix/arch/generic/memory.h>
 #include <vix/config.h>
@@ -5,7 +6,6 @@
 #include <vix/fs/vfs.h>
 #include <vix/kernel.h>
 #include <vix/kprintf.h>
-#include <libcxx.h>
 #include <vix/mm/kheap.h>
 #include <vix/mm/pmm.h>
 #include <vix/mm/vmm.h>

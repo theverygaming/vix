@@ -1,6 +1,6 @@
+#include <string.h>
 #include <vix/arch/cpubasics.h>
 #include <vix/arch/drivers/rtc.h>
-#include <string.h>
 
 #define CMOS_PORT 0x70
 #define CMOS_DATA 0x71

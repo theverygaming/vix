@@ -1,9 +1,9 @@
 #pragma once
+#include <string>
+#include <vector>
 #include <vix/arch/common/cpu.h>
 #include <vix/arch/isr.h>
-#include <string>
 #include <vix/types.h>
-#include <vector>
 
 namespace elf {
     void load_program(

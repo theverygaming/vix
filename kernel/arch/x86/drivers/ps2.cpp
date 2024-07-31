@@ -1,3 +1,4 @@
+#include <vector>
 #include <vix/arch/common/cpu.h>
 #include <vix/arch/cpubasics.h>
 #include <vix/arch/drivers/pic_8259.h>
@@ -8,7 +9,6 @@
 #include <vix/drivers/ms_mouse.h>
 #include <vix/keyboard.h>
 #include <vix/stdio.h>
-#include <vector>
 
 #define PS2_DATA    0x60
 #define PS2_STATUS  0x64

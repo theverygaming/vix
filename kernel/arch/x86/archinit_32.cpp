@@ -1,3 +1,5 @@
+#include <string>
+#include <vector>
 #include <vix/arch/archinit.h>
 #include <vix/arch/common/bootup.h>
 #include <vix/arch/common/cpu.h>
@@ -29,9 +31,7 @@
 #include <vix/panic.h>
 #include <vix/sched.h>
 #include <vix/stdio.h>
-#include <string>
 #include <vix/time.h>
-#include <vector>
 
 fb::fb framebuffer; // HACK: exported so modules can use it // TODO: have a central framebuffer manager that takes care of this
 static fb::fbconsole fbconsole;

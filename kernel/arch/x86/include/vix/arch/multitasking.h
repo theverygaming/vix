@@ -1,12 +1,12 @@
 #pragma once
+#include <string>
+#include <vector>
 #include <vix/arch/common/cpu.h>
 #include <vix/arch/isr.h>
 #include <vix/arch/paging.h>
 #include <vix/config.h>
 #include <vix/event.h>
-#include <string>
 #include <vix/types.h>
-#include <vector>
 
 namespace multitasking {
     typedef struct {

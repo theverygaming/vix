@@ -1,9 +1,9 @@
-#include <vix/kprintf.h>
 #include <libcxx.h>
+#include <stdlib.h>
+#include <vix/kprintf.h>
 #include <vix/mm/kheap.h>
 #include <vix/panic.h>
 #include <vix/stdio.h>
-#include <stdlib.h>
 #include <vix/types.h>
 
 extern "C" void __cxa_pure_virtual() {

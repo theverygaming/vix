@@ -1,10 +1,10 @@
 #pragma once
+#include <forward_list>
 #include <vix/abi/abi.h>
 #include <vix/abi/linux/linux.h>
 #include <vix/abi/vix/vix.h>
 #include <vix/arch/common/cpu.h>
 #include <vix/arch/common/sched.h>
-#include <forward_list>
 
 #ifndef SCHED_ARCH_HAS_CUSTOM_SWITCH
 // arch-specific

@@ -1,11 +1,11 @@
 #include <algorithm>
+#include <string.h>
 #include <vix/arch/generic/memory.h>
 #include <vix/config.h>
 #include <vix/kprintf.h>
 #include <vix/macros.h>
 #include <vix/mm/memmap.h>
 #include <vix/panic.h>
-#include <string.h>
 
 static const char *type_string(mm::mem_map_entry::type_t type) {
     switch (type) {

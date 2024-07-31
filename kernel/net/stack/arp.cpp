@@ -1,8 +1,8 @@
+#include <stdlib.h>
 #include <vix/kprintf.h>
 #include <vix/net/stack/arp.h>
 #include <vix/net/stack/ethernet.h>
 #include <vix/net/stack/stack.h>
-#include <stdlib.h>
 
 struct __attribute__((packed)) arp_packet {
     uint16_t hardware_type; // usually 0x1 for Ethernet

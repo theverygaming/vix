@@ -1,6 +1,6 @@
 #pragma once
-#include <vix/arch/multitasking.h>
 #include <vector>
+#include <vix/arch/multitasking.h>
 
 namespace sched {
     struct arch_task {

@@ -28,8 +28,8 @@ static void fbputc(char c) {
 extern "C" void _kentry();
 extern "C" void *PHYS_START;
 extern "C" void *__kernel_size;
-static volatile struct macboot_kernel_header __attribute__((section(".entry")))
-header = {.id = MACBOOT_KERNEL_HEADER_ID, .load_address = (uint32_t)&PHYS_START, .size = (uint32_t)&__kernel_size, .kmain = &_kentry};
+static volatile struct macboot_kernel_header __attribute__((section(".entry"))) header = {
+    .id = MACBOOT_KERNEL_HEADER_ID, .load_address = (uint32_t)&PHYS_START, .size = (uint32_t)&__kernel_size, .kmain = &_kentry};
 
 static volatile struct macboot_framebuffer_request fbreq = {.id = MACBOOT_FRAMEBUFFER_REQUEST_ID, .response = nullptr};
 static volatile struct macboot_memmap_request memmapreq = {.id = MACBOOT_MEMMAP_REQUEST_ID, .response = nullptr};

@@ -1,6 +1,6 @@
+#include <string.h>
 #include <vix/debug.h>
 #include <vix/kprintf.h>
-#include <string.h>
 #include <vix/symbols.h>
 
 extern "C" char symtab_start;

@@ -1,12 +1,12 @@
+#include <stdlib.h>
+#include <string>
+#include <vector>
 #include <vix/debug.h>
 #include <vix/fs/path.h>
 #include <vix/fs/tarfs.h>
 #include <vix/fs/vfs.h>
 #include <vix/macros.h>
-#include <stdlib.h>
-#include <string>
 #include <vix/types.h>
-#include <vector>
 
 // https://www.gnu.org/software/tar/manual/html_node/Standard.html
 struct __attribute__((packed)) tarheader {

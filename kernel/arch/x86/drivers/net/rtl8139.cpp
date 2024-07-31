@@ -1,3 +1,4 @@
+#include <string.h>
 #include <vix/arch/common/cpu.h>
 #include <vix/arch/cpubasics.h>
 #include <vix/arch/drivers/net/rtl8139.h>
@@ -10,7 +11,6 @@
 #include <vix/net/stack/stack.h>
 #include <vix/panic.h>
 #include <vix/stdio.h>
-#include <string.h>
 
 static uint8_t bus;
 static uint8_t device;

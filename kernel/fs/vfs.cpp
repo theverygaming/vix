@@ -1,10 +1,10 @@
+#include <memory>
+#include <mutex>
+#include <vector>
 #include <vix/debug.h>
 #include <vix/fs/path.h>
 #include <vix/fs/vfs.h>
-#include <memory>
 #include <vix/mm/kheap.h>
-#include <mutex>
-#include <vector>
 
 //#define TEST_NEW_VFS // FIXME: this VFS testing stuff blows code up by 2K on m68k!! Fix IT!!!!
 

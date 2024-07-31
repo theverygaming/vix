@@ -1,10 +1,10 @@
+#include <string.h>
+#include <string>
+#include <vector>
 #include <vix/arch/modelf.h>
 #include <vix/debug.h>
 #include <vix/mm/kheap.h>
-#include <string.h>
-#include <string>
 #include <vix/symbols.h>
-#include <vector>
 
 struct __attribute__((packed)) elf32_header {
     unsigned char e_ident[16]; // should start with [0x7f 'E' 'L' 'F']

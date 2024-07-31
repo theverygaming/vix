@@ -1,3 +1,4 @@
+#include <string.h>
 #include <vix/arch/common/paging.h>
 #include <vix/arch/generic/memory.h>
 #include <vix/kprintf.h>
@@ -7,7 +8,6 @@
 #include <vix/mm/vmm.h>
 #include <vix/panic.h>
 #include <vix/status.h>
-#include <string.h>
 #include <vix/types.h>
 
 // TODO: there are lots of places to optimize in this class!!!

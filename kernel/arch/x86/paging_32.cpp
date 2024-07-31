@@ -1,9 +1,9 @@
+#include <string.h>
 #include <vix/arch/common/paging.h>
 #include <vix/arch/generic/memory.h>
 #include <vix/arch/paging.h>
 #include <vix/config.h>
 #include <vix/stdio.h>
-#include <string.h>
 
 uint32_t (*pagetables)[1024] = (uint32_t(*)[1024])(KERNEL_VIRT_ADDRESS + PAGE_TABLES_OFFSET);
 uint32_t *page_directory = (uint32_t *)(KERNEL_VIRT_ADDRESS + PAGE_DIRECTORY_OFFSET);

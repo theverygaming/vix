@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <vix/endian.h>
 #include <vix/kprintf.h>
 #include <vix/mm/kheap.h>
@@ -5,7 +6,6 @@
 #include <vix/net/stack/ethernet.h>
 #include <vix/net/stack/ip.h>
 #include <vix/net/stack/stack.h>
-#include <stdlib.h>
 
 #define ETHERTYPE_IPV4  0x800
 #define ETHERTYPE_IPV6  0x86DD

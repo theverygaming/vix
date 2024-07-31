@@ -1,10 +1,10 @@
+#include <stdlib.h>
 #include <vix/endian.h>
 #include <vix/kprintf.h>
 #include <vix/net/stack/ethernet.h>
 #include <vix/net/stack/icmp.h>
 #include <vix/net/stack/ip.h>
 #include <vix/net/stack/stack.h>
-#include <stdlib.h>
 
 struct __attribute__((packed)) icmp_header {
     uint8_t type;

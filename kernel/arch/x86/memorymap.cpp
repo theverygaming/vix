@@ -1,9 +1,9 @@
+#include <string.h>
 #include <vix/arch/memorymap.h>
 #include <vix/debug.h>
 #include <vix/kprintf.h>
 #include <vix/mm/memmap.h>
 #include <vix/panic.h>
-#include <string.h>
 
 typedef struct {
     uint64_t start;

@@ -1,3 +1,4 @@
+#include <string.h>
 #include <vix/arch/common/cpu.h>
 #include <vix/arch/cpubasics.h>
 #include <vix/arch/gdt.h>
@@ -13,7 +14,6 @@
 #include <vix/mm/kheap.h>
 #include <vix/panic.h>
 #include <vix/stdio.h>
-#include <string.h>
 
 typedef void (*intHandler)(struct arch::full_ctx *regs);
 static intHandler handlers[256];

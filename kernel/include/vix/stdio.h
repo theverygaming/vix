@@ -1,7 +1,7 @@
 #pragma once
+#include <stdarg.h>
 #include <vix/config.h>
 #include <vix/types.h>
-#include <stdarg.h>
 
 namespace stdio {
     void set_putc_function(void (*putc_function)(char c), bool debugonly = false);

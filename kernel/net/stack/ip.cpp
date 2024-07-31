@@ -1,10 +1,10 @@
+#include <stdlib.h>
 #include <vix/endian.h>
 #include <vix/kprintf.h>
 #include <vix/mm/kheap.h>
 #include <vix/net/stack/icmp.h>
 #include <vix/net/stack/ip.h>
 #include <vix/net/stack/stack.h>
-#include <stdlib.h>
 
 struct __attribute__((packed)) ipv4_packet {
     uint8_t version_ihl;

@@ -1,6 +1,6 @@
 #pragma once
-#include <vix/types.h>
 #include <utility>
+#include <vix/types.h>
 
 namespace syms {
     // returns null on failure

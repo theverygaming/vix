@@ -1,8 +1,8 @@
+#include <string.h>
 #include <vix/config.h>
 #include <vix/kprintf.h>
 #include <vix/macros.h>
 #include <vix/stdio.h>
-#include <string.h>
 #include <vix/time.h>
 #include <vix/types.h>
 

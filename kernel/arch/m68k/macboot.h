@@ -13,8 +13,7 @@
 extern "C" {
 #endif
 
-#define MACBOOT_KERNEL_HEADER_ID \
-    { MAGIC1, MAGIC3 }
+#define MACBOOT_KERNEL_HEADER_ID {MAGIC1, MAGIC3}
 struct __attribute__((packed)) macboot_kernel_header {
     uint64_t id[2];
     uint32_t load_address; // physical address where kernel executable will be loaded
@@ -27,8 +26,7 @@ struct __attribute__((packed)) macboot_kmem_response {
     uint32_t size;
 };
 
-#define MACBOOT_KMEM_REQUEST_ID \
-    { MAGIC1, MAGIC2(1), MAGIC3 }
+#define MACBOOT_KMEM_REQUEST_ID {MAGIC1, MAGIC2(1), MAGIC3}
 struct __attribute__((packed)) macboot_kmem_request {
     uint64_t id[3];
     struct macboot_kmem_response *response;
@@ -44,8 +42,7 @@ struct __attribute__((packed)) macboot_memmap_response {
     struct macboot_memmap_response *next;
 };
 
-#define MACBOOT_MEMMAP_REQUEST_ID \
-    { MAGIC1, MAGIC2(2), MAGIC3 }
+#define MACBOOT_MEMMAP_REQUEST_ID {MAGIC1, MAGIC2(2), MAGIC3}
 struct __attribute__((packed)) macboot_memmap_request {
     uint64_t id[3];
     struct macboot_memmap_response *response;
@@ -59,8 +56,7 @@ struct __attribute__((packed)) macboot_framebuffer_response {
     uint32_t bpp;
 };
 
-#define MACBOOT_FRAMEBUFFER_REQUEST_ID \
-    { MAGIC1, MAGIC2(3), MAGIC3 }
+#define MACBOOT_FRAMEBUFFER_REQUEST_ID {MAGIC1, MAGIC2(3), MAGIC3}
 struct __attribute__((packed)) macboot_framebuffer_request {
     uint64_t id[3];
     struct macboot_framebuffer_response *response;
@@ -70,8 +66,7 @@ struct __attribute__((packed)) macboot_cmdline_response {
     const char *cmdline;
 };
 
-#define MACBOOT_CMDLINE_REQUEST_ID \
-    { MAGIC1, MAGIC2(4), MAGIC3 }
+#define MACBOOT_CMDLINE_REQUEST_ID {MAGIC1, MAGIC2(4), MAGIC3}
 struct __attribute__((packed)) macboot_cmdline_request {
     uint64_t id[3];
     struct macboot_cmdline_response *response;
@@ -81,8 +76,7 @@ struct __attribute__((packed)) macboot_terminal_response {
     void (*puts)(const char *str);
 };
 
-#define MACBOOT_TERMINAL_REQUEST_ID \
-    { MAGIC1, MAGIC2(5), MAGIC3 }
+#define MACBOOT_TERMINAL_REQUEST_ID {MAGIC1, MAGIC2(5), MAGIC3}
 struct __attribute__((packed)) macboot_terminal_request {
     uint64_t id[3];
     struct macboot_terminal_response *response;

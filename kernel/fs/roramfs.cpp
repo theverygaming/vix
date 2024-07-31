@@ -1,12 +1,12 @@
+#include <stdlib.h>
+#include <string>
+#include <vector>
 #include <vix/debug.h>
 #include <vix/fs/path.h>
 #include <vix/fs/roramfs.h>
 #include <vix/fs/vfs.h>
 #include <vix/kprintf.h>
-#include <stdlib.h>
-#include <string>
 #include <vix/types.h>
-#include <vector>
 
 struct __attribute__((packed)) file_entry {
     char name[100];

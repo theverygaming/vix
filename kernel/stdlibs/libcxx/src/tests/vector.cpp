@@ -1,6 +1,6 @@
+#include <vector>
 #include <vix/test.h>
 #include <vix/types.h>
-#include <vector>
 
 class testclass {
 public:

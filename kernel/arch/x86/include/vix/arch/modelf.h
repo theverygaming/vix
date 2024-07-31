@@ -1,8 +1,8 @@
 #pragma once
-#include <vix/arch/isr.h>
 #include <string>
-#include <vix/types.h>
 #include <vector>
+#include <vix/arch/isr.h>
+#include <vix/types.h>
 
 namespace elf {
     void load_module(void *ELF_baseadr);

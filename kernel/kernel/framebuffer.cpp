@@ -1,9 +1,9 @@
+#include <string.h>
 #include <vix/config.h>
 #include <vix/debug.h>
 #include <vix/framebuffer.h>
 #include <vix/fs/vfs.h>
 #include <vix/panic.h>
-#include <string.h>
 
 static inline uint8_t bitget(uint32_t num, uint8_t bit) {
     return (num & (0x1 << bit)) >> bit;

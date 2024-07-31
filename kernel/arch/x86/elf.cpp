@@ -1,3 +1,6 @@
+#include <string.h>
+#include <string>
+#include <vector>
 #include <vix/arch/common/cpu.h>
 #include <vix/arch/elf.h>
 #include <vix/arch/generic/memory.h>
@@ -6,9 +9,6 @@
 #include <vix/mm/kheap.h>
 #include <vix/mm/pmm.h>
 #include <vix/status.h>
-#include <string.h>
-#include <string>
-#include <vector>
 
 void elf::load_program(void *ELF_baseadr, std::vector<std::string> *argv, bool replace_task, int replace_pid, struct arch::full_ctx *regs) {
     ElfHeader header;
