@@ -27,7 +27,7 @@ jobs:
           timeout 30 qemu-system-x86_64 -cdrom vix.iso -nographic | ansifilter | tee log.txt || true
 
       - name: upload files
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ci-run-x86_32
           path: ${{runner.workspace}}/vix/vix.iso
@@ -76,7 +76,7 @@ jobs:
           timeout 30 qemu-system-x86_64 -bios /usr/share/ovmf/OVMF.fd -nographic -serial mon:stdio -hda vix_uefi.img | ansifilter | tee log.txt || true
 
       - name: upload files
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ci-run-x86_64
           path: ${{runner.workspace}}/vix/vix_uefi.img
@@ -122,7 +122,7 @@ jobs:
           timeout 30 qemu-system-aarch64 -m 1024m -bios /usr/share/qemu-efi-aarch64/QEMU_EFI.fd -cpu cortex-a53 -smp 4 -machine virt -device ramfb -device qemu-xhci -device usb-kbd -nographic -serial mon:stdio -hda vix_uefi.img | ansifilter | tee log.txt || true
 
       - name: upload files
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ci-run-aarch64
           path: ${{runner.workspace}}/vix/vix_uefi.img
