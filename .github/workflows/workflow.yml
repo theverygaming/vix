@@ -53,8 +53,8 @@ jobs:
       - name: build limine
         run: |
           cd $GITHUB_WORKSPACE/../
-          wget https://github.com/limine-bootloader/limine/releases/download/v7.4.0/limine-7.4.0.tar.gz
-          tar -xf limine-7.4.0.tar.gz && mv limine-7.4.0/ limine/
+          wget https://github.com/limine-bootloader/limine/releases/download/v7.13.2/limine-7.13.2.tar.gz
+          tar -xf limine-7.13.2.tar.gz && mv limine-7.13.2/ limine/
           cd limine
           ./bootstrap
           ./configure --enable-uefi-x86-64 --enable-bios
@@ -102,11 +102,11 @@ jobs:
       - name: build limine
         run: |
           cd $GITHUB_WORKSPACE/../
-          wget https://github.com/limine-bootloader/limine/releases/download/v7.4.0/limine-7.4.0.tar.gz
-          tar -xf limine-7.4.0.tar.gz && mv limine-7.4.0/ limine/
+          wget https://github.com/limine-bootloader/limine/releases/download/v7.13.2/limine-7.13.2.tar.gz
+          tar -xf limine-7.13.2.tar.gz && mv limine-7.13.2/ limine/
           cd limine
           ./bootstrap
-          CROSS_TOOLCHAIN=aarch64-linux-gnu ./configure --enable-uefi-aarch64
+          TOOLCHAIN_FOR_TARGET=aarch64-linux-gnu ./configure --enable-uefi-aarch64
           make -j $(nproc)
           sudo make install
 
