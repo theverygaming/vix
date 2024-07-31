@@ -1,8 +1,8 @@
-#include <arch/memorymap.h>
-#include <debug.h>
-#include <kprintf.h>
-#include <mm/memmap.h>
-#include <panic.h>
+#include <vix/arch/memorymap.h>
+#include <vix/debug.h>
+#include <vix/kprintf.h>
+#include <vix/mm/memmap.h>
+#include <vix/panic.h>
 #include <string.h>
 
 typedef struct {

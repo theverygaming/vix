@@ -1,9 +1,9 @@
-#include <config.h>
+#include <vix/config.h>
 #include <stdarg.h>
-#include <stdio.h>
+#include <vix/stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <types.h>
+#include <vix/types.h>
 
 static void (*putc_function_ptr)(char c) = nullptr;
 static void (*putc_dbg_function_ptr)(char c) = nullptr;

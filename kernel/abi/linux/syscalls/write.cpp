@@ -1,9 +1,9 @@
-#include <abi/linux/calls.h>
-#include <abi/linux/errno.h>
-#include <kprintf.h>
-#include <sched.h>
-#include <stdio.h>
-#include <types.h>
+#include <vix/abi/linux/calls.h>
+#include <vix/abi/linux/errno.h>
+#include <vix/kprintf.h>
+#include <vix/sched.h>
+#include <vix/stdio.h>
+#include <vix/types.h>
 
 __DEF_LINUX_SYSCALL(sys_write) {
     int fd = (int)sysarg0;

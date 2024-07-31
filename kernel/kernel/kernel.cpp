@@ -1,19 +1,19 @@
-#include <arch/common/bootup.h>
-#include <arch/generic/memory.h>
-#include <config.h>
-#include <debug.h>
-#include <fs/vfs.h>
-#include <kernel.h>
-#include <kprintf.h>
+#include <vix/arch/common/bootup.h>
+#include <vix/arch/generic/memory.h>
+#include <vix/config.h>
+#include <vix/debug.h>
+#include <vix/fs/vfs.h>
+#include <vix/kernel.h>
+#include <vix/kprintf.h>
 #include <libcxx.h>
-#include <mm/kheap.h>
-#include <mm/pmm.h>
-#include <mm/vmm.h>
-#include <sched.h>
-#include <types.h>
+#include <vix/mm/kheap.h>
+#include <vix/mm/pmm.h>
+#include <vix/mm/vmm.h>
+#include <vix/sched.h>
+#include <vix/types.h>
 
 #ifdef CONFIG_ARCH_X86
-#include <arch/drivers/pci.h>
+#include <vix/arch/drivers/pci.h>
 #endif
 
 #ifdef CONFIG_ENABLE_TESTS

@@ -1,6 +1,6 @@
 #include "mouse.h"
-#include <kprintf.h>
-#include <module.h>
+#include <vix/kprintf.h>
+#include <vix/module.h>
 
 MODULE_AUTHOR("theverygaming");
 MODULE_DESCRIPTION("GUI experiments");

@@ -1,13 +1,13 @@
-#include <arch/common/cpu.h>
-#include <arch/cpubasics.h>
-#include <arch/drivers/pic_8259.h>
-#include <arch/drivers/ps2.h>
-#include <arch/drivers/text80x25.h>
-#include <arch/isr.h>
-#include <drivers/keyboard.h>
-#include <drivers/ms_mouse.h>
-#include <keyboard.h>
-#include <stdio.h>
+#include <vix/arch/common/cpu.h>
+#include <vix/arch/cpubasics.h>
+#include <vix/arch/drivers/pic_8259.h>
+#include <vix/arch/drivers/ps2.h>
+#include <vix/arch/drivers/text80x25.h>
+#include <vix/arch/isr.h>
+#include <vix/drivers/keyboard.h>
+#include <vix/drivers/ms_mouse.h>
+#include <vix/keyboard.h>
+#include <vix/stdio.h>
 #include <vector>
 
 #define PS2_DATA    0x60

@@ -23,11 +23,11 @@
  *
  */
 
-#include <arch/drivers/gpu/fb.h>
-#include <arch/drivers/gpu/mbox.h>
-#include <mm/kheap.h>
-#include <stdio.h>
-#include <types.h>
+#include <vix/arch/drivers/gpu/fb.h>
+#include <vix/arch/drivers/gpu/mbox.h>
+#include <vix/mm/kheap.h>
+#include <vix/stdio.h>
+#include <vix/types.h>
 
 // https://github.com/bztsrc/raspi3-tutorial/blob/master/09_framebuffer/lfb.c
 bool drivers::gpu::setup_fb(size_t width, size_t height, size_t bpp, struct fb::fbinfo *info) {

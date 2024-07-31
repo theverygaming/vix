@@ -1,7 +1,7 @@
-#include <mm/kheap.h>
-#include <panic.h>
-#include <sched.h>
-#include <types.h>
+#include <vix/mm/kheap.h>
+#include <vix/panic.h>
+#include <vix/sched.h>
+#include <vix/types.h>
 
 void sched::arch_init_thread(struct sched::task *proc, void (*func)()) {
     uint64_t *stack = (uint64_t *)((uint8_t *)mm::kmalloc(1024) + 1024);

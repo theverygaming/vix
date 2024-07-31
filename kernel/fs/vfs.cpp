@@ -1,8 +1,8 @@
-#include <debug.h>
-#include <fs/path.h>
-#include <fs/vfs.h>
+#include <vix/debug.h>
+#include <vix/fs/path.h>
+#include <vix/fs/vfs.h>
 #include <memory>
-#include <mm/kheap.h>
+#include <vix/mm/kheap.h>
 #include <mutex>
 #include <vector>
 

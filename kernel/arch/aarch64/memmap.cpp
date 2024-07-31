@@ -1,4 +1,4 @@
-#include <arch/memmap.h>
+#include <vix/arch/memmap.h>
 
 // BCM2837 rpi3b
 

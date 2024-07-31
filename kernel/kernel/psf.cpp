@@ -1,4 +1,4 @@
-#include <psf.h>
+#include <vix/psf.h>
 #include <string.h>
 
 #define PSF1_MAGIC0 0x36
@@ -10,7 +10,7 @@ struct __attribute__((packed)) psf1_header {
     uint8_t charheight; // char height (font is 8xcharheight)
 };
 
-#include <debug.h>
+#include <vix/debug.h>
 
 bool psf::psf1_reader::init(void *fontptr) {
     _fontptr = fontptr;

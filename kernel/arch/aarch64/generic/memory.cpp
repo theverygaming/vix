@@ -1,6 +1,6 @@
-#include <arch/generic/archspecific.h>
-#include <arch/generic/memory.h>
-#include <arch/memmap.h>
+#include <vix/arch/generic/archspecific.h>
+#include <vix/arch/generic/memory.h>
+#include <vix/arch/memmap.h>
 
 bool arch::generic::memory::get_memory_map(struct memory_map_entry *entry, int n) {
     if (n == 0) { // lets make zero the kernel memory entry

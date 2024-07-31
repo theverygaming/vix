@@ -1,5 +1,5 @@
-#include <arch/drivers/gpu/mbox.h>
-#include <stdio.h>
+#include <vix/arch/drivers/gpu/mbox.h>
+#include <vix/stdio.h>
 
 #define MMIO_BASE   0x3F000000
 #define MBOX_OFFSET 0xB880

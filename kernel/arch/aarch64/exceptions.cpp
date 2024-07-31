@@ -1,6 +1,6 @@
-#include <kprintf.h>
-#include <panic.h>
-#include <types.h>
+#include <vix/kprintf.h>
+#include <vix/panic.h>
+#include <vix/types.h>
 
 extern "C" void exception_handler(uint64_t n, uint64_t esr, uint64_t elr, uint64_t spsr, uint64_t far) {
     kprintf(KP_EMERG, "except: ESR: 0x%p ELR: 0x%p SPSR: 0x%p FAR: 0x%p\n", esr, elr, spsr, far);

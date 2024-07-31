@@ -1,5 +1,5 @@
 #pragma once
-#include <panic.h>
+#include <vix/panic.h>
 
 namespace std {
     class mutex {

@@ -1,5 +1,5 @@
-#include <panic.h>
-#include <types.h>
+#include <vix/panic.h>
+#include <vix/types.h>
 
 uintptr_t __stack_chk_guard = (uintptr_t)0x244E62F0EE8AA49F;
 

@@ -1,6 +1,6 @@
-#include <kprintf.h>
-#include <panic.h>
-#include <stdio.h>
+#include <vix/kprintf.h>
+#include <vix/panic.h>
+#include <vix/stdio.h>
 
 // #define __ubsanfunc __attribute__((noreturn)) __attribute__((no_instrument_function))
 #define __ubsanfunc __attribute__((no_instrument_function))

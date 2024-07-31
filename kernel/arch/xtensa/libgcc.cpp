@@ -1,5 +1,5 @@
-#include <libgcc_math.h>
-#include <types.h>
+#include <vix/libgcc_math.h>
+#include <vix/types.h>
 
 // FIXME
 

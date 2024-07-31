@@ -1,20 +1,20 @@
-#include <abi/linux/errno.h>
-#include <arch/common/cpu.h>
-#include <arch/cpubasics.h>
-#include <arch/gdt.h>
-#include <arch/generic/memory.h>
-#include <arch/multitasking.h>
-#include <arch/tss.h>
-#include <debug.h>
-#include <interrupts.h>
-#include <kprintf.h>
-#include <macros.h>
-#include <mm/kheap.h>
-#include <mm/pmm.h>
-#include <sched.h>
-#include <stdio.h>
+#include <vix/abi/linux/errno.h>
+#include <vix/arch/common/cpu.h>
+#include <vix/arch/cpubasics.h>
+#include <vix/arch/gdt.h>
+#include <vix/arch/generic/memory.h>
+#include <vix/arch/multitasking.h>
+#include <vix/arch/tss.h>
+#include <vix/debug.h>
+#include <vix/interrupts.h>
+#include <vix/kprintf.h>
+#include <vix/macros.h>
+#include <vix/mm/kheap.h>
+#include <vix/mm/pmm.h>
+#include <vix/sched.h>
+#include <vix/stdio.h>
 #include <string.h>
-#include <time.h>
+#include <vix/time.h>
 #include <vector>
 
 static volatile bool uninitialized = true;

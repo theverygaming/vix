@@ -1,8 +1,8 @@
-#include <fs/path.h>
-#include <mm/kheap.h>
-#include <panic.h>
+#include <vix/fs/path.h>
+#include <vix/mm/kheap.h>
+#include <vix/panic.h>
 #include <stdlib.h>
-#include <types.h>
+#include <vix/types.h>
 
 bool fs::path::starts_with(std::vector<std::string> *path, std::vector<std::string> *start) {
     if (path->size() < start->size()) {

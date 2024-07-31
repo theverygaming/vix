@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 import sys
 
-print("#include <config.h>\n.section .sym_table\n.global symtab_start\nsymtab_start:\n#ifdef CONFIG_ENABLE_SYMBOL_TABLE")
+print("#include <vix/config.h>\n.section .sym_table\n.global symtab_start\nsymtab_start:\n#ifdef CONFIG_ENABLE_SYMBOL_TABLE")
 
 for line in sys.stdin:
     line = line.rstrip()

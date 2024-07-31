@@ -1,10 +1,10 @@
-#include <arch/gdt.h>
-#include <arch/generic/archspecific.h>
-#include <arch/tss.h>
-#include <debug.h>
-#include <kprintf.h>
+#include <vix/arch/gdt.h>
+#include <vix/arch/generic/archspecific.h>
+#include <vix/arch/tss.h>
+#include <vix/debug.h>
+#include <vix/kprintf.h>
 #include <string.h>
-#include <types.h>
+#include <vix/types.h>
 
 struct __attribute__((packed)) gdtEntry {
     uint16_t limitLow;       // limit (bits 0-15)

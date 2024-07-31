@@ -1,6 +1,6 @@
-#include <arch/idt.h>
-#include <arch/paging.h>
-#include <types.h>
+#include <vix/arch/idt.h>
+#include <vix/arch/paging.h>
+#include <vix/types.h>
 
 #define FLAG_SET(x, flag)   x |= (flag)
 #define FLAG_UNSET(x, flag) x &= ~(flag)

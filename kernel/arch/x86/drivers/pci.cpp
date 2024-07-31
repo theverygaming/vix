@@ -1,6 +1,6 @@
-#include <arch/cpubasics.h>
-#include <arch/drivers/pci.h>
-#include <kprintf.h>
+#include <vix/arch/cpubasics.h>
+#include <vix/arch/drivers/pci.h>
+#include <vix/kprintf.h>
 
 /* direct read/write functions */
 static inline uint32_t pciConfigRead32(uint8_t bus, uint8_t slot, uint8_t function, uint8_t offset) {

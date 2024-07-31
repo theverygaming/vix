@@ -1,5 +1,5 @@
-#include <arch/generic/devices.h>
-#include <time.h>
+#include <vix/arch/generic/devices.h>
+#include <vix/time.h>
 
 volatile time_t time::bootupTime = 0;
 volatile uint64_t time::ns_since_bootup = 0;

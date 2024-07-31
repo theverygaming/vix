@@ -1,9 +1,9 @@
-#include <arch/generic/memory.h>
-#include <arch/paging.h>
-#include <config.h>
-#include <debug.h>
-#include <stdio.h>
-#include <types.h>
+#include <vix/arch/generic/memory.h>
+#include <vix/arch/paging.h>
+#include <vix/config.h>
+#include <vix/debug.h>
+#include <vix/stdio.h>
+#include <vix/types.h>
 
 #define AVAILABLE       (1 << 0)
 #define WRITE           (1 << 1)

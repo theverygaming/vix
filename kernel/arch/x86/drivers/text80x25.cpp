@@ -1,6 +1,6 @@
-#include <arch/cpubasics.h>
-#include <arch/drivers/text80x25.h>
-#include <config.h>
+#include <vix/arch/cpubasics.h>
+#include <vix/arch/drivers/text80x25.h>
+#include <vix/config.h>
 
 #define SCREEN_WIDTH  80
 #define SCREEN_HEIGHT 25

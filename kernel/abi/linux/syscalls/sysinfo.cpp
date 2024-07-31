@@ -1,10 +1,10 @@
-#include <abi/linux/calls.h>
-#include <arch/generic/memory.h>
-#include <kprintf.h>
-#include <mm/memmap.h>
-#include <mm/pmm.h>
-#include <sched.h>
-#include <time.h>
+#include <vix/abi/linux/calls.h>
+#include <vix/arch/generic/memory.h>
+#include <vix/kprintf.h>
+#include <vix/mm/memmap.h>
+#include <vix/mm/pmm.h>
+#include <vix/sched.h>
+#include <vix/time.h>
 
 struct sysinfo {
     long uptime;             /* Seconds since boot */

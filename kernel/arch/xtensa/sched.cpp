@@ -1,7 +1,7 @@
-#include <mm/kheap.h>
-#include <panic.h>
-#include <sched.h>
-#include <types.h>
+#include <vix/mm/kheap.h>
+#include <vix/panic.h>
+#include <vix/sched.h>
+#include <vix/types.h>
 
 static void procret() {
     KERNEL_PANIC("returned from process");

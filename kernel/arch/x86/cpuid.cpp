@@ -1,5 +1,5 @@
-#include <arch/cpuid.h>
-#include <debug.h>
+#include <vix/arch/cpuid.h>
+#include <vix/debug.h>
 
 #define CPUID_MACRO(level, a, b, c, d)           \
     __asm__("xchg{l}\t{%%}ebx, %1\n\t"           \

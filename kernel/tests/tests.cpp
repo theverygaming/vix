@@ -1,11 +1,11 @@
-#include <config.h>
-#include <stdio.h>
-#include <test.h>
-#include <time.h>
+#include <vix/config.h>
+#include <vix/stdio.h>
+#include <vix/test.h>
+#include <vix/time.h>
 
 #if defined(CONFIG_ARCH_X86) || defined(CONFIG_ARCH_M68K)
 #include <string.h>
-#include <symbols.h>
+#include <vix/symbols.h>
 #endif
 
 static const char *current_test_name = nullptr;

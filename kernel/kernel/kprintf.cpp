@@ -1,10 +1,10 @@
-#include <config.h>
-#include <kprintf.h>
-#include <macros.h>
-#include <stdio.h>
+#include <vix/config.h>
+#include <vix/kprintf.h>
+#include <vix/macros.h>
+#include <vix/stdio.h>
 #include <string.h>
-#include <time.h>
-#include <types.h>
+#include <vix/time.h>
+#include <vix/types.h>
 
 #define TMP_BUF_LEN (512)
 

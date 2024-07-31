@@ -1,7 +1,7 @@
 #pragma once
-#include <debug.h>
+#include <vix/debug.h>
 #include <libcxx/pnew.h>
-#include <mm/kheap.h>
+#include <vix/mm/kheap.h>
 #include <string.h>
 
 namespace std {

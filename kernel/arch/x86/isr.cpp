@@ -1,18 +1,18 @@
-#include <arch/common/cpu.h>
-#include <arch/cpubasics.h>
-#include <arch/gdt.h>
-#include <arch/generic/memory.h>
-#include <arch/idt.h>
-#include <arch/isr.h>
-#include <arch/isrs.h>
-#include <arch/multitasking.h>
-#include <arch/tss.h>
-#include <config.h>
-#include <debug.h>
-#include <kprintf.h>
-#include <mm/kheap.h>
-#include <panic.h>
-#include <stdio.h>
+#include <vix/arch/common/cpu.h>
+#include <vix/arch/cpubasics.h>
+#include <vix/arch/gdt.h>
+#include <vix/arch/generic/memory.h>
+#include <vix/arch/idt.h>
+#include <vix/arch/isr.h>
+#include <vix/arch/isrs.h>
+#include <vix/arch/multitasking.h>
+#include <vix/arch/tss.h>
+#include <vix/config.h>
+#include <vix/debug.h>
+#include <vix/kprintf.h>
+#include <vix/mm/kheap.h>
+#include <vix/panic.h>
+#include <vix/stdio.h>
 #include <string.h>
 
 typedef void (*intHandler)(struct arch::full_ctx *regs);

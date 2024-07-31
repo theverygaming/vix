@@ -1,14 +1,14 @@
-#include <arch/generic/archspecific.h>
-#include <arch/generic/memory.h>
-#include <arch/multiboot2.h>
-#include <arch/paging.h>
-#include <debug.h>
-#include <macros.h>
-#include <mm/kheap.h>
-#include <mm/pmm.h>
-#include <panic.h>
-#include <stdio.h>
-#include <types.h>
+#include <vix/arch/generic/archspecific.h>
+#include <vix/arch/generic/memory.h>
+#include <vix/arch/multiboot2.h>
+#include <vix/arch/paging.h>
+#include <vix/debug.h>
+#include <vix/macros.h>
+#include <vix/mm/kheap.h>
+#include <vix/mm/pmm.h>
+#include <vix/panic.h>
+#include <vix/stdio.h>
+#include <vix/types.h>
 
 struct __attribute__((packed)) multiboot2_tag {
     uint32_t type;

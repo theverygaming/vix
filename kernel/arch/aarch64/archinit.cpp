@@ -1,17 +1,17 @@
-#include <arch/common/bootup.h>
-#include <arch/drivers/gpu/fb.h>
-#include <arch/drivers/timer.h>
-#include <arch/drivers/uart.h>
-#include <arch/limine.h>
-#include <arch/startup.h>
-#include <config.h>
-#include <framebuffer.h>
-#include <kernel.h>
-#include <mm/kheap.h>
-#include <mm/memmap.h>
-#include <panic.h>
-#include <stdio.h>
-#include <time.h>
+#include <vix/arch/common/bootup.h>
+#include <vix/arch/drivers/gpu/fb.h>
+#include <vix/arch/drivers/timer.h>
+#include <vix/arch/drivers/uart.h>
+#include <vix/arch/limine.h>
+#include <vix/arch/startup.h>
+#include <vix/config.h>
+#include <vix/framebuffer.h>
+#include <vix/kernel.h>
+#include <vix/mm/kheap.h>
+#include <vix/mm/memmap.h>
+#include <vix/panic.h>
+#include <vix/stdio.h>
+#include <vix/time.h>
 
 static fb::fb framebuffer;
 static fb::fbconsole fbconsole;

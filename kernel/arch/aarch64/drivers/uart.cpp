@@ -1,6 +1,6 @@
-#include <arch/drivers/gpu/mbox.h>
-#include <arch/drivers/uart.h>
-#include <types.h>
+#include <vix/arch/drivers/gpu/mbox.h>
+#include <vix/arch/drivers/uart.h>
+#include <vix/types.h>
 
 void drivers::uart::init() {}
 

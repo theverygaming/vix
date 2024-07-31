@@ -1,7 +1,7 @@
-#include <debug.h>
-#include <kprintf.h>
+#include <vix/debug.h>
+#include <vix/kprintf.h>
 #include <string.h>
-#include <symbols.h>
+#include <vix/symbols.h>
 
 extern "C" char symtab_start;
 extern "C" char symtab_end;

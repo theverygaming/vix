@@ -1,7 +1,7 @@
-#include <arch/common/cpu.h>
-#include <arch/multitasking.h>
-#include <panic.h>
-#include <symbols.h>
+#include <vix/arch/common/cpu.h>
+#include <vix/arch/multitasking.h>
+#include <vix/panic.h>
+#include <vix/symbols.h>
 
 struct stackframe {
     struct stackframe *ebp;

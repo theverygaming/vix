@@ -1,6 +1,6 @@
-#include <abi/vix/calls.h>
-#include <kprintf.h>
-#include <sched.h>
+#include <vix/abi/vix/calls.h>
+#include <vix/kprintf.h>
+#include <vix/sched.h>
 
 __DEF_VIX_SYSCALL(sys_exit) {
     int status = (int)sysarg0;

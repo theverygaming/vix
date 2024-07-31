@@ -1,10 +1,10 @@
-#include <kprintf.h>
+#include <vix/kprintf.h>
 #include <libcxx.h>
-#include <mm/kheap.h>
-#include <panic.h>
-#include <stdio.h>
+#include <vix/mm/kheap.h>
+#include <vix/panic.h>
+#include <vix/stdio.h>
 #include <stdlib.h>
-#include <types.h>
+#include <vix/types.h>
 
 extern "C" void __cxa_pure_virtual() {
     // undefined virtual function

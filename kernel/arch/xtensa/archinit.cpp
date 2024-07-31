@@ -1,16 +1,16 @@
-#include <arch/common/bootup.h>
-#include <arch/generic/memory.h>
-#include <config.h>
-#include <kernel.h>
-#include <kprintf.h>
-#include <macros.h>
-#include <mm/kheap.h>
-#include <mm/memmap.h>
-#include <mm/memtest.h>
-#include <mm/pmm.h>
-#include <panic.h>
-#include <stdio.h>
-#include <time.h>
+#include <vix/arch/common/bootup.h>
+#include <vix/arch/generic/memory.h>
+#include <vix/config.h>
+#include <vix/kernel.h>
+#include <vix/kprintf.h>
+#include <vix/macros.h>
+#include <vix/mm/kheap.h>
+#include <vix/mm/memmap.h>
+#include <vix/mm/memtest.h>
+#include <vix/mm/pmm.h>
+#include <vix/panic.h>
+#include <vix/stdio.h>
+#include <vix/time.h>
 
 // ESP32 ROM
 void (*ets_write_char_uart)(char c) = (void (*)(char))0x40007cf8;

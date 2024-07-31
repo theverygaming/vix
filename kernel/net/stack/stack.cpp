@@ -1,4 +1,4 @@
-#include <net/stack/stack.h>
+#include <vix/net/stack/stack.h>
 
 net::networkstack::networkstack(struct drivers::net::generic_card card) {
     networkcard = card;

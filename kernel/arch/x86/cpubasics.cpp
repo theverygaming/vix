@@ -1,12 +1,12 @@
-#include <arch/common/cpu.h>
-#include <arch/cpubasics.h>
-#include <arch/drivers/pic_8259.h>
-#include <arch/idt.h>
-#include <arch/isr.h>
-#include <arch/multitasking.h>
-#include <config.h>
-#include <stdio.h>
-#include <time.h>
+#include <vix/arch/common/cpu.h>
+#include <vix/arch/cpubasics.h>
+#include <vix/arch/drivers/pic_8259.h>
+#include <vix/arch/idt.h>
+#include <vix/arch/isr.h>
+#include <vix/arch/multitasking.h>
+#include <vix/config.h>
+#include <vix/stdio.h>
+#include <vix/time.h>
 
 static void set_pit_freq(int hz) {
     int divisor = 1193180 / hz; /* Calculate our divisor */

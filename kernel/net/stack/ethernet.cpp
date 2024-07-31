@@ -1,10 +1,10 @@
-#include <endian.h>
-#include <kprintf.h>
-#include <mm/kheap.h>
-#include <net/stack/arp.h>
-#include <net/stack/ethernet.h>
-#include <net/stack/ip.h>
-#include <net/stack/stack.h>
+#include <vix/endian.h>
+#include <vix/kprintf.h>
+#include <vix/mm/kheap.h>
+#include <vix/net/stack/arp.h>
+#include <vix/net/stack/ethernet.h>
+#include <vix/net/stack/ip.h>
+#include <vix/net/stack/stack.h>
 #include <stdlib.h>
 
 #define ETHERTYPE_IPV4  0x800

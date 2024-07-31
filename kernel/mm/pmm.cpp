@@ -1,14 +1,14 @@
-#include <arch/common/paging.h>
-#include <arch/generic/memory.h>
-#include <kprintf.h>
-#include <macros.h>
-#include <mm/memmap.h>
-#include <mm/pmm.h>
-#include <mm/vmm.h>
-#include <panic.h>
-#include <status.h>
+#include <vix/arch/common/paging.h>
+#include <vix/arch/generic/memory.h>
+#include <vix/kprintf.h>
+#include <vix/macros.h>
+#include <vix/mm/memmap.h>
+#include <vix/mm/pmm.h>
+#include <vix/mm/vmm.h>
+#include <vix/panic.h>
+#include <vix/status.h>
 #include <string.h>
-#include <types.h>
+#include <vix/types.h>
 
 // TODO: there are lots of places to optimize in this class!!!
 class bitmap {

@@ -1,6 +1,6 @@
-#include <arch/cpuid.h>
-#include <arch/simd.h>
-#include <stdio.h>
+#include <vix/arch/cpuid.h>
+#include <vix/arch/simd.h>
+#include <vix/stdio.h>
 
 extern "C" void simd_enable_sse();
 

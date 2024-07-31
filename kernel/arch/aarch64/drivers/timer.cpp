@@ -1,6 +1,6 @@
-#include <arch/drivers/timer.h>
-#include <stdio.h>
-#include <types.h>
+#include <vix/arch/drivers/timer.h>
+#include <vix/stdio.h>
+#include <vix/types.h>
 
 // https://tc.gts3.org/cs3210/2020/spring/r/aarch64-generic-timer.pdf
 

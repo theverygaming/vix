@@ -1,15 +1,15 @@
-#include <arch/common/cpu.h>
-#include <arch/cpubasics.h>
-#include <arch/drivers/net/rtl8139.h>
-#include <arch/drivers/pci.h>
-#include <arch/drivers/pic_8259.h>
-#include <arch/isr.h>
-#include <arch/paging.h>
-#include <drivers/net/generic_card.h>
-#include <mm/kheap.h>
-#include <net/stack/stack.h>
-#include <panic.h>
-#include <stdio.h>
+#include <vix/arch/common/cpu.h>
+#include <vix/arch/cpubasics.h>
+#include <vix/arch/drivers/net/rtl8139.h>
+#include <vix/arch/drivers/pci.h>
+#include <vix/arch/drivers/pic_8259.h>
+#include <vix/arch/isr.h>
+#include <vix/arch/paging.h>
+#include <vix/drivers/net/generic_card.h>
+#include <vix/mm/kheap.h>
+#include <vix/net/stack/stack.h>
+#include <vix/panic.h>
+#include <vix/stdio.h>
 #include <string.h>
 
 static uint8_t bus;

@@ -1,6 +1,6 @@
-#include <arch/gdt.h>
-#include <arch/idt.h>
-#include <arch/isrs.h>
+#include <vix/arch/gdt.h>
+#include <vix/arch/idt.h>
+#include <vix/arch/isrs.h>
 
 extern "C" void except_entry0();
 extern "C" void except_entry1();

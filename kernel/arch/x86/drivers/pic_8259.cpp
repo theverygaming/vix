@@ -1,6 +1,6 @@
-#include <arch/cpubasics.h>
-#include <arch/drivers/pic_8259.h>
-#include <debug.h>
+#include <vix/arch/cpubasics.h>
+#include <vix/arch/drivers/pic_8259.h>
+#include <vix/debug.h>
 
 static uint8_t _master_base;
 static uint8_t _slave_base;

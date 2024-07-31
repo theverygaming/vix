@@ -1,4 +1,4 @@
-#include <types.h>
+#include <vix/types.h>
 
 static void __attribute__((no_instrument_function)) e9putd(const void *data, size_t len) {
     const uint8_t *data_u8 = (const uint8_t *)data;

@@ -1,7 +1,7 @@
 #include "mouse.h"
 #include <algorithm>
-#include <drivers/ms_mouse.h>
-#include <framebuffer.h>
+#include <vix/drivers/ms_mouse.h>
+#include <vix/framebuffer.h>
 
 extern fb::fb framebuffer;
 

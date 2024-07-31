@@ -24,7 +24,7 @@ i686_ISR%1:
 
 %include "arch/x86/isrs.inc"
 
-%include "include/config.inc"
+%include "include/vix/config.inc"
 
 isr_common:
     push ds

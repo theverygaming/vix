@@ -1,9 +1,9 @@
-#include <arch/modelf.h>
-#include <debug.h>
-#include <mm/kheap.h>
+#include <vix/arch/modelf.h>
+#include <vix/debug.h>
+#include <vix/mm/kheap.h>
 #include <string.h>
 #include <string>
-#include <symbols.h>
+#include <vix/symbols.h>
 #include <vector>
 
 struct __attribute__((packed)) elf32_header {

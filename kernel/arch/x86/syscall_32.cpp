@@ -1,11 +1,11 @@
-#include <abi/linux/calls.h>
-#include <abi/linux/errno.h>
-#include <abi/linux/linux.h>
-#include <arch/common/cpu.h>
-#include <arch/multitasking.h>
-#include <arch/syscall_32.h>
-#include <config.h>
-#include <debug.h>
+#include <vix/abi/linux/calls.h>
+#include <vix/abi/linux/errno.h>
+#include <vix/abi/linux/linux.h>
+#include <vix/arch/common/cpu.h>
+#include <vix/arch/multitasking.h>
+#include <vix/arch/syscall_32.h>
+#include <vix/config.h>
+#include <vix/debug.h>
 
 static abi::linux::syscall_arg_t(sys_dbg_2)(abi::linux::syscall_arg_t a0,
                                             abi::linux::syscall_arg_t a1,

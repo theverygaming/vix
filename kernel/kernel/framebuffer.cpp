@@ -1,8 +1,8 @@
-#include <config.h>
-#include <debug.h>
-#include <framebuffer.h>
-#include <fs/vfs.h>
-#include <panic.h>
+#include <vix/config.h>
+#include <vix/debug.h>
+#include <vix/framebuffer.h>
+#include <vix/fs/vfs.h>
+#include <vix/panic.h>
 #include <string.h>
 
 static inline uint8_t bitget(uint32_t num, uint8_t bit) {

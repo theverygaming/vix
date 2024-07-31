@@ -1,5 +1,5 @@
-#include <mm/memtest.h>
-#include <types.h>
+#include <vix/mm/memtest.h>
+#include <vix/types.h>
 
 // https://www.memtest86.com/tech_individual-test-descr.html
 

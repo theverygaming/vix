@@ -1,6 +1,6 @@
-#include <drivers/ms_mouse.h>
-#include <panic.h>
-#include <stdio.h>
+#include <vix/drivers/ms_mouse.h>
+#include <vix/panic.h>
+#include <vix/stdio.h>
 #include <vector>
 
 struct event_listener {

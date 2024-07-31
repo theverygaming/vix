@@ -1,5 +1,5 @@
-#include <drivers/keyboard.h>
-#include <types.h>
+#include <vix/drivers/keyboard.h>
+#include <vix/types.h>
 
 namespace drivers::keyboard {
     event_dispatcher<char> events;

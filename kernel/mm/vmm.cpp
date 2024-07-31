@@ -1,10 +1,10 @@
-#include <arch/common/paging.h>
-#include <arch/generic/memory.h>
-#include <config.h>
-#include <kprintf.h>
-#include <mm/allocators.h>
-#include <mm/vmm.h>
-#include <panic.h>
+#include <vix/arch/common/paging.h>
+#include <vix/arch/generic/memory.h>
+#include <vix/config.h>
+#include <vix/kprintf.h>
+#include <vix/mm/allocators.h>
+#include <vix/mm/vmm.h>
+#include <vix/panic.h>
 
 #ifdef CONFIG_ARCH_HAS_PAGING
 void mm::vmm::init() {

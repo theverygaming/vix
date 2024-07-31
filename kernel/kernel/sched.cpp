@@ -1,9 +1,9 @@
 #include <forward_list>
-#include <interrupts.h>
-#include <macros.h>
-#include <mm/kheap.h>
-#include <panic.h>
-#include <sched.h>
+#include <vix/interrupts.h>
+#include <vix/macros.h>
+#include <vix/mm/kheap.h>
+#include <vix/panic.h>
+#include <vix/sched.h>
 
 std::forward_list<sched::task> sched::sched_readyqueue;
 

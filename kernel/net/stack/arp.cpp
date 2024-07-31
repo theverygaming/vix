@@ -1,7 +1,7 @@
-#include <kprintf.h>
-#include <net/stack/arp.h>
-#include <net/stack/ethernet.h>
-#include <net/stack/stack.h>
+#include <vix/kprintf.h>
+#include <vix/net/stack/arp.h>
+#include <vix/net/stack/ethernet.h>
+#include <vix/net/stack/stack.h>
 #include <stdlib.h>
 
 struct __attribute__((packed)) arp_packet {

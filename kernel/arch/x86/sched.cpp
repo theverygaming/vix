@@ -1,10 +1,10 @@
-#include <arch/common/cpu.h>
-#include <arch/gdt.h>
-#include <config.h>
-#include <mm/kheap.h>
-#include <panic.h>
-#include <sched.h>
-#include <types.h>
+#include <vix/arch/common/cpu.h>
+#include <vix/arch/gdt.h>
+#include <vix/config.h>
+#include <vix/mm/kheap.h>
+#include <vix/panic.h>
+#include <vix/sched.h>
+#include <vix/types.h>
 
 static void procret() {
     KERNEL_PANIC("returned from process");

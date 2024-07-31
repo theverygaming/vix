@@ -1,18 +1,18 @@
-#include <arch/common/bootup.h>
-#include <arch/common/cpu.h>
-#include <arch/drivers/serial.h>
-#include <arch/limine.h>
-#include <arch/paging.h>
-#include <config.h>
-#include <framebuffer.h>
-#include <fs/tarfs.h>
-#include <fs/vfs.h>
-#include <kernel.h>
-#include <mm/kheap.h>
-#include <mm/memmap.h>
-#include <panic.h>
-#include <stdio.h>
-#include <time.h>
+#include <vix/arch/common/bootup.h>
+#include <vix/arch/common/cpu.h>
+#include <vix/arch/drivers/serial.h>
+#include <vix/arch/limine.h>
+#include <vix/arch/paging.h>
+#include <vix/config.h>
+#include <vix/framebuffer.h>
+#include <vix/fs/tarfs.h>
+#include <vix/fs/vfs.h>
+#include <vix/kernel.h>
+#include <vix/mm/kheap.h>
+#include <vix/mm/memmap.h>
+#include <vix/panic.h>
+#include <vix/stdio.h>
+#include <vix/time.h>
 
 static fb::fb framebuffer;
 static fb::fbconsole fbconsole;
@@ -102,9 +102,9 @@ void arch::startup::stage3_startup() {
 void arch::startup::kthread0() {}
 
 // dummy functions
-#include <arch/drivers/text80x25.h>
-#include <arch/idt.h>
-#include <arch/isr.h>
+#include <vix/arch/drivers/text80x25.h>
+#include <vix/arch/idt.h>
+#include <vix/arch/isr.h>
 
 void isr::RegisterHandler(int, void (*)(struct arch::full_ctx *)) {}
 void drivers::textmode::text80x25::delc() {}

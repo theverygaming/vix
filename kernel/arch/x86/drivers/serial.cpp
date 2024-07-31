@@ -1,4 +1,4 @@
-#include <arch/drivers/serial.h>
+#include <vix/arch/drivers/serial.h>
 
 #define SERIAL_PORT 0x3f8 // 0x3f8 is COM1
 

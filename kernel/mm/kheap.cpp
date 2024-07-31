@@ -1,17 +1,17 @@
 #include <algorithm>
-#include <arch/common/paging.h>
-#include <arch/generic/memory.h>
-#include <config.h>
-#include <debug.h>
-#include <macros.h>
-#include <mm/kheap.h>
-#include <mm/pmm.h>
-#include <mm/vmm.h>
-#include <panic.h>
-#include <status.h>
-#include <stdio.h>
+#include <vix/arch/common/paging.h>
+#include <vix/arch/generic/memory.h>
+#include <vix/config.h>
+#include <vix/debug.h>
+#include <vix/macros.h>
+#include <vix/mm/kheap.h>
+#include <vix/mm/pmm.h>
+#include <vix/mm/vmm.h>
+#include <vix/panic.h>
+#include <vix/status.h>
+#include <vix/stdio.h>
 #include <string.h>
-#include <types.h>
+#include <vix/types.h>
 
 #define PROTECT_ALLOC_STRUCTS
 

@@ -1,9 +1,9 @@
-#include <endian.h>
-#include <kprintf.h>
-#include <net/stack/ethernet.h>
-#include <net/stack/icmp.h>
-#include <net/stack/ip.h>
-#include <net/stack/stack.h>
+#include <vix/endian.h>
+#include <vix/kprintf.h>
+#include <vix/net/stack/ethernet.h>
+#include <vix/net/stack/icmp.h>
+#include <vix/net/stack/ip.h>
+#include <vix/net/stack/stack.h>
 #include <stdlib.h>
 
 struct __attribute__((packed)) icmp_header {

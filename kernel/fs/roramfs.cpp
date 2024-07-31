@@ -1,11 +1,11 @@
-#include <debug.h>
-#include <fs/path.h>
-#include <fs/roramfs.h>
-#include <fs/vfs.h>
-#include <kprintf.h>
+#include <vix/debug.h>
+#include <vix/fs/path.h>
+#include <vix/fs/roramfs.h>
+#include <vix/fs/vfs.h>
+#include <vix/kprintf.h>
 #include <stdlib.h>
 #include <string>
-#include <types.h>
+#include <vix/types.h>
 #include <vector>
 
 struct __attribute__((packed)) file_entry {

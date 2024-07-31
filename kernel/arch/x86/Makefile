@@ -16,4 +16,4 @@ extratargets-$(CONFIG_ENABLE_KERNEL_64) += include/arch/limine.h
 
 $(objtree)/include/arch/limine.h:
 	@curl https://raw.githubusercontent.com/limine-bootloader/limine/trunk/limine.h -o $@
-	@sed -i 's/#include <stdint.h>/#include <types.h>\n#define NULL (void *)0/g' $@
+	@sed -i 's/#include <stdint.h>/#include <vix/types.h>\n#define NULL (void *)0/g' $@
