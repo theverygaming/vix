@@ -12,8 +12,8 @@ obj-$(CONFIG_ENABLE_KERNEL_32) += archinit_32.ocpp multiboot2.ocpp memorymap.ocp
 
 obj-$(CONFIG_ENABLE_KERNEL_64) += archinit_64.ocpp paging_64.ocpp
 
-extratargets-$(CONFIG_ENABLE_KERNEL_64) += include/arch/limine.h
+extratargets-$(CONFIG_ENABLE_KERNEL_64) += include/vix/arch/limine.h
 
-$(objtree)/include/arch/limine.h:
+$(objtree)/include/vix/arch/limine.h:
 	@curl https://raw.githubusercontent.com/limine-bootloader/limine/trunk/limine.h -o $@
 	@sed -i 's/#include <stdint.h>/#include <vix/types.h>\n#define NULL (void *)0/g' $@
