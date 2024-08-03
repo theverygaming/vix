@@ -40,9 +40,7 @@ extern "C" uint8_t __bss_end;
 extern "C" uint8_t __kernel_end;
 
 static void mmio_putc(char c) {
-    //*((volatile uint16_t *)0x100000) = (uint16_t)c;
-    *((volatile uint32_t *)0x100000) = (uint32_t)c | ((uint32_t)c << 8) | ((uint32_t)c << 16) | ((uint32_t)c << 24);
-    //for(int i = 0; i < 6942; i++) {}
+    *((volatile uint8_t *)0x100000) = (uint8_t)c;
 }
 #endif
 
