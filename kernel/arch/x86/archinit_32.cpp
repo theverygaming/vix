@@ -123,7 +123,9 @@ static void kt1() {
         pop_interrupt_disable();
         int mypid = sched::mypid();
         lastpid = mypid;
-        while (mypid == lastpid) {}
+        while (mypid == lastpid) {
+            asm volatile("hlt");
+        }
         //sched::yield();
     }
 }
