@@ -16,7 +16,7 @@ jobs:
           restore-prefixes-first-match: nix-${{ runner.os }}-
           purge-prefixes: cache-${{ runner.os }}
       - name: Build development environment
-        run: nix develop .#IA-32 --command bash -c "ls -lah"
+        run: nix develop .#IA-32 --print-build-logs --command bash -c "ls -lah"
   build-x86_32:
     runs-on: ubuntu-latest
     steps:
