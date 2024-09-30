@@ -26,7 +26,7 @@ jobs:
             step_bootimg: make bootimg-aarch64 MAKE_ARCH=aarch64
             nm: aarch64-none-elf-nm
             runcmd: qemu-system-aarch64 -m 1024m -bios "$VIX_QEMU_UEFI_BIOS_PATH" -cpu cortex-a53 -smp 4 -machine virt -device ramfb -device qemu-xhci -device usb-kbd -nographic -serial mon:stdio -hda vix_uefi.img
-            ignore_test_failure: false # False for testing
+            ignore_test_failure: true
     steps:
       - uses: actions/checkout@v4
         with:
@@ -52,149 +52,11 @@ jobs:
           nix develop .#${{ matrix.stuff.flake }} --command bash -c '${{ matrix.stuff.step_bootimg }}'
       - name: Run in emulator
         run: nix develop .#${{ matrix.stuff.flake }} --command bash -c 'timeout 30 ${{ matrix.stuff.runcmd }} | ansifilter | tee log.txt || true'
-      #- name: upload files
-      #  uses: actions/upload-artifact@v4
-      #  with:
-      #    name: ci-run-x86_32
-      #    path: ${{runner.workspace}}/vix/vix.iso
       - name: Check Tests
         continue-on-error: ${{ matrix.stuff.ignore_test_failure }}
         run: |
           nix develop .#${{ matrix.stuff.flake }} --command bash -c '${{ matrix.stuff.nm }} --format=bsd -n kernel/kernel.o | python3 tools/testparser.py log.txt >> $GITHUB_STEP_SUMMARY'
           nix develop .#${{ matrix.stuff.flake }} --command bash -c '${{ matrix.stuff.nm }} --format=bsd -n kernel/kernel.o | python3 tools/testparser.py log.txt -f'
-
-  build-x86_32:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install ansifilter nasm gcc-multilib g++-multilib xorriso grub-common mtools qemu-system-x86 llvm-dev libclang-dev clang python3 pkg-config flex bison xxd
-
-      - name: compile
-        run: |
-          cd $GITHUB_WORKSPACE
-          make alldefconfig MAKE_ARCH=x86
-          make tests MAKE_ARCH=x86
-          make MAKE_ARCH=x86 CFLAGS="-m32 -march=i386" LDFLAGS="-m elf_i386" CXXFLAGS="-m32 -march=i386" LDFLAGS="-m elf_i386" 
-          make bootimg-x86-32 MAKE_ARCH=x86
-
-      - name: run
-        run: |
-          cd $GITHUB_WORKSPACE
-          timeout 30 qemu-system-x86_64 -cdrom vix.iso -nographic | ansifilter | tee log.txt || true
-
-      - name: upload files
-        uses: actions/upload-artifact@v4
-        with:
-          name: ci-run-x86_32
-          path: ${{runner.workspace}}/vix/vix.iso
-
-      - name: check tests
-        run: |
-          cd $GITHUB_WORKSPACE
-          nm --format=bsd -n kernel/kernel.o | python3 tools/testparser.py log.txt >> $GITHUB_STEP_SUMMARY
-          nm --format=bsd -n kernel/kernel.o | python3 tools/testparser.py log.txt -f
-
-  build-x86_64:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install ansifilter qemu-system-x86 ovmf seabios llvm-dev libclang-dev clang python3 pkg-config flex bison git nasm gzip gawk mtools xxd
-
-      - name: build limine
-        run: |
-          cd $GITHUB_WORKSPACE/../
-          wget https://github.com/limine-bootloader/limine/releases/download/v7.13.2/limine-7.13.2.tar.gz
-          tar -xf limine-7.13.2.tar.gz && mv limine-7.13.2/ limine/
-          cd limine
-          ./bootstrap
-          ./configure --enable-uefi-x86-64 --enable-bios
-          make -j $(nproc)
-          sudo make install
-
-      - name: compile
-        run: |
-          cd $GITHUB_WORKSPACE
-          make alldefconfig MAKE_ARCH=x86
-          make tests MAKE_ARCH=x86
-          sed -i 's/CONFIG_ENABLE_KERNEL_32=y/# CONFIG_ENABLE_KERNEL_32=y\nCONFIG_ENABLE_KERNEL_64=y/g' kernel/.config
-          make MAKE_ARCH=x86
-          make bootimg-x86-64 MAKE_ARCH=x86
-
-      - name: run
-        run: |
-          cd $GITHUB_WORKSPACE
-          timeout 30 qemu-system-x86_64 -bios /usr/share/ovmf/OVMF.fd -nographic -serial mon:stdio -hda vix_uefi.img | ansifilter | tee log.txt || true
-
-      - name: upload files
-        uses: actions/upload-artifact@v4
-        with:
-          name: ci-run-x86_64
-          path: ${{runner.workspace}}/vix/vix_uefi.img
-
-      - name: check tests
-        run: |
-          cd $GITHUB_WORKSPACE
-          nm --format=bsd -n kernel/kernel.o | python3 tools/testparser.py log.txt >> $GITHUB_STEP_SUMMARY
-          nm --format=bsd -n kernel/kernel.o | python3 tools/testparser.py log.txt -f
-
-  build-aarch64:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install ansifilter qemu-system-arm qemu-efi-aarch64 seabios llvm-dev libclang-dev clang python3 pkg-config flex bison gcc-aarch64-linux-gnu g++-aarch64-linux-gnu binutils-aarch64-linux-gnu git nasm gzip gawk mtools xxd
-
-      - name: build limine
-        run: |
-          cd $GITHUB_WORKSPACE/../
-          wget https://github.com/limine-bootloader/limine/releases/download/v7.13.2/limine-7.13.2.tar.gz
-          tar -xf limine-7.13.2.tar.gz && mv limine-7.13.2/ limine/
-          cd limine
-          ./bootstrap
-          TOOLCHAIN_FOR_TARGET=aarch64-linux-gnu ./configure --enable-uefi-aarch64
-          make -j $(nproc)
-          sudo make install
-
-      - name: compile
-        run: |
-          cd $GITHUB_WORKSPACE
-          make alldefconfig tests all MAKE_ARCH=aarch64 CROSS_COMPILE=aarch64-linux-gnu-
-          make bootimg-aarch64
-
-      - name: run
-        run: |
-          cd $GITHUB_WORKSPACE
-          timeout 30 qemu-system-aarch64 -m 1024m -bios /usr/share/qemu-efi-aarch64/QEMU_EFI.fd -cpu cortex-a53 -smp 4 -machine virt -device ramfb -device qemu-xhci -device usb-kbd -nographic -serial mon:stdio -hda vix_uefi.img | ansifilter | tee log.txt || true
-
-      - name: upload files
-        uses: actions/upload-artifact@v4
-        with:
-          name: ci-run-aarch64
-          path: ${{runner.workspace}}/vix/vix_uefi.img
-
-      - name: check tests
-        continue-on-error: true
-        run: |
-          cd $GITHUB_WORKSPACE
-          aarch64-linux-gnu-nm --format=bsd -n kernel/kernel.o | python3 tools/testparser.py log.txt >> $GITHUB_STEP_SUMMARY
-          aarch64-linux-gnu-nm --format=bsd -n kernel/kernel.o | python3 tools/testparser.py log.txt -f
 
   formatting_and_spelling:
     runs-on: ubuntu-latest
