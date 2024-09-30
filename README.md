@@ -7,7 +7,6 @@ a broken kernel with a ton of bad design choices and copypasted code. _It's actu
 #### Build options
 
 - [Building locally](#building-locally)
-- [Building inside Devcontainer](#building-inside-devcontainer)
 
 #### Goals
 
@@ -27,9 +26,10 @@ References: [PenutOS](https://github.com/AlexandreRouma/PenutOS/), [nanobyte_os]
   </picture>
 </a>
 
+## This is now built using [nix](https://nixos.org/download/), there is a flake.nix but no instructions on how to use it written yet. Take a look at the CI!
 
 ## Building locally
-### NOTE: THIS MAY BE OUTDATED
+### NOTE: THIS IS BE OUTDATED
 
 first make sure you have all submodules. Simply clone like this
 ```
@@ -45,17 +45,8 @@ sudo apt install nasm gcc-multilib g++-multilib xorriso grub-common grub-pc mtoo
 
 Now refer to the [general build instructions](#general-build-instructions)
 
-## Building inside devcontainer
-### NOTE: THIS MAY BE OUTDATED
-
-run ``git submodule update --init --recursive`` to get all submodules
-
-in the devcontainer there is a window manager and a VNC server running. You can connect to noVNC on port 6080. The default password is ``vscode``
-
-Now refer to the [general build instructions](#general-build-instructions)
-
 ## General build instructions
-### NOTE: THIS MAY BE OUTDATED
+### NOTE: THIS IS BE OUTDATED
 
 first you have to configure the kernel, you could either simply use the default config (``make alldefconfig``) or configure it yourself (``make menuconfig``)
 
