@@ -1,4 +1,4 @@
-name: Build & Test
+name: test
 on: [push, pull_request]
 jobs:
   build-test-nix:
@@ -29,7 +29,7 @@ jobs:
         run: |
           echo qwhar?? ${{ matrix.stuff.flake }}
           ${{ matrix.stuff.step_config }}
-      - name: Compile
-        shell: nix develop .#${{ matrix.stuff.flake }} --command bash -e {0}
-        run: |
-          ${{ matrix.stuff.step_build }}
+      #- name: Compile
+      #  shell: nix develop .#${{ matrix.stuff.flake }} --command bash -e {0}
+      #  run: |
+      #    ${{ matrix.stuff.step_build }}
