@@ -17,6 +17,24 @@ jobs:
           purge-prefixes: cache-${{ runner.os }}
       - name: Build development environment
         run: nix develop .#IA-32 --print-build-logs --command bash -c "ls -lah"
+      - name: Compile
+        run: |
+          nix develop .#IA-32 --command bash -c 'make alldefconfig MAKE_ARCH=x86'
+          nix develop .#IA-32 --command bash -c 'make tests MAKE_ARCH=x86'
+          nix develop .#IA-32 --command bash -c 'make MAKE_ARCH=x86 CROSS_COMPILE=i686-elf-'
+          nix develop .#IA-32 --command bash -c 'make bootimg-x86-32 MAKE_ARCH=x86'
+      - name: Run
+        run: nix develop .#IA-32 --command bash -c 'timeout 30 qemu-system-x86_64 -cdrom vix.iso -nographic | ansifilter | tee log.txt || true'
+      - name: upload files
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-run-x86_32
+          path: ${{runner.workspace}}/vix/vix.iso
+      - name: Check Tests
+        run: |
+          nix develop .#IA-32 --command bash -c 'nm --format=bsd -n kernel/kernel.o | python3 tools/testparser.py log.txt >> $GITHUB_STEP_SUMMARY'
+          nix develop .#IA-32 --command bash -c 'nm --format=bsd -n kernel/kernel.o | python3 tools/testparser.py log.txt -f'
+
   build-x86_32:
     runs-on: ubuntu-latest
     steps:
