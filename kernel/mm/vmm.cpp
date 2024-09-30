@@ -46,7 +46,6 @@ static void *find_free_pages(void *start, void *end, size_t pages) {
 
 void *mm::vmm::alloc(void *start, void *end, size_t pages) {
     void *addr = find_free_pages(start, end, pages);
-    kprintf(KP_INFO, "vmm: alloc(0x%p, 0x%p, %u) -> 0x%p\n", start, end, pages);
     return addr;
 }
 
