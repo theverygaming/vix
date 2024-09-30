@@ -27,6 +27,6 @@ jobs:
       - name: Build development environment
         run: echo yeah ${{ matrix.stuff.flake }}
       - name: Compile
-        shell: nix develop .#$FLAKE --command bash -e {0}
+        shell: nix develop .#${{ env.FLAKE }} --command bash -e {0}
         run: |
           ${{ matrix.stuff.step_build }}
