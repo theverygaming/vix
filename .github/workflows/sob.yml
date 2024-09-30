@@ -26,12 +26,7 @@ jobs:
         run: echo a
       - name: Build development environment
         run: echo yeah ${{ matrix.stuff.flake }}
-      - name: run kconfig
-        shell: nix develop .#IA-32 --command bash -e {0}
+      - name: Compile
+        shell: nix develop .#$FLAKE --command bash -e {0}
         run: |
-          echo qwhar?? ${{ matrix.stuff.flake }}
-          ${{ matrix.stuff.step_config }}
-      #- name: Compile
-      #  shell: nix develop .#${{ matrix.stuff.flake }} --command bash -e {0}
-      #  run: |
-      #    ${{ matrix.stuff.step_build }}
+          ${{ matrix.stuff.step_build }}
