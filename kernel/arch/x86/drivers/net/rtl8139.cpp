@@ -34,8 +34,7 @@ static net::networkstack networkstack(rtl8139_card);
 
 static void irq_handler(struct arch::full_ctx *gaming) {
     if ((((struct packetInfo *)(bufferptr + bufferoffset))->header & 0x1) == 0) {
-        printf("ROK not set?? wtf\n");
-        KERNEL_PANIC("rtl8139 skill issue");
+        KERNEL_PANIC("ROK not set?? wtf - rtl8139 skill issue");
     }
     printf("rtl8139 IRQ\n");
 

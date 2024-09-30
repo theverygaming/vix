@@ -14,6 +14,7 @@
 
 #ifdef CONFIG_ARCH_X86
 #include <vix/arch/drivers/pci.h>
+#include <vix/arch/drivers/net/rtl8139.h>
 #endif
 
 #ifdef CONFIG_ENABLE_TESTS
@@ -53,6 +54,7 @@ void kernelstart() {
 
 #ifdef CONFIG_ARCH_X86
     drivers::pci::init();
+    drivers::net::rtl8139::init();
 #endif
 
 #ifdef CONFIG_RUST_SUPPORT

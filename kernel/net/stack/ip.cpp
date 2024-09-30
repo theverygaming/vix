@@ -65,7 +65,7 @@ void net::ipv4::receive(net::networkstack *netstack, void *data, size_t size) {
     if (header.protocol == 0x01) {
         kprintf(KP_INFO, " ICMP\n");
         // netstack->icmp->receive_packet(netstack, &processed_packet, dataptr, packetsize);
-        icmp.receive(netstack, dataptr, packetsize);
+        icmp.receive(netstack, &processed_packet, dataptr, packetsize);
         return;
     }
     kprintf(KP_INFO, "\n");
@@ -98,7 +98,7 @@ void net::ipv4::send(net::networkstack *netstack, struct ipv4_packet_processed *
 
     // quick hack
     if (known_ips.size() == 0) {
-        known_ips.push_back({{192, 168, 56, 1}, {0xca, 0x85, 0xb4, 0x12, 0xc2, 0x34}});
+        known_ips.push_back({{192, 168, 69, 123}, {0x03, 0x38, 0x02, 0xc5, 0x82, 0xda}});
     }
 
     int foundindex = -1;
