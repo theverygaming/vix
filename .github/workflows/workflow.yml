@@ -1,6 +1,22 @@
-name: Build
+name: Build & Test
 on: [push, pull_request]
 jobs:
+  build-test-nix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Install Nix
+        uses: nixbuild/nix-quick-install-action@v28
+      - name: Restore and cache Nix store
+        uses: nix-community/cache-nix-action@v5
+        with:
+          primary-key: nix-${{ runner.os }}-${{ hashFiles('**/*.nix', 'flake.lock') }}
+          restore-prefixes-first-match: nix-${{ runner.os }}-
+          purge-prefixes: cache-${{ runner.os }}
+      - name: Build development environment
+        run: nix develop .#IA-32 --command bash -c "ls -lah"
   build-x86_32:
     runs-on: ubuntu-latest
     steps:
