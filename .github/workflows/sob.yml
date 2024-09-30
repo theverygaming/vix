@@ -13,6 +13,8 @@ jobs:
             nm: i686-elf-nm
             runcmd: qemu-system-x86_64 -cdrom vix.iso -nographic
             ignore_test_failure: false
+    env:
+      FLAKE: ${{ matrix.stuff.flake }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -20,7 +22,7 @@ jobs:
       - name: Install Nix
         uses: nixbuild/nix-quick-install-action@v28
       - name: Build development environment
-        shell: echo $(env) {0}
+        shell: echo $(env) $FLAKE {0}
         run: echo a
       - name: Build development environment
         run: echo yeah ${{ matrix.stuff.flake }}
