@@ -39,7 +39,7 @@ else
     e2cp ${limine_path}/limine.sys -G 0 -O 0 image_extracted.img:/boot/
 fi
 
-e2cp rootfs-x86_32/boot/limine.cfg -G 0 -O 0 image_extracted.img:/boot/
+e2cp rootfs-x86_32/boot/limine.conf -G 0 -O 0 image_extracted.img:/boot/
 e2cp ../kernel_shitshell.bin -G 0 -O 0 image_extracted.img:/boot/kernel.bin
 e2cp ../roramfs.fs -G 0 -O 0 image_extracted.img:/boot/initramfs.bin
 
@@ -76,7 +76,7 @@ else
     mcopy -i image_extracted.img ${limine_path}/limine.sys ::boot/
 fi
 
-mcopy -i image_extracted.img rootfs-x86_32/boot/limine.cfg ::boot/
+mcopy -i image_extracted.img rootfs-x86_32/boot/limine.conf ::boot/
 mcopy -i image_extracted.img ../kernel_shitshell.bin ::boot/kernel.bin
 mcopy -i image_extracted.img ../roramfs.fs ::boot/initramfs.bin
 

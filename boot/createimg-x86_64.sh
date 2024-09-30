@@ -31,7 +31,7 @@ mkfs.fat image_extracted.img
 mmd -i image_extracted.img ::boot
 
 mcopy -i image_extracted.img ${LIMINE_PATH}/limine-bios.sys ::boot/
-mcopy -i image_extracted.img rootfs-x86_64/boot/limine.cfg ::boot/
+mcopy -i image_extracted.img rootfs-x86_64/boot/limine.conf ::boot/
 mcopy -i image_extracted.img ../kernel/kernel.o ::boot/kernel.o
 mcopy -i image_extracted.img ../roramfs.fs ::boot/initramfs.bin
 

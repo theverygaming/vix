@@ -31,7 +31,7 @@
   ];
 
   limine = with pkgs; [
-    limine
+    (limine.override { enableAll = true; })
   ];
 
   shellHook = ''
