@@ -29,7 +29,7 @@ References: [PenutOS](https://github.com/AlexandreRouma/PenutOS/), [nanobyte_os]
 ## This is now built using [nix](https://nixos.org/download/), there is a flake.nix but no instructions on how to use it written yet. Take a look at the CI!
 
 ## Building locally
-### NOTE: THIS IS BE OUTDATED
+### NOTE: THIS IS OUTDATED
 
 first make sure you have all submodules. Simply clone like this
 ```
@@ -46,7 +46,7 @@ sudo apt install nasm gcc-multilib g++-multilib xorriso grub-common grub-pc mtoo
 Now refer to the [general build instructions](#general-build-instructions)
 
 ## General build instructions
-### NOTE: THIS IS BE OUTDATED
+### NOTE: THIS IS OUTDATED
 
 first you have to configure the kernel, you could either simply use the default config (``make alldefconfig``) or configure it yourself (``make menuconfig``)
 
