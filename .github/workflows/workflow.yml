@@ -6,10 +6,18 @@ jobs:
     strategy:
       matrix:
         stuff:
-          - MAKE_ARCH: x86
-            CROSS_COMPILE: i686-elf-
-            qemucmd: qemu-system-x86_64 -cdrom vix.iso -nographic
-            flake: IA-32
+          - flake: IA-32
+            step_config: make alldefconfig MAKE_ARCH=x86 && make tests MAKE_ARCH=x86
+            step_build: make MAKE_ARCH=x86 CROSS_COMPILE=i686-elf-
+            step_bootimg: make bootimg-x86-32 MAKE_ARCH=x86
+            nm: i686-elf-nm
+            runcmd: qemu-system-x86_64 -cdrom vix.iso -nographic
+          - flake: x86-64
+            step_config: make alldefconfig MAKE_ARCH=x86 && make tests MAKE_ARCH=x86 && sed -i 's/CONFIG_ENABLE_KERNEL_32=y/# CONFIG_ENABLE_KERNEL_32=y\nCONFIG_ENABLE_KERNEL_64=y/g' kernel/.config
+            step_build: make MAKE_ARCH=x86 CROSS_COMPILE=x86_64-elf-
+            step_bootimg: make bootimg-x86-64 MAKE_ARCH=x86
+            nm: x86_64-elf-nm
+            runcmd: qemu-system-x86_64 -nographic -serial mon:stdio -hda vix_uefi.img
     steps:
       - uses: actions/checkout@v4
         with:
@@ -24,14 +32,13 @@ jobs:
           purge-prefixes: cache-${{ runner.os }}
       - name: Build development environment
         run: nix develop .#${{ matrix.stuff.flake }} --print-build-logs --command bash -c "ls -lah"
-      - name: Compile
+      - name: Config, Compile, Build boot image
         run: |
-          nix develop .#${{ matrix.stuff.flake }} --command bash -c 'make alldefconfig MAKE_ARCH=${{ matrix.stuff.MAKE_ARCH }}'
-          nix develop .#${{ matrix.stuff.flake }} --command bash -c 'make tests MAKE_ARCH=${{ matrix.stuff.MAKE_ARCH }}'
-          nix develop .#${{ matrix.stuff.flake }} --command bash -c 'make MAKE_ARCH=${{ matrix.stuff.MAKE_ARCH }} CROSS_COMPILE=${{ matrix.stuff.CROSS_COMPILE }}'
-          nix develop .#${{ matrix.stuff.flake }} --command bash -c 'make bootimg-x86-32 MAKE_ARCH=${{ matrix.stuff.MAKE_ARCH }}'
+          nix develop .#${{ matrix.stuff.flake }} --command bash -c '${{ matrix.stuff.step_config }}'
+          nix develop .#${{ matrix.stuff.flake }} --command bash -c '${{ matrix.stuff.step_build }}'
+          nix develop .#${{ matrix.stuff.flake }} --command bash -c '${{ matrix.stuff.step_bootimg }}'
       - name: Run
-        run: nix develop .#${{ matrix.stuff.flake }} --command bash -c 'timeout 30 ${{ matrix.stuff.qemucmd }} | ansifilter | tee log.txt || true'
+        run: nix develop .#${{ matrix.stuff.flake }} --command bash -c 'timeout 30 ${{ matrix.stuff.runcmd }} | ansifilter | tee log.txt || true'
       #- name: upload files
       #  uses: actions/upload-artifact@v4
       #  with:
@@ -39,8 +46,8 @@ jobs:
       #    path: ${{runner.workspace}}/vix/vix.iso
       - name: Check Tests
         run: |
-          nix develop .#${{ matrix.stuff.flake }} --command bash -c 'nm --format=bsd -n kernel/kernel.o | python3 tools/testparser.py log.txt >> $GITHUB_STEP_SUMMARY'
-          nix develop .#${{ matrix.stuff.flake }} --command bash -c 'nm --format=bsd -n kernel/kernel.o | python3 tools/testparser.py log.txt -f'
+          nix develop .#${{ matrix.stuff.flake }} --command bash -c '${{ matrix.stuff.nm }} --format=bsd -n kernel/kernel.o | python3 tools/testparser.py log.txt >> $GITHUB_STEP_SUMMARY'
+          nix develop .#${{ matrix.stuff.flake }} --command bash -c '${{ matrix.stuff.nm }} --format=bsd -n kernel/kernel.o | python3 tools/testparser.py log.txt -f'
 
   build-x86_32:
     runs-on: ubuntu-latest
