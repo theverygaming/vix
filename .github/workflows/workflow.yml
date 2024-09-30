@@ -42,8 +42,9 @@ jobs:
       - name: Build development environment
         run: nix develop .#${{ matrix.stuff.flake }} --print-build-logs --command bash -c "ls -lah"
       - name: run kconfig
-        shell: nix develop .#${{ matrix.stuff.flake }} --command bash -e {0}
+        shell: nix develop .#IA-32 --command bash -e {0}
         run: |
+          echo qwhar?? ${{ matrix.stuff.flake }}
           ${{ matrix.stuff.step_config }}
       - name: Compile
         shell: nix develop .#${{ matrix.stuff.flake }} --command bash -e {0}
