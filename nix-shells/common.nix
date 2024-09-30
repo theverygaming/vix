@@ -15,6 +15,9 @@
     cmake
 
     qemu
+
+    # for CI
+    ansifilter
   ];
 
   grub = with pkgs; [
