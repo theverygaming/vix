@@ -26,7 +26,7 @@ jobs:
             step_bootimg: make bootimg-aarch64 MAKE_ARCH=aarch64
             nm: aarch64-none-elf-nm
             runcmd: qemu-system-aarch64 -m 1024m -bios "$VIX_QEMU_UEFI_BIOS_PATH" -cpu cortex-a53 -smp 4 -machine virt -device ramfb -device qemu-xhci -device usb-kbd -nographic -serial mon:stdio -hda vix_uefi.img
-            ignore_test_failure: true
+            ignore_test_failure: false # False for testing
     steps:
       - uses: actions/checkout@v4
         with:
@@ -41,13 +41,21 @@ jobs:
           purge-prefixes: cache-${{ runner.os }}
       - name: Build development environment
         run: nix develop .#${{ matrix.stuff.flake }} --print-build-logs --command bash -c "ls -lah"
-      - name: Config, Compile, Build boot image
+      - name: run kconfig
+        shell: nix develop .#${{ matrix.stuff.flake }} --command bash -e {0}
         run: |
-          nix develop .#${{ matrix.stuff.flake }} --command bash -c '${{ matrix.stuff.step_config }}'
-          nix develop .#${{ matrix.stuff.flake }} --command bash -c '${{ matrix.stuff.step_build }}'
-          nix develop .#${{ matrix.stuff.flake }} --command bash -c '${{ matrix.stuff.step_bootimg }}'
+          ${{ matrix.stuff.step_config }}
+      - name: Compile
+        shell: nix develop .#${{ matrix.stuff.flake }} --command bash -e {0}
+        run: |
+          ${{ matrix.stuff.step_build }}
+      - name: Build boot image
+        shell: nix develop .#${{ matrix.stuff.flake }} --command bash -e {0}
+        run: |
+          ${{ matrix.stuff.step_bootimg }}
       - name: Run
-        run: nix develop .#${{ matrix.stuff.flake }} --command bash -c 'timeout 30 ${{ matrix.stuff.runcmd }} | ansifilter | tee log.txt || true'
+        shell: nix develop .#${{ matrix.stuff.flake }} --command bash -e {0}
+        run: timeout 30 ${{ matrix.stuff.runcmd }} | ansifilter | tee log.txt || true
       #- name: upload files
       #  uses: actions/upload-artifact@v4
       #  with:
@@ -55,9 +63,10 @@ jobs:
       #    path: ${{runner.workspace}}/vix/vix.iso
       - name: Check Tests
         continue-on-error: ${{ matrix.stuff.ignore_test_failure }}
+        shell: nix develop .#${{ matrix.stuff.flake }} --command bash -e {0}
         run: |
-          nix develop .#${{ matrix.stuff.flake }} --command bash -c '${{ matrix.stuff.nm }} --format=bsd -n kernel/kernel.o | python3 tools/testparser.py log.txt >> $GITHUB_STEP_SUMMARY'
-          nix develop .#${{ matrix.stuff.flake }} --command bash -c '${{ matrix.stuff.nm }} --format=bsd -n kernel/kernel.o | python3 tools/testparser.py log.txt -f'
+          ${{ matrix.stuff.nm }} --format=bsd -n kernel/kernel.o | python3 tools/testparser.py log.txt >> $GITHUB_STEP_SUMMARY
+          ${{ matrix.stuff.nm }} --format=bsd -n kernel/kernel.o | python3 tools/testparser.py log.txt -f
 
   build-x86_32:
     runs-on: ubuntu-latest
