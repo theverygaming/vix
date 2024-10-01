@@ -38,7 +38,7 @@ void net::arp::receive(net::networkstack *netstack, void *data, size_t size) {
             newpacket.src_hardware_adr[i] = netstack->ethernet->mac[i];
         }
 
-        struct net::ethernet::ethernet_packet_processed ethernetpacket;
+        struct net::stack::packets::ethernet::header ethernetpacket;
         ethernetpacket.ethertype = 0x0608;
         for (uint8_t i = 0; i < 6; i++) {
             ethernetpacket.dest_mac[i] = newpacket.dest_hardware_adr[i];

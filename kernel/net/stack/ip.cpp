@@ -116,7 +116,7 @@ void net::ipv4::send(net::networkstack *netstack, struct ipv4_packet_processed *
         return;
     }
 
-    struct net::ethernet::ethernet_packet_processed ethernetpacket;
+    struct net::stack::packets::ethernet::header ethernetpacket;
     ethernetpacket.ethertype = 0x0008; // note: endianness
     for (uint8_t i = 0; i < 6; i++) {
         ethernetpacket.dest_mac[i] = known_ips[foundindex].mac[i];
