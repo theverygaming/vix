@@ -1,7 +1,7 @@
 #! /usr/bin/env nix-shell
 #! nix-shell -i bash -p bash -p bridge-utils -p tunctl
 
-TAP_INTERFACE_VM=tap1
+TAP_INTERFACE_VM=tap0
 BRIDGE_INTERFACE=br0
 
 sudo brctl delif ${BRIDGE_INTERFACE} ${TAP_INTERFACE_VM}

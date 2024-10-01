@@ -1,0 +1,9 @@
+#pragma once
+
+namespace std {
+    template <class T> struct is_trivial {
+        static constexpr bool value = __is_trivial(T);
+    };
+
+    template <class T> constexpr bool is_trivial_v = is_trivial<T>::value;
+}
