@@ -9,6 +9,13 @@ pkgs.stdenv.mkDerivation {
     cross.binutils
     cross.gcc
     nasm
+
+    # Rust stuff
+    (rust-bin.stable.latest.default.override
+      {
+        targets = [ "i686-unknown-linux-gnu" ];
+      }
+    )
   ] ++ common.commonPkgs ++ common.limine ++ common.grub ++ common.fatTools;
 
   shellHook = common.shellHook + ''
