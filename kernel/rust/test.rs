@@ -17,7 +17,9 @@ extern "C" {
 #[no_mangle]
 pub extern "C" fn rust_test(n: i32) -> i32 {
     unsafe {
-        kprintf(KP_INFO, "Hi from Rust :3 :3 number: %u\n".as_bytes().as_ptr() as *const i8, n);
+        // HACK: we manually add a silly null terminator because rust strings are not null-terminated
+        // this is a very silly hack
+        kprintf(KP_INFO, "Hi from Rust :3 :3 number: %u\n\0".as_bytes().as_ptr() as *const core::ffi::c_char, n);
     }
     let bytes: [u8; 3] = [1, 0, 2];
     u16::from_le_bytes(<[u8; 2]>::try_from(&bytes[0..2]).unwrap());
