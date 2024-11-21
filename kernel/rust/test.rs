@@ -1,3 +1,5 @@
+#![no_std]
+
 use core::convert::TryFrom;
 
 pub const KP_EMERG: core::ffi::c_int = 0;

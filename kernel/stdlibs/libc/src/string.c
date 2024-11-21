@@ -1,5 +1,7 @@
 #include <string.h>
 
+// TODO: make memcpy, memmove etc. comply with standard C
+
 void *memcpy(void *restrict dest, const void *restrict src, size_t count) {
     uint8_t *p = (uint8_t *)dest;
     const uint8_t *src_u = (const uint8_t *)src;
@@ -37,6 +39,10 @@ void *memset(void *dest, int ch, size_t count) {
     while (count--)
         *p++ = (uint8_t)ch;
     return dest;
+}
+
+int bcmp(const void *lhs, const void *rhs, size_t count) {
+    return memcmp(lhs, rhs, count);
 }
 
 int memcmp(const void *lhs, const void *rhs, size_t count) {

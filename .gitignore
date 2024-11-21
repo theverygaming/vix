@@ -6,7 +6,6 @@
 *.onasm
 *.os
 *.oS
-*.ors
 *.rlib
 
 kernel_shitshell.bin

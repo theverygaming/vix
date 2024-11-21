@@ -22,14 +22,25 @@ override INT_CXXFLAGS += -I arch/$(BUILD_ARCH)/include -I stdlibs/libc/include -
 	@echo "  AS $<"
 	@$(INT_CXX) $(INT_CXXFLAGS) -c $< -o $@
 
+RUST_TARGET := i686-unknown-linux-gnu
+
+%.oarsc:
+	@#FIXME: get rid of the copy, stupid
+	@cd $(dir $@) && cargo build --release --target $(RUST_TARGET)
+	@cp $(dir $@)target/$(RUST_TARGET)/release/$(basename $(notdir $@)).a $@
+
 %.ors: %.rs
+	@#TODO: -Zcrate-attr=no_std
 	@echo "  RS $<"
-	rustc --extern kernel=rust/libkernel/libkernel.rlib --target i686-unknown-linux-gnu -C panic=abort --emit=obj $< -o $@
-
-%.rlib: %.rs
-	@echo "  RLIB $<"
-	@rustc --target i686-unknown-linux-gnu -C panic=abort --crate-type=rlib $< -o $@
-
+	rustc \
+	  --extern kernel \
+	  --target $(RUST_TARGET) \
+	  -L $(objtree)/rust/ \
+	  -Cpanic=abort \
+	  --emit=obj \
+	  --crate-type rlib \
+	  --crate-name $(basename $(notdir $@)) \
+	  $< -o $@
 
 ifeq ($(CONFIG_UBSAN), y)
 override INT_CFLAGS += -fsanitize=undefined -fno-strict-overflow

@@ -16,6 +16,11 @@ pkgs.stdenv.mkDerivation {
         targets = [ "i686-unknown-linux-gnu" ];
       }
     )
+    /*
+      (rust-bin.selectLatestNightlyWith (toolchain: toolchain.default.override {
+      targets = [ "i686-unknown-linux-gnu" ];
+      }))
+    */
   ] ++ common.commonPkgs ++ common.limine ++ common.grub ++ common.fatTools;
 
   shellHook = common.shellHook + ''
