@@ -116,11 +116,18 @@ void arch::startup::stage3_startup() {
 
 static void kt1() {
     static volatile int lastpid = 0;
+    uint16_t counter = 0;
     while (true) {
         push_interrupt_disable();
         volatile int test = 5;
-        kprintf(KP_INFO, "hi from kernel thread(PID %d) stack: 0x%p\n", sched::mypid(), &test);
+        if (counter == 0) {
+            kprintf(KP_INFO, "hi from kernel thread(PID %d) stack: 0x%p\n", sched::mypid(), &test);
+        }
         pop_interrupt_disable();
+        counter++;
+        if (counter > 2048) {
+            counter = 0;
+        }
         int mypid = sched::mypid();
         lastpid = mypid;
         while (mypid == lastpid) {
