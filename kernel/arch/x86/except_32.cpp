@@ -19,6 +19,7 @@ static void st_print_ip(uint32_t ip) {
 static void do_stack_trace(uint32_t ebp) {
     struct stackframe *p = (struct stackframe *)ebp;
     while (p != nullptr) {
+        kprintf(KP_DEBUG, "TRACE: p: 0x%p ebp: 0x%p eip: 0x%p\n", p, p->eip, p->ebp);
         st_print_ip(p->eip);
         p = p->ebp;
         if ((uint32_t)p->ebp < 0xC0000000) {
