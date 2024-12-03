@@ -33,13 +33,13 @@ RUST_TARGET := i686-unknown-linux-gnu
 	@#TODO: -Zcrate-attr=no_std
 	@echo "  RS $<"
 	rustc \
-	  --extern kernel \
 	  --target $(RUST_TARGET) \
 	  -L $(objtree)/rust/ \
 	  -Cpanic=abort \
 	  --emit=obj \
 	  --crate-type rlib \
 	  --crate-name $(basename $(notdir $@)) \
+	  --extern kernel \
 	  $< -o $@
 
 ifeq ($(CONFIG_UBSAN), y)
