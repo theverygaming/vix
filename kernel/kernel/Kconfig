@@ -1,5 +1,6 @@
 menu "core kernel"
 source "mm/Kconfig"
+source "kernel/ksh/Kconfig"
 
 choice
 	prompt "kernel loglevel"

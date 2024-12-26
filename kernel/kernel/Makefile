@@ -1,3 +1,5 @@
+obj-d += ksh
+
 obj-y += kernel.ocpp sched.ocpp stdio.ocpp time.ocpp kprintf.ocpp interrupts.ocpp elf.ocpp initcall.ocpp
 
 obj-$(CONFIG_FB_SUPPORT) += framebuffer.ocpp psf.ocpp

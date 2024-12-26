@@ -3,6 +3,7 @@
 
 namespace abi {
     enum class type {
+        KERNEL_ONLY,
 #ifdef CONFIG_ENABLE_ABI_LINUX
         LINUX,
 #endif

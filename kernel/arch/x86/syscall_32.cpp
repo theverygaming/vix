@@ -7,23 +7,13 @@
 #include <vix/config.h>
 #include <vix/debug.h>
 
-static abi::linux::syscall_arg_t(sys_dbg_2)(abi::linux::syscall_arg_t a0,
-                                            abi::linux::syscall_arg_t a1,
-                                            abi::linux::syscall_arg_t a2,
-                                            abi::linux::syscall_arg_t a3,
-                                            abi::linux::syscall_arg_t a4,
-                                            abi::linux::syscall_arg_t a5) {
-    multitasking::list_processes();
-    return 0;
-}
-
 abi::linux::syscall_arg_t (*syscall_table[440])(abi::linux::syscall_arg_t sysarg0,
                                                 abi::linux::syscall_arg_t sysarg1,
                                                 abi::linux::syscall_arg_t sysarg2,
                                                 abi::linux::syscall_arg_t sysarg3,
                                                 abi::linux::syscall_arg_t sysarg4,
                                                 abi::linux::syscall_arg_t sysarg5) = {
-    &sys_dbg_2,               // 0
+    nullptr,                  // 0
     &abi::linux::sys_exit,    // 1
     nullptr,                  // 2
     &abi::linux::sys_read,    // 3

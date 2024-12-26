@@ -24,7 +24,7 @@ namespace sched {
 
         struct arch_task task_arch;
 
-        enum abi::type abi_type;
+        enum abi::type abi_type = abi::type::KERNEL_ONLY;
 
 #ifdef CONFIG_ENABLE_ABI_LINUX
         struct abi::linux::task task_linux;

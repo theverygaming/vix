@@ -1,0 +1,3 @@
+config ENABLE_KSH
+    default y
+    bool "Enable in-kernel debugging shell"
