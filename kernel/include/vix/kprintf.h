@@ -11,7 +11,7 @@ extern "C" {
 #define KP_WARNING 4
 #define KP_NOTICE  5
 #define KP_INFO    6
-#define KP_DEBUG   7 // !!! this should only be used though the DEBUG_PRINTF macro in debug.h
+#define _KP_DEBUG  7 // !!! this should only be used though the DEBUG_PRINTF macro in debug.h
 
 void kprintf(int loglevel, const char *fmt, ...);
 
