@@ -4,6 +4,7 @@
 #include <vix/config.h>
 #include <vix/debug.h>
 #include <vix/fs/vfs.h>
+#include <vix/initcall.h>
 #include <vix/kernel.h>
 #include <vix/kprintf.h>
 #include <vix/mm/kheap.h>
@@ -13,8 +14,8 @@
 #include <vix/types.h>
 
 #ifdef CONFIG_ARCH_X86
-#include <vix/arch/drivers/pci.h>
 #include <vix/arch/drivers/net/rtl8139.h>
+#include <vix/arch/drivers/pci.h>
 #endif
 
 #ifdef CONFIG_ENABLE_TESTS
@@ -73,6 +74,8 @@ void kernelstart() {
         freemem /= 1024;
     }
     kprintf(KP_INFO, "kmain: free physical memory: %u%ciB\n", freemem, unit);
+
+    initarr_init_level(0);
 
     kprintf(KP_INFO, "kmain: initializing scheduler\n");
     sched::init();
