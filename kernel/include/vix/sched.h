@@ -54,11 +54,8 @@ namespace sched {
     void start_thread(void (*func)(), void *data = nullptr);
     void start_thread(struct task);
 
-    // Returns PID of current running thread
-    int mypid();
-
     // Returns pointer to task structure of current running task
-    struct sched::task *myproc();
+    struct sched::task *mytask();
 
     // Called from inside a thread to kill it
     void __attribute__((noreturn)) die();

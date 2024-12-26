@@ -83,17 +83,13 @@ void sched::start_thread(void (*func)(), void *data) {
     start_thread(init_thread(func, data));
 }
 
-int sched::mypid() {
-    return current->pid;
-}
-
-struct sched::task *sched::myproc() {
+struct sched::task *sched::mytask() {
     return current;
 }
 
 void sched::die() {
     push_interrupt_disable();
-    sched_readyqueue.erase_first_if([](const struct sched::task &e) -> bool { return e.pid == mypid(); });
+    sched_readyqueue.erase_first_if([](const struct sched::task &e) -> bool { return e.pid == mytask()->pid; });
     pop_interrupt_disable();
     enter_thread(get_next());
     KERNEL_PANIC("unreachable");

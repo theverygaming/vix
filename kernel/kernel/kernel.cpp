@@ -27,10 +27,10 @@ extern "C" uint32_t rust_test(uint32_t);
 #endif
 
 static void kthread0() {
-    kprintf(KP_INFO, "kmain: first kernel thread started (PID %d)\n", sched::mypid());
+    kprintf(KP_INFO, "kmain: first kernel thread started (PID %d)\n", sched::mytask()->pid);
     arch::startup::kthread0();
     //fs::vfs::print_tree();
-    kprintf(KP_INFO, "kmain: first kernel thread dying (PID %d)\n", sched::mypid());
+    kprintf(KP_INFO, "kmain: first kernel thread dying (PID %d)\n", sched::mytask()->pid);
     sched::die();
 }
 

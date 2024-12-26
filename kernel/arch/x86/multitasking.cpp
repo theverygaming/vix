@@ -113,11 +113,11 @@ static void *init_user_stack(void *stackadr, std::vector<std::string> *argv, voi
 extern "C" void x86_load_cpu_full_ctx(struct arch::full_ctx *ctx);
 static void user_thread_launch() {
     volatile int test = 5;
-    kprintf(KP_INFO, "hi from user thread(PID %d) stack: 0x%p\n", sched::mypid(), &test);
+    kprintf(KP_INFO, "hi from user thread(PID %d) stack: 0x%p\n", sched::mytask()->pid, &test);
     tss::tss_entry.ss0 = GDT_KERNEL_DATA;
     tss::tss_entry.esp0 = KERNEL_VIRT_ADDRESS + KERNEL_ISR_STACK_POINTER_OFFSET;
-    multitasking::setPageRange(&sched::myproc()->task_arch.pages);
-    x86_load_cpu_full_ctx((struct arch::full_ctx *)sched::myproc()->data);
+    multitasking::setPageRange(&sched::mytask()->task_arch.pages);
+    x86_load_cpu_full_ctx((struct arch::full_ctx *)sched::mytask()->data);
 }
 
 void multitasking::create_task(void *stackadr, void *codeadr, std::vector<process_pagerange> *pagerange, std::vector<std::string> *argv) {

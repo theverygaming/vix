@@ -121,14 +121,14 @@ static void kt1() {
         push_interrupt_disable();
         volatile int test = 5;
         if (counter == 0) {
-            kprintf(KP_INFO, "hi from kernel thread(PID %d) stack: 0x%p\n", sched::mypid(), &test);
+            kprintf(KP_INFO, "hi from kernel thread(PID %d) stack: 0x%p\n", sched::mytask()->pid, &test);
         }
         pop_interrupt_disable();
         counter++;
         if (counter > 2048) {
             counter = 0;
         }
-        int mypid = sched::mypid();
+        int mypid = sched::mytask()->pid;
         lastpid = mypid;
         while (mypid == lastpid) {
             asm volatile("hlt");
