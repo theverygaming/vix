@@ -19,4 +19,8 @@
 #define PTR_ALIGN_UP_DIFF(value, alignment)   (ALIGN_UP_DIFF((uintptr_t)(value), (alignment)))
 #define PTR_ALIGN_DOWN_DIFF(value, alignment) (ALIGN_DOWN_DIFF((uintptr_t)(value), (alignment)))
 
+/* alignment can be any value (except zero ofc sob) */
+#define ALIGN_ANY_UP(value, alignment)   ((((value) + (alignment) - 1) / (alignment)) * (alignment))
+#define ALIGN_ANY_DOWN(value, alignment) ((value) / (alignment) * (alignment))
+
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
