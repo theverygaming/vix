@@ -1,4 +1,3 @@
-#include <cstddef>
 #include <vix/arch/common/paging.h>
 #include <vix/arch/generic/memory.h>
 #include <vix/config.h>
