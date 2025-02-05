@@ -117,7 +117,7 @@ namespace std {
                 _pointer[first + i].~T();
             }
             if ((last + 1) < _size) {
-                memmove(&_pointer[first], &_pointer[last + 1], (_size - (first + 1)) * sizeof(T));
+                memmove(&_pointer[first], &_pointer[last + 1], (_size - (last + 1)) * sizeof(T));
             }
             _size -= count;
         }
@@ -147,6 +147,7 @@ namespace std {
         }
 
         void reallocate(size_t capacity) {
+            size_t old_capacity = _capacity;
             _capacity = capacity;
             if (_capacity == 0) {
                 _capacity = 1;
@@ -159,7 +160,7 @@ namespace std {
                 // mm::kfree_aligned(_pointer);
                 _pointer = newptr;
             } else {
-                _pointer = (T *)mm::krealloc(_pointer, _capacity * sizeof(T));
+                _pointer = (T *)mm::krealloc(_pointer, _capacity * sizeof(T), old_capacity * sizeof(T));
             }
         }
     };

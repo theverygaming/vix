@@ -4,7 +4,7 @@
 namespace mm {
     void *kmalloc(size_t size);
     void kfree(void *ptr);
-    void *krealloc(void *ptr, size_t size);
+    void *krealloc(void *ptr, size_t size, size_t size_old);
 
     void *kmalloc_aligned(size_t size, size_t alignment); // impossible to free at the moment
 

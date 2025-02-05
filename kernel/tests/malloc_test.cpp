@@ -75,7 +75,7 @@ TEST(malloc_test) {
         size_t oldsize = bruh[i].size;
 
         bruh[i].size = rand() % ALLOC_MAX_SIZE;
-        bruh[i].block = mm::krealloc(bruh[i].block, bruh[i].size);
+        bruh[i].block = mm::krealloc(bruh[i].block, bruh[i].size, oldsize);
 
         if (bruh[i].size < oldsize) {
             oldsize = bruh[i].size;

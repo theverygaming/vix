@@ -15,9 +15,10 @@
 
 #define PROTECT_ALLOC_STRUCTS
 
-#undef DEBUG_PRINTF_INSANE
-#define DEBUG_PRINTF_INSANE(...) \
+#define DEBUG_PRINTF_INSANE_KHEAP_INSANE(...) \
     while (0) {} // disable debug printf for this file
+
+#define DEBUG_PRINTF_INSANE_KHEAP_ALLOCS(...) DEBUG_PRINTF_INSANE(__VA_ARGS__)
 
 /*
  * Page allocator
@@ -40,6 +41,9 @@ static void *alloc_pages(size_t pages) {
     return area;
 }
 
+#ifndef CONFIG_KHEAP_BUMP
+
+#ifdef CONFIG_KFREE_CLEANUP
 static void free_pages(void *address, size_t count) {
 #ifdef CONFIG_ARCH_HAS_PAGING
     unsigned int flags;
@@ -56,6 +60,7 @@ static void free_pages(void *address, size_t count) {
     }
 #endif
 }
+#endif
 
 /*
  * Freelist allocator
@@ -124,19 +129,19 @@ static bool ll_check_protect(struct meminfo *ptr) {
  * Checks linked list and panics if it is not correct.
  */
 static void ll_check() {
-    DEBUG_PRINTF_INSANE("ll_check\n");
+    DEBUG_PRINTF_INSANE_KHEAP_INSANE("ll_check\n");
     struct meminfo *ptr = heap_start;
     if (heap_start->prev != nullptr) {
         KERNEL_PANIC("ll_check failure!!! heap_start->prev != nullptr");
     }
     while (ptr != nullptr) {
-        DEBUG_PRINTF_INSANE("    -> e: 0x%p p: 0x%p n: 0x%p\n", ptr, ptr->prev, ptr->next);
+        DEBUG_PRINTF_INSANE_KHEAP_INSANE("    -> e: 0x%p p: 0x%p n: 0x%p\n", ptr, ptr->prev, ptr->next);
         if (ptr->prev == ptr || ptr->next == ptr) {
             KERNEL_PANIC("ll_check failure!!! ptr->prev == ptr || ptr->next == ptr");
         }
         if (ptr->prev != nullptr) {
             if (ptr->prev->next != ptr) {
-                DEBUG_PRINTF_INSANE("is: 0x%p should be: 0x%p\n", ptr->prev->next, ptr);
+                DEBUG_PRINTF_INSANE_KHEAP_INSANE("is: 0x%p should be: 0x%p\n", ptr->prev->next, ptr);
                 KERNEL_PANIC("ll_check failure!!! ptr->prev->next != ptr");
             }
         } else if (ptr != heap_start) {
@@ -155,14 +160,14 @@ static void ll_check() {
  * insert -> element to insert
  */
 static void ll_insert(struct meminfo *ptr, struct meminfo *insert, bool after = false) {
-    DEBUG_PRINTF_INSANE("ll_insert (0x%p, 0x%p)\n", ptr, insert);
+    DEBUG_PRINTF_INSANE_KHEAP_INSANE("ll_insert (0x%p, 0x%p)\n", ptr, insert);
     if ((std::max((uintptr_t)ptr, (uintptr_t)insert) - std::min((uintptr_t)ptr, (uintptr_t)insert)) < sizeof(struct meminfo)) {
         KERNEL_PANIC("ll_insert");
     }
     if (after) {
-        DEBUG_PRINTF_INSANE("    -> after\n");
+        DEBUG_PRINTF_INSANE_KHEAP_INSANE("    -> after\n");
     } else {
-        DEBUG_PRINTF_INSANE("    -> before\n");
+        DEBUG_PRINTF_INSANE_KHEAP_INSANE("    -> before\n");
     }
     ll_check();
     struct meminfo *old_prev = ptr->prev;
@@ -174,34 +179,34 @@ static void ll_insert(struct meminfo *ptr, struct meminfo *insert, bool after = 
         if (old_next != nullptr) {
             old_next->prev = insert;
         }
-        DEBUG_PRINTF_INSANE("    -> ptr: 0x%p p: 0x%p n: 0x%p\n", ptr, ptr->prev, ptr->next);
+        DEBUG_PRINTF_INSANE_KHEAP_INSANE("    -> ptr: 0x%p p: 0x%p n: 0x%p\n", ptr, ptr->prev, ptr->next);
         ptr->next = insert;
-        DEBUG_PRINTF_INSANE("    -> ptr: 0x%p p: 0x%p n: 0x%p\n", ptr, ptr->prev, ptr->next);
+        DEBUG_PRINTF_INSANE_KHEAP_INSANE("    -> ptr: 0x%p p: 0x%p n: 0x%p\n", ptr, ptr->prev, ptr->next);
 
         insert->prev = ptr;
         insert->next = old_next;
-        DEBUG_PRINTF_INSANE("    -> ptr: 0x%p p: 0x%p n: 0x%p\n", ptr, ptr->prev, ptr->next);
-        DEBUG_PRINTF_INSANE("    -> ins: 0x%p p: 0x%p n: 0x%p\n", insert, insert->prev, insert->next);
+        DEBUG_PRINTF_INSANE_KHEAP_INSANE("    -> ptr: 0x%p p: 0x%p n: 0x%p\n", ptr, ptr->prev, ptr->next);
+        DEBUG_PRINTF_INSANE_KHEAP_INSANE("    -> ins: 0x%p p: 0x%p n: 0x%p\n", insert, insert->prev, insert->next);
     } else {
         if (old_prev != nullptr) {
             old_prev->next = insert;
         }
         ptr->prev = insert;
-        DEBUG_PRINTF_INSANE("    -> ptr: 0x%p p: 0x%p n: 0x%p\n", ptr, ptr->prev, ptr->next);
+        DEBUG_PRINTF_INSANE_KHEAP_INSANE("    -> ptr: 0x%p p: 0x%p n: 0x%p\n", ptr, ptr->prev, ptr->next);
 
         insert->next = ptr;
         insert->prev = old_prev;
     }
-    DEBUG_PRINTF_INSANE("    -> ptr: 0x%p p: 0x%p n: 0x%p\n", ptr, ptr->prev, ptr->next);
+    DEBUG_PRINTF_INSANE_KHEAP_INSANE("    -> ptr: 0x%p p: 0x%p n: 0x%p\n", ptr, ptr->prev, ptr->next);
 
     if (ptr == heap_start && !after) {
         heap_start = insert;
-        DEBUG_PRINTF_INSANE("    -> ins: 0x%p p: 0x%p n: 0x%p\n", insert, insert->prev, insert->next);
-        DEBUG_PRINTF_INSANE("    -> ll_insert heap_start\n");
+        DEBUG_PRINTF_INSANE_KHEAP_INSANE("    -> ins: 0x%p p: 0x%p n: 0x%p\n", insert, insert->prev, insert->next);
+        DEBUG_PRINTF_INSANE_KHEAP_INSANE("    -> ll_insert heap_start\n");
         // KERNEL_PANIC("debug");
     }
-    DEBUG_PRINTF_INSANE("    -> ins: 0x%p p: 0x%p n: 0x%p\n", insert, insert->prev, insert->next);
-    DEBUG_PRINTF_INSANE("    -> ptr: 0x%p p: 0x%p n: 0x%p\n", ptr, ptr->prev, ptr->next);
+    DEBUG_PRINTF_INSANE_KHEAP_INSANE("    -> ins: 0x%p p: 0x%p n: 0x%p\n", insert, insert->prev, insert->next);
+    DEBUG_PRINTF_INSANE_KHEAP_INSANE("    -> ptr: 0x%p p: 0x%p n: 0x%p\n", ptr, ptr->prev, ptr->next);
     ll_check();
 }
 
@@ -210,7 +215,7 @@ static void ll_insert(struct meminfo *ptr, struct meminfo *insert, bool after = 
  */
 static void ll_alloc_new_block(size_t required, bool defrag = true) {
     required += sizeof(struct meminfo);
-    DEBUG_PRINTF_INSANE("ll_alloc_new_block(current: %u want: %u)\n", heap_base_size * ARCH_PAGE_SIZE, required);
+    DEBUG_PRINTF_INSANE_KHEAP_INSANE("ll_alloc_new_block(current: %u want: %u)\n", heap_base_size * ARCH_PAGE_SIZE, required);
     ll_check();
     size_t pages = ALIGN_UP(required, ARCH_PAGE_SIZE) / ARCH_PAGE_SIZE;
 
@@ -235,11 +240,11 @@ static void ll_alloc_new_block(size_t required, bool defrag = true) {
  * removes element from linked list
  */
 static void ll_remove(struct meminfo *ptr) {
-    DEBUG_PRINTF_INSANE("ll_remove (0x%p)\n", ptr);
+    DEBUG_PRINTF_INSANE_KHEAP_INSANE("ll_remove (0x%p)\n", ptr);
     ll_check();
 
     if (ptr == heap_start && heap_start->next == nullptr) {
-        DEBUG_PRINTF_INSANE("adding block");
+        DEBUG_PRINTF_INSANE_KHEAP_INSANE("adding block");
         ll_alloc_new_block(ARCH_PAGE_SIZE, false);
     }
 
@@ -312,7 +317,7 @@ static struct meminfo *ll_try_dealloc_block(struct meminfo *ptr) {
         ll_remove(removeptr);
         free_pages(removeptr, (removeptr->size + sizeof(struct meminfo)) / ARCH_PAGE_SIZE);
         ll_check();
-        DEBUG_PRINTF_INSANE("ll_remove: removed 0x%p\n", removeptr);
+        DEBUG_PRINTF_INSANE_KHEAP_INSANE("ll_remove: removed 0x%p\n", removeptr);
     }
     return next;
 }
@@ -332,7 +337,7 @@ static void ll_cleanup() {
  * will replace block already in linked list with a different one
  */
 static void ll_replace(struct meminfo *old, struct meminfo *_new) {
-    DEBUG_PRINTF_INSANE("ll_replace\n");
+    DEBUG_PRINTF_INSANE_KHEAP_INSANE("ll_replace\n");
     if (old->prev != nullptr) {
         old->prev->next = _new;
     }
@@ -404,20 +409,20 @@ static struct meminfo *ll_find_block(size_t minsize) {
  * Do not use the internal argument
  */
 static size_t ll_defrag(bool internal) {
-    DEBUG_PRINTF_INSANE("ll_defrag\n");
+    DEBUG_PRINTF_INSANE_KHEAP_INSANE("ll_defrag\n");
     size_t count = 0;
     struct meminfo *ptr = heap_start;
     while (ptr != nullptr) {
         if (ptr->next != nullptr) {
-            // DEBUG_PRINTF_INSANE("c: 0x%p next: 0x%p\n", ((uintptr_t)ptr + sizeof(struct meminfo) + ptr->size), ptr->next);
+            // DEBUG_PRINTF_INSANE_KHEAP_INSANE("c: 0x%p next: 0x%p\n", ((uintptr_t)ptr + sizeof(struct meminfo) + ptr->size), ptr->next);
             if ((uintptr_t)ptr->next == ((uintptr_t)ptr + sizeof(struct meminfo) + ptr->size)) {
-                DEBUG_PRINTF_INSANE("can defrag\n");
-                DEBUG_PRINTF_INSANE("heap frag: %u\n", mm::getHeapFragmentation());
-                DEBUG_PRINTF_INSANE("heap free: %u\n", mm::getFreeSize());
+                DEBUG_PRINTF_INSANE_KHEAP_INSANE("can defrag\n");
+                DEBUG_PRINTF_INSANE_KHEAP_INSANE("heap frag: %u\n", mm::getHeapFragmentation());
+                DEBUG_PRINTF_INSANE_KHEAP_INSANE("heap free: %u\n", mm::getFreeSize());
                 ptr->size += ptr->next->size + sizeof(struct meminfo);
                 ll_remove(ptr->next);
                 count += 1;
-                DEBUG_PRINTF_INSANE("heap frag: %u\n", mm::getHeapFragmentation());
+                DEBUG_PRINTF_INSANE_KHEAP_INSANE("heap frag: %u\n", mm::getHeapFragmentation());
                 break;
             }
         }
@@ -431,7 +436,7 @@ static size_t ll_defrag(bool internal) {
         } while (defrag != 0);
     }
     if (!internal) {
-        DEBUG_PRINTF_INSANE("ll_defrag -> defragged %u\n", count);
+        DEBUG_PRINTF_INSANE_KHEAP_INSANE("ll_defrag -> defragged %u\n", count);
     }
     return count;
 }
@@ -446,7 +451,7 @@ static void ll_allocate_block(struct meminfo *block, size_t wanted_size) {
         struct meminfo *_new = (struct meminfo *)((uint8_t *)block + sizeof(struct meminfo) + wanted_size);
         uintptr_t aligndiff = PTR_ALIGN_UP_DIFF(_new, ARCH_ALIGNMENT_REQUIRED);
         _new = PTR_ALIGN_UP(_new, ARCH_ALIGNMENT_REQUIRED);
-        DEBUG_PRINTF_INSANE("    -> creating new block: 0x%p\n", _new);
+        DEBUG_PRINTF_INSANE_KHEAP_INSANE("    -> creating new block: 0x%p\n", _new);
         _new->size = (leftover_size - sizeof(struct meminfo)) - aligndiff;
         block->size -= leftover_size - aligndiff;
 
@@ -459,7 +464,7 @@ static void ll_allocate_block(struct meminfo *block, size_t wanted_size) {
 /* memory allocator functions */
 
 static void init() {
-    DEBUG_PRINTF_INSANE("kmalloc init\n");
+    DEBUG_PRINTF_INSANE_KHEAP_INSANE("kmalloc init\n");
     heap_base_ptr = alloc_pages(1);
     heap_base_size = 1;
     heap_start = (struct meminfo *)heap_base_ptr;
@@ -481,15 +486,15 @@ static void init() {
 }
 
 void *mm::kmalloc(size_t size) {
-    DEBUG_PRINTF_INSANE("kmalloc(%u)\n", size);
+    DEBUG_PRINTF_INSANE_KHEAP_INSANE("kmalloc(%u)\n", size);
     if (unlikely(heap_start == nullptr)) {
         init();
     }
     struct meminfo *found = ll_find_block(size);
     if (found != nullptr) {
-        DEBUG_PRINTF_INSANE("    -> smallest block found: %u bytes\n", found->size);
+        DEBUG_PRINTF_INSANE_KHEAP_INSANE("    -> smallest block found: %u bytes\n", found->size);
         ll_allocate_block(found, size);
-        DEBUG_PRINTF_INSANE("    -> resized block to %u bytes\n", found->size);
+        DEBUG_PRINTF_INSANE_KHEAP_INSANE("    -> resized block to %u bytes\n", found->size);
         ll_protect(found);
         return ((uint8_t *)found) + sizeof(struct meminfo);
     }
@@ -499,9 +504,9 @@ void *mm::kmalloc(size_t size) {
 }
 
 void mm::kfree(void *ptr) {
-    DEBUG_PRINTF_INSANE("kfree(0x%p)\n", ptr);
+    DEBUG_PRINTF_INSANE_KHEAP_INSANE("kfree(0x%p)\n", ptr);
     struct meminfo *_blk = (struct meminfo *)((uint8_t *)ptr - sizeof(struct meminfo));
-    DEBUG_PRINTF_INSANE("    -> 0x%p\n", _blk);
+    DEBUG_PRINTF_INSANE_KHEAP_INSANE("    -> 0x%p\n", _blk);
     struct meminfo *closest = ll_find_closest(_blk);
     if (closest == _blk) {
         KERNEL_PANIC("double free!\n");
@@ -523,14 +528,14 @@ void mm::kfree(void *ptr) {
 }
 
 void *mm::kmalloc_aligned(size_t size, size_t alignment) {
-    // hack level: insane
+    // hack level: insane (it's breaks freeing and realloc ENTIRELY)
     void *ptr = kmalloc(size + alignment);
     ptr = PTR_ALIGN_UP(ptr, alignment);
     return ptr;
 }
 
-void *mm::krealloc(void *ptr, size_t size) {
-    DEBUG_PRINTF_INSANE("krealloc(0x%p, %u)\n", ptr, size);
+void *mm::krealloc(void *ptr, size_t size, size_t size_old) {
+    DEBUG_PRINTF_INSANE_KHEAP_INSANE("krealloc(0x%p, %u)\n", ptr, size);
 
     struct meminfo *_blk = (struct meminfo *)((uint8_t *)ptr - sizeof(struct meminfo));
 
@@ -539,13 +544,17 @@ void *mm::krealloc(void *ptr, size_t size) {
         copy_size = _blk->size;
     }
 
+    if (_blk->size < size_old) {
+        KERNEL_PANIC("krealloc: invalid old size");
+    }
+
     // trying to resize failed so we'll malloc and copy instead
-    DEBUG_PRINTF_INSANE("    -> kmalloc\n");
+    DEBUG_PRINTF_INSANE_KHEAP_INSANE("    -> kmalloc\n");
     void *newarea = kmalloc(size);
-    DEBUG_PRINTF_INSANE("    -> newarea: 0x%p\n", newarea);
+    DEBUG_PRINTF_INSANE_KHEAP_INSANE("    -> newarea: 0x%p\n", newarea);
 
     memcpy(newarea, ptr, copy_size);
-    DEBUG_PRINTF_INSANE("    -> kfree\n");
+    DEBUG_PRINTF_INSANE_KHEAP_INSANE("    -> kfree\n");
     kfree(ptr);
     return newarea;
 }
@@ -569,3 +578,79 @@ size_t mm::getHeapFragmentation() {
     }
     return count;
 }
+
+#else // #ifndef CONFIG_KHEAP_BUMP
+
+static void *last_alloc = nullptr;
+static size_t last_size = 0;
+static size_t last_size_full = 0;
+
+void *mm::kmalloc(size_t size) {
+    DEBUG_PRINTF_INSANE_KHEAP_INSANE("kmalloc(%u)\n", size);
+    return mm::kmalloc_aligned(size, 2);
+}
+
+void mm::kfree(void *ptr) {
+    DEBUG_PRINTF_INSANE_KHEAP_INSANE("kfree(0x%p)\n", ptr);
+    DEBUG_PRINTF_INSANE_KHEAP_ALLOCS("KHEAP: invalidate alloc 0x%p\n", ptr);
+}
+
+void *mm::kmalloc_aligned(size_t size, size_t alignment) {
+    DEBUG_PRINTF_INSANE_KHEAP_INSANE("kmalloc_aligned(%u, %u)\n", size, alignment);
+    if (alignment > ARCH_PAGE_SIZE) {
+        KERNEL_PANIC("Alignment > ARCH_PAGE_SIZE");
+    }
+
+    if (last_alloc == nullptr || (last_size + PTR_ALIGN_UP_DIFF((uint8_t*)last_alloc + last_size, alignment) + size) > last_size_full) {
+        last_size_full = ALIGN_UP(size, ARCH_PAGE_SIZE);
+        last_alloc = alloc_pages(last_size_full / ARCH_PAGE_SIZE);
+        last_size = 0;
+
+        DEBUG_PRINTF_INSANE_KHEAP_INSANE("%u %u %u\n", last_size_full, last_alloc, last_size);
+    }
+
+    size_t size_to_add = PTR_ALIGN_UP_DIFF((uint8_t*)last_alloc + last_size, alignment) + size;
+
+    // now we should ALWAYS have enough space
+    // FIXME: remove this check
+    if ((last_size + size_to_add) > last_size_full) {
+        KERNEL_PANIC("WTF");
+    }
+
+    void *ptr = PTR_ALIGN_UP((uint8_t*)last_alloc + last_size, alignment);
+
+    last_size += size_to_add;
+
+
+    DEBUG_PRINTF_INSANE_KHEAP_ALLOCS("KHEAP: validate alloc 0x%p SIZE %u\n", ptr, size);
+    return ptr;
+}
+
+void *mm::krealloc(void *ptr, size_t size, size_t size_old) {
+    DEBUG_PRINTF_INSANE_KHEAP_INSANE("krealloc(0x%p, %u, %u)\n", ptr, size, size_old);
+
+    size_t copy_size = size_old;
+    if (copy_size > size) {
+        copy_size = size;
+    }
+
+    // trying to resize failed so we'll malloc and copy instead
+    DEBUG_PRINTF_INSANE_KHEAP_INSANE("    -> kmalloc\n");
+    void *newarea = kmalloc(size);
+    DEBUG_PRINTF_INSANE_KHEAP_INSANE("    -> newarea: 0x%p\n", newarea);
+
+    memcpy(newarea, ptr, copy_size);
+    DEBUG_PRINTF_INSANE_KHEAP_INSANE("    -> kfree\n");
+    kfree(ptr);
+    return newarea;
+}
+
+size_t mm::getFreeSize() {
+    return last_size_full - last_size;
+}
+
+size_t mm::getHeapFragmentation() {
+    return 0;
+}
+
+#endif

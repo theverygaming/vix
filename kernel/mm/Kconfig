@@ -1,7 +1,18 @@
 menu "memory allocator"
 
+config KHEAP_BUMP
+    bool "Use simple bump allocator for the kernel heap"
+    help
+        The bump allocator is unable to free memory in literally 100% of cases (it doesnt support freeing memory).
+        This means it is very inefficient in terms of memory usage.
+        But due to its simplicity it is quite fast.
+
+        Generally used for debugging, the other heap allocator is more prone to issues.
+    default n
+
 choice
 	prompt "kernel heap allocation"
+    depends on !KHEAP_BUMP
 	default KHEAP_BEST_SIZE
 	config KHEAP_FIRST_FIT
 		bool "first-fit"
@@ -17,6 +28,7 @@ endchoice
 
 config KFREE_CLEANUP
     bool "Enable kfree cleanup"
+    depends on !KHEAP_BUMP
     help
         A cleanup frees physical memory and makes it available to the whole system again.
         Cleanups cause fragmentation which will make overall allocations slower.
@@ -24,7 +36,7 @@ config KFREE_CLEANUP
 
 config KFREE_CLEANUP_INTERVAL
 	prompt "kfree cleanup interval"
-    depends on KFREE_CLEANUP
+    depends on KFREE_CLEANUP && !KHEAP_BUMP
 	int
     default 5
 	range 1 200
