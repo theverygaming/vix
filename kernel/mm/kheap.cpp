@@ -18,7 +18,8 @@
 #define DEBUG_PRINTF_INSANE_KHEAP_INSANE(...) \
     while (0) {} // disable debug printf for this file
 
-#define DEBUG_PRINTF_INSANE_KHEAP_ALLOCS(...) DEBUG_PRINTF_INSANE(__VA_ARGS__)
+//#define DEBUG_PRINTF_INSANE_KHEAP_ALLOCS(...) DEBUG_PRINTF_INSANE(__VA_ARGS__)
+#define DEBUG_PRINTF_INSANE_KHEAP_ALLOCS(...) DEBUG_PRINTF_INSANE_KHEAP_INSANE(__VA_ARGS__)
 
 /*
  * Page allocator
@@ -610,12 +611,6 @@ void *mm::kmalloc_aligned(size_t size, size_t alignment) {
     }
 
     size_t size_to_add = PTR_ALIGN_UP_DIFF((uint8_t*)last_alloc + last_size, alignment) + size;
-
-    // now we should ALWAYS have enough space
-    // FIXME: remove this check
-    if ((last_size + size_to_add) > last_size_full) {
-        KERNEL_PANIC("WTF");
-    }
 
     void *ptr = PTR_ALIGN_UP((uint8_t*)last_alloc + last_size, alignment);
 
