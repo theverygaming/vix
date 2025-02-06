@@ -10,4 +10,10 @@ namespace mm {
 
     size_t getFreeSize();
     size_t getHeapFragmentation();
+
+    // TODO: this should be moved to.. somewhere else idk where lmao
+    // this is when you need physically contiguous memory, it will always return
+    // memory aligned to the page size, do not use this to allocate significantly
+    // less than the page size since that would be inefficient
+    void *kmalloc_phys_contiguous(size_t size);
 }

@@ -649,3 +649,21 @@ size_t mm::getHeapFragmentation() {
 }
 
 #endif
+
+void *mm::kmalloc_phys_contiguous(size_t size) {
+    size_t pages = ALIGN_UP(size, ARCH_PAGE_SIZE) / ARCH_PAGE_SIZE;
+    #ifdef CONFIG_ARCH_HAS_PAGING
+    void *area = mm::vmm::kalloc(pages);
+    void *phys;
+    ASSIGN_OR_PANIC(phys, mm::pmm::alloc_contiguous(pages));
+    for (size_t i = 0; i < pages; i++) {
+        uintptr_t virt = ((uintptr_t)area) + (i * ARCH_PAGE_SIZE);
+        arch::vmm::set_page(virt, (uintptr_t)phys + (i * ARCH_PAGE_SIZE), arch::vmm::FLAGS_PRESENT);
+        arch::vmm::flush_tlb_single(virt);
+    }
+#else
+    void *area;
+    ASSIGN_OR_PANIC(area, mm::pmm::alloc_contiguous(pages));
+#endif
+    return area;
+}
