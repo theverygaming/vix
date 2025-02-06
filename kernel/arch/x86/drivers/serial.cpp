@@ -38,10 +38,10 @@ void drivers::serial::putc(char c) {
     }
     while (is_tx_empty() == 0)
         ;
-    outb(SERIAL_PORT, c);
     if (c == '\n') {
         outb(SERIAL_PORT, '\r');
     }
+    outb(SERIAL_PORT, c);
 }
 
 char drivers::serial::getc() {
