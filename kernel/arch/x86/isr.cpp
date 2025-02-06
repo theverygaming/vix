@@ -1,6 +1,6 @@
-#include <string.h>
 #include <vix/arch/common/cpu.h>
 #include <vix/arch/cpubasics.h>
+#include <vix/arch/drivers/pic_8259.h>
 #include <vix/arch/gdt.h>
 #include <vix/arch/generic/memory.h>
 #include <vix/arch/idt.h>
@@ -30,6 +30,7 @@ extern "C" void i686_ISR_Handler(struct arch::full_ctx *regs) {
     }
 
     // is this a spurious IRQ?
+    // FIXME: we have some sort of logic for handling this below but atm it's not in working oder -> see pic_8259.cpp
     if ((regs->interrupt == 39)) {
         outb(0x20, 0x0b);
         uint8_t reg = inb(0x20);
@@ -39,10 +40,26 @@ extern "C" void i686_ISR_Handler(struct arch::full_ctx *regs) {
         }
     }
 
+    bool is_irq = drivers::pic::pic8259::isIntIrq(regs->interrupt);
+    uint8_t irq_n = 0;
+    if (is_irq) {
+        irq_n = drivers::pic::pic8259::intToIrq(regs->interrupt);
+    }
+
+    if (is_irq && (irq_n == 7 || irq_n == 15) && drivers::pic::pic8259::checkIrqSpurious(irq_n)) {
+        DEBUG_PRINTF("Spurious IRQ #%u, ignoring", irq_n);
+        return;
+    }
+
     if (handlers[regs->interrupt] != 0) {
         handlers[regs->interrupt](regs);
     } else if (regs->interrupt >= 32) {
-        DEBUG_PRINTF("No interrupt handler for #%u!, ignoring\n", regs->interrupt);
+        DEBUG_PRINTF("No interrupt handler for #%u / IRQ#%u!, ignoring\n", regs->interrupt, irq_n);
+        // we do need to send an EOI for an unhandled IRQ
+        if (is_irq) {
+            DEBUG_PRINTF("sending EOI for IRQ#%u!\n", irq_n);
+            drivers::pic::pic8259::eoi(regs->interrupt);
+        }
     }
 
     // since we may use a different stack we have to copy some of the data to the old stack

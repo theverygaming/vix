@@ -64,11 +64,11 @@ namespace drivers::pic::pic8259 {
     }
 
     void eoi(uint8_t intnum) {
-        if (!(((intnum >= _master_base) && (intnum < (_master_base + 8))) || ((intnum >= _slave_base) && (intnum < (_slave_base + 9))))) {
+        if (!isIntIrq(intnum)) {
             return;
         }
 
-        if ((intnum > _slave_base) && (intnum < (_slave_base + 9))) {
+        if ((intnum > _slave_base) && (intnum <= (_slave_base + 8))) {
             outb(0xA0, 0x20);
         }
         outb(0x20, 0x20);
@@ -79,5 +79,35 @@ namespace drivers::pic::pic8259 {
             return _slave_base + (irq - 8);
         }
         return _master_base + irq;
+    }
+
+    uint8_t intToIrq(uint8_t intnum) {
+        if (intnum >= _slave_base && intnum <= (_slave_base + 8)) {
+            return intnum - _slave_base;
+        }
+        return intnum - _master_base;
+    }
+
+    bool isIntIrq(uint8_t intnum) {
+        return (intnum >= _slave_base && intnum <= (_slave_base + 8)) || (intnum >= _master_base && intnum <= (_master_base + 8));
+    }
+
+    bool checkIrqSpurious(uint8_t irq) {
+        /*
+        if (irq > 7) {
+            outb(0xA0, 0x0b);
+            uint8_t reg = inb(0xA0);
+            if (((reg >> (irq - 8)) & 0x1) == 0) {
+                return true;
+            }
+        }
+        */
+        /*
+            FIXME: this needs to be handled _properly_, maybe when the kernel
+            finally has some kind of sane interrupt system. The problem is that
+            currently we send the EOI in the actual interrupt handlers in the drivers which is utter shit and needs to be fixed.
+            Problem is just that it's not getting fixed rn so not giving a shit about any spurious interrupts either for the time being..
+        */
+        return false;
     }
 }
