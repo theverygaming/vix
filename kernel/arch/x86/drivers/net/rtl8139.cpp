@@ -8,6 +8,7 @@
 #include <vix/arch/paging.h>
 #include <vix/debug.h>
 #include <vix/drivers/net/generic_card.h>
+#include <vix/kernel/irq.h>
 #include <vix/macros.h>
 #include <vix/mm/kheap.h>
 #include <vix/net/stack/stack.h>
@@ -37,10 +38,12 @@ static struct drivers::net::generic_card rtl8139_card = {
 
 static net::networkstack networkstack(rtl8139_card);
 
-static void irq_handler(struct arch::full_ctx *gaming) {
+static void irq_handler() {
     if ((((struct packetInfo *)(bufferptr + bufferoffset))->header & 0x1) == 0) {
         //KERNEL_PANIC("ROK not set?? wtf - rtl8139 skill issue");
-        drivers::pic::pic8259::eoi(drivers::pic::pic8259::irqToint(irqline));
+        // FIXME: skill issue fr?
+        DEBUG_PRINTF("rtl8139 IRQ -- ROK not set??\n");
+        return;
     }
     DEBUG_PRINTF("rtl8139 IRQ\n");
 
@@ -127,8 +130,6 @@ static void irq_handler(struct arch::full_ctx *gaming) {
         networkstack.receive(received[i].ptr, received[i].size);
         mm::kfree(received[i].ptr);
     }
-
-    drivers::pic::pic8259::eoi(drivers::pic::pic8259::irqToint(irqline));
 }
 
 static uint8_t reg_counter = 0;
@@ -208,8 +209,7 @@ void drivers::net::rtl8139::init() {
     irqline = drivers::pci::getInterruptLine(bus, device, function);
     DEBUG_PRINTF("rtl8139 irq: %u\n", (uint32_t)irqline);
 
-    isr::RegisterHandler(drivers::pic::pic8259::irqToint(irqline), irq_handler);
-    drivers::pic::pic8259::unmask_irq(irqline);
+    irq::register_irq_handler(irq_handler, irqline);
 
     DEBUG_PRINTF("rtl8139 init finished!\n");
 

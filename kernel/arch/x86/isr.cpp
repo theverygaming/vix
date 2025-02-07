@@ -10,13 +10,15 @@
 #include <vix/arch/tss.h>
 #include <vix/config.h>
 #include <vix/debug.h>
+#include <vix/kernel/irq.h>
 #include <vix/kprintf.h>
 #include <vix/mm/kheap.h>
 #include <vix/panic.h>
 #include <vix/stdio.h>
 
-typedef void (*intHandler)(struct arch::full_ctx *regs);
-static intHandler handlers[256];
+static struct int_handler {
+    void (*fn)();
+} handlers[256];
 
 extern "C" void i686_ISR_Handler(struct arch::full_ctx *regs) {
     uint32_t previous_esp_user = regs->esp;
@@ -51,13 +53,15 @@ extern "C" void i686_ISR_Handler(struct arch::full_ctx *regs) {
         return;
     }
 
-    if (handlers[regs->interrupt] != 0) {
-        handlers[regs->interrupt](regs);
+    if (handlers[regs->interrupt].fn != nullptr) {
+        // FIXME: depending on the kind of interrupt we need to take care of EOI far more.. this is BROKEN!
+        drivers::pic::pic8259::eoi(regs->interrupt);
+        handlers[regs->interrupt].fn();
     } else if (regs->interrupt >= 32) {
         DEBUG_PRINTF("No interrupt handler for #%u / IRQ#%u!, ignoring\n", regs->interrupt, irq_n);
         // we do need to send an EOI for an unhandled IRQ
         if (is_irq) {
-            DEBUG_PRINTF("sending EOI for IRQ#%u!\n", irq_n);
+            DEBUG_PRINTF("sending EOI for unhandled IRQ#%u!\n", irq_n);
             drivers::pic::pic8259::eoi(regs->interrupt);
         }
     }
@@ -68,7 +72,7 @@ extern "C" void i686_ISR_Handler(struct arch::full_ctx *regs) {
 
 void isr::i686_ISR_Initialize() {
     for (int i = 0; i < 256; i++) {
-        handlers[i] = 0;
+        handlers[i].fn = nullptr;
     }
     isrs::i686_ISR_InitializeGates();
     for (int i = 0; i < 256; i++) {
@@ -76,10 +80,12 @@ void isr::i686_ISR_Initialize() {
     }
 }
 
-void isr::RegisterHandler(int handler, void (*_func)(struct arch::full_ctx *regs)) {
-    handlers[handler] = _func;
+void irq::register_irq_handler(void (*handler)(), unsigned int irq) {
+    handlers[drivers::pic::pic8259::irqToint(irq)].fn = handler;
+    drivers::pic::pic8259::unmask_irq(irq);
 }
 
-void isr::DeregisterHandler(int handler) {
-    handlers[handler] = 0;
+void irq::deregister_irq_handler(unsigned int irq) {
+    drivers::pic::pic8259::mask_irq(irq);
+    handlers[drivers::pic::pic8259::irqToint(irq)].fn = nullptr;
 }

@@ -1,4 +1,3 @@
-#include <vector>
 #include <vix/arch/common/cpu.h>
 #include <vix/arch/cpubasics.h>
 #include <vix/arch/drivers/pic_8259.h>
@@ -7,6 +6,7 @@
 #include <vix/arch/isr.h>
 #include <vix/drivers/keyboard.h>
 #include <vix/drivers/ms_mouse.h>
+#include <vix/kernel/irq.h>
 #include <vix/keyboard.h>
 #include <vix/stdio.h>
 
@@ -74,7 +74,7 @@ static void mouse_int_handler_base() {
 }
 
 static void kbd_int_handler_base();
-static void mouse_int_handler(struct arch::full_ctx *) {
+static void mouse_int_handler() {
     // printf("mouse int\n");
     uint8_t status = inb(PS2_STATUS);
     if (!(status & 0x20)) { // is this not from port 2?
@@ -82,12 +82,10 @@ static void mouse_int_handler(struct arch::full_ctx *) {
         return;
     }
     mouse_int_handler_base();
-    drivers::pic::pic8259::eoi(drivers::pic::pic8259::irqToint(12));
 }
 
 void drivers::mouse::init() {
-    isr::RegisterHandler(drivers::pic::pic8259::irqToint(12), mouse_int_handler);
-    drivers::pic::pic8259::unmask_irq(12);
+    irq::register_irq_handler(mouse_int_handler, 12);
 
     ps2_write_command(0x20);
     uint8_t config = ps2_read_data();
@@ -202,14 +200,13 @@ static void kbd_int_handler_base() {
     drivers::keyboard::events.dispatch(kbmap[sc]);
 }
 
-static void ps2_int(struct arch::full_ctx *) {
+static void ps2_int() {
     uint8_t status = inb(PS2_STATUS);
     if (status & 0x20) { // is this from port 2?
         mouse_int_handler_base();
         return;
     }
     kbd_int_handler_base();
-    drivers::pic::pic8259::eoi(drivers::pic::pic8259::irqToint(1));
 }
 
 namespace drivers::ps2_keyboard {
@@ -219,6 +216,5 @@ namespace drivers::ps2_keyboard {
 }
 
 void drivers::ps2_keyboard::init() {
-    isr::RegisterHandler(drivers::pic::pic8259::irqToint(1), ps2_int);
-    drivers::pic::pic8259::unmask_irq(1);
+    irq::register_irq_handler(ps2_int, 1);
 }

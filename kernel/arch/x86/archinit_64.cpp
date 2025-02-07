@@ -106,7 +106,6 @@ void arch::startup::kthread0() {}
 #include <vix/arch/idt.h>
 #include <vix/arch/isr.h>
 
-void isr::RegisterHandler(int, void (*)(struct arch::full_ctx *)) {}
 void drivers::textmode::text80x25::delc() {}
 void drivers::textmode::text80x25::putc(char c) {}
 void drivers::textmode::text80x25::putc(char c, color foreground, color background) {}

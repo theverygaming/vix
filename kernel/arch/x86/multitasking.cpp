@@ -347,7 +347,7 @@ static void(unload_process)(multitasking::x86_process *proc, void *ctx) {
 */
 
 // called on every timer interrupt
-void multitasking::interruptTrigger(struct arch::full_ctx *regs) {
+void multitasking::interruptTrigger() {
     if (unlikely(uninitialized)) {
         return;
     }

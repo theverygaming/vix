@@ -23,7 +23,7 @@ namespace multitasking {
     void list_processes();
 
     void initMultitasking();
-    void interruptTrigger(struct arch::full_ctx *regs);
+    void interruptTrigger();
     void create_task(void *stackadr, void *codeadr, std::vector<process_pagerange> *pagerange, std::vector<std::string> *argv);
     /*void create_task(void *stackadr,
                      void *codeadr,
