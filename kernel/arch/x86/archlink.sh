@@ -6,7 +6,7 @@ source .config
 ldscript="arch/x86/linker_32.ld"
 ptrsize=".long"
 
-if [ "$CONFIG_ENABLE_KERNEL_64" == "y" ]; then
+if [ "${CONFIG_ENABLE_KERNEL_64:-}" == "y" ]; then
     ldscript="arch/x86/linker_64.ld"
     ptrsize=".quad"
 fi
