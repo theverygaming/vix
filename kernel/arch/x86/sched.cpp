@@ -26,13 +26,16 @@ void sched::arch_init_thread(struct sched::task *proc, void (*func)()) {
     fullctx->es = ds;
     fullctx->fs = ds;
     fullctx->gs = ds;
-    fullctx->eflags = 1 << 9;
+    fullctx->eflags = 1 << 9; // enable interrupts
 
     stack -= sizeof(struct arch::ctx) / sizeof(uint32_t);
     struct arch::ctx *ctx = (struct arch::ctx *)stack;
+    ctx->eflags = 0; // most important thing: interrupts disabled
     ctx->ebx = ctx->esi = ctx->edi = ctx->ebp = 0;
     ctx->eip = (uint32_t)x86_interrupt_return;
     proc->ctx = ctx;
+    proc->pushpop_interrupt_state = 1; // interrupts get enabled
+    proc->pushpop_interrupt_count = 0;
 #endif
 #ifdef CONFIG_ENABLE_KERNEL_64
     uint64_t *stack = (uint64_t *)((uint8_t *)mm::kmalloc(1024) + 1024);

@@ -38,24 +38,22 @@ void sched::yield() {
     if (unlikely(sched_disabled)) {
         return;
     }
-    if (arch::get_interrupt_state() != arch::INTERRUPT_STATE_DISABLED) {
-        KERNEL_PANIC("yield called with interrupts enabled");
-    }
-    push_interrupt_disable();
+    push_interrupt_disable(); // the task switch is a rather major critical section so we disable interrupts
     struct sched::task *last = current;
     current = get_next();
-    if (last->pid == current->pid) {
+    // switching to the same task would break shit
+    if (last == current) {
         pop_interrupt_disable();
         return;
     }
     last->state = sched::task::state::RUNNABLE;
     current->state = sched::task::state::RUNNING;
-    pop_interrupt_disable();
 #ifndef SCHED_ARCH_HAS_CUSTOM_SWITCH
     sched_switch(&last->ctx, current->ctx);
 #else
     SCHED_ARCH_CUSTOM_SWITCH(last, current);
 #endif
+    pop_interrupt_disable();
 }
 
 void sched::enter() {
@@ -70,6 +68,9 @@ struct sched::task sched::init_thread(void (*func)(), void *data) {
     t.state = sched::task::state::RUNNABLE;
     t.pid = pid_counter++;
     t.data = data;
+    //FIXME: everything except IA-32!! arch_init_thread is supposed to set pushpop_interrupt_state and pushpop_interrupt_count!!!
+    //t.pushpop_interrupt_state = arch::INTERRUPT_STATE_DISABLED;
+    //t.pushpop_interrupt_count = 1; // initially it'll be popped once!
     return t;
 }
 

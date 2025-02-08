@@ -36,6 +36,10 @@ namespace sched {
 
         // TLS
         void *data;
+
+        // Interrupt state (see interrupts.h)
+        unsigned int pushpop_interrupt_state;
+        unsigned int pushpop_interrupt_count;
     };
 
     extern std::forward_list<sched::task> sched_readyqueue;

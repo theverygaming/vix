@@ -35,6 +35,7 @@ namespace arch {
     };
 
     struct __attribute__((packed)) ctx {
+        uint32_t eflags;
         uint32_t ebx;
         uint32_t esi;
         uint32_t edi;

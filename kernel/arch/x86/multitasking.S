@@ -12,10 +12,12 @@ sched_switch:
     pushl %edi
     pushl %esi
     pushl %ebx
+    pushfl
 
     movl %esp, (%eax)
     movl %ecx, %esp
 
+    popfl
     popl %ebx
     popl %esi
     popl %edi

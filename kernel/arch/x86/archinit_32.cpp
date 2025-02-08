@@ -114,8 +114,7 @@ void arch::startup::stage3_startup() {
 }
 
 static void kt1() {
-    static volatile int lastpid = 0;
-    uint16_t counter = 0;
+    uint32_t counter = 0;
     while (true) {
         push_interrupt_disable();
         volatile int test = 5;
@@ -124,15 +123,10 @@ static void kt1() {
         }
         pop_interrupt_disable();
         counter++;
-        if (counter > 2048) {
+        if (counter > 600000) {
             counter = 0;
         }
-        int mypid = sched::mytask()->pid;
-        lastpid = mypid;
-        while (mypid == lastpid) {
-            asm volatile("hlt");
-        }
-        //sched::yield();
+        sched::yield();
     }
 }
 

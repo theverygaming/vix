@@ -356,6 +356,10 @@ void multitasking::interruptTrigger() {
         KERNEL_PANIC("interrupts on in isr");
     }
     sched::yield();
+    if (arch::get_interrupt_state() != arch::INTERRUPT_STATE_DISABLED) {
+        arch::set_interrupt_state(arch::INTERRUPT_STATE_DISABLED);
+        KERNEL_PANIC("interrupts on in isr");
+    }
 }
 
 bool multitasking::createPageRange(std::vector<process_pagerange> *range, uint32_t max_address) {
