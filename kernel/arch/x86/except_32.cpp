@@ -92,7 +92,7 @@ extern "C" void handle_x86_except(struct arch::full_ctx *regs) {
                 regs->esp,
                 regs->ebp,
                 regs->eip);
-        kprintf(KP_EMERG, "unhandled exception %u\n", (unsigned int)regs->interrupt);
+        kprintf(KP_EMERG, "unhandled exception %u error code: %u\n", (unsigned int)regs->interrupt, (unsigned int)regs->error_code);
         st_print_ip(regs->eip);
         do_stack_trace(regs->ebp);
         KERNEL_PANIC("unhandled exception");
