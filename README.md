@@ -14,7 +14,14 @@ a broken kernel with a ton of bad design choices and copypasted code. _It's actu
 - Full Linux binary compatibility
 - Binary compatibility with other kernels
 
-References: [PenutOS](https://github.com/AlexandreRouma/PenutOS/), [nanobyte_os](https://github.com/chibicitiberiu/nanobyte_os), the [OSDev wiki](https://wiki.osdev.org), [raspi3-tutorial](https://github.com/bztsrc/raspi3-tutorial), [Building an Operating System for the Raspberry Pi](https://jsandler18.github.io/), [raspberry-pi-os](https://s-matyukevich.github.io/raspberry-pi-os/) and of course [Linux](https://github.com/torvalds/linux)
+References:
+- [PenutOS](https://github.com/AlexandreRouma/PenutOS/)
+- [nanobyte_os](https://github.com/chibicitiberiu/nanobyte_os)
+- the [OSDev wiki](https://wiki.osdev.org)
+- [raspi3-tutorial](https://github.com/bztsrc/raspi3-tutorial)
+- [Building an Operating System for the Raspberry Pi](https://jsandler18.github.io/)
+- [raspberry-pi-os](https://s-matyukevich.github.io/raspberry-pi-os/)
+- [Linux](https://github.com/torvalds/linux)
 
 ## Star History
 
