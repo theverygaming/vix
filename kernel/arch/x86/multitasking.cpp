@@ -4,9 +4,9 @@
 #include <vix/arch/common/cpu.h>
 #include <vix/arch/cpubasics.h>
 #include <vix/arch/gdt.h>
-#include <vix/arch/generic/memory.h>
 #include <vix/arch/multitasking.h>
 #include <vix/arch/tss.h>
+#include <vix/config.h>
 #include <vix/debug.h>
 #include <vix/interrupts.h>
 #include <vix/kprintf.h>
@@ -371,11 +371,11 @@ bool multitasking::createPageRange(std::vector<process_pagerange> *range, uint32
     uintptr_t lastPhysAddress = 0;
     bool invalidated = true;
 
-    for (uint32_t page = 0; page < (max_address / ARCH_PAGE_SIZE); page++) {
-        uint32_t virtadr = page * ARCH_PAGE_SIZE;
+    for (uint32_t page = 0; page < (max_address / CONFIG_ARCH_PAGE_SIZE); page++) {
+        uint32_t virtadr = page * CONFIG_ARCH_PAGE_SIZE;
         if (paging::is_readable((void *)virtadr)) {
             physAddress = (uintptr_t)paging::get_physaddr((void *)virtadr);
-            if ((physAddress - ARCH_PAGE_SIZE) != lastPhysAddress || invalidated) {
+            if ((physAddress - CONFIG_ARCH_PAGE_SIZE) != lastPhysAddress || invalidated) {
                 pages.push_back({0, 0, 0});
                 prange_counter = pages.size() - 1;
                 pages[prange_counter].phys_base = physAddress;

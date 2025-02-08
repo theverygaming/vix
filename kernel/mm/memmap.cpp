@@ -38,8 +38,8 @@ static const char *type_string(mm::mem_map_entry::type_t type) {
 static void align_map(struct mm::mem_map_entry *map, size_t len) {
     for (size_t i = 0; i < len; i++) {
         if (mm::memmap_is_usable(map[i].type)) {
-            map[i].base = ALIGN_UP(map[i].base, ARCH_PAGE_SIZE);
-            map[i].size = ALIGN_DOWN(map[i].size, ARCH_PAGE_SIZE);
+            map[i].base = ALIGN_UP(map[i].base, CONFIG_ARCH_PAGE_SIZE);
+            map[i].size = ALIGN_DOWN(map[i].size, CONFIG_ARCH_PAGE_SIZE);
         }
     }
 }

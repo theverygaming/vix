@@ -1,6 +1,7 @@
 #include <string.h>
 #include <vix/arch/common/paging.h>
 #include <vix/arch/generic/memory.h>
+#include <vix/config.h>
 #include <vix/kprintf.h>
 #include <vix/macros.h>
 #include <vix/mm/memmap.h>
@@ -118,10 +119,10 @@ static uintptr_t get_memmap_required_space(uintptr_t *ptr_n_areas = nullptr, uin
     size_t counter = 0;
     const struct mm::mem_map_entry *entry = mm::get_mem_map(counter);
     while (entry != nullptr) {
-        if (mm::memmap_is_usable(entry->type) && entry->size > ARCH_PAGE_SIZE) {
-            uintptr_t start = ALIGN_UP(entry->base, ARCH_PAGE_SIZE);
-            uintptr_t end = ALIGN_DOWN(entry->base + entry->size, ARCH_PAGE_SIZE);
-            n_pages += (end - start) / ARCH_PAGE_SIZE;
+        if (mm::memmap_is_usable(entry->type) && entry->size > CONFIG_ARCH_PAGE_SIZE) {
+            uintptr_t start = ALIGN_UP(entry->base, CONFIG_ARCH_PAGE_SIZE);
+            uintptr_t end = ALIGN_DOWN(entry->base + entry->size, CONFIG_ARCH_PAGE_SIZE);
+            n_pages += (end - start) / CONFIG_ARCH_PAGE_SIZE;
             n_areas++;
         }
         counter++;
@@ -144,9 +145,9 @@ static const mm::mem_map_entry *get_suitable_memmap_entry(uintptr_t required_byt
     size_t counter = 0;
     const struct mm::mem_map_entry *entry = mm::get_mem_map(counter);
     while (entry != nullptr) {
-        if (mm::memmap_is_usable(entry->type) && entry->size > ARCH_PAGE_SIZE) {
-            uintptr_t start = ALIGN_UP(entry->base, ARCH_PAGE_SIZE);
-            uintptr_t end = ALIGN_DOWN(entry->base + entry->size, ARCH_PAGE_SIZE);
+        if (mm::memmap_is_usable(entry->type) && entry->size > CONFIG_ARCH_PAGE_SIZE) {
+            uintptr_t start = ALIGN_UP(entry->base, CONFIG_ARCH_PAGE_SIZE);
+            uintptr_t end = ALIGN_DOWN(entry->base + entry->size, CONFIG_ARCH_PAGE_SIZE);
             if ((end - start) >= required_bytes) {
                 kprintf(KP_INFO, "pmm: found suitable entry for bitmap -> base: 0x%p size: %u\n", (uintptr_t)entry->base, (uintptr_t)entry->size);
                 break;
@@ -168,16 +169,16 @@ static bitmap pm_bitmap;
 static uintptr_t pm_phys_addr;
 
 static void populate_pmm_info() {
-    uintptr_t required_bytes = ALIGN_UP(get_memmap_required_space(&pm_n_areas, &pm_n_total_pages), ARCH_PAGE_SIZE);
+    uintptr_t required_bytes = ALIGN_UP(get_memmap_required_space(&pm_n_areas, &pm_n_total_pages), CONFIG_ARCH_PAGE_SIZE);
     const mm::mem_map_entry *entry = get_suitable_memmap_entry(required_bytes);
-    uintptr_t entry_phys_start = ALIGN_UP(entry->base, ARCH_PAGE_SIZE);
+    uintptr_t entry_phys_start = ALIGN_UP(entry->base, CONFIG_ARCH_PAGE_SIZE);
     pm_phys_addr = entry_phys_start;
 #ifdef CONFIG_ARCH_HAS_PAGING
-    uintptr_t required_pages = required_bytes / ARCH_PAGE_SIZE;
+    uintptr_t required_pages = required_bytes / CONFIG_ARCH_PAGE_SIZE;
     void *vaddr = mm::vmm::kalloc(required_pages);
     for (uintptr_t i = 0; i < required_pages; i++) {
-        uintptr_t virt = ((uintptr_t)vaddr) + (i * ARCH_PAGE_SIZE);
-        arch::vmm::set_page(virt, entry_phys_start + (i * ARCH_PAGE_SIZE), arch::vmm::FLAGS_PRESENT);
+        uintptr_t virt = ((uintptr_t)vaddr) + (i * CONFIG_ARCH_PAGE_SIZE);
+        arch::vmm::set_page(virt, entry_phys_start + (i * CONFIG_ARCH_PAGE_SIZE), arch::vmm::FLAGS_PRESENT);
         arch::vmm::flush_tlb_single(virt);
     }
     pm_areas = (struct area_info *)vaddr;
@@ -194,11 +195,11 @@ static void init_pmm_structures() {
     size_t counter = 0;
     const struct mm::mem_map_entry *entry = mm::get_mem_map(counter);
     while (entry != nullptr) {
-        if (mm::memmap_is_usable(entry->type) && entry->size > ARCH_PAGE_SIZE) {
-            uintptr_t start = ALIGN_UP(entry->base, ARCH_PAGE_SIZE);
-            uintptr_t end = ALIGN_DOWN(entry->base + entry->size, ARCH_PAGE_SIZE);
+        if (mm::memmap_is_usable(entry->type) && entry->size > CONFIG_ARCH_PAGE_SIZE) {
+            uintptr_t start = ALIGN_UP(entry->base, CONFIG_ARCH_PAGE_SIZE);
+            uintptr_t end = ALIGN_DOWN(entry->base + entry->size, CONFIG_ARCH_PAGE_SIZE);
             area->start_addr = start;
-            area->n_pages = (end - start) / ARCH_PAGE_SIZE;
+            area->n_pages = (end - start) / CONFIG_ARCH_PAGE_SIZE;
             kprintf(KP_INFO, "pmm: area(0x%p) - start: 0x%p n_pages: %u\n", area, area->start_addr, area->n_pages);
             area++;
         }
@@ -213,7 +214,7 @@ static void init_pmm_structures() {
 static size_t find_area_for_paddr(void *paddr) {
     uintptr_t paddr_int = (uintptr_t)paddr;
     for (size_t i = 0; i < pm_n_areas; i++) {
-        if (pm_areas[i].start_addr <= paddr_int && ((paddr_int - pm_areas[i].start_addr) / ARCH_PAGE_SIZE) < pm_areas[i].n_pages) {
+        if (pm_areas[i].start_addr <= paddr_int && ((paddr_int - pm_areas[i].start_addr) / CONFIG_ARCH_PAGE_SIZE) < pm_areas[i].n_pages) {
             return i;
         }
     }
@@ -240,7 +241,7 @@ static size_t find_bitmap_idx_for_paddr(void *paddr, size_t *ptr_pages_before = 
     for (size_t i = 0; i < area_idx; i++) {
         pages_before += pm_areas[i].n_pages;
     }
-    uintptr_t pages_offset = ((uintptr_t)paddr - pm_areas[area_idx].start_addr) / ARCH_PAGE_SIZE;
+    uintptr_t pages_offset = ((uintptr_t)paddr - pm_areas[area_idx].start_addr) / CONFIG_ARCH_PAGE_SIZE;
     if (ptr_pages_before != nullptr) {
         *ptr_pages_before = pages_before;
     }
@@ -251,7 +252,7 @@ static void *find_paddr_for_bitmap_idx(size_t bitmap_idx) {
     size_t pages_before;
     size_t area_idx = find_area_for_bitmap_idx(bitmap_idx, &pages_before);
     uintptr_t pages_offset = bitmap_idx - pages_before;
-    return (void *)(pm_areas[area_idx].start_addr + (pages_offset * ARCH_PAGE_SIZE));
+    return (void *)(pm_areas[area_idx].start_addr + (pages_offset * CONFIG_ARCH_PAGE_SIZE));
 }
 
 void mm::pmm::init() {
@@ -259,7 +260,8 @@ void mm::pmm::init() {
     init_pmm_structures();
     // force allocate the data the PMM itself needs
     force_alloc_contiguous((void *)pm_phys_addr,
-                           ALIGN_UP((pm_n_areas * sizeof(struct area_info)) + (ALIGN_UP(pm_n_total_pages, 8) / 8), ARCH_PAGE_SIZE) / ARCH_PAGE_SIZE);
+                           ALIGN_UP((pm_n_areas * sizeof(struct area_info)) + (ALIGN_UP(pm_n_total_pages, 8) / 8), CONFIG_ARCH_PAGE_SIZE) /
+                               CONFIG_ARCH_PAGE_SIZE);
     kprintf(KP_INFO, "pmm: initialized\n");
 }
 
@@ -270,7 +272,7 @@ status::StatusOr<void *> mm::pmm::alloc_contiguous(size_t pages) {
         bool found = pm_bitmap.findRange(pages_before, pages_before + pm_areas[i].n_pages, pages, false, &found_start);
         if (found) {
             pm_bitmap.setRange(found_start, pages);
-            return (void *)(pm_areas[i].start_addr + ((found_start - pages_before) * ARCH_PAGE_SIZE));
+            return (void *)(pm_areas[i].start_addr + ((found_start - pages_before) * CONFIG_ARCH_PAGE_SIZE));
         }
         pages_before += pm_areas[i].n_pages;
     }

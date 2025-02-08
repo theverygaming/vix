@@ -3,8 +3,8 @@
 #include <vector>
 #include <vix/arch/common/cpu.h>
 #include <vix/arch/elf.h>
-#include <vix/arch/generic/memory.h>
 #include <vix/arch/multitasking.h>
+#include <vix/config.h>
 #include <vix/debug.h>
 #include <vix/mm/kheap.h>
 #include <vix/mm/pmm.h>
@@ -38,15 +38,15 @@ void elf::load_program(void *ELF_baseadr, std::vector<std::string> *argv, bool r
     uint32_t max_v = max;
     uint32_t min_v = min;
 
-    if (min_v % ARCH_PAGE_SIZE != 0) {
-        min_v -= min_v % ARCH_PAGE_SIZE;
+    if (min_v % CONFIG_ARCH_PAGE_SIZE != 0) {
+        min_v -= min_v % CONFIG_ARCH_PAGE_SIZE;
     }
 
-    if (max_v % ARCH_PAGE_SIZE != 0) {
-        max_v += ARCH_PAGE_SIZE - (max_v % ARCH_PAGE_SIZE);
+    if (max_v % CONFIG_ARCH_PAGE_SIZE != 0) {
+        max_v += CONFIG_ARCH_PAGE_SIZE - (max_v % CONFIG_ARCH_PAGE_SIZE);
     }
 
-    uint32_t pagecount = ((max_v - min_v) / ARCH_PAGE_SIZE) + 41;
+    uint32_t pagecount = ((max_v - min_v) / CONFIG_ARCH_PAGE_SIZE) + 41;
 
     std::vector<multitasking::process_pagerange> pageranges;
 
@@ -58,7 +58,7 @@ void elf::load_program(void *ELF_baseadr, std::vector<std::string> *argv, bool r
                           .type = multitasking::process_pagerange::range_type::STATIC});
     ASSIGN_OR_PANIC(allocated_phys, mm::pmm::alloc_contiguous(1));
     pageranges.push_back({.phys_base = (uintptr_t)allocated_phys,
-                          .virt_base = max_v + (ARCH_PAGE_SIZE * 47),
+                          .virt_base = max_v + (CONFIG_ARCH_PAGE_SIZE * 47),
                           .pages = 1,
                           .type = multitasking::process_pagerange::range_type::BREAK});
 
@@ -68,7 +68,7 @@ void elf::load_program(void *ELF_baseadr, std::vector<std::string> *argv, bool r
 
     // zero all allocated memory
     for (size_t i = 0; i < pageranges.size(); i++) {
-        memset((void *)pageranges[i].virt_base, 0, pageranges[i].pages * ARCH_PAGE_SIZE);
+        memset((void *)pageranges[i].virt_base, 0, pageranges[i].pages * CONFIG_ARCH_PAGE_SIZE);
     }
 
     //struct multitasking::x86_process::tls_info tls;
@@ -112,8 +112,8 @@ void elf::load_program(void *ELF_baseadr, std::vector<std::string> *argv, bool r
     multitasking::setPageRange(&old_pageranges);
 
     if (replace_task) {
-        //multitasking::replace_task((void *)(max + (ARCH_PAGE_SIZE * 40)), (void *)header.e_entry, &pageranges, argv, tls, replace_pid, regs);
+        //multitasking::replace_task((void *)(max + (CONFIG_ARCH_PAGE_SIZE * 40)), (void *)header.e_entry, &pageranges, argv, tls, replace_pid, regs);
     } else {
-        multitasking::create_task((void *)(max + (ARCH_PAGE_SIZE * 40)), (void *)header.e_entry, &pageranges, argv);
+        multitasking::create_task((void *)(max + (CONFIG_ARCH_PAGE_SIZE * 40)), (void *)header.e_entry, &pageranges, argv);
     }
 }

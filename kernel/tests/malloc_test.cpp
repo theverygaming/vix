@@ -32,7 +32,7 @@ struct info {
 
 TEST(malloc_test) {
     printf("free size: %u heap frag: %u\n", mm::getFreeSize(), mm::getHeapFragmentation());
-    printf("free phys: %u\n", mm::pmm::get_free_blocks() * ARCH_PAGE_SIZE);
+    printf("free phys: %u\n", mm::pmm::get_free_blocks() * CONFIG_ARCH_PAGE_SIZE);
     size_t free_size_start = mm::getFreeSize();
     size_t frag_start = mm::getHeapFragmentation();
 
@@ -50,7 +50,7 @@ TEST(malloc_test) {
     alloc_size = 0;
 
     printf("free size: %u heap frag: %u\n", mm::getFreeSize(), mm::getHeapFragmentation());
-    printf("free phys: %u\n", mm::pmm::get_free_blocks() * ARCH_PAGE_SIZE);
+    printf("free phys: %u\n", mm::pmm::get_free_blocks() * CONFIG_ARCH_PAGE_SIZE);
 
     bool malloc_corruption = false;
 
@@ -67,7 +67,7 @@ TEST(malloc_test) {
     test::test_section("no malloc corruption", !malloc_corruption);
 
     printf("free size: %u heap frag: %u\n", mm::getFreeSize(), mm::getHeapFragmentation());
-    printf("free phys: %u\n", mm::pmm::get_free_blocks() * ARCH_PAGE_SIZE);
+    printf("free phys: %u\n", mm::pmm::get_free_blocks() * CONFIG_ARCH_PAGE_SIZE);
 
     bool realloc_corruption = false;
     // realloc
@@ -93,7 +93,7 @@ TEST(malloc_test) {
     test::test_section("no realloc corruption", !realloc_corruption);
 
     printf("free size: %u heap frag: %u\n", mm::getFreeSize(), mm::getHeapFragmentation());
-    printf("free phys: %u\n", mm::pmm::get_free_blocks() * ARCH_PAGE_SIZE);
+    printf("free phys: %u\n", mm::pmm::get_free_blocks() * CONFIG_ARCH_PAGE_SIZE);
 
     bool realloc_bump_corruption = false;
     // check for things bumping into each other
@@ -117,7 +117,7 @@ TEST(malloc_test) {
     alloc_size = 0;
 
     printf("free size: %u heap frag: %u\n", mm::getFreeSize(), mm::getHeapFragmentation());
-    printf("free phys: %u\n", mm::pmm::get_free_blocks() * ARCH_PAGE_SIZE);
+    printf("free phys: %u\n", mm::pmm::get_free_blocks() * CONFIG_ARCH_PAGE_SIZE);
 
     test::test_section("kmalloc free size", free_size_start <= mm::getFreeSize());
 

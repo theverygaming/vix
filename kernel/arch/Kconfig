@@ -7,4 +7,10 @@ menu "General Arch-Specific stuff"
 config ARCH_HAS_PAGING
   bool
 
+# FIXME: this should be have 'depends on ARCH_HAS_PAGING' but currently the page size is also used as block size e.g. for the memory allocators
+config ARCH_PAGE_SIZE
+  int
+  help
+    Page size, must be a power of two
+
 endmenu

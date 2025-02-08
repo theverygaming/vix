@@ -1,5 +1,5 @@
 #include <vix/abi/linux/calls.h>
-#include <vix/arch/generic/memory.h>
+#include <vix/config.h>
 #include <vix/kprintf.h>
 #include <vix/mm/memmap.h>
 #include <vix/mm/pmm.h>
@@ -33,7 +33,7 @@ __DEF_LINUX_SYSCALL(sys_sysinfo) {
     info->loads[0] = 0; //  1-minute load average
     info->loads[1] = 0; //  5-minute load average
     info->loads[2] = 0; // 15-minute load average
-    info->totalram = mm::mem_map_get_total_usable_bytes() / ARCH_PAGE_SIZE;
+    info->totalram = mm::mem_map_get_total_usable_bytes() / CONFIG_ARCH_PAGE_SIZE;
     info->freeram = mm::pmm::get_free_blocks();
     info->sharedram = 0;
     info->bufferram = 0;
@@ -42,6 +42,6 @@ __DEF_LINUX_SYSCALL(sys_sysinfo) {
     info->procs = 0;
     info->totalhigh = 0;
     info->freehigh = 0;
-    info->mem_unit = ARCH_PAGE_SIZE;
+    info->mem_unit = CONFIG_ARCH_PAGE_SIZE;
     return 0;
 }

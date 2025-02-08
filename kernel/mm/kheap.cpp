@@ -31,7 +31,7 @@ static void *alloc_pages(size_t pages) {
     for (size_t i = 0; i < pages; i++) {
         void *phys;
         ASSIGN_OR_PANIC(phys, mm::pmm::alloc_contiguous(1));
-        uintptr_t virt = ((uintptr_t)area) + (i * ARCH_PAGE_SIZE);
+        uintptr_t virt = ((uintptr_t)area) + (i * CONFIG_ARCH_PAGE_SIZE);
         arch::vmm::set_page(virt, (uintptr_t)phys, arch::vmm::FLAGS_PRESENT);
         arch::vmm::flush_tlb_single(virt);
     }
@@ -49,15 +49,15 @@ static void free_pages(void *address, size_t count) {
 #ifdef CONFIG_ARCH_HAS_PAGING
     unsigned int flags;
     for (size_t i = 0; i < count; i++) {
-        uintptr_t phys = arch::vmm::get_page(((uintptr_t)address) + (i * ARCH_PAGE_SIZE), &flags);
-        if (unlikely(!(arch::vmm::set_page(((uintptr_t)address) + (i * ARCH_PAGE_SIZE), 0, 0) & arch::vmm::FLAGS_PRESENT))) {
+        uintptr_t phys = arch::vmm::get_page(((uintptr_t)address) + (i * CONFIG_ARCH_PAGE_SIZE), &flags);
+        if (unlikely(!(arch::vmm::set_page(((uintptr_t)address) + (i * CONFIG_ARCH_PAGE_SIZE), 0, 0) & arch::vmm::FLAGS_PRESENT))) {
             KERNEL_PANIC("kmalloc page is somehow unmapped");
         }
         mm::pmm::free_contiguous((void *)phys, 1);
     }
 #else
     for (size_t i = 0; i < count; i++) {
-        mm::pmm::free_contiguous(((uint8_t *)address) + (i * ARCH_PAGE_SIZE), 1);
+        mm::pmm::free_contiguous(((uint8_t *)address) + (i * CONFIG_ARCH_PAGE_SIZE), 1);
     }
 #endif
 }
@@ -216,14 +216,14 @@ static void ll_insert(struct meminfo *ptr, struct meminfo *insert, bool after = 
  */
 static void ll_alloc_new_block(size_t required, bool defrag = true) {
     required += sizeof(struct meminfo);
-    DEBUG_PRINTF_INSANE_KHEAP_INSANE("ll_alloc_new_block(current: %u want: %u)\n", heap_base_size * ARCH_PAGE_SIZE, required);
+    DEBUG_PRINTF_INSANE_KHEAP_INSANE("ll_alloc_new_block(current: %u want: %u)\n", heap_base_size * CONFIG_ARCH_PAGE_SIZE, required);
     ll_check();
-    size_t pages = ALIGN_UP(required, ARCH_PAGE_SIZE) / ARCH_PAGE_SIZE;
+    size_t pages = ALIGN_UP(required, CONFIG_ARCH_PAGE_SIZE) / CONFIG_ARCH_PAGE_SIZE;
 
     struct meminfo *new_start = (struct meminfo *)alloc_pages(pages);
 
     heap_base_size += pages;
-    new_start->size = (pages * ARCH_PAGE_SIZE) - sizeof(struct meminfo);
+    new_start->size = (pages * CONFIG_ARCH_PAGE_SIZE) - sizeof(struct meminfo);
 
     struct meminfo *ptr = heap_start;
     while (ptr->next != nullptr) {
@@ -246,7 +246,7 @@ static void ll_remove(struct meminfo *ptr) {
 
     if (ptr == heap_start && heap_start->next == nullptr) {
         DEBUG_PRINTF_INSANE_KHEAP_INSANE("adding block");
-        ll_alloc_new_block(ARCH_PAGE_SIZE, false);
+        ll_alloc_new_block(CONFIG_ARCH_PAGE_SIZE, false);
     }
 
     struct meminfo *old_next = ptr->next;
@@ -281,9 +281,9 @@ static struct meminfo *ll_try_dealloc_block(struct meminfo *ptr) {
     struct meminfo *next = ptr->next;
     struct meminfo *removeptr = ptr;
     size_t size = ptr->size + sizeof(struct meminfo);
-    if (size >= ARCH_PAGE_SIZE) {
-        if (!PTR_IS_ALIGNED(removeptr, ARCH_PAGE_SIZE)) {
-            size_t diff = PTR_ALIGN_UP_DIFF(removeptr, ARCH_PAGE_SIZE);
+    if (size >= CONFIG_ARCH_PAGE_SIZE) {
+        if (!PTR_IS_ALIGNED(removeptr, CONFIG_ARCH_PAGE_SIZE)) {
+            size_t diff = PTR_ALIGN_UP_DIFF(removeptr, CONFIG_ARCH_PAGE_SIZE);
             if (diff < sizeof(struct meminfo)) {
                 return next;
             }
@@ -299,7 +299,7 @@ static struct meminfo *ll_try_dealloc_block(struct meminfo *ptr) {
             removeptr = new_b;
         }
         size = removeptr->size + sizeof(struct meminfo);
-        size_t diff = ALIGN_DOWN_DIFF(size, ARCH_PAGE_SIZE);
+        size_t diff = ALIGN_DOWN_DIFF(size, CONFIG_ARCH_PAGE_SIZE);
         if (diff != 0) {
             if (diff < sizeof(struct meminfo)) {
                 return next;
@@ -316,7 +316,7 @@ static struct meminfo *ll_try_dealloc_block(struct meminfo *ptr) {
             next = new_b;
         }
         ll_remove(removeptr);
-        free_pages(removeptr, (removeptr->size + sizeof(struct meminfo)) / ARCH_PAGE_SIZE);
+        free_pages(removeptr, (removeptr->size + sizeof(struct meminfo)) / CONFIG_ARCH_PAGE_SIZE);
         ll_check();
         DEBUG_PRINTF_INSANE_KHEAP_INSANE("ll_remove: removed 0x%p\n", removeptr);
     }
@@ -476,7 +476,7 @@ static void init() {
 #endif
         .prev = nullptr,
         .next = nullptr,
-        .size = ARCH_PAGE_SIZE - sizeof(struct meminfo),
+        .size = CONFIG_ARCH_PAGE_SIZE - sizeof(struct meminfo),
 #ifdef PROTECT_ALLOC_STRUCTS
         .p2 = 0,
         .checksum = 0,
@@ -598,24 +598,23 @@ void mm::kfree(void *ptr) {
 
 void *mm::kmalloc_aligned(size_t size, size_t alignment) {
     DEBUG_PRINTF_INSANE_KHEAP_INSANE("kmalloc_aligned(%u, %u)\n", size, alignment);
-    if (alignment > ARCH_PAGE_SIZE) {
-        KERNEL_PANIC("Alignment > ARCH_PAGE_SIZE");
+    if (alignment > CONFIG_ARCH_PAGE_SIZE) {
+        KERNEL_PANIC("Alignment > CONFIG_ARCH_PAGE_SIZE");
     }
 
-    if (last_alloc == nullptr || (last_size + PTR_ALIGN_UP_DIFF((uint8_t*)last_alloc + last_size, alignment) + size) > last_size_full) {
-        last_size_full = ALIGN_UP(size, ARCH_PAGE_SIZE);
-        last_alloc = alloc_pages(last_size_full / ARCH_PAGE_SIZE);
+    if (last_alloc == nullptr || (last_size + PTR_ALIGN_UP_DIFF((uint8_t *)last_alloc + last_size, alignment) + size) > last_size_full) {
+        last_size_full = ALIGN_UP(size, CONFIG_ARCH_PAGE_SIZE);
+        last_alloc = alloc_pages(last_size_full / CONFIG_ARCH_PAGE_SIZE);
         last_size = 0;
 
         DEBUG_PRINTF_INSANE_KHEAP_INSANE("%u %u %u\n", last_size_full, last_alloc, last_size);
     }
 
-    size_t size_to_add = PTR_ALIGN_UP_DIFF((uint8_t*)last_alloc + last_size, alignment) + size;
+    size_t size_to_add = PTR_ALIGN_UP_DIFF((uint8_t *)last_alloc + last_size, alignment) + size;
 
-    void *ptr = PTR_ALIGN_UP((uint8_t*)last_alloc + last_size, alignment);
+    void *ptr = PTR_ALIGN_UP((uint8_t *)last_alloc + last_size, alignment);
 
     last_size += size_to_add;
-
 
     DEBUG_PRINTF_INSANE_KHEAP_ALLOCS("KHEAP: validate alloc 0x%p SIZE %u\n", ptr, size);
     return ptr;
@@ -651,14 +650,14 @@ size_t mm::getHeapFragmentation() {
 #endif
 
 void *mm::kmalloc_phys_contiguous(size_t size) {
-    size_t pages = ALIGN_UP(size, ARCH_PAGE_SIZE) / ARCH_PAGE_SIZE;
-    #ifdef CONFIG_ARCH_HAS_PAGING
+    size_t pages = ALIGN_UP(size, CONFIG_ARCH_PAGE_SIZE) / CONFIG_ARCH_PAGE_SIZE;
+#ifdef CONFIG_ARCH_HAS_PAGING
     void *area = mm::vmm::kalloc(pages);
     void *phys;
     ASSIGN_OR_PANIC(phys, mm::pmm::alloc_contiguous(pages));
     for (size_t i = 0; i < pages; i++) {
-        uintptr_t virt = ((uintptr_t)area) + (i * ARCH_PAGE_SIZE);
-        arch::vmm::set_page(virt, (uintptr_t)phys + (i * ARCH_PAGE_SIZE), arch::vmm::FLAGS_PRESENT);
+        uintptr_t virt = ((uintptr_t)area) + (i * CONFIG_ARCH_PAGE_SIZE);
+        arch::vmm::set_page(virt, (uintptr_t)phys + (i * CONFIG_ARCH_PAGE_SIZE), arch::vmm::FLAGS_PRESENT);
         arch::vmm::flush_tlb_single(virt);
     }
 #else

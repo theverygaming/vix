@@ -57,7 +57,7 @@ static void kernelinit(void *multiboot2_info_ptr) {
     if (multiboot2::find_initramfs(multiboot2_info_ptr, &initramfs_start, &initramfs_size)) {
         initramfs_size = ALIGN_UP(initramfs_size, 4096);
         kprintf(KP_INFO, "archinit: initramfs @ 0x%p size: 0x%p\n", initramfs_start, initramfs_size);
-        if (!PTR_IS_ALIGNED(initramfs_start, ARCH_PAGE_SIZE)) {
+        if (!PTR_IS_ALIGNED(initramfs_start, CONFIG_ARCH_PAGE_SIZE)) {
             initramfs_size = 0;
         }
     }
@@ -85,12 +85,13 @@ extern "C" void __attribute__((section(".entry"))) _kentry(void *multiboot2_info
 }
 
 void arch::startup::stage2_startup() {
-    mm::pmm::force_alloc_contiguous((void *)KERNEL_PHYS_ADDRESS, ALIGN_UP(KERNEL_FREE_AREA_BEGIN_OFFSET, ARCH_PAGE_SIZE) / ARCH_PAGE_SIZE);
+    mm::pmm::force_alloc_contiguous((void *)KERNEL_PHYS_ADDRESS,
+                                    ALIGN_UP(KERNEL_FREE_AREA_BEGIN_OFFSET, CONFIG_ARCH_PAGE_SIZE) / CONFIG_ARCH_PAGE_SIZE);
     if (initramfs_size != 0) {
-        mm::pmm::force_alloc_contiguous(initramfs_start, ALIGN_UP(initramfs_size, ARCH_PAGE_SIZE) / ARCH_PAGE_SIZE);
+        mm::pmm::force_alloc_contiguous(initramfs_start, ALIGN_UP(initramfs_size, CONFIG_ARCH_PAGE_SIZE) / CONFIG_ARCH_PAGE_SIZE);
         paging::map_page(initramfs_start,
-                         (void *)(0xFFFFF000 - ALIGN_UP(initramfs_size, ARCH_PAGE_SIZE)),
-                         (ALIGN_UP(initramfs_size, ARCH_PAGE_SIZE) / ARCH_PAGE_SIZE),
+                         (void *)(0xFFFFF000 - ALIGN_UP(initramfs_size, CONFIG_ARCH_PAGE_SIZE)),
+                         (ALIGN_UP(initramfs_size, CONFIG_ARCH_PAGE_SIZE) / CONFIG_ARCH_PAGE_SIZE),
                          false,
                          true);
     }

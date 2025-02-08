@@ -2,16 +2,24 @@ config ARCH_X86
   bool
   default y
 
+# stuff from arch/Kconfig
+
+config ARCH_HAS_PAGING
+  bool
+  depends on !ENABLE_KERNEL_64
+  default y
+
+config ARCH_PAGE_SIZE
+  int
+  default 4096
+
+# END stuff from arch/Kconfig
+
 config ENABLE_KERNEL_64
   default n
   bool "64-bit kernel"
 
 config ENABLE_KERNEL_32
-  bool
-  depends on !ENABLE_KERNEL_64
-  default y
-
-config ARCH_HAS_PAGING
   bool
   depends on !ENABLE_KERNEL_64
   default y

@@ -138,12 +138,12 @@ extern "C" void _kentry() {
 void arch::startup::stage2_startup() {
 #ifndef CONFIG_PLAIN_BINARY
     if (kmemreq.response != nullptr) {
-        mm::pmm::force_alloc_contiguous((void *)ALIGN_DOWN(kmemreq.response->base, ARCH_PAGE_SIZE),
-                                        ALIGN_UP(kmemreq.response->size, ARCH_PAGE_SIZE) / ARCH_PAGE_SIZE);
+        mm::pmm::force_alloc_contiguous((void *)ALIGN_DOWN(kmemreq.response->base, CONFIG_ARCH_PAGE_SIZE),
+                                        ALIGN_UP(kmemreq.response->size, CONFIG_ARCH_PAGE_SIZE) / CONFIG_ARCH_PAGE_SIZE);
         kprintf(KP_INFO,
                 "claimed 0x%p-0x%p as kernel memory\n",
-                ALIGN_DOWN(kmemreq.response->base, ARCH_PAGE_SIZE),
-                ALIGN_DOWN(kmemreq.response->base, ARCH_PAGE_SIZE) + ALIGN_UP(kmemreq.response->size, ARCH_PAGE_SIZE));
+                ALIGN_DOWN(kmemreq.response->base, CONFIG_ARCH_PAGE_SIZE),
+                ALIGN_DOWN(kmemreq.response->base, CONFIG_ARCH_PAGE_SIZE) + ALIGN_UP(kmemreq.response->size, CONFIG_ARCH_PAGE_SIZE));
     }
 #endif
 }

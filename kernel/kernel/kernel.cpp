@@ -67,7 +67,7 @@ void kernelstart() {
     }
 #endif
 
-    size_t freemem = (mm::pmm::get_free_blocks() * ARCH_PAGE_SIZE) / 1024;
+    size_t freemem = (mm::pmm::get_free_blocks() * CONFIG_ARCH_PAGE_SIZE) / 1024;
     char unit = 'K';
     if (freemem >= 10000) {
         unit = 'M';

@@ -1,7 +1,7 @@
 #include <vix/arch/generic/archspecific.h>
-#include <vix/arch/generic/memory.h>
 #include <vix/arch/multiboot2.h>
 #include <vix/arch/paging.h>
+#include <vix/config.h>
 #include <vix/debug.h>
 #include <vix/macros.h>
 #include <vix/mm/kheap.h>
@@ -71,8 +71,8 @@ struct fb::fbinfo multiboot2::findFrameBuffer(const void *multiboot2_info_adr) {
     if (multiboot_find_tag(multiboot2_info_adr, 8, (struct multiboot2_tag **)&tag)) {
         assertm(tag->framebuffer_type != 2, "wrong framebuffer type");
         size_t fb_bytes = tag->framebuffer_pitch * tag->framebuffer_height;
-        if (fb_bytes % ARCH_PAGE_SIZE != 0) {
-            fb_bytes += fb_bytes % ARCH_PAGE_SIZE;
+        if (fb_bytes % CONFIG_ARCH_PAGE_SIZE != 0) {
+            fb_bytes += fb_bytes % CONFIG_ARCH_PAGE_SIZE;
         }
 
         if (tag->framebuffer_addr > 0xFFFFFFFF) {
@@ -81,8 +81,8 @@ struct fb::fbinfo multiboot2::findFrameBuffer(const void *multiboot2_info_adr) {
 
         // rather hacky because we have no VMM
         void *fb_virt_adr = (void *)(KERNEL_VIRT_ADDRESS + KERNEL_MEMORY_END_OFFSET);
-        //mm::pmm::force_alloc_contiguous((void *)((uintptr_t)tag->framebuffer_addr), fb_bytes / ARCH_PAGE_SIZE);
-        paging::map_page((void *)((uintptr_t)tag->framebuffer_addr), fb_virt_adr, ALIGN_UP(fb_bytes, ARCH_PAGE_SIZE) / ARCH_PAGE_SIZE);
+        //mm::pmm::force_alloc_contiguous((void *)((uintptr_t)tag->framebuffer_addr), fb_bytes / CONFIG_ARCH_PAGE_SIZE);
+        paging::map_page((void *)((uintptr_t)tag->framebuffer_addr), fb_virt_adr, ALIGN_UP(fb_bytes, CONFIG_ARCH_PAGE_SIZE) / CONFIG_ARCH_PAGE_SIZE);
         return {
             .address = fb_virt_adr,
             .width = tag->framebuffer_width,

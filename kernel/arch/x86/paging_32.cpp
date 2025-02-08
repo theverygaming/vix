@@ -5,7 +5,7 @@
 #include <vix/config.h>
 #include <vix/stdio.h>
 
-uint32_t (*pagetables)[1024] = (uint32_t(*)[1024])(KERNEL_VIRT_ADDRESS + PAGE_TABLES_OFFSET);
+uint32_t (*pagetables)[1024] = (uint32_t (*)[1024])(KERNEL_VIRT_ADDRESS + PAGE_TABLES_OFFSET);
 uint32_t *page_directory = (uint32_t *)(KERNEL_VIRT_ADDRESS + PAGE_DIRECTORY_OFFSET);
 
 extern "C" void loadPageDirectory(void *address);
@@ -100,7 +100,7 @@ static inline void invlpg(void *virtaddr) {
 }
 
 void paging::init() {
-    clearPageTables((void *)0x0, KERNEL_VIRT_ADDRESS / ARCH_PAGE_SIZE);
+    clearPageTables((void *)0x0, KERNEL_VIRT_ADDRESS / CONFIG_ARCH_PAGE_SIZE);
 }
 
 void *paging::get_physaddr(void *virtualaddr) {
@@ -112,7 +112,7 @@ void *paging::get_physaddr(void *virtualaddr) {
 }
 
 void *paging::get_physaddr_unaligned(void *virtualaddr) {
-    uint64_t misalignment = ((uint64_t)virtualaddr) % ARCH_PAGE_SIZE;
+    uint64_t misalignment = ((uint64_t)virtualaddr) % CONFIG_ARCH_PAGE_SIZE;
     unsigned long pdindex = (unsigned long)virtualaddr >> 22;
     unsigned long ptindex = (unsigned long)virtualaddr >> 12 & 0x03FF;
 
@@ -187,12 +187,12 @@ void paging::copyPhysPage(void *dest, void *src) {
     pagetables[0][1] = make_table_entry(
         {.address = dest, .global = false, .cache_disabled = false, .write_through = false, .priv = SUPERVISOR, .perms = RW, .present = true});
     invlpg((void *)0);
-    invlpg((void *)ARCH_PAGE_SIZE);
-    memcpy((char *)ARCH_PAGE_SIZE, (char *)0, ARCH_PAGE_SIZE);
+    invlpg((void *)CONFIG_ARCH_PAGE_SIZE);
+    memcpy((char *)CONFIG_ARCH_PAGE_SIZE, (char *)0, CONFIG_ARCH_PAGE_SIZE);
     pagetables[0][0] = before1;
     pagetables[0][1] = before2;
     invlpg((void *)0);
-    invlpg((void *)ARCH_PAGE_SIZE);
+    invlpg((void *)CONFIG_ARCH_PAGE_SIZE);
 }
 
 static unsigned int entry_get_vmm_flags(struct pagetableEntry entry) {

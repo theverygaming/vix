@@ -11,11 +11,11 @@ void mm::vmm::init() {
     // unmap all that nonsense the prekernel does...
     // TODO: fix that x86 prekernel paging nonsense
     void *addr = (void *)ARCH_KERNEL_HEAP_START;
-    // BUG: - ARCH_PAGE_SIZE due to seemingly conflicts with the multiboot2 framebuffer thing??????
-    while ((uintptr_t)addr < (ARCH_KERNEL_HEAP_END - ARCH_PAGE_SIZE)) {
+    // BUG: - CONFIG_ARCH_PAGE_SIZE due to seemingly conflicts with the multiboot2 framebuffer thing??????
+    while ((uintptr_t)addr < (ARCH_KERNEL_HEAP_END - CONFIG_ARCH_PAGE_SIZE)) {
         arch::vmm::set_page((uintptr_t)addr, 0, 0);
         arch::vmm::flush_tlb_single((uintptr_t)addr);
-        addr = (void *)((uintptr_t)addr + ARCH_PAGE_SIZE);
+        addr = (void *)((uintptr_t)addr + CONFIG_ARCH_PAGE_SIZE);
     }
     kprintf(KP_INFO, "vmm: initialized virtual memory manager\n");
 }
@@ -36,7 +36,7 @@ static void *find_free_pages(void *start, void *end, size_t pages) {
         } else {
             pages_found = 0;
         }
-        start = (void *)((uintptr_t)start + ARCH_PAGE_SIZE);
+        start = (void *)((uintptr_t)start + CONFIG_ARCH_PAGE_SIZE);
     }
     if (pages_found != pages) {
         KERNEL_PANIC("ran out of VMM space");
