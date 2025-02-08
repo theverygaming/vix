@@ -1,0 +1,10 @@
+menu "$(ARCH)-specific"
+source "arch/$(ARCH)/Kconfig"
+endmenu
+
+menu "General Arch-Specific stuff"
+
+config ARCH_HAS_PAGING
+  bool
+
+endmenu

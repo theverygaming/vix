@@ -4,9 +4,7 @@ menu "ABI's"
 source "abi/Kconfig"
 endmenu
 
-menu "$(ARCH)-specific"
-source "arch/$(ARCH)/Kconfig"
-endmenu
+source "arch/Kconfig"
 
 menu "Drivers"
 source "drivers/Kconfig"
