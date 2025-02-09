@@ -12,11 +12,6 @@ struct __attribute__((packed)) icmp_header {
     uint16_t checksum;
 };
 
-struct __attribute__((packed)) icmp_echo {
-    uint16_t id;
-    uint16_t seq;
-};
-
 void net::icmp::receive(net::networkstack *netstack, struct net::ipv4_packet_processed *processed_packet, void *data, size_t size) {
     struct icmp_header *header = (struct icmp_header *)data;
     kprintf(KP_INFO, "        -> ICMP type: 0x%p\n", (uint32_t)header->type);
