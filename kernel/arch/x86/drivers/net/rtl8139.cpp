@@ -1,6 +1,5 @@
 #include <string.h>
 #include <vix/arch/common/cpu.h>
-#include <vix/arch/cpubasics.h>
 #include <vix/arch/drivers/net/rtl8139.h>
 #include <vix/arch/drivers/pci.h>
 #include <vix/arch/drivers/pic_8259.h>
@@ -8,6 +7,7 @@
 #include <vix/arch/paging.h>
 #include <vix/debug.h>
 #include <vix/drivers/net/generic_card.h>
+#include <vix/kernel/io.h>
 #include <vix/kernel/irq.h>
 #include <vix/macros.h>
 #include <vix/mm/kheap.h>
@@ -21,7 +21,7 @@
 static uint8_t bus;
 static uint8_t device;
 static uint8_t function;
-static uint16_t io_base;
+static io_handle_t io_handle;
 static uint8_t *bufferptr = nullptr;
 static uint16_t bufferoffset = 0;
 static uint8_t irqline;
@@ -55,7 +55,7 @@ static void irq_handler() {
     std::vector<struct packet> received;
 
     // we must read packets in a loop until BUFE is set, could have received multiple
-    while ((inb(io_base + 0x37) & 0x1) == 0) {
+    while ((ioread8(io_handle + 0x37) & 0x1) == 0) {
 
         DEBUG_PRINTF("Buffer offset: %u\n", bufferoffset);
 
@@ -119,10 +119,10 @@ static void irq_handler() {
 
         // set CAPR to offset of next expected packet
         // DEBUG_PRINTF("offset: %u\n", (uint32_t)bufferoffset);
-        outw(io_base + 0x38, bufferoffset - 0x10);
+        iowrite16(io_handle + 0x38, bufferoffset - 0x10);
     }
 
-    outw(io_base + 0x3E, 0x5); // clear RX ok bit
+    iowrite16(io_handle + 0x3E, 0x5); // clear RX ok bit
 
     DEBUG_PRINTF("got %u packets\n", received.size());
 
@@ -142,8 +142,8 @@ void drivers::net::rtl8139::sendPacket(void *data, size_t len) {
     if (reg_counter > 3) {
         reg_counter = 0;
     }
-    outl(io_base + 0x20 + (reg_counter * 4), (uintptr_t)paging::get_physaddr_unaligned(data)); // transmit
-    outl(io_base + 0x10 + (reg_counter * 4), len);                                             // status/command
+    iowrite32(io_handle + 0x20 + (reg_counter * 4), (uintptr_t)paging::get_physaddr_unaligned(data)); // transmit
+    iowrite32(io_handle + 0x10 + (reg_counter * 4), len);                                             // status/command
     reg_counter++;
 }
 
@@ -160,11 +160,13 @@ void drivers::net::rtl8139::init() {
         return;
     }
 
-    io_base = drivers::pci::getBarIOAddress(bus, device, function, 0);
-    if (!io_base) {
+    uint16_t bar_io_port = drivers::pci::getBarIOAddress(bus, device, function, 0);
+    if (!bar_io_port) {
         DEBUG_PRINTF("couldn't get IO address for rtl8139\n");
         return;
     }
+
+    io_handle = io_pio_map(bar_io_port);
 
     if (drivers::pci::enableMastering(bus, device, function)) {
         DEBUG_PRINTF("enabled mastering for rtl8139!\n");
@@ -175,37 +177,37 @@ void drivers::net::rtl8139::init() {
     // reference: https://wiki.osdev.org/RTL8139
 
     // turn on the card
-    outb(io_base + 0x52, 0x0);
+    iowrite8(io_handle + 0x52, 0x0);
 
     // soft reset
-    outb(io_base + 0x37, 0x10);
+    iowrite8(io_handle + 0x37, 0x10);
     uint32_t timeout = 0;
-    while ((inb(io_base + 0x37) & 0x10) != 0 && timeout < 0xFFFFFFF0) {
+    while ((ioread8(io_handle + 0x37) & 0x10) != 0 && timeout < 0xFFFFFFF0) {
         timeout++;
     }
 
     DEBUG_PRINTF("rtl8139 mac: ");
     for (int i = 0; i < 5; i++) {
-        DEBUG_PRINTF("%p:", (uint32_t)inb(io_base + 0x0 + i));
+        DEBUG_PRINTF("%p:", (uint32_t)ioread8(io_handle + 0x0 + i));
     }
-    DEBUG_PRINTF("%p\n", (uint32_t)inb(io_base + 0x5));
+    DEBUG_PRINTF("%p\n", (uint32_t)ioread8(io_handle + 0x5));
 
     // receive buffer
     // rx buf len RX_BUFFER_SIZE + 16 byte
     bufferptr = (uint8_t *)mm::kmalloc_phys_contiguous(RX_BUFFER_SIZE + 16); // TODO: free
-    outl(io_base + 0x30, (uintptr_t)paging::get_physaddr_unaligned(bufferptr));
+    iowrite32(io_handle + 0x30, (uintptr_t)paging::get_physaddr_unaligned(bufferptr));
 
-    // outw(io_base + 0x3C, 0x0005); // Sets the TOK and ROK bits high
+    // iowrite16(io_handle + 0x3C, 0x0005); // Sets the TOK and ROK bits high
 
-    outw(io_base + 0x3C, 0x1); // set ROK bit high
+    iowrite16(io_handle + 0x3C, 0x1); // set ROK bit high
 
-    // outw(io_base + 0x3C, 0xE1FF); // enable all possible interrupts
+    // iowrite16(io_handle + 0x3C, 0xE1FF); // enable all possible interrupts
 
     // configure receive buffer
-    outl(io_base + 0x44, 0xf | (0 << 7) | (RX_BUFFER_SIZE_IDX << 11)); // (1 << 7) is the WRAP bit, 0xf is AB+AM+APM+AAP
+    iowrite32(io_handle + 0x44, 0xf | (0 << 7) | (RX_BUFFER_SIZE_IDX << 11)); // (1 << 7) is the WRAP bit, 0xf is AB+AM+APM+AAP
 
     // enable RX and TX
-    outb(io_base + 0x37, 0x0C);
+    iowrite8(io_handle + 0x37, 0x0C);
     irqline = drivers::pci::getInterruptLine(bus, device, function);
     DEBUG_PRINTF("rtl8139 irq: %u\n", (uint32_t)irqline);
 
@@ -218,7 +220,7 @@ void drivers::net::rtl8139::init() {
 
 uint8_t drivers::net::rtl8139::get_mac_byte(int n) {
     if (n < 6) {
-        return inb(io_base + 0x0 + n);
+        return ioread8(io_handle + 0x0 + n);
     }
     return 0;
 }
