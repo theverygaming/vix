@@ -12,6 +12,8 @@ io_handle_t io_mmio_map(uintptr_t base, size_t max_offset) {
     return 0; // FIXME: well that isn't gonna work very well
 }
 
+void io_mmio_unmap(io_handle_t handle) {}
+
 uint8_t ioread8(io_handle_t handle) {
     // IO space
     if (handle <= 0xFFFF) {

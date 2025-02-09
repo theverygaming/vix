@@ -15,3 +15,4 @@ void iowrite64(io_handle_t handle, uint64_t data);
 
 io_handle_t io_pio_map(uintptr_t base);
 io_handle_t io_mmio_map(uintptr_t base, size_t max_offset);
+void io_mmio_unmap(io_handle_t handle);
