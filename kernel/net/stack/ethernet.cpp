@@ -48,7 +48,7 @@ void net::ethernet::receive(net::networkstack *netstack, void *data, size_t size
         break;
     case packets::ethernet::ETHERTYPE_ARP:
         kprintf(KP_INFO, "-> ARP\n");
-        arp.receive(netstack, dataptr, packetsize);
+        net::arp::receive(netstack, dataptr, packetsize);
         break;
     default:
         kprintf(KP_INFO, " -> 0x%p(???)\n", (uint32_t)packet->ethertype);

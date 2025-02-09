@@ -6,8 +6,7 @@ namespace net {
 }
 
 namespace net {
-    class arp {
-    public:
+    namespace arp {
         void receive(net::networkstack *netstack, void *data, size_t size);
     };
 }

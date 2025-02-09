@@ -20,7 +20,6 @@ namespace net {
         void send(net::networkstack *netstack, struct net::stack::packets::ethernet::header *packet, void *data, size_t size);
 
         net::ipv4 ipv4;
-        net::arp arp;
 
         uint8_t mac[6];
 
