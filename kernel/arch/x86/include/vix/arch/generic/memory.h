@@ -16,21 +16,3 @@
  * this is used(together with CONFIG_ARCH_PAGE_SIZE) for example by kernel/main/memory_alloc/memalloc.cpp(the page allocator) for it's bitmap
  */
 #define ARCH_PHYS_MAX_MEM_ADR 0xFFFFFFFF
-
-namespace arch::generic::memory {
-    /* memory map entry struct */
-    struct memory_map_entry {
-        size_t start_address;
-        size_t size;
-        /* higher priority entries come first, possibly overwriting lower priority ones. Entry priority(lowest first) is the order of elements in this enum */
-        enum class entry_type {
-            MEMORY_UNUSABLE,
-            MEMORY_ROM,
-            MEMORY_MIMO,   /* memory mapped devices */
-            MEMORY_KERNEL, /* where the kernel code, bss etc. sits */
-            MEMORY_RAM,    /* this is the ONLY memory type that may be accessed without prior precautions */
-        } entry_type;
-    };
-    /* call for each memory map entry, returns false when no more entries left -> n is a counter that starts with 0 */
-    bool get_memory_map(struct memory_map_entry *entry, int n);
-}
