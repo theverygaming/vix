@@ -9,6 +9,7 @@ obj-y += cpubasics.ocpp cpuid.ocpp elf.ocpp gdt.ocpp modelf.ocpp multitasking.oc
 obj-$(CONFIG_ENABLE_KERNEL_32) += drivers/text80x25.ocpp
 obj-$(CONFIG_ENABLE_KERNEL_32) += paging.onasm isr.onasm simd.onasm gdt.onasm idt.onasm
 obj-$(CONFIG_ENABLE_KERNEL_32) += archinit_32.ocpp multiboot2.ocpp memorymap.ocpp isr.ocpp isrs.ocpp ldt.ocpp idt.ocpp paging_32.ocpp syscall_32.oS syscall_32.ocpp except_32.oS except_32.ocpp
+obj-$(CONFIG_ENABLE_KERNEL_32) += libgcc.ocpp
 
 obj-$(CONFIG_ENABLE_KERNEL_64) += archinit_64.ocpp paging_64.ocpp isr_64.ocpp
 

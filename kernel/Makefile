@@ -121,7 +121,7 @@ alldefconfig: scripts/kconfig/Makefile
 # clean targets
 clean: modclean
 	@rm -f kernel.o kernel.bin symtab.S symtab.oS kernel_partial.o
-	@find ./arch ./drivers ./fs ./include ./kernel ./net ./mm ./stdlibs ./tests ./abi ./rust \( -name '*.oasm' -o -name '*.onasm' -o -name '*.oc' -o -name '*.ocpp' -o -name '*.o' -o -name '*.os' -o -name '*.oS' \) -type f -delete
+	@find ./arch ./drivers ./fs ./include ./kernel ./net ./mm ./stdlibs ./tests ./abi ./rust \( -name '*.oasm' -o -name '*.onasm' -o -name '*.oc' -o -name '*.ocpp' -o -name '*.o' -o -name '*.os' -o -name '*.oS' -o -name '*.rlib' \) -type f -delete
 
 distclean: clean
 	@rm -f .config .config_old
@@ -146,10 +146,11 @@ extratargets-y :=
 
 include $$(srctree)/Makefile
 
-OBJS += $$(patsubst %,$$(objtree)/%,$$(obj-y))
-LIBS += $$(patsubst %,$$(objtree)/%,$$(lib-y))
-MODS += $$(patsubst %,$$(objtree)/%,$$(obj-m))
-EXTRATARGETS += $$(patsubst %,$$(objtree)/%,$$(extratargets-y))
+# obj-y, lib-y etc. add $(objtree) to non-absolute paths
+OBJS += $$(patsubst %,$$(objtree)/%,$$(filter-out /%,$$(obj-y))) $$(filter /%,$$(obj-y))
+LIBS += $$(patsubst %,$$(objtree)/%,$$(filter-out /%,$$(lib-y))) $$(filter /%,$$(lib-y))
+MODS += $$(patsubst %,$$(objtree)/%,$$(filter-out /%,$$(obj-m))) $$(filter /%,$$(obj-m))
+EXTRATARGETS += $$(patsubst %,$$(objtree)/%,$$(filter-out /%,$$(extratargets-y))) $$(filter /%,$$(extratargets-y))
 
 $$(foreach subdir,$$(obj-d),$$(eval $$(call build_subdir,$$(subdir))))
 
