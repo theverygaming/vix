@@ -55,7 +55,9 @@ void kernelstart() {
 
 #ifdef CONFIG_ARCH_X86
     drivers::pci::init();
+#ifdef CONFIG_ENABLE_NETWORKING
     drivers::net::rtl8139::init();
+#endif
 #endif
 
 #ifdef CONFIG_RUST_SUPPORT
