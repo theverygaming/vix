@@ -16,6 +16,7 @@ pkgs.stdenv.mkDerivation {
         targets = [ "i686-unknown-linux-gnu" ];
       }
     )
+    rust-bindgen
     /*
       (rust-bin.selectLatestNightlyWith (toolchain: toolchain.default.override {
       targets = [ "i686-unknown-linux-gnu" ];

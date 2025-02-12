@@ -1,1 +1,1 @@
-obj-d := libkernel
+obj-d := libkernel demo
