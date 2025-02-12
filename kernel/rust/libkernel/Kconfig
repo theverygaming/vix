@@ -1,0 +1,3 @@
+config RUST_SUPPORT
+    default n
+    bool "Enable Rust support"
