@@ -34,8 +34,8 @@ define build_rust
 	$(1) -o $(2)
 endef
 
-%.rlib: %.rs ./rust/libkernel/libkernel.rlib
-	$(call build_rust,$<,$@,--extern kernel=$(objtree)/rust/libkernel/libkernel.rlib)
+%.ors: %.rs ./rust/libkernel/libkernel.rlib
+	$(call build_rust,$<,$@,--extern kernel=$(objtree)/rust/libkernel/libkernel.rlib --emit=obj)
 
 ifeq ($(CONFIG_UBSAN), y)
 override INT_CFLAGS += -fsanitize=undefined -fno-strict-overflow

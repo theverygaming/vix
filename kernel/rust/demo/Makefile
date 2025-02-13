@@ -1,1 +1,1 @@
-obj-$(CONFIG_RUST_SUPPORT) := demo.rlib
+obj-$(CONFIG_RUST_SUPPORT) := demo.ors
