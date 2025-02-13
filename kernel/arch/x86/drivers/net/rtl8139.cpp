@@ -1,4 +1,5 @@
 #include <string.h>
+#include <vector>
 #include <vix/arch/common/cpu.h>
 #include <vix/arch/drivers/net/rtl8139.h>
 #include <vix/arch/drivers/pci.h>
@@ -6,12 +7,11 @@
 #include <vix/arch/isr.h>
 #include <vix/arch/paging.h>
 #include <vix/debug.h>
-#include <vix/drivers/net/generic_card.h>
 #include <vix/kernel/io.h>
 #include <vix/kernel/irq.h>
 #include <vix/macros.h>
 #include <vix/mm/kheap.h>
-#include <vix/net/stack/stack.h>
+#include <vix/net/stack_rs/ethernet.h>
 #include <vix/panic.h>
 #include <vix/stdio.h>
 
@@ -31,12 +31,23 @@ struct __attribute__((packed)) packetInfo {
     uint16_t size;
 };
 
-static struct drivers::net::generic_card rtl8139_card = {
-    .send_packet = drivers::net::rtl8139::sendPacket,
-    .get_mac_byte = drivers::net::rtl8139::get_mac_byte,
+static struct net::ethernet_card_ops rtl8139_ops = {
+    .transmit = drivers::net::rtl8139::sendPacket,
+    .get_mac =
+        [](struct net::ethernet_card *card, uint8_t *mac, size_t len) {
+            if (len != 6) {
+                return false;
+            }
+            for (int i = 0; i < 6; i++) {
+                mac[i] = drivers::net::rtl8139::get_mac_byte(i);
+            }
+            return true;
+        },
 };
 
-static net::networkstack networkstack(rtl8139_card);
+// FIXME: this is ofc bad lmao, but we currently don't really have another way
+// without writing EVEN MORE CODE MOSTLY UNRELAYED TO WHAT I WANNA DO :sob:
+static net::ethernet_card *current_card = nullptr;
 
 static void irq_handler() {
     if ((((struct packetInfo *)(bufferptr + bufferoffset))->header & 0x1) == 0) {
@@ -127,13 +138,13 @@ static void irq_handler() {
     DEBUG_PRINTF("got %u packets\n", received.size());
 
     for (size_t i = 0; i < received.size(); i++) {
-        networkstack.receive(received[i].ptr, received[i].size);
+        netstack_ethernet_rx(current_card, (uint8_t *)received[i].ptr, received[i].size);
         mm::kfree(received[i].ptr);
     }
 }
 
 static uint8_t reg_counter = 0;
-void drivers::net::rtl8139::sendPacket(void *data, size_t len) {
+bool drivers::net::rtl8139::sendPacket(struct ::net::ethernet_card *card, uint8_t *data, size_t len) {
     /* https://wiki.osdev.org/RTL8139
      * The RTL8139 NIC uses a round robin style for transmitting packets. It has four transmit buffer (a.k.a. transmit start) registers, and four transmit status/command registers. The transmit start
      * registers are each 32 bits long, and are in I/O offsets 0x20, 0x24, 0x28 and 0x2C. The transmit status/command registers are also each 32 bits long and are in I/O offsets 0x10, 0x14, 0x18 and
@@ -145,6 +156,7 @@ void drivers::net::rtl8139::sendPacket(void *data, size_t len) {
     iowrite32(io_handle + 0x20 + (reg_counter * 4), (uintptr_t)paging::get_physaddr_unaligned(data)); // transmit
     iowrite32(io_handle + 0x10 + (reg_counter * 4), len);                                             // status/command
     reg_counter++;
+    return true;
 }
 
 void drivers::net::rtl8139::init() {
@@ -213,9 +225,11 @@ void drivers::net::rtl8139::init() {
 
     irq::register_irq_handler(irq_handler, irqline);
 
-    DEBUG_PRINTF("rtl8139 init finished!\n");
+    DEBUG_PRINTF("rtl8139 init finished!... registering card\n");
 
-    networkstack.init();
+    current_card = netstack_ethernet_register_card(&rtl8139_ops);
+
+    DEBUG_PRINTF("rtl8139 registered!\n");
 }
 
 uint8_t drivers::net::rtl8139::get_mac_byte(int n) {

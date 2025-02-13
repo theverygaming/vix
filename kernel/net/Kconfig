@@ -1,3 +1,4 @@
 config ENABLE_NETWORKING
+    depends on RUST_SUPPORT
     default y
     bool "Enable networking support"
