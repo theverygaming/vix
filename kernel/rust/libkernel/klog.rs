@@ -32,6 +32,6 @@ pub fn do_klog(level: c_int, args: core::fmt::Arguments) {
 #[macro_export]
 macro_rules! klog {
     ($level:expr, $($arg:tt)*) => {
-        kernel::klog::do_klog($level, format_args!($($arg)*));
+        $crate::klog::do_klog($level, format_args!($($arg)*));
     };
 }
