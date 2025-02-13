@@ -49,6 +49,8 @@ void kernelstart() {
 
     arch::startup::stage3_startup();
 
+    initarr_init_level(0);
+
 #ifdef CONFIG_ENABLE_TESTS
     run_all_tests();
 #endif
@@ -76,8 +78,6 @@ void kernelstart() {
         freemem /= 1024;
     }
     kprintf(KP_INFO, "kmain: free physical memory: %u%ciB\n", freemem, unit);
-
-    initarr_init_level(0);
 
     kprintf(KP_INFO, "kmain: initializing scheduler\n");
     sched::init();
