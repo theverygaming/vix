@@ -13,3 +13,17 @@ pub extern "C" fn rust_test(n: i32) -> i32 {
 
     return n;
 }
+
+extern "C" fn rust_initcall() -> core::ffi::c_int {
+    kernel::klog!(kernel::klog::KP_INFO, "Rust initcall demo");
+    return 0;
+}
+
+kernel::initcall!(0, rust_initcall, __initcall_rust_initcall);
+
+extern "C" fn rust_initcall2() -> core::ffi::c_int {
+    kernel::klog!(kernel::klog::KP_INFO, "Rust initcall demo 2");
+    return 0;
+}
+
+kernel::initcall!(0, rust_initcall2, __initcall_rust_initcall2);
