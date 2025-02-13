@@ -15,7 +15,7 @@ unsafe impl<T> Sync for Mutex<T> {}
 unsafe impl<T> Send for Mutex<T> {}
 
 impl<T> Mutex<T> {
-    pub fn new(data: T) -> Self {
+    pub const fn new(data: T) -> Self {
         Mutex {
             locked: AtomicBool::new(false),
             data: UnsafeCell::new(data),
