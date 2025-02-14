@@ -51,4 +51,28 @@ in
       DESTDIR="$out" make install-gcc
     '';
   };
+  gdb = pkgs.stdenv.mkDerivation rec {
+    name = "gdb-${target}-embedded";
+
+    src = pkgs.fetchurl {
+      url = "https://ftp.gnu.org/gnu/gdb/gdb-16.2.tar.gz";
+      sha256 = "sha256-vcHaSgMygKx1Ln00sEGO+qRb7QkyNcuI5i6pYXUqN/g=";
+    };
+    buildInputs = [ pkgs.gmp pkgs.mpfr ];
+
+    hardeningDisable = [ "format" ];
+
+    configurePhase = ''
+      ./configure --target=${target} --disable-nls --disable-werror --prefix=/
+    '';
+
+    buildPhase = ''
+      make -j$NIX_BUILD_CORES all
+    '';
+
+    installPhase = ''
+      mkdir -p "$out"
+      DESTDIR="$out" make install
+    '';
+  };
 }

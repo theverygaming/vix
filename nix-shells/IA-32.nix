@@ -8,6 +8,7 @@ pkgs.stdenv.mkDerivation {
   buildInputs = with pkgs; [
     cross.binutils
     cross.gcc
+    cross.gdb
     nasm
 
     # Rust stuff
