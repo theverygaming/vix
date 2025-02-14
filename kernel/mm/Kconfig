@@ -1,4 +1,4 @@
-menu "memory allocator"
+menu "Memory Management"
 
 config KHEAP_BUMP
     bool "Use simple bump allocator for the kernel heap"
@@ -45,6 +45,10 @@ config KFREE_CLEANUP_INTERVAL
         A cleanup frees physical memory.
         Bigger value -> less efficient memory usage but kfree runs faster.
 
+config ENABLE_MEMMAP_SANITIZE
+    bool "Enable Memory map Sanitization"
+    default y
+
 config MEMMAP_MAX_ENTRIES
 	prompt "maximum amount of entries in memory map"
 	int
@@ -52,7 +56,3 @@ config MEMMAP_MAX_ENTRIES
 	range 1 256
         
 endmenu
-
-config ENABLE_MEMMAP_SANITIZE
-    bool "Enable Memory map Sanitization"
-    default y
