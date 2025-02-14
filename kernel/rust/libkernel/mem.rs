@@ -4,6 +4,7 @@ pub struct VixAlloc;
 
 use crate::bindings::{
     mm_kmalloc,
+    mm_kfree,
 };
 
 unsafe impl GlobalAlloc for VixAlloc {
@@ -11,8 +12,8 @@ unsafe impl GlobalAlloc for VixAlloc {
         mm_kmalloc(layout.size()) as *mut u8
     }
 
-    unsafe fn dealloc(&self, _ptr: *mut u8, _layout: Layout) {
-        // FIXME: dealloc
+    unsafe fn dealloc(&self, ptr: *mut u8, _layout: Layout) {
+        mm_kfree(ptr as *mut core::ffi::c_void);
     }
 }
 
