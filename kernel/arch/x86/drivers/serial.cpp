@@ -32,23 +32,29 @@ static int is_tx_empty() {
     return inb(SERIAL_PORT + 5) & 0x20;
 }
 
-void drivers::serial::putc(char c) {
+void drivers::serial::putb(uint8_t b) {
     if (!serial_enabled) {
         return;
     }
-    while (is_tx_empty() == 0)
-        ;
-    if (c == '\n') {
-        outb(SERIAL_PORT, '\r');
+    while (is_tx_empty() == 0) {}
+    outb(SERIAL_PORT, b);
+}
+
+uint8_t drivers::serial::getb() {
+    if (!serial_enabled) {
+        return 0;
     }
-    outb(SERIAL_PORT, c);
+    while (!(inb(SERIAL_PORT + 5) & 1)) {}
+    return inb(SERIAL_PORT);
+}
+
+void drivers::serial::putc(char c) {
+    if (c == '\n') {
+        putb('\r');
+    }
+    putb(c);
 }
 
 char drivers::serial::getc() {
-    if (!serial_enabled) {
-        return '\0';
-    }
-    while (!(inb(SERIAL_PORT + 5) & 1))
-        ;
-    return inb(SERIAL_PORT);
+    return getb();
 }
