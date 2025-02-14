@@ -3,6 +3,7 @@
 #include <vix/interrupts.h>
 #include <vix/kprintf.h>
 #include <vix/macros.h>
+#include <vix/sched.h>
 #include <vix/stdio.h>
 #include <vix/time.h>
 #include <vix/types.h>
@@ -52,13 +53,18 @@ static void print_kbuf(struct kp_buf_info *info, size_t idx, const char *buf) {
     if (info->magic != KP_INFO_MAGIC) {
         return;
     }
+    int pid = -1;
+    if (sched::mytask() != nullptr) {
+        pid = sched::mytask()->pid;
+    }
+
     // shift results in precision loss but it's fast
     size_t secs = (size_t)(info->time >> 20) / 1000;
     size_t ms = (size_t)(info->time >> 20) % 1000;
     char zeros[] = "00";
     zeros[2 - log10(ms)] = '\0';
     char w_buf[19];
-    snprintf(w_buf, 19, "<%d>[%u.%s%u] ", info->loglevel, secs, zeros, ms);
+    snprintf(w_buf, 19, "<%d>[%u.%s%u][%d] ", info->loglevel, secs, zeros, ms, pid);
     puts_kbuf(w_buf, info->loglevel);
     for (size_t j = 0; j < info->len; j++) {
         putc_kbuf(buf[idx + j], info->loglevel);
