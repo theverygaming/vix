@@ -103,4 +103,4 @@ static int init_ksh() {
     return 0;
 }
 
-INITCALL(init_ksh);
+INITCALL_0(init_ksh);

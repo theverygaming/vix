@@ -30,6 +30,7 @@ static void kthread0() {
     kprintf(KP_INFO, "kmain: first kernel thread started (PID %d)\n", sched::mytask()->pid);
     arch::startup::kthread0();
     //fs::vfs::print_tree();
+    initcall_init_level(1);
     kprintf(KP_INFO, "kmain: first kernel thread dying (PID %d)\n", sched::mytask()->pid);
     sched::die();
 }
@@ -49,7 +50,7 @@ void kernelstart() {
 
     arch::startup::stage3_startup();
 
-    initarr_init_level(0);
+    initcall_init_level(0);
 
 #ifdef CONFIG_ENABLE_TESTS
     run_all_tests();
