@@ -1,5 +1,6 @@
 #include <string.h>
 #include <vix/config.h>
+#include <vix/interrupts.h>
 #include <vix/kprintf.h>
 #include <vix/macros.h>
 #include <vix/stdio.h>
@@ -121,7 +122,8 @@ static void write_kbuf(struct kp_buf_info info, char *src, size_t n) {
 static int current_loglevel = CONFIG_KPRINTF_LOGLEVEL;
 
 extern "C" void kprintf(int loglevel, const char *fmt, ...) {
-    // TODO: lock
+    // FIXME: lock instead of a critical section lmfao
+    push_interrupt_disable();
     if (loglevel <= current_loglevel) {
         struct kp_buf_info info;
         info.time = time::ns_since_bootup;
@@ -133,4 +135,5 @@ extern "C" void kprintf(int loglevel, const char *fmt, ...) {
         va_end(args);
         write_kbuf(info, kp_buf_tmp, n);
     }
+    pop_interrupt_disable();
 }
