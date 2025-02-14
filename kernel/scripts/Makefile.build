@@ -29,6 +29,11 @@ define build_rust
 @rustc \
 	--target $(RUST_TARGET) \
 	-Cpanic=abort \
+	-Cno-redzone \
+	-Ccode-model=kernel \
+	-Ctarget-cpu=generic \
+	-Ctarget-feature=-sse,-sse2,-sse3,-ssse3,-sse4.1,-sse4.2,-avx,-avx2 \
+	-Cforce-frame-pointers=yes \
 	--crate-type rlib \
 	$(3) \
 	$(1) -o $(2)
