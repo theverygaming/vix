@@ -1,21 +1,10 @@
 #pragma once
-#include <vix/arch/generic/cpu.h>
-#include <vix/config.h>
-#include <vix/kprintf.h>
 #include <vix/macros.h>
 
-namespace sched {
-    void disable();
-}
+void __attribute__((noreturn)) kernel_panic(const char *panic_fmt, ...);
 
-#define KERNEL_PANIC(reason, ...)                                                                              \
-    do {                                                                                                       \
-        sched::disable();                                                                                      \
-        kprintf(KP_EMERG,                                                                                      \
-                "kernel panic in " __FILE__ " at line " TOSTRING(__LINE__) "\n    -> " reason "\n    -> %s\n", \
-                ##__VA_ARGS__,                                                                                 \
-                __PRETTY_FUNCTION__);                                                                          \
-        while (true) {                                                                                         \
-            arch::generic::cpu::halt();                                                                        \
-        }                                                                                                      \
+#define KERNEL_PANIC(reason, ...)                                                                                                               \
+    do {                                                                                                                                        \
+        kernel_panic(                                                                                                                           \
+            "panic in " __FILE__ " at line " TOSTRING(__LINE__) " in function %s -- reason: " reason "\n", __PRETTY_FUNCTION__, ##__VA_ARGS__); \
     } while (0)
