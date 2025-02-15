@@ -1,4 +1,5 @@
 #pragma once
+#include <stdarg.h>
 #include <stddef.h>
 #ifdef __cplusplus
 extern "C" {
@@ -13,6 +14,7 @@ extern "C" {
 #define KP_INFO    6
 #define _KP_DEBUG  7 // !!! this should only be used though the DEBUG_PRINTF macro in debug.h
 
+void vkprintf(int loglevel, const char *fmt, va_list arg);
 void kprintf(int loglevel, const char *fmt, ...);
 
 #ifdef __cplusplus

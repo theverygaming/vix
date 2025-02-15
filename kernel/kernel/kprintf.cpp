@@ -127,19 +127,26 @@ static void write_kbuf(struct kp_buf_info info, char *src, size_t n) {
 
 static int current_loglevel = CONFIG_KPRINTF_LOGLEVEL;
 
-extern "C" void kprintf(int loglevel, const char *fmt, ...) {
+extern "C" void vkprintf(int loglevel, const char *fmt, va_list args) {
     // FIXME: lock instead of a critical section lmfao
-    push_interrupt_disable();
     if (loglevel <= current_loglevel) {
+        push_interrupt_disable();
         struct kp_buf_info info;
         info.time = time::ns_since_bootup;
         info.loglevel = loglevel;
 
-        va_list args;
-        va_start(args, fmt);
         size_t n = vsnprintf(kp_buf_tmp, TMP_BUF_LEN, fmt, args);
-        va_end(args);
         write_kbuf(info, kp_buf_tmp, n);
+        pop_interrupt_disable();
     }
-    pop_interrupt_disable();
+}
+
+extern "C" void kprintf(int loglevel, const char *fmt, ...) {
+    if (loglevel > current_loglevel) {
+        return;
+    }
+    va_list args;
+    va_start(args, fmt);
+    vkprintf(loglevel, fmt, args);
+    va_end(args);
 }
