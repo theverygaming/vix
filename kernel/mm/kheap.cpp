@@ -4,6 +4,7 @@
 #include <vix/arch/generic/memory.h>
 #include <vix/config.h>
 #include <vix/debug.h>
+#include <vix/interrupts.h>
 #include <vix/macros.h>
 #include <vix/mm/kheap.h>
 #include <vix/mm/pmm.h>
@@ -17,6 +18,7 @@
 
 #define DEBUG_PRINTF_INSANE_KHEAP_INSANE(...) \
     while (0) {} // disable debug printf for this file
+//#define DEBUG_PRINTF_INSANE_KHEAP_INSANE(...) DEBUG_PRINTF_INSANE(__VA_ARGS__)
 
 //#define DEBUG_PRINTF_INSANE_KHEAP_ALLOCS(...) DEBUG_PRINTF_INSANE(__VA_ARGS__)
 #define DEBUG_PRINTF_INSANE_KHEAP_ALLOCS(...) DEBUG_PRINTF_INSANE_KHEAP_INSANE(__VA_ARGS__)
@@ -136,12 +138,14 @@ static void ll_check() {
         KERNEL_PANIC("ll_check failure!!! heap_start->prev != nullptr");
     }
     while (ptr != nullptr) {
-        DEBUG_PRINTF_INSANE_KHEAP_INSANE("    -> e: 0x%p p: 0x%p n: 0x%p\n", ptr, ptr->prev, ptr->next);
+        DEBUG_PRINTF_INSANE_KHEAP_INSANE("    -> ptr: 0x%p ptr->prev: 0x%p ptr->next: 0x%p\n", ptr, ptr->prev, ptr->next);
         if (ptr->prev == ptr || ptr->next == ptr) {
             KERNEL_PANIC("ll_check failure!!! ptr->prev == ptr || ptr->next == ptr");
         }
         if (ptr->prev != nullptr) {
             if (ptr->prev->next != ptr) {
+                DEBUG_PRINTF_INSANE_KHEAP_INSANE(
+                    "... ptr: 0x%p ptr->prev: 0x%p ptr->next: 0x%p ptr->prev->next: 0x%p\n", ptr, ptr->prev, ptr->next, ptr->prev->next);
                 DEBUG_PRINTF_INSANE_KHEAP_INSANE("is: 0x%p should be: 0x%p\n", ptr->prev->next, ptr);
                 KERNEL_PANIC("ll_check failure!!! ptr->prev->next != ptr");
             }
@@ -487,6 +491,8 @@ static void init() {
 }
 
 void *mm::kmalloc(size_t size) {
+    // FIXME: lock instead of a critical section lmfao
+    push_interrupt_disable();
     DEBUG_PRINTF_INSANE_KHEAP_INSANE("kmalloc(%u)\n", size);
     if (unlikely(heap_start == nullptr)) {
         init();
@@ -502,14 +508,18 @@ void *mm::kmalloc(size_t size) {
         canary[0] = 0x4E4143204c494154;
         canary[1] = 0x63333A2021595141;
         // end of silly quick tail canary hack
+        pop_interrupt_disable();
         return ((uint8_t *)found) + sizeof(struct meminfo);
     }
 
     ll_alloc_new_block(size + 16); // .. 16 bytes extra - silly quick tail canary hack
+    pop_interrupt_disable();
     return kmalloc(size);
 }
 
 void mm::kfree(void *ptr) {
+    // FIXME: lock instead of a critical section lmfao
+    push_interrupt_disable();
     DEBUG_PRINTF_INSANE_KHEAP_INSANE("kfree(0x%p)\n", ptr);
     struct meminfo *_blk = (struct meminfo *)((uint8_t *)ptr - sizeof(struct meminfo));
     DEBUG_PRINTF_INSANE_KHEAP_INSANE("    -> 0x%p\n", _blk);
@@ -537,6 +547,7 @@ void mm::kfree(void *ptr) {
         cleanup = 0;
     }
 #endif
+    pop_interrupt_disable();
 }
 
 void *mm::kmalloc_aligned(size_t size, size_t alignment) {
