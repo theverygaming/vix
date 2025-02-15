@@ -491,16 +491,21 @@ void *mm::kmalloc(size_t size) {
     if (unlikely(heap_start == nullptr)) {
         init();
     }
-    struct meminfo *found = ll_find_block(size);
+    struct meminfo *found = ll_find_block(size + 16); // .. 16 bytes extra - silly quick tail canary hack
     if (found != nullptr) {
         DEBUG_PRINTF_INSANE_KHEAP_INSANE("    -> smallest block found: %u bytes\n", found->size);
-        ll_allocate_block(found, size);
+        ll_allocate_block(found, size + 16); // .. 16 bytes extra - silly quick tail canary hack
         DEBUG_PRINTF_INSANE_KHEAP_INSANE("    -> resized block to %u bytes\n", found->size);
         ll_protect(found);
+        // silly quick tail canary hack
+        uint64_t *canary = (uint64_t *)(((uint8_t *)found) + sizeof(struct meminfo) + (found->size - 16));
+        canary[0] = 0x4E4143204c494154;
+        canary[1] = 0x63333A2021595141;
+        // end of silly quick tail canary hack
         return ((uint8_t *)found) + sizeof(struct meminfo);
     }
 
-    ll_alloc_new_block(size);
+    ll_alloc_new_block(size + 16); // .. 16 bytes extra - silly quick tail canary hack
     return kmalloc(size);
 }
 
@@ -515,6 +520,12 @@ void mm::kfree(void *ptr) {
     if (!ll_check_protect(_blk)) {
         KERNEL_PANIC("internal kmalloc struct corrupted");
     }
+    // silly quick tail canary hack
+    uint64_t *canary = (uint64_t *)(((uint8_t *)ptr) + (_blk->size - 16));
+    if ((canary[0] != 0x4E4143204c494154) || (canary[1] != 0x63333A2021595141)) {
+        KERNEL_PANIC("internal kmalloc struct corrupted (tail)");
+    }
+    // end of silly quick tail canary hack
     ll_unprotect(_blk);
     ll_insert(closest, _blk, (uintptr_t)closest < (uintptr_t)_blk);
     ll_defrag();
@@ -539,6 +550,8 @@ void *mm::krealloc(void *ptr, size_t size, size_t size_old) {
     DEBUG_PRINTF_INSANE_KHEAP_INSANE("krealloc(0x%p, %u)\n", ptr, size);
 
     struct meminfo *_blk = (struct meminfo *)((uint8_t *)ptr - sizeof(struct meminfo));
+
+    // TODO: _there is no resizing going on_
 
     size_t copy_size = size;
     if (copy_size > _blk->size) {
