@@ -135,7 +135,15 @@ extern "C" void vkprintf(int loglevel, const char *fmt, va_list args) {
         info.time = time::ns_since_bootup;
         info.loglevel = loglevel;
 
-        size_t n = vsnprintf(kp_buf_tmp, TMP_BUF_LEN, fmt, args);
+        int n = vsnprintf(kp_buf_tmp, TMP_BUF_LEN, fmt, args);
+        // error?
+        if (n < 0) {
+            n = 0;
+        }
+        // vsnprintf returns the number of characters that _would_ have been written if the buffer was big enough
+        if (n > TMP_BUF_LEN) {
+            n = TMP_BUF_LEN;
+        }
         write_kbuf(info, kp_buf_tmp, n);
         pop_interrupt_disable();
     }
