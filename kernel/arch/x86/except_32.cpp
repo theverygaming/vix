@@ -1,5 +1,6 @@
 #include <vix/arch/common/cpu.h>
 #include <vix/arch/multitasking.h>
+#include <vix/debug.h>
 #include <vix/kprintf.h>
 #include <vix/panic.h>
 #include <vix/symbols.h>
@@ -9,24 +10,31 @@ struct stackframe {
     uint32_t eip;
 };
 
-static void st_print_ip(uint32_t ip) {
+static void st_print_ip(uintptr_t ip) {
     std::pair<const char *, uintptr_t> sr = syms::find_func_sym(ip);
     if (sr.first == nullptr) {
+        kprintf(KP_ALERT, "TRACE: [0x%p] Failed to resolve symbol\n", ip);
         return;
     }
     kprintf(KP_ALERT, "TRACE: [0x%p] %s+0x%p\n", ip, sr.first, ip - sr.second);
 }
 
-static void do_stack_trace(uint32_t ebp) {
+static void do_stack_trace(uintptr_t ebp) {
     struct stackframe *p = (struct stackframe *)ebp;
     while (p != nullptr) {
-        kprintf(KP_INFO, "TRACE: p: 0x%p ebp: 0x%p eip: 0x%p\n", p, p->eip, p->ebp);
+        DEBUG_PRINTF("TRACE: p: 0x%p ebp: 0x%p eip: 0x%p\n", p, p->eip, p->ebp);
         st_print_ip(p->eip);
         p = p->ebp;
-        if ((uint32_t)p->ebp < 0xC0000000) {
+        if ((uintptr_t)p->ebp < 0xC0000000) {
             break;
         }
     }
+}
+
+void x86_stack_trace() {
+    uintptr_t ebp;
+    asm volatile("movl %%ebp,%0" : "=r"(ebp)::);
+    do_stack_trace(ebp);
 }
 
 extern "C" void handle_x86_except(struct arch::full_ctx *regs) {
