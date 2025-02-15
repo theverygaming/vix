@@ -521,7 +521,7 @@ void mm::kfree(void *ptr) {
 #ifdef CONFIG_KFREE_CLEANUP
     static int cleanup = 0;
     cleanup++;
-    if (cleanup > CONFIG_KFREE_CLEANUP_INTERVAL) {
+    if (cleanup >= CONFIG_KFREE_CLEANUP_INTERVAL) {
         ll_cleanup();
         cleanup = 0;
     }
