@@ -1,9 +1,20 @@
 use core::ffi::{c_void};
 use alloc::boxed::Box;
+use core::convert::TryInto;
+use core::fmt;
+use core::slice;
 
 pub type Packet = Box<[u8]>;
 
+#[derive(Clone, Copy)]
 struct EthernetAddress(pub [u8; 6]);
+
+impl fmt::Debug for EthernetAddress {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:02x}:{:02x}:{:02x}:{:02x}:{:02x}:{:02x}", 
+               self.0[0], self.0[1], self.0[2], self.0[3], self.0[4], self.0[5])
+    }
+}
 
 pub trait EthernetTrx {
     fn transmit(&mut self, packet: Packet) -> crate::Result<()>;
@@ -28,7 +39,9 @@ struct EthernetCard {
 
 #[no_mangle]
 pub extern "C" fn netstack_ethernet_rx(card: *mut EthernetCard, buf: *const u8, size: usize) {
-    kernel::klog!(kernel::klog::KP_INFO, "net: received packet at {:#x} with size {}", buf as usize, size);
+    let packet = unsafe { slice::from_raw_parts(buf, size) };
+    let (frame, data) = EthernetFrame::deserialize(packet).expect("invalid ethernet frame");
+    kernel::klog!(kernel::klog::KP_INFO, "net: received ethernet packet -- {:?} -- data size: {}", frame, data.len());
 }
 
 #[no_mangle]
@@ -46,7 +59,6 @@ pub extern "C" fn netstack_ethernet_register_card(ops: *const EthernetCardOps) -
     card_ptr
 }
 
-
 impl EthernetTrx for EthernetCard {
     fn transmit(&mut self, packet: Packet) -> crate::Result<()> {
         if !unsafe { ((*self.ops).transmit)(self, packet.as_ptr(), packet.len()) } {
@@ -57,5 +69,39 @@ impl EthernetTrx for EthernetCard {
 
     fn get_mac(&mut self) -> EthernetAddress {
         EthernetAddress([0, 0, 0, 0, 0, 0])
+    }
+}
+
+
+struct EthernetFrame {
+    pub destination: EthernetAddress,
+    pub source: EthernetAddress,
+    pub ethertype: u16,
+}
+
+impl fmt::Debug for EthernetFrame {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "EthernetFrame {{ source: {:?}, destination: {:?}, ethertype: {:04x} }}", self.source, self.destination, self.ethertype)
+    }
+}
+
+impl EthernetFrame {
+    pub fn deserialize(data: &[u8]) -> Option<(Self, &[u8])> {
+        if data.len() <= 14 {
+            return None;
+        }
+
+        let destination = EthernetAddress(data[0..6].try_into().unwrap());
+        let source = EthernetAddress(data[6..12].try_into().unwrap());
+        let ethertype = u16::from_be_bytes(data[12..14].try_into().unwrap());
+
+        Some((
+            Self {
+                destination: destination,
+                source: source,
+                ethertype: ethertype,
+            },
+            &data[14..],
+        ))
     }
 }
