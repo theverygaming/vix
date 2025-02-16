@@ -506,7 +506,7 @@ void *mm::kmalloc(size_t size) {
         // silly quick tail canary hack
         uint64_t *canary = (uint64_t *)(((uint8_t *)found) + sizeof(struct meminfo) + (found->size - 16));
         canary[0] = 0x4E4143204c494154;
-        canary[1] = 0x63333A2021595141;
+        canary[1] = 0x63333A2021595241;
         // end of silly quick tail canary hack
         pop_interrupt_disable();
         return ((uint8_t *)found) + sizeof(struct meminfo);
@@ -532,7 +532,7 @@ void mm::kfree(void *ptr) {
     }
     // silly quick tail canary hack
     uint64_t *canary = (uint64_t *)(((uint8_t *)ptr) + (_blk->size - 16));
-    if ((canary[0] != 0x4E4143204c494154) || (canary[1] != 0x63333A2021595141)) {
+    if ((canary[0] != 0x4E4143204c494154) || (canary[1] != 0x63333A2021595241)) {
         KERNEL_PANIC("internal kmalloc struct corrupted (tail)");
     }
     // end of silly quick tail canary hack
