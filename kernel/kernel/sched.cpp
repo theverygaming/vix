@@ -24,7 +24,7 @@ static void enter_thread(struct sched::task *p) {
     p->state = sched::task::state::RUNNING;
 #ifndef SCHED_ARCH_HAS_CUSTOM_SWITCH
     struct arch::ctx *tmp;
-    sched_switch(&tmp, current->ctx);
+    sched_switch(&tmp, current->ctx, nullptr, current);
 #else
     SCHED_ARCH_CUSTOM_SWITCH_ENTRY(tmp, current);
 #endif
@@ -49,7 +49,7 @@ void sched::yield() {
     last->state = sched::task::state::RUNNABLE;
     current->state = sched::task::state::RUNNING;
 #ifndef SCHED_ARCH_HAS_CUSTOM_SWITCH
-    sched_switch(&last->ctx, current->ctx);
+    sched_switch(&last->ctx, current->ctx, last, current);
 #else
     SCHED_ARCH_CUSTOM_SWITCH(last, current);
 #endif

@@ -6,11 +6,6 @@
 #include <vix/arch/common/cpu.h>
 #include <vix/arch/common/sched.h>
 
-#ifndef SCHED_ARCH_HAS_CUSTOM_SWITCH
-// arch-specific
-extern "C" void sched_switch(struct arch::ctx **old, struct arch::ctx *_new);
-#endif
-
 namespace sched {
 
     struct task {
@@ -75,3 +70,8 @@ namespace sched {
     // arch-specific
     void arch_init_thread(struct sched::task *proc, void (*func)());
 }
+
+#ifndef SCHED_ARCH_HAS_CUSTOM_SWITCH
+// arch-specific
+extern "C" void sched_switch(struct arch::ctx **old, struct arch::ctx *_new, struct sched::task *prev, struct sched::task *next);
+#endif

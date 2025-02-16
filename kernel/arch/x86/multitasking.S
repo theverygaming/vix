@@ -1,6 +1,6 @@
 #include <vix/config.h>
 
-// extern "C" void sched_switch(struct arch::ctx **old, struct arch::ctx *_new);
+// extern "C" void sched_switch(struct arch::ctx **old, struct arch::ctx *_new, struct sched::task *prev, struct sched::task *next);
 .section .text
 .global sched_switch
 sched_switch:
