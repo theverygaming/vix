@@ -9,7 +9,7 @@
 #ifdef CONFIG_ARCH_HAS_PAGING
 void mm::vmm::init() {
     // unmap all that nonsense the prekernel does...
-    // TODO: fix that x86 prekernel paging nonsense
+    // FIXME: fix that x86 prekernel paging nonsense
     void *addr = (void *)ARCH_KERNEL_HEAP_START;
     // BUG: - CONFIG_ARCH_PAGE_SIZE due to seemingly conflicts with the multiboot2 framebuffer thing??????
     while ((uintptr_t)addr < (ARCH_KERNEL_HEAP_END - CONFIG_ARCH_PAGE_SIZE)) {

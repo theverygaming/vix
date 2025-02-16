@@ -115,6 +115,13 @@ static void user_thread_launch() {
     volatile int test = 5;
     kprintf(KP_INFO, "hi from user thread(PID %d) stack: 0x%p\n", sched::mytask()->pid, &test);
     tss::tss_entry.ss0 = GDT_KERNEL_DATA;
+    // FIXME: won't this be a massive issue as soon as we have multiple user threads?
+    // user0
+    // ISR -> yield
+    // kernel0
+    // ISR -> yield
+    // user1
+    // ISR -> ???? collision with old user0 stack?
     tss::tss_entry.esp0 = KERNEL_VIRT_ADDRESS + KERNEL_ISR_STACK_POINTER_OFFSET;
     multitasking::setPageRange(&sched::mytask()->task_arch.pages);
     x86_load_cpu_full_ctx((struct arch::full_ctx *)sched::mytask()->data);

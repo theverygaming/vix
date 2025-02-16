@@ -80,6 +80,7 @@ struct fb::fbinfo multiboot2::findFrameBuffer(const void *multiboot2_info_adr) {
         }
 
         // rather hacky because we have no VMM
+        // TODO: there is a VMM now. NO MORE!!!
         void *fb_virt_adr = (void *)(KERNEL_VIRT_ADDRESS + KERNEL_MEMORY_END_OFFSET);
         //mm::pmm::force_alloc_contiguous((void *)((uintptr_t)tag->framebuffer_addr), fb_bytes / CONFIG_ARCH_PAGE_SIZE);
         paging::map_page((void *)((uintptr_t)tag->framebuffer_addr), fb_virt_adr, ALIGN_UP(fb_bytes, CONFIG_ARCH_PAGE_SIZE) / CONFIG_ARCH_PAGE_SIZE);
