@@ -27,7 +27,7 @@ def loc_dir(path, exclude_dirs):
     lines = 0
     for file in files:
         if not is_binary_string(open(file, 'rb').read(1024)):
-            flines = sum(1 for line in open(file))
+            flines = sum([1 for line in open(file) if len(line) > 0 and line != "\n"])
             all_files.append((file, flines))
             lines += flines
     if lines == 0:
