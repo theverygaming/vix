@@ -3,7 +3,7 @@ menu "Memory Management"
 config KHEAP_BUMP
     bool "Use simple bump allocator for the kernel heap"
     help
-        The bump allocator is unable to free memory in literally 100% of cases (it doesnt support freeing memory).
+        The bump allocator is unable to free memory in literally 100% of cases (it does not support freeing memory).
         This means it is very inefficient in terms of memory usage.
         But due to its simplicity it is quite fast.
 

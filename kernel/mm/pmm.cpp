@@ -137,7 +137,7 @@ static uintptr_t get_memmap_required_space(uintptr_t *ptr_n_areas = nullptr, uin
     uintptr_t required_bytes = (ALIGN_UP(n_pages, 8) / 8) + (n_areas * sizeof(struct area_info));
 
     kprintf(KP_INFO, "pmm: %u pages to manage\n", n_pages);
-    kprintf(KP_INFO, "pmm: need to reserve %u bytes for bitmap & interal structures\n", required_bytes);
+    kprintf(KP_INFO, "pmm: need to reserve %u bytes for bitmap & internal structures\n", required_bytes);
     return required_bytes;
 }
 

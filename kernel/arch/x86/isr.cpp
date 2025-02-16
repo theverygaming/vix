@@ -32,7 +32,7 @@ extern "C" void i686_ISR_Handler(struct arch::full_ctx *regs) {
     }
 
     // is this a spurious IRQ?
-    // FIXME: we have some sort of logic for handling this below but atm it's not in working oder -> see pic_8259.cpp
+    // FIXME: we have some sort of logic for handling this below but atm it's not in working order -> see pic_8259.cpp
     if ((regs->interrupt == 39)) {
         outb(0x20, 0x0b);
         uint8_t reg = inb(0x20);
