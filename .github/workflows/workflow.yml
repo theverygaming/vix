@@ -68,12 +68,16 @@ jobs:
       - name: install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y codespell python3
+          sudo apt-get install -y codespell python3 cloc
 
       - name: count LOC
         run: |
           cd $GITHUB_WORKSPACE 
           python3 tools/locchart.py >> $GITHUB_STEP_SUMMARY
+          echo '# cloc output' >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cloc kernel/ prekernel/ >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
 
       - name: codespell
         run: cd $GITHUB_WORKSPACE && codespell -q 3 --builtin clear -S ./.git,./kernel/scripts -L useable || true >> $GITHUB_STEP_SUMMARY
