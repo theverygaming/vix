@@ -1,0 +1,4 @@
+config ENABLE_FAKE_NETWORK_CARD
+    depends on ENABLE_NETWORKING
+    default y
+    bool "Enable a fake network card for testing stuff"
