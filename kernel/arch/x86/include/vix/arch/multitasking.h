@@ -25,28 +25,6 @@ namespace multitasking {
     void initMultitasking();
     void interruptTrigger();
     void create_task(void *stackadr, void *codeadr, std::vector<process_pagerange> *pagerange, std::vector<std::string> *argv);
-    /*void create_task(void *stackadr,
-                     void *codeadr,
-                     std::vector<process_pagerange> *pagerange,
-                     std::vector<std::string> *argv,
-                     struct x86_process::tls_info info,
-                     pid_t forced_pid = -1,
-                     bool kernel = false);
-    void replace_task(void *stackadr,
-                      void *codeadr,
-                      std::vector<process_pagerange> *pagerange,
-                      std::vector<std::string> *argv,
-                      struct x86_process::tls_info info,
-                      int replacePid,
-                      struct arch::full_ctx *regs,
-                      bool kernel = false);
-    x86_process *getCurrentProcess();
-    void waitForProcess(int pid);
-    void refresh_current_process_pagerange();
-    x86_process *fork_current_process(struct arch::full_ctx *regs);
-    void setProcessSwitching(bool state);
-    size_t getProcessCount();
-    x86_process *get_tid(pid_t tid);*/
     bool createPageRange(std::vector<process_pagerange> *range, uint32_t max_address = KERNEL_VIRT_ADDRESS);
     void setPageRange(std::vector<process_pagerange> *range);
     void unsetPageRange(std::vector<process_pagerange> *range);
