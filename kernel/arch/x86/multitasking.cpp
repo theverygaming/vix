@@ -113,16 +113,13 @@ static void *init_user_stack(void *stackadr, std::vector<std::string> *argv, voi
 extern "C" void x86_load_cpu_full_ctx(struct arch::full_ctx *ctx);
 static void user_thread_launch() {
     volatile int test = 5;
-    kprintf(KP_INFO, "hi from user thread(PID %d) stack: 0x%p\n", sched::mytask()->pid, &test);
+    kprintf(KP_INFO,
+            "hi from user thread(PID %d) stack: 0x%p stack top: 0x%p\n",
+            sched::mytask()->pid,
+            &test,
+            sched::mytask()->task_arch.kernel_stack_top);
     tss::tss_entry.ss0 = GDT_KERNEL_DATA;
-    // FIXME: won't this be a massive issue as soon as we have multiple user threads?
-    // user0
-    // ISR -> yield
-    // kernel0
-    // ISR -> yield
-    // user1
-    // ISR -> ???? collision with old user0 stack?
-    tss::tss_entry.esp0 = KERNEL_VIRT_ADDRESS + KERNEL_ISR_STACK_POINTER_OFFSET;
+    tss::tss_entry.esp0 = (uintptr_t)sched::mytask()->task_arch.kernel_stack_top;
     multitasking::setPageRange(&sched::mytask()->task_arch.pages);
     x86_load_cpu_full_ctx((struct arch::full_ctx *)sched::mytask()->data);
 }
@@ -151,6 +148,7 @@ void multitasking::create_task(void *stackadr, void *codeadr, std::vector<proces
     unsetPageRange(pagerange);
     struct sched::task t = sched::init_thread(user_thread_launch, ctx);
     t.task_arch.pages = *pagerange;
+    t.task_arch.is_ring_3 = true;
     sched::start_thread(t);
 }
 
@@ -358,11 +356,24 @@ void multitasking::interruptTrigger() {
     if (unlikely(uninitialized)) {
         return;
     }
+    // maybe these could be assertions
     if (arch::get_interrupt_state() != arch::INTERRUPT_STATE_DISABLED) {
         arch::set_interrupt_state(arch::INTERRUPT_STATE_DISABLED);
         KERNEL_PANIC("interrupts on in isr");
     }
+    if (sched::mytask()->task_arch.is_ring_3) {
+        // check if the TSS ESP0 is correct (this check can be removed later, just for debugging purposes -- maybe make it an assertion)
+        if (tss::tss_entry.esp0 != 0 && (tss::tss_entry.esp0 != (uintptr_t)sched::mytask()->task_arch.kernel_stack_top)) {
+            KERNEL_PANIC("invalid TSS ESP0  - got 0x%p expected 0x%p", tss::tss_entry.esp0, sched::mytask()->task_arch.kernel_stack_top);
+        }
+    }
     sched::yield();
+    if (sched::mytask()->task_arch.is_ring_3) {
+        // check if the TSS ESP0 is correct (this check can be removed later, just for debugging purposes -- maybe make it an assertion?)
+        if (tss::tss_entry.esp0 != 0 && (tss::tss_entry.esp0 != (uintptr_t)sched::mytask()->task_arch.kernel_stack_top)) {
+            KERNEL_PANIC("invalid TSS ESP0  - got 0x%p expected 0x%p", tss::tss_entry.esp0, sched::mytask()->task_arch.kernel_stack_top);
+        }
+    }
     if (arch::get_interrupt_state() != arch::INTERRUPT_STATE_DISABLED) {
         arch::set_interrupt_state(arch::INTERRUPT_STATE_DISABLED);
         KERNEL_PANIC("interrupts on in isr");

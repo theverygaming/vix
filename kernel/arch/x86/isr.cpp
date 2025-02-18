@@ -21,16 +21,6 @@ static struct int_handler {
 } handlers[256];
 
 extern "C" void i686_ISR_Handler(struct arch::full_ctx *regs) {
-    uint32_t previous_esp_user = regs->esp;
-    // TSS stuff
-    // FIXME: this should _not_ be here
-    //tss::tss_entry.ss0 = GDT_KERNEL_DATA;
-    //tss::tss_entry.esp0 = KERNEL_VIRT_ADDRESS + KERNEL_ISR_STACK_POINTER_OFFSET;
-    //tss::tss_entry.esp0 = ((uint32_t)regs) + sizeof(arch::full_ctx);
-    if (regs->cs & 0b11 == 3) {
-        kprintf(KP_INFO, "going to ring 3\n");
-    }
-
     // is this a spurious IRQ?
     // FIXME: we have some sort of logic for handling this below but atm it's not in working order -> see pic_8259.cpp
     if ((regs->interrupt == 39)) {
@@ -66,8 +56,9 @@ extern "C" void i686_ISR_Handler(struct arch::full_ctx *regs) {
         }
     }
 
-    // since we may use a different stack we have to copy some of the data to the old stack
-    // memcpy((void *)regs->esp_kernel, &regs->eip, 20);
+    if ((regs->cs & 0b11) == 3) {
+        kprintf(KP_INFO, "going to ring 3\n");
+    }
 }
 
 void isr::i686_ISR_Initialize() {

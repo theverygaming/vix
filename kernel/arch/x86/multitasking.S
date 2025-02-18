@@ -1,9 +1,9 @@
 #include <vix/config.h>
 
-// extern "C" void sched_switch(struct arch::ctx **old, struct arch::ctx *_new, struct sched::task *prev, struct sched::task *next);
+// extern "C" void x86_sched_switch(struct arch::ctx **old, struct arch::ctx *_new, struct sched::task *prev, struct sched::task *next);
 .section .text
-.global sched_switch
-sched_switch:
+.global x86_sched_switch
+x86_sched_switch:
 #ifdef CONFIG_ENABLE_KERNEL_32
     movl 4(%esp), %eax // old
     movl 8(%esp), %ecx // new

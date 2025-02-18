@@ -2,6 +2,7 @@
 #include <vix/abi/linux/errno.h>
 #include <vix/drivers/keyboard.h>
 #include <vix/kprintf.h>
+#include <vix/mm/kheap.h>
 #include <vix/sched.h>
 #include <vix/stdio.h>
 #include <vix/types.h>
@@ -36,12 +37,16 @@ __DEF_LINUX_SYSCALL(sys_read) {
         return -EBADF;
     }
 
+    // we allocate a second buffer as when they key_listener gets called
+    // we may not be in the same thread which means memory mappings are different!
+    char *read_buf = (char *)mm::kmalloc(count);
+
     struct read_ev_info *info = (struct read_ev_info *)mm::kmalloc(sizeof(read_ev_info));
     drivers::keyboard::events.register_listener(key_listener, info);
 
     *info = {
         .fd = fd,
-        .buf = (char *)buf,
+        .buf = (char *)read_buf,
         .read = 0,
         .read_max = count,
     };
@@ -50,6 +55,9 @@ __DEF_LINUX_SYSCALL(sys_read) {
     while (true) {
         if (info->read >= info->read_max || (info->read > 0 && info->buf[info->read - 1] == '\n')) {
             read = info->read;
+            // copy out buffer to user memory
+            memcpy(buf, read_buf, read);
+            mm::kfree(read_buf);
             mm::kfree(info);
             break;
         }
