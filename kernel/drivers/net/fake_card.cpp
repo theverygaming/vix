@@ -20,6 +20,38 @@ static const uint8_t test_packet_0[] = {
     'T', 'E', 'S', 'T', ' ', 'D', 'A', 'T', 'A',
     'T', 'E', 'S', 'T', ' ', 'D', 'A', 'T', 'A',
 };
+
+static const uint8_t test_packet_1[] = {
+    // destination MAC
+    'M', 'A', 'C', 'D', 'S', 'T',
+    // source MAC
+    'M', 'A', 'C', 'S', 'R', 'C',
+    // ethertype (BE) -- IPv4 0x0800
+    0x08, 0x00,
+    // IPv4:
+    // Version: 4, 20-byte header
+    0x45,
+    // Differential services: 0
+    0x00,
+    // Total Length (IPv4 Header + Data)
+    0x00, 20 + 12, // FIXME:
+    // Identification - used in case of fragmented packets
+    0x12, 0x34,
+    // Flags & Fragment offset
+    0x00 | 0b010, 0x00,
+    // TTL
+    69,
+    // Next layer protocol
+    17, // UDP
+    // Checksum
+    0x00, 0x00, // FIXME:
+    // Source address
+    111, 222, 233, 244,
+    // Destination address
+    255, 206, 207, 208,
+    // nonsense data
+    'H', 'E', 'L', 'L', 'O', ' ', 'W', 'O', 'R', 'L', 'D', '!'
+};
 // clang-format on
 
 static const struct {
@@ -27,6 +59,7 @@ static const struct {
     size_t size;
 } test_packets[] = {
     {test_packet_0, sizeof(test_packet_0)},
+    {test_packet_1, sizeof(test_packet_1)},
 };
 
 static bool send_packet(struct ::net::ethernet_card *card, uint8_t *data, size_t len) {
@@ -74,6 +107,7 @@ static void rx_fake_packets(int n_packets) {
     DEBUG_PRINTF("got %u packets\n", n_packets);
 
     for (size_t i = 0; i < received.size(); i++) {
+        DEBUG_PRINTF("providing packet %u to network stack (0x%p, %u)\n", i, received[i].ptr, received[i].size);
         netstack_ethernet_rx(current_card, (uint8_t *)received[i].ptr, received[i].size);
         mm::kfree(received[i].ptr);
     }
@@ -84,7 +118,7 @@ static void fake_packet_gen() {
     uint32_t counter = counter_max / 2;
     while (true) {
         if (counter == 0) {
-            rx_fake_packets(1);
+            rx_fake_packets(2);
         }
         counter++;
         if (counter > counter_max) {

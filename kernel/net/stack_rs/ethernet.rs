@@ -40,8 +40,10 @@ struct EthernetCard {
 #[no_mangle]
 pub extern "C" fn netstack_ethernet_rx(card: *mut EthernetCard, buf: *const u8, size: usize) {
     let packet = unsafe { slice::from_raw_parts(buf, size) };
-    let (frame, data) = EthernetFrame::deserialize(packet).expect("invalid ethernet frame");
-    kernel::klog!(kernel::klog::KP_INFO, "net: received ethernet packet -- {:?} -- data size: {}", frame, data.len());
+    let (eframe, edata) = EthernetFrame::deserialize(packet).expect("invalid ethernet frame");
+    let (ipheader, ipdata) = crate::ipv4::IPv4Header::deserialize(edata).expect("invalid IPv4 packet");
+    kernel::klog!(kernel::klog::KP_INFO, "net: received ethernet frame -- {:?} -- data size: {}", eframe, edata.len());
+    kernel::klog!(kernel::klog::KP_INFO, "net: received IPv4 packet -- {:?} -- data size: {}", ipheader, ipdata.len());
 }
 
 #[no_mangle]

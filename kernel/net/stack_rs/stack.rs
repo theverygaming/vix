@@ -6,6 +6,7 @@ use kernel::mutex::Mutex;
 use alloc::boxed::Box;
 
 mod ethernet;
+mod ipv4;
 
 #[derive(Debug, Clone)]
 struct NetError;
