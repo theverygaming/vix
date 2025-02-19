@@ -3,7 +3,7 @@ use core::fmt;
 
 
 #[derive(Clone, Copy)]
-struct IPv4Address(pub [u8; 4]);
+pub struct IPv4Address(pub [u8; 4]);
 
 impl fmt::Debug for IPv4Address {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -34,6 +34,8 @@ impl IPv4Header {
         if data.len() <= 20 {
             return None;
         }
+
+        // TODO: checksum!
 
         let source = IPv4Address(data[12..16].try_into().unwrap());
         let destination = IPv4Address(data[16..20].try_into().unwrap());

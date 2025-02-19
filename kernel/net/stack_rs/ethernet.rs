@@ -7,7 +7,7 @@ use core::slice;
 pub type Packet = Box<[u8]>;
 
 #[derive(Clone, Copy)]
-struct EthernetAddress(pub [u8; 6]);
+pub struct EthernetAddress(pub [u8; 6]);
 
 impl fmt::Debug for EthernetAddress {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -41,9 +41,18 @@ struct EthernetCard {
 pub extern "C" fn netstack_ethernet_rx(card: *mut EthernetCard, buf: *const u8, size: usize) {
     let packet = unsafe { slice::from_raw_parts(buf, size) };
     let (eframe, edata) = EthernetFrame::deserialize(packet).expect("invalid ethernet frame");
-    let (ipheader, ipdata) = crate::ipv4::IPv4Header::deserialize(edata).expect("invalid IPv4 packet");
     kernel::klog!(kernel::klog::KP_INFO, "net: received ethernet frame -- {:?} -- data size: {}", eframe, edata.len());
-    kernel::klog!(kernel::klog::KP_INFO, "net: received IPv4 packet -- {:?} -- data size: {}", ipheader, ipdata.len());
+    match eframe.ethertype {
+        0x0800 => {
+            let (ipheader, ipdata) = crate::ipv4::IPv4Header::deserialize(edata).expect("invalid IPv4 packet");
+            kernel::klog!(kernel::klog::KP_INFO, "net: received IPv4 packet -- {:?} -- data size: {}", ipheader, ipdata.len());
+        }
+        0x0806 => {
+            let arppacket = crate::arp::ParsedARPPacket::deserialize(edata);
+            kernel::klog!(kernel::klog::KP_INFO, "net: received ARP packet -- {:?}", arppacket);
+        }
+        _ => {}
+    }
 }
 
 #[no_mangle]

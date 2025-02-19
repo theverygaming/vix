@@ -7,6 +7,7 @@ use alloc::boxed::Box;
 
 mod ethernet;
 mod ipv4;
+mod arp;
 
 #[derive(Debug, Clone)]
 struct NetError;
