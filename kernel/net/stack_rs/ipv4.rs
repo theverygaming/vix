@@ -5,6 +5,12 @@ use core::fmt;
 #[derive(Clone, Copy)]
 pub struct IPv4Address(pub [u8; 4]);
 
+impl AsRef<[u8]> for IPv4Address {
+    fn as_ref(&self) -> &[u8] {
+        &self.0
+    }
+}
+
 impl fmt::Debug for IPv4Address {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}.{}.{}.{}", 

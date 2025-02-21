@@ -4,10 +4,14 @@ use core::convert::TryInto;
 use core::fmt;
 use core::slice;
 
-pub type Packet = Box<[u8]>;
-
 #[derive(Clone, Copy)]
 pub struct EthernetAddress(pub [u8; 6]);
+
+impl AsRef<[u8]> for EthernetAddress {
+    fn as_ref(&self) -> &[u8] {
+        &self.0
+    }
+}
 
 impl fmt::Debug for EthernetAddress {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -17,7 +21,7 @@ impl fmt::Debug for EthernetAddress {
 }
 
 pub trait EthernetTrx {
-    fn transmit(&mut self, packet: Packet) -> crate::Result<()>;
+    fn transmit(&mut self, packet: &[u8]) -> crate::Result<()>;
     fn get_mac(&mut self) -> EthernetAddress;
 }
 
@@ -38,9 +42,9 @@ struct EthernetCard {
 }
 
 #[no_mangle]
-pub extern "C" fn netstack_ethernet_rx(card: *mut EthernetCard, buf: *const u8, size: usize) {
-    let packet = unsafe { slice::from_raw_parts(buf, size) };
-    let (eframe, edata) = EthernetFrame::deserialize(packet).expect("invalid ethernet frame");
+pub extern "C" fn netstack_ethernet_rx(card: *mut EthernetCard, buf: *mut u8, size: usize) {
+    let packet_buffer = unsafe { slice::from_raw_parts_mut(buf, size) };
+    let (mut eframe, edata) = EthernetFrame::deserialize(packet_buffer).expect("invalid ethernet frame");
     kernel::klog!(kernel::klog::KP_INFO, "net: received ethernet frame -- {:?} -- data size: {}", eframe, edata.len());
     match eframe.ethertype {
         0x0800 => {
@@ -48,8 +52,25 @@ pub extern "C" fn netstack_ethernet_rx(card: *mut EthernetCard, buf: *const u8, 
             kernel::klog!(kernel::klog::KP_INFO, "net: received IPv4 packet -- {:?} -- data size: {}", ipheader, ipdata.len());
         }
         0x0806 => {
-            let arppacket = crate::arp::ParsedARPPacket::deserialize(edata);
+            let mut arppacket = crate::arp::ParsedARPPacket::deserialize(edata);
             kernel::klog!(kernel::klog::KP_INFO, "net: received ARP packet -- {:?}", arppacket);
+            match arppacket {
+                crate::arp::ParsedARPPacket::EthernetIPv4(ref mut arppacket) => {
+                    arppacket.operation = 2; // reply
+                    arppacket.target_hw = arppacket.sender_hw;
+                    core::mem::swap(&mut arppacket.sender_proto, &mut arppacket.target_proto);
+                    // sender_hw becomes our hardware address!
+                    arppacket.sender_hw = unsafe { (*card).get_mac() };
+                    kernel::klog!(kernel::klog::KP_INFO, "net: sending ARP packet -- {:?}", arppacket);
+                    arppacket.serialize(&mut packet_buffer[14..]);
+                    eframe.destination = eframe.source;
+                    eframe.source = unsafe { (*card).get_mac() };
+                    kernel::klog!(kernel::klog::KP_INFO, "net: sending ethernet frame -- {:?}", eframe);
+                    eframe.serialize(&mut packet_buffer[..14]);
+                    unsafe { (*card).transmit(packet_buffer) };
+                }
+                crate::arp::ParsedARPPacket::Unknown => {}
+            }
         }
         _ => {}
     }
@@ -71,7 +92,7 @@ pub extern "C" fn netstack_ethernet_register_card(ops: *const EthernetCardOps) -
 }
 
 impl EthernetTrx for EthernetCard {
-    fn transmit(&mut self, packet: Packet) -> crate::Result<()> {
+    fn transmit(&mut self, packet: &[u8]) -> crate::Result<()> {
         if !unsafe { ((*self.ops).transmit)(self, packet.as_ptr(), packet.len()) } {
             return Err(crate::NetError {});
         }
@@ -79,7 +100,15 @@ impl EthernetTrx for EthernetCard {
     }
 
     fn get_mac(&mut self) -> EthernetAddress {
-        EthernetAddress([0, 0, 0, 0, 0, 0])
+        let mut buf = [0u8; 6];
+
+        if unsafe { 
+            ((*self.ops).get_mac)(self, buf.as_mut_ptr(), buf.len()) 
+        } {
+            EthernetAddress(buf)
+        } else {
+            EthernetAddress([0, 0, 0, 0, 0, 0])
+        }
     }
 }
 
@@ -114,5 +143,18 @@ impl EthernetFrame {
             },
             &data[14..],
         ))
+    }
+
+    pub fn serialize(&self, buffer: &mut [u8]) -> Option<usize> {
+        let total_len = 14;
+        if buffer.len() < total_len {
+            return None;
+        }
+
+        buffer[0..6].copy_from_slice(&self.destination.as_ref());
+        buffer[6..12].copy_from_slice(&self.source.as_ref());
+        buffer[12..14].copy_from_slice(&self.ethertype.to_be_bytes());
+
+        Some(total_len)
     }
 }

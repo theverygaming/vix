@@ -77,3 +77,34 @@ impl ParsedARPPacket {
         }
     }
 }
+
+impl<ThardwareAddr: AsRef<[u8]>, TprotocolAddr: AsRef<[u8]>> ARPPacket<ThardwareAddr, TprotocolAddr> {
+    pub fn serialize(&self, buffer: &mut [u8]) -> Option<usize> {
+        let total_len = 8 + (self.hw_len as usize) * 2 + (self.proto_len as usize) * 2;
+        if buffer.len() < total_len {
+            return None;
+        }
+
+        buffer[0..2].copy_from_slice(&self.hw_type.to_be_bytes());
+        buffer[2..4].copy_from_slice(&self.proto_type.to_be_bytes());
+        buffer[4] = self.hw_len;
+        buffer[5] = self.proto_len;
+        buffer[6..8].copy_from_slice(&self.operation.to_be_bytes());
+
+        let mut offset = 8;
+        let sender_hw_bytes = self.sender_hw.as_ref();
+        let sender_proto_bytes = self.sender_proto.as_ref();
+        let target_hw_bytes = self.target_hw.as_ref();
+        let target_proto_bytes = self.target_proto.as_ref();
+
+        buffer[offset..offset + sender_hw_bytes.len()].copy_from_slice(sender_hw_bytes);
+        offset += sender_hw_bytes.len();
+        buffer[offset..offset + sender_proto_bytes.len()].copy_from_slice(sender_proto_bytes);
+        offset += sender_proto_bytes.len();
+        buffer[offset..offset + target_hw_bytes.len()].copy_from_slice(target_hw_bytes);
+        offset += target_hw_bytes.len();
+        buffer[offset..offset + target_proto_bytes.len()].copy_from_slice(target_proto_bytes);
+
+        Some(total_len)
+    }
+}
