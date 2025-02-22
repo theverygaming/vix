@@ -44,11 +44,13 @@ struct EthernetCard {
 #[no_mangle]
 pub extern "C" fn netstack_ethernet_rx(card: *mut EthernetCard, buf: *mut u8, size: usize) {
     let packet_buffer = unsafe { slice::from_raw_parts_mut(buf, size) };
-    let (mut eframe, edata) = EthernetFrame::deserialize(packet_buffer).expect("invalid ethernet frame");
+    let (mut eframe, eoffset) = EthernetFrame::deserialize(packet_buffer).expect("invalid ethernet frame");
+    let edata = &packet_buffer[eoffset..];
     kernel::klog!(kernel::klog::KP_INFO, "net: received ethernet frame -- {:?} -- data size: {}", eframe, edata.len());
     match eframe.ethertype {
         0x0800 => {
-            let (ipheader, ipdata) = crate::ipv4::IPv4Header::deserialize(edata).expect("invalid IPv4 packet");
+            let (ipheader, ipoffset) = crate::ipv4::IPv4Header::deserialize(edata).expect("invalid IPv4 packet");
+            let ipdata = &edata[ipoffset..];
             kernel::klog!(kernel::klog::KP_INFO, "net: received IPv4 packet -- {:?} -- data size: {}", ipheader, ipdata.len());
         }
         0x0806 => {
@@ -126,7 +128,7 @@ impl fmt::Debug for EthernetFrame {
 }
 
 impl EthernetFrame {
-    pub fn deserialize(data: &[u8]) -> Option<(Self, &[u8])> {
+    pub fn deserialize(data: &[u8]) -> Option<(Self, usize)> {
         if data.len() <= 14 {
             return None;
         }
@@ -141,7 +143,7 @@ impl EthernetFrame {
                 source: source,
                 ethertype: ethertype,
             },
-            &data[14..],
+            14, // data offset
         ))
     }
 

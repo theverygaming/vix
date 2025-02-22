@@ -36,7 +36,7 @@ impl fmt::Debug for IPv4Header {
 }
 
 impl IPv4Header {
-    pub fn deserialize(data: &[u8]) -> Option<(Self, &[u8])> {
+    pub fn deserialize(data: &[u8]) -> Option<(Self, usize)> {
         if data.len() <= 20 {
             return None;
         }
@@ -57,7 +57,7 @@ impl IPv4Header {
                 source: source,
                 destination: destination,
             },
-            &data[20..],
+            20, // data offset
         ))
     }
 }
