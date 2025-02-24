@@ -48,7 +48,7 @@ extern "C" void i686_ISR_Handler(struct arch::full_ctx *regs) {
         drivers::pic::pic8259::eoi(regs->interrupt);
         handlers[regs->interrupt].fn();
     } else if (regs->interrupt >= 32) {
-        DEBUG_PRINTF("No interrupt handler for #%u / IRQ#%u!, ignoring\n", regs->interrupt, irq_n);
+        kprintf(KP_INFO, "IRQ %u (int %u): nobody cared\n", irq_n, regs->interrupt);
         // we do need to send an EOI for an unhandled IRQ
         if (is_irq) {
             DEBUG_PRINTF("sending EOI for unhandled IRQ#%u!\n", irq_n);
