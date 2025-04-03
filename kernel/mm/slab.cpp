@@ -12,41 +12,14 @@
 /*
  * Page allocator
  */
-
-// TODO: check if commonly used, move in that case
-
 static void *alloc_pages(size_t pages) {
-#ifdef CONFIG_ARCH_HAS_PAGING
-    void *area = mm::vmm::kalloc(pages);
-    for (size_t i = 0; i < pages; i++) {
-        void *phys;
-        ASSIGN_OR_PANIC(phys, mm::pmm::alloc_contiguous(1));
-        uintptr_t virt = ((uintptr_t)area) + (i * CONFIG_ARCH_PAGE_SIZE);
-        arch::vmm::set_page(virt, (uintptr_t)phys, arch::vmm::FLAGS_PRESENT);
-        arch::vmm::flush_tlb_single(virt);
-    }
-#else
     void *area;
-    ASSIGN_OR_PANIC(area, mm::pmm::alloc_contiguous(pages));
-#endif
+    ASSIGN_OR_PANIC(area, mm::allocate_non_contiguous(pages * CONFIG_ARCH_PAGE_SIZE));
     return area;
 }
 
 static void free_pages(void *address, size_t count) {
-#ifdef CONFIG_ARCH_HAS_PAGING
-    unsigned int flags;
-    for (size_t i = 0; i < count; i++) {
-        uintptr_t phys = arch::vmm::get_page(((uintptr_t)address) + (i * CONFIG_ARCH_PAGE_SIZE), &flags);
-        if (unlikely(!(arch::vmm::set_page(((uintptr_t)address) + (i * CONFIG_ARCH_PAGE_SIZE), 0, 0) & arch::vmm::FLAGS_PRESENT))) {
-            KERNEL_PANIC("kmalloc page is somehow unmapped");
-        }
-        mm::pmm::free_contiguous((void *)phys, 1);
-    }
-#else
-    for (size_t i = 0; i < count; i++) {
-        mm::pmm::free_contiguous(((uint8_t *)address) + (i * CONFIG_ARCH_PAGE_SIZE), 1);
-    }
-#endif
+    mm::free_non_contiguous(address, count * CONFIG_ARCH_PAGE_SIZE);
 }
 
 /*

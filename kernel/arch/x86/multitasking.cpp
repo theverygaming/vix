@@ -214,7 +214,7 @@ void multitasking::unsetPageRange(std::vector<process_pagerange> *range) {
 void multitasking::freePageRange(std::vector<process_pagerange> *range) {
     for (size_t i = 0; i < range->size(); i++) {
         if ((*range)[i].pages > 0) {
-            mm::pmm::free_contiguous((void *)(*range)[i].phys_base, (*range)[i].pages);
+            mm::pmm::free_contiguous((*range)[i].phys_base, (*range)[i].pages);
         }
     }
 }

@@ -1,3 +1,4 @@
+#include <vix/mm/mm.h>
 #include <vix/arch/common/paging.h>
 #include <vix/arch/generic/memory.h>
 #include <vix/config.h>
@@ -22,9 +23,9 @@ void mm::vmm::init() {
 
 // NOTE: this could be improved a little by keeping the last highest allocation and the last highest free
 // currently this will take longer and longer the more it searches
-static void *find_free_pages(void *start, void *end, size_t pages) {
+static mm::vaddr_t find_free_pages(mm::vaddr_t start, mm::vaddr_t end, size_t pages) {
     size_t pages_found = 0;
-    void *start_found = nullptr;
+    mm::vaddr_t start_found = 0;
     while ((uintptr_t)start < (uintptr_t)end && pages_found != pages) {
         unsigned int flags;
         arch::vmm::get_page((uintptr_t)start, &flags);
@@ -36,7 +37,7 @@ static void *find_free_pages(void *start, void *end, size_t pages) {
         } else {
             pages_found = 0;
         }
-        start = (void *)((uintptr_t)start + CONFIG_ARCH_PAGE_SIZE);
+        start = (mm::vaddr_t)start + CONFIG_ARCH_PAGE_SIZE;
     }
     if (pages_found != pages) {
         KERNEL_PANIC("ran out of VMM space");
@@ -44,16 +45,16 @@ static void *find_free_pages(void *start, void *end, size_t pages) {
     return start_found;
 }
 
-void *mm::vmm::alloc(void *start, void *end, size_t pages) {
-    void *addr = find_free_pages(start, end, pages);
+mm::vaddr_t mm::vmm::alloc(vaddr_t start, vaddr_t end, size_t pages) {
+    vaddr_t addr = find_free_pages(start, end, pages);
     return addr;
 }
 
-void *mm::vmm::kalloc(size_t pages) {
-    return mm::vmm::alloc((void *)ARCH_KERNEL_HEAP_START, (void *)ARCH_KERNEL_HEAP_END, pages);
+mm::vaddr_t mm::vmm::kalloc(size_t pages) {
+    return mm::vmm::alloc(ARCH_KERNEL_HEAP_START, ARCH_KERNEL_HEAP_END, pages);
 }
 
-void mm::vmm::dealloc(void *start, size_t n) {
+void mm::vmm::dealloc(vaddr_t start, size_t n) {
     KERNEL_PANIC("not implemented");
 }
 

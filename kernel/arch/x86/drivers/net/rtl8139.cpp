@@ -11,8 +11,10 @@
 #include <vix/kernel/irq.h>
 #include <vix/macros.h>
 #include <vix/mm/kheap.h>
+#include <vix/mm/mm.h>
 #include <vix/net/stack_rs/ethernet.h>
 #include <vix/panic.h>
+#include <vix/status.h>
 #include <vix/stdio.h>
 
 #define RX_BUFFER_SIZE_IDX 1
@@ -206,7 +208,9 @@ void drivers::net::rtl8139::init() {
 
     // receive buffer
     // rx buf len RX_BUFFER_SIZE + 16 byte
-    bufferptr = (uint8_t *)mm::kmalloc_phys_contiguous(RX_BUFFER_SIZE + 16); // TODO: free
+    void *tmp_alloc;
+    ASSIGN_OR_PANIC(tmp_alloc, mm::allocate_contiguous(RX_BUFFER_SIZE + 16)); // TODO: free
+    bufferptr = (uint8_t *)tmp_alloc;
     iowrite32(io_handle + 0x30, (uintptr_t)paging::get_physaddr_unaligned(bufferptr));
 
     // iowrite16(io_handle + 0x3C, 0x0005); // Sets the TOK and ROK bits high

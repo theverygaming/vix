@@ -1,3 +1,4 @@
+#include <vix/mm/mm.h>
 #include <string.h>
 #include <string>
 #include <vector>
@@ -50,14 +51,14 @@ void elf::load_program(void *ELF_baseadr, std::vector<std::string> *argv, bool r
 
     std::vector<multitasking::process_pagerange> pageranges;
 
-    void *allocated_phys;
+    mm::paddr_t allocated_phys;
     ASSIGN_OR_PANIC(allocated_phys, mm::pmm::alloc_contiguous(pagecount));
-    pageranges.push_back({.phys_base = (uintptr_t)allocated_phys,
+    pageranges.push_back({.phys_base = allocated_phys,
                           .virt_base = min_v,
                           .pages = pagecount,
                           .type = multitasking::process_pagerange::range_type::STATIC});
     ASSIGN_OR_PANIC(allocated_phys, mm::pmm::alloc_contiguous(1));
-    pageranges.push_back({.phys_base = (uintptr_t)allocated_phys,
+    pageranges.push_back({.phys_base = allocated_phys,
                           .virt_base = max_v + (CONFIG_ARCH_PAGE_SIZE * 47),
                           .pages = 1,
                           .type = multitasking::process_pagerange::range_type::BREAK});

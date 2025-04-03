@@ -1,3 +1,4 @@
+#include <vix/mm/mm.h>
 #include <string>
 #include <vector>
 #include <vix/arch/archinit.h>
@@ -85,10 +86,10 @@ extern "C" void __attribute__((section(".entry"))) _kentry(void *multiboot2_info
 }
 
 void arch::startup::stage2_startup() {
-    mm::pmm::force_alloc_contiguous((void *)KERNEL_PHYS_ADDRESS,
+    mm::pmm::force_alloc_contiguous(KERNEL_PHYS_ADDRESS,
                                     ALIGN_UP(KERNEL_FREE_AREA_BEGIN_OFFSET, CONFIG_ARCH_PAGE_SIZE) / CONFIG_ARCH_PAGE_SIZE);
     if (initramfs_size != 0) {
-        mm::pmm::force_alloc_contiguous(initramfs_start, ALIGN_UP(initramfs_size, CONFIG_ARCH_PAGE_SIZE) / CONFIG_ARCH_PAGE_SIZE);
+        mm::pmm::force_alloc_contiguous((mm::paddr_t)initramfs_start, ALIGN_UP(initramfs_size, CONFIG_ARCH_PAGE_SIZE) / CONFIG_ARCH_PAGE_SIZE);
         paging::map_page(initramfs_start,
                          (void *)(0xFFFFF000 - ALIGN_UP(initramfs_size, CONFIG_ARCH_PAGE_SIZE)),
                          (ALIGN_UP(initramfs_size, CONFIG_ARCH_PAGE_SIZE) / CONFIG_ARCH_PAGE_SIZE),

@@ -1,4 +1,5 @@
 #pragma once
+#include <vix/mm/mm.h>
 #include <vix/config.h>
 #include <vix/types.h>
 
@@ -29,7 +30,7 @@ namespace arch::vmm {
      * @param [out] fla
      * @return the physical address of the page
      */
-    uintptr_t get_page(uintptr_t virt, unsigned int *flags);
+    mm::paddr_t get_page(mm::vaddr_t virt, unsigned int *flags);
 
     /**
      * sets flags and physical address for page (a TLB flush may be required after this)
@@ -38,13 +39,13 @@ namespace arch::vmm {
      * @param [in] flags flags to set
      * @return previous flags
      */
-    unsigned int set_page(uintptr_t virt, uintptr_t phys, unsigned int flags);
+    unsigned int set_page(mm::vaddr_t virt, mm::paddr_t phys, unsigned int flags);
 
     /**
      * flushes single page out of TLB
      * @param [in] virt virtual address of page
      */
-    void flush_tlb_single(uintptr_t virt);
+    void flush_tlb_single(mm::vaddr_t virt);
 
     /**
      * flushes the entire TLB

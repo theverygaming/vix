@@ -166,7 +166,7 @@ static uintptr_t pm_n_total_pages;
 static struct area_info *pm_areas;
 static uintptr_t pm_n_areas;
 static bitmap pm_bitmap;
-static uintptr_t pm_phys_addr;
+static mm::paddr_t pm_phys_addr;
 
 static void populate_pmm_info() {
     uintptr_t required_bytes = ALIGN_UP(get_memmap_required_space(&pm_n_areas, &pm_n_total_pages), CONFIG_ARCH_PAGE_SIZE);
@@ -175,7 +175,7 @@ static void populate_pmm_info() {
     pm_phys_addr = entry_phys_start;
 #ifdef CONFIG_ARCH_HAS_PAGING
     uintptr_t required_pages = required_bytes / CONFIG_ARCH_PAGE_SIZE;
-    void *vaddr = mm::vmm::kalloc(required_pages);
+    void *vaddr = (void *)mm::vmm::kalloc(required_pages);
     for (uintptr_t i = 0; i < required_pages; i++) {
         uintptr_t virt = ((uintptr_t)vaddr) + (i * CONFIG_ARCH_PAGE_SIZE);
         arch::vmm::set_page(virt, entry_phys_start + (i * CONFIG_ARCH_PAGE_SIZE), arch::vmm::FLAGS_PRESENT);
@@ -259,28 +259,28 @@ void mm::pmm::init() {
     populate_pmm_info();
     init_pmm_structures();
     // force allocate the data the PMM itself needs
-    force_alloc_contiguous((void *)pm_phys_addr,
+    force_alloc_contiguous(pm_phys_addr,
                            ALIGN_UP((pm_n_areas * sizeof(struct area_info)) + (ALIGN_UP(pm_n_total_pages, 8) / 8), CONFIG_ARCH_PAGE_SIZE) /
                                CONFIG_ARCH_PAGE_SIZE);
     kprintf(KP_INFO, "pmm: initialized\n");
 }
 
-status::StatusOr<void *> mm::pmm::alloc_contiguous(size_t pages) {
+status::StatusOr<mm::paddr_t> mm::pmm::alloc_contiguous(size_t pages) {
     size_t pages_before = 0;
     for (size_t i = 0; i < pm_n_areas; i++) {
         size_t found_start;
         bool found = pm_bitmap.findRange(pages_before, pages_before + pm_areas[i].n_pages, pages, false, &found_start);
         if (found) {
             pm_bitmap.setRange(found_start, pages);
-            return (void *)(pm_areas[i].start_addr + ((found_start - pages_before) * CONFIG_ARCH_PAGE_SIZE));
+            return pm_areas[i].start_addr + ((found_start - pages_before) * CONFIG_ARCH_PAGE_SIZE);
         }
         pages_before += pm_areas[i].n_pages;
     }
     return status::StatusCode::OOM_ERROR;
 }
 
-void mm::pmm::free_contiguous(void *paddr, size_t pages) {
-    size_t idx = find_bitmap_idx_for_paddr(paddr);
+void mm::pmm::free_contiguous(paddr_t paddr, size_t pages) {
+    size_t idx = find_bitmap_idx_for_paddr((void *)paddr);
     pm_bitmap.setRange(idx, pages);
 }
 
@@ -288,13 +288,13 @@ size_t mm::pmm::get_free_blocks() {
     return pm_bitmap.countRange(0, pm_n_total_pages, false);
 }
 
-void mm::pmm::force_alloc_contiguous(void *paddr, size_t pages) {
+void mm::pmm::force_alloc_contiguous(paddr_t paddr, size_t pages) {
     kprintf(KP_INFO, "pmm: force alloc 0x%p %u pages\n", paddr, pages);
-    size_t idx = find_bitmap_idx_for_paddr(paddr);
+    size_t idx = find_bitmap_idx_for_paddr((void *)paddr);
     pm_bitmap.setRange(idx, pages);
 }
 
-void mm::pmm::force_free_contiguous(void *paddr, size_t pages) {
-    size_t idx = find_bitmap_idx_for_paddr(paddr);
+void mm::pmm::force_free_contiguous(paddr_t paddr, size_t pages) {
+    size_t idx = find_bitmap_idx_for_paddr((void *)paddr);
     pm_bitmap.unsetRange(idx, pages);
 }
