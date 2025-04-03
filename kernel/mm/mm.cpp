@@ -37,6 +37,49 @@ static unsigned int get_vm_extra_flags(mm::alloc_attrs attrs) {
     return vm_flags;
 }
 
+status::StatusOr<void *> mm::map_arbitrary_phys(
+    paddr_t phys,
+    size_t bytes,
+    alloc_attrs attrs,
+    // FIXME: this should not be ignored!!! (NOTE: when done update comments in mm.h)
+    vaddr_range vrange
+) {
+    size_t pages =
+        (ALIGN_UP(bytes, CONFIG_ARCH_PAGE_SIZE)) / CONFIG_ARCH_PAGE_SIZE;
+#ifdef CONFIG_ARCH_HAS_PAGING
+    unsigned int vm_flags =
+        arch::vmm::FLAGS_PRESENT | get_vm_extra_flags(attrs);
+
+    // TODO: this does NOT do user memory at all
+    vaddr_t area = mm::vmm::kalloc(pages);
+    for (size_t i = 0; i < pages; i++) {
+        uintptr_t virt = area + (i * CONFIG_ARCH_PAGE_SIZE);
+        arch::vmm::set_page(virt, phys + (i * CONFIG_ARCH_PAGE_SIZE), vm_flags);
+        arch::vmm::flush_tlb_single(virt);
+    }
+    return (void *)area;
+#else
+    return (void *)phys;
+#endif
+}
+
+void mm::unmap_arbitrary_phys(void *addr, size_t bytes) {
+#ifdef CONFIG_ARCH_HAS_PAGING
+    size_t n_pages =
+        (ALIGN_UP(bytes, CONFIG_ARCH_PAGE_SIZE)) / CONFIG_ARCH_PAGE_SIZE;
+    for (size_t i = 0; i < n_pages; i++) {
+        if (unlikely(
+                !(arch::vmm::set_page(
+                      ((vaddr_t)addr) + (i * CONFIG_ARCH_PAGE_SIZE), 0, 0
+                  ) &
+                  arch::vmm::FLAGS_PRESENT)
+            )) {
+            KERNEL_PANIC("unmap_arbitrary_phys page is somehow unmapped");
+        }
+    }
+#endif
+}
+
 status::StatusOr<void *> mm::allocate_non_contiguous(
     size_t bytes,
     alloc_attrs attrs,

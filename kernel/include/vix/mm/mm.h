@@ -36,14 +36,14 @@ namespace mm {
         caching_type cache;
     };
 
-    status::StatusOr<void *> map_io_space(
+    status::StatusOr<void *> map_arbitrary_phys(
         paddr_t phys,
         size_t bytes,
         alloc_attrs attrs = {false, false, false, caching_type::WRITE_BACK},
         // FIXME: this should actually only be kernel memory, also currently it's ignored :sob:
         vaddr_range vrange = {0, UINTPTR_MAX}
     );
-    void unmap_io_space(void *addr, size_t bytes);
+    void unmap_arbitrary_phys(void *addr, size_t bytes);
 
     status::StatusOr<void *> allocate_contiguous(
         size_t bytes,

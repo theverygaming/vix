@@ -86,15 +86,21 @@ extern "C" void __attribute__((section(".entry"))) _kentry(void *multiboot2_info
 }
 
 void arch::startup::stage2_startup() {
-    mm::pmm::force_alloc_contiguous(KERNEL_PHYS_ADDRESS,
-                                    ALIGN_UP(KERNEL_FREE_AREA_BEGIN_OFFSET, CONFIG_ARCH_PAGE_SIZE) / CONFIG_ARCH_PAGE_SIZE);
+    mm::pmm::force_alloc_contiguous(
+        KERNEL_PHYS_ADDRESS,
+        ALIGN_UP(KERNEL_FREE_AREA_BEGIN_OFFSET, CONFIG_ARCH_PAGE_SIZE) /
+            CONFIG_ARCH_PAGE_SIZE
+    );
     if (initramfs_size != 0) {
-        mm::pmm::force_alloc_contiguous((mm::paddr_t)initramfs_start, ALIGN_UP(initramfs_size, CONFIG_ARCH_PAGE_SIZE) / CONFIG_ARCH_PAGE_SIZE);
-        paging::map_page(initramfs_start,
-                         (void *)(0xFFFFF000 - ALIGN_UP(initramfs_size, CONFIG_ARCH_PAGE_SIZE)),
-                         (ALIGN_UP(initramfs_size, CONFIG_ARCH_PAGE_SIZE) / CONFIG_ARCH_PAGE_SIZE),
-                         false,
-                         true);
+        mm::pmm::force_alloc_contiguous(
+            (mm::paddr_t)initramfs_start,
+            ALIGN_UP(initramfs_size, CONFIG_ARCH_PAGE_SIZE) /
+                CONFIG_ARCH_PAGE_SIZE
+        );
+        ASSIGN_OR_PANIC(
+            initramfs_start,
+            mm::map_arbitrary_phys((mm::paddr_t)initramfs_start, initramfs_size)
+        );
     }
 }
 
@@ -105,7 +111,7 @@ void arch::startup::stage3_startup() {
     cpuid::printFeatures();
     simd::enableSSE();
     if (initramfs_size != 0) {
-        if (fs::filesystems::tarfs::init((void *)(0xFFFFF000 - initramfs_size))) {
+        if (fs::filesystems::tarfs::init(initramfs_start)) {
             fs::filesystems::tarfs::mountInVFS();
         }
     }
