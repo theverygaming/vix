@@ -220,6 +220,7 @@ static unsigned int entry_get_vmm_flags(struct pagetableEntry entry) {
 }
 
 static void entry_set_vmm_flags(struct pagetableEntry *entry, unsigned int flags) {
+    // FIXME: write combining flag is missing!
     entry->present = flags & arch::vmm::FLAGS_PRESENT;
     entry->dirty = flags & arch::vmm::FLAGS_DIRTY;
     entry->cache_disabled = flags & arch::vmm::FLAGS_CACHE_DISABLE;
