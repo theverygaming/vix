@@ -149,7 +149,7 @@ void mm::free_non_contiguous(void *addr, size_t bytes) {
 #else
     for (size_t i = 0; i < n_pages; i++) {
         mm::pmm::free_contiguous(
-            ((paddr_t)address) + (i * CONFIG_ARCH_PAGE_SIZE), 1
+            ((paddr_t)addr) + (i * CONFIG_ARCH_PAGE_SIZE), 1
         );
     }
 #endif
