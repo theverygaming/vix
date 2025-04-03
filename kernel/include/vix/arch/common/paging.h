@@ -10,16 +10,18 @@ namespace arch::vmm {
     inline const unsigned int FLAGS_DIRTY = (0x1 << 1);
     // if set page will not be cached
     inline const unsigned int FLAGS_CACHE_DISABLE = (0x1 << 2);
-    // if set write-through will be enabled for this page
-    inline const unsigned int FLAGS_WRITE_THROUGH = (0x1 << 3);
-    // if set write-combined will be enabled for this page
-    inline const unsigned int FLAGS_WRITE_COMBINING = (0x1 << 4);
+    // if set write-back caching will be enabled for this page
+    inline const unsigned int FLAGS_WRITE_BACK = (0x1 << 3);
+    // if set write-through caching will be enabled for this page
+    inline const unsigned int FLAGS_WRITE_THROUGH = (0x1 << 4);
+    // if set write-combined caching will be enabled for this page
+    inline const unsigned int FLAGS_WRITE_COMBINING = (0x1 << 5);
     // if set the page can be accessed from usermode
-    inline const unsigned int FLAGS_USER = (0x1 << 5);
+    inline const unsigned int FLAGS_USER = (0x1 << 6);
     // if set the page will be read only to usermode and maybe even kernel mode
-    inline const unsigned int FLAGS_READ_ONLY = (0x1 << 6);
+    inline const unsigned int FLAGS_READ_ONLY = (0x1 << 7);
     // if set the page cannot be executed as code
-    inline const unsigned int FLAGS_NO_EXECUTE = (0x1 << 7);
+    inline const unsigned int FLAGS_NO_EXECUTE = (0x1 << 8);
 
     /**
      * gets flags and physical address for page
