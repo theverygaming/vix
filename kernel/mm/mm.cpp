@@ -7,6 +7,7 @@
 #include <vix/panic.h>
 #include <vix/status.h>
 
+#ifdef CONFIG_ARCH_HAS_PAGING
 static unsigned int get_vm_extra_flags(mm::alloc_attrs attrs) {
     unsigned int vm_flags = 0;
     switch (attrs.cache) {
@@ -36,6 +37,7 @@ static unsigned int get_vm_extra_flags(mm::alloc_attrs attrs) {
 
     return vm_flags;
 }
+#endif
 
 status::StatusOr<void *> mm::map_arbitrary_phys(
     paddr_t phys,
