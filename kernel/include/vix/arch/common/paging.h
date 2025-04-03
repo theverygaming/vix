@@ -4,13 +4,22 @@
 
 #ifdef CONFIG_ARCH_HAS_PAGING
 namespace arch::vmm {
-    inline const unsigned int FLAGS_PRESENT = (0x1 << 0);       // if set the page is present in physical memory (not swapped out)
-    inline const unsigned int FLAGS_DIRTY = (0x1 << 1);         // if set the page has been written to
-    inline const unsigned int FLAGS_CACHE_DISABLE = (0x1 << 2); // if set page will not be cached
-    inline const unsigned int FLAGS_WRITE_THROUGH = (0x1 << 3); // if set write-through will be enabled for this page
-    inline const unsigned int FLAGS_USER = (0x1 << 4);          // if set the page can be accessed from usermode
-    inline const unsigned int FLAGS_READ_ONLY = (0x1 << 5);     // if set the page will be read only to usermode and maybe even kernel mode
-    inline const unsigned int FLAGS_NO_EXECUTE = (0x1 << 6);    // if set the page cannot be executed as code
+    // if set the page is present in physical memory (not swapped out)
+    inline const unsigned int FLAGS_PRESENT = (0x1 << 0);
+    // if set the page has been written to
+    inline const unsigned int FLAGS_DIRTY = (0x1 << 1);
+    // if set page will not be cached
+    inline const unsigned int FLAGS_CACHE_DISABLE = (0x1 << 2);
+    // if set write-through will be enabled for this page
+    inline const unsigned int FLAGS_WRITE_THROUGH = (0x1 << 3);
+    // if set write-combined will be enabled for this page
+    inline const unsigned int FLAGS_WRITE_COMBINING = (0x1 << 4);
+    // if set the page can be accessed from usermode
+    inline const unsigned int FLAGS_USER = (0x1 << 5);
+    // if set the page will be read only to usermode and maybe even kernel mode
+    inline const unsigned int FLAGS_READ_ONLY = (0x1 << 6);
+    // if set the page cannot be executed as code
+    inline const unsigned int FLAGS_NO_EXECUTE = (0x1 << 7);
 
     /**
      * gets flags and physical address for page
