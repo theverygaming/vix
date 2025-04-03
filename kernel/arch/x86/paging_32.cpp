@@ -209,11 +209,15 @@ static unsigned int entry_get_vmm_flags(struct pagetableEntry entry) {
     if (entry.write_through) {
         flags |= arch::vmm::FLAGS_WRITE_THROUGH;
     }
+    // FIXME: write combining flag is missing!
     if (entry.priv == page_priv::USER) {
         flags |= arch::vmm::FLAGS_USER;
     }
     if (entry.perms == page_perms::R) {
         flags |= arch::vmm::FLAGS_READ_ONLY;
+    }
+    if (entry.global) {
+        flags |= arch::vmm::FLAGS_NO_FLUSH_ON_PRIV_CHANGE;
     }
     // IA-32 has no no-execute bit
     return flags;
@@ -225,8 +229,10 @@ static void entry_set_vmm_flags(struct pagetableEntry *entry, unsigned int flags
     entry->dirty = flags & arch::vmm::FLAGS_DIRTY;
     entry->cache_disabled = flags & arch::vmm::FLAGS_CACHE_DISABLE;
     entry->write_through = flags & arch::vmm::FLAGS_WRITE_THROUGH;
+    // FIXME: write combining flag is missing!
     entry->priv = flags & arch::vmm::FLAGS_USER ? page_priv::USER : page_priv::SUPERVISOR;
     entry->perms = flags & arch::vmm::FLAGS_READ_ONLY ? page_perms::R : page_perms::RW;
+    entry->global = flags & arch::vmm::FLAGS_NO_FLUSH_ON_PRIV_CHANGE;
 }
 
 uintptr_t arch::vmm::get_page(uintptr_t virt, unsigned int *flags) {

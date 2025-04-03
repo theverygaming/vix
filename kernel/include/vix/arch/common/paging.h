@@ -23,6 +23,8 @@ namespace arch::vmm {
     inline const unsigned int FLAGS_READ_ONLY = (0x1 << 7);
     // if set the page cannot be executed as code
     inline const unsigned int FLAGS_NO_EXECUTE = (0x1 << 8);
+    // if set the page will not be flushed when a syscall from usermode happens (on x86 this is the global bit) -- this should never be enabled for user pages, bad idea
+    inline const unsigned int FLAGS_NO_FLUSH_ON_PRIV_CHANGE = (0x1 << 9);
 
     /**
      * gets flags and physical address for page
