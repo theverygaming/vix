@@ -4,6 +4,7 @@ jobs:
   build-test-nix:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         stuff:
           - flake: IA-32
