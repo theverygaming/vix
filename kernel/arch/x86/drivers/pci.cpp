@@ -1,5 +1,6 @@
 #include <vix/arch/cpubasics.h>
 #include <vix/arch/drivers/pci.h>
+#include <vix/initcall.h>
 #include <vix/kprintf.h>
 
 /* direct read/write functions */
@@ -143,7 +144,7 @@ static pciHeaderType getHeaderType(generic_pciHeader_t header) {
     }
 }
 
-void drivers::pci::init() {
+int pci_init() {
     for (int bus = 0; bus < 256; bus++) {
         for (int device = 0; device < 32; device++) {
             uint8_t function = 0;
@@ -183,6 +184,7 @@ void drivers::pci::init() {
             }
         }
     }
+    return 0;
 }
 
 bool drivers::pci::hasDev(uint16_t vendorID, uint16_t deviceID, uint8_t *bus, uint8_t *device, uint8_t *function) {
@@ -250,3 +252,5 @@ uint16_t drivers::pci::getBarIOAddress(uint8_t bus, uint8_t device, uint8_t func
 uint8_t drivers::pci::getInterruptLine(uint8_t bus, uint8_t device, uint8_t function) {
     return pciConfigRead08(bus, device, function, 60);
 }
+
+DEFINE_INITCALL(INITCALL_EARLY_DRIVER_INIT, INITCALL_PRIO_HIGH, pci_init);

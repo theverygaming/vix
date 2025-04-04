@@ -13,11 +13,6 @@
 #include <vix/sched.h>
 #include <vix/types.h>
 
-#ifdef CONFIG_ARCH_X86
-#include <vix/arch/drivers/net/rtl8139.h>
-#include <vix/arch/drivers/pci.h>
-#endif
-
 #ifdef CONFIG_ENABLE_TESTS
 void run_all_tests();
 #endif
@@ -55,13 +50,6 @@ void kernelstart() {
 
 #ifdef CONFIG_ENABLE_TESTS
     run_all_tests();
-#endif
-
-#ifdef CONFIG_ARCH_X86
-    drivers::pci::init();
-#ifdef CONFIG_ENABLE_NETWORKING
-    drivers::net::rtl8139::init();
-#endif
 #endif
 
 #ifdef CONFIG_RUST_SUPPORT

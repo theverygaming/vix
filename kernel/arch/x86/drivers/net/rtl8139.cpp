@@ -7,6 +7,7 @@
 #include <vix/arch/isr.h>
 #include <vix/arch/paging.h>
 #include <vix/debug.h>
+#include <vix/initcall.h>
 #include <vix/kernel/io.h>
 #include <vix/kernel/irq.h>
 #include <vix/macros.h>
@@ -161,23 +162,23 @@ bool drivers::net::rtl8139::sendPacket(struct ::net::ethernet_card *card, uint8_
     return true;
 }
 
-void drivers::net::rtl8139::init() {
+static int rtl8139_init() {
     if (!drivers::pci::hasDev(0x10EC, 0x8139, &bus, &device, &function)) {
         DEBUG_PRINTF("rtl8139n't :c\n");
-        return;
+        return 0;
     } else {
         DEBUG_PRINTF("found rtl8139!\n");
     }
 
     if (drivers::pci::getBarType(bus, device, function, 0) != drivers::pci::bar_type::BAR_TYPE_IO) {
         DEBUG_PRINTF("tf is wrong with this rtl8139?\n");
-        return;
+        return 0;
     }
 
     uint16_t bar_io_port = drivers::pci::getBarIOAddress(bus, device, function, 0);
     if (!bar_io_port) {
         DEBUG_PRINTF("couldn't get IO address for rtl8139\n");
-        return;
+        return 0;
     }
 
     io_handle = io_pio_map(bar_io_port);
@@ -185,7 +186,7 @@ void drivers::net::rtl8139::init() {
     if (drivers::pci::enableMastering(bus, device, function)) {
         DEBUG_PRINTF("enabled mastering for rtl8139!\n");
     } else {
-        return;
+        return 0;
     }
 
     // reference: https://wiki.osdev.org/RTL8139
@@ -234,6 +235,7 @@ void drivers::net::rtl8139::init() {
     current_card = netstack_ethernet_register_card(&rtl8139_ops);
 
     DEBUG_PRINTF("rtl8139 registered!\n");
+    return 0;
 }
 
 uint8_t drivers::net::rtl8139::get_mac_byte(int n) {
@@ -242,3 +244,5 @@ uint8_t drivers::net::rtl8139::get_mac_byte(int n) {
     }
     return 0;
 }
+
+DEFINE_INITCALL(INITCALL_DRIVER_INIT, INITCALL_PRIO_NORMAL, rtl8139_init);

@@ -3,7 +3,6 @@
 #include <vix/types.h>
 
 namespace drivers::net::rtl8139 {
-    void init();
     bool sendPacket(struct ::net::ethernet_card *card, uint8_t *data, size_t len);
     uint8_t get_mac_byte(int n);
 }
