@@ -6,6 +6,7 @@
 #include <vix/arch/isr.h>
 #include <vix/drivers/keyboard.h>
 #include <vix/drivers/ms_mouse.h>
+#include <vix/initcall.h>
 #include <vix/kernel/irq.h>
 #include <vix/keyboard.h>
 #include <vix/stdio.h>
@@ -84,7 +85,7 @@ static void mouse_int_handler() {
     mouse_int_handler_base();
 }
 
-void drivers::mouse::init() {
+int mouse_init() {
     irq::register_irq_handler(mouse_int_handler, 12);
 
     ps2_write_command(0x20);
@@ -97,6 +98,7 @@ void drivers::mouse::init() {
         ps2_mouse_send_command(0xF6); // set defaults
         ps2_mouse_send_command(0xF4); // enable data reporting
     }
+    return 0;
 }
 
 // clang-format off
@@ -215,6 +217,11 @@ namespace drivers::ps2_keyboard {
     event_dispatcher<uint8_t> raw_release_events;
 }
 
-void drivers::ps2_keyboard::init() {
+int keyboard_init() {
     irq::register_irq_handler(ps2_int, 1);
+    return 0;
 }
+
+
+DEFINE_INITCALL(INITCALL_DRIVER_INIT, INITCALL_PRIO_NORMAL, mouse_init);
+DEFINE_INITCALL(INITCALL_DRIVER_INIT, INITCALL_PRIO_NORMAL, keyboard_init);
