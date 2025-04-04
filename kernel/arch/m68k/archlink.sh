@@ -5,7 +5,7 @@ source .config
 
 ldscript="arch/m68k/linker.ld"
 
-if [ "$CONFIG_PLAIN_BINARY" == "y" ]; then
+if [ "${CONFIG_PLAIN_BINARY:-}" == "y" ]; then
     ldscript="arch/m68k/linker_binary.ld"
 fi
 
