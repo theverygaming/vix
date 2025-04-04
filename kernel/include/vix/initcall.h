@@ -5,11 +5,10 @@ typedef int (*initcall_t)();
 
 void initcall_init_level(int level);
 
-#define _DEFINE_INITCALL(level, function) \
+#define DEFINE_INITCALL(level, function) \
     static initcall_t __initcall_##function __attribute__((section(".initcall" TOSTRING(level)), used)) = function
 
-// level 0: called shortly after memory allocators are initialized
-#define INITCALL_0(function) _DEFINE_INITCALL(0, function)
-
-// level 1: called from inside the very first scheduler thread (thread 0)
-#define INITCALL_1(function) _DEFINE_INITCALL(1, function)
+// called shortly after memory allocators are initialized
+#define INITCALL_AFTER_MM_INIT 0
+// called from inside the very first scheduler thread (thread 0)
+#define INITCALL_FIRST_THREAD 1
