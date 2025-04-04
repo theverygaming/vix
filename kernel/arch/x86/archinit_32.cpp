@@ -37,6 +37,9 @@
 fb::fb framebuffer; // HACK: exported so modules can use it // TODO: have a central framebuffer manager that takes care of this
 static fb::fbconsole fbconsole;
 
+static void *mb2_info;
+static size_t mb2_info_size;
+
 static void fbputc(char c) {
     fbconsole.fbputc(c);
 }
@@ -52,18 +55,18 @@ static void kernelinit(void *multiboot2_info_ptr) {
     if ((size_t)multiboot2_info_ptr & 7) {
         KERNEL_PANIC("multiboot2 info structure is not aligned, something is wrong here");
     }
+    mb2_info = multiboot2_info_ptr;
+    mb2_info_size = multiboot2::get_tags_size(mb2_info);
     int memMap_count = 0;
-    void *memMap = multiboot2::findMemMap(multiboot2_info_ptr, &memMap_count);
+    void *memMap = multiboot2::findMemMap(mb2_info, &memMap_count);
     memorymap::initMemoryMap(memMap, memMap_count);
-    if (multiboot2::find_initramfs(multiboot2_info_ptr, &initramfs_start, &initramfs_size)) {
+    if (multiboot2::find_initramfs(mb2_info, &initramfs_start, &initramfs_size)) {
         initramfs_size = ALIGN_UP(initramfs_size, 4096);
         kprintf(KP_INFO, "archinit: initramfs @ 0x%p size: 0x%p\n", initramfs_start, initramfs_size);
         if (!PTR_IS_ALIGNED(initramfs_start, CONFIG_ARCH_PAGE_SIZE)) {
             initramfs_size = 0;
         }
     }
-    framebuffer.init(multiboot2::findFrameBuffer(multiboot2_info_ptr));
-    fbconsole.init(&framebuffer);
     gdt::init();
     paging::init();
     kernelstart();
@@ -91,6 +94,20 @@ void arch::startup::stage2_startup() {
         ALIGN_UP(KERNEL_FREE_AREA_BEGIN_OFFSET, CONFIG_ARCH_PAGE_SIZE) /
             CONFIG_ARCH_PAGE_SIZE
     );
+    
+    mm::pmm::force_alloc_contiguous(
+        (mm::paddr_t)mb2_info,
+        ALIGN_UP(mb2_info_size, CONFIG_ARCH_PAGE_SIZE) /
+            CONFIG_ARCH_PAGE_SIZE
+    );
+    ASSIGN_OR_PANIC(
+        mb2_info,
+        mm::map_arbitrary_phys((mm::paddr_t)mb2_info, mb2_info_size)
+    );
+
+    framebuffer.init(multiboot2::findFrameBuffer(mb2_info));
+    fbconsole.init(&framebuffer);
+
     if (initramfs_size != 0) {
         mm::pmm::force_alloc_contiguous(
             (mm::paddr_t)initramfs_start,

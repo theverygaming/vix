@@ -120,37 +120,6 @@ void *paging::get_physaddr_unaligned(void *virtualaddr) {
     return (void *)((pagetables[pdindex][ptindex] & 0xFFFFF000) + misalignment);
 }
 
-// Both addresses have to be page-aligned!
-void paging::map_page(void *physaddr, void *virtualaddr, size_t count, bool massflush, bool global) {
-
-    uint32_t entry = make_table_entry(
-        {.address = physaddr, .global = global, .cache_disabled = false, .write_through = false, .priv = USER, .perms = RW, .present = true});
-
-    uint32_t pDirIndex;
-    uint32_t pTableIndex;
-    bool do_invlpg;
-
-    for (size_t i = 0; i < count; i++) {
-        pDirIndex = (uint32_t)virtualaddr >> 22;
-        pTableIndex = (uint32_t)virtualaddr >> 12 & 0x03FF;
-        do_invlpg = (pagetables[pDirIndex][pTableIndex] & 0x1) && !massflush;
-
-        pagetables[pDirIndex][pTableIndex] = entry;
-        if (do_invlpg) {
-            invlpg(virtualaddr);
-        }
-
-        virtualaddr = ((uint8_t *)virtualaddr) + 4096;
-        physaddr = ((uint8_t *)physaddr) + 4096;
-
-        entry = change_table_address(entry, physaddr);
-    }
-
-    if (massflush) {
-        loadPageDirectory(get_physaddr(page_directory));
-    }
-}
-
 void paging::clearPageTables(void *virtualaddr, uint32_t pagecount, bool massflush) {
     uint32_t pDirIndex;
     uint32_t pTableIndex;

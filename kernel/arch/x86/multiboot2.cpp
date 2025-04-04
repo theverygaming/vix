@@ -1,3 +1,5 @@
+#include <vix/mm/mm.h>
+#include <vix/status.h>
 #include <vix/arch/generic/archspecific.h>
 #include <vix/arch/multiboot2.h>
 #include <vix/arch/paging.h>
@@ -14,6 +16,10 @@ struct __attribute__((packed)) multiboot2_tag {
     uint32_t type;
     uint32_t size;
 };
+
+size_t multiboot2::get_tags_size(void *multiboot2_info_adr) {
+    return *((uint32_t*)multiboot2_info_adr); // first 4 bytes are the total size
+}
 
 static bool multiboot_find_tag(const void *multiboot2_info_adr, uint32_t type, struct multiboot2_tag **tag_ptr) {
     // uint32_t multiboot_size = *(uint32_t *)multiboot2_info_adr;
@@ -79,11 +85,10 @@ struct fb::fbinfo multiboot2::findFrameBuffer(const void *multiboot2_info_adr) {
             KERNEL_PANIC("framebuffer is in 64-bit address space");
         }
 
-        // rather hacky because we have no VMM
-        // TODO: there is a VMM now. NO MORE!!!
-        void *fb_virt_adr = (void *)(KERNEL_VIRT_ADDRESS + KERNEL_MEMORY_END_OFFSET);
-        //mm::pmm::force_alloc_contiguous((paddr_t)tag->framebuffer_addr, fb_bytes / CONFIG_ARCH_PAGE_SIZE);
-        paging::map_page((void *)((uintptr_t)tag->framebuffer_addr), fb_virt_adr, ALIGN_UP(fb_bytes, CONFIG_ARCH_PAGE_SIZE) / CONFIG_ARCH_PAGE_SIZE);
+        void *fb_virt_adr;
+        // FIXME: we should probably try to force alloc it? But currently force alloc can't handle errors and just panics when the fb is not in normal memory..
+        //mm::pmm::force_alloc_contiguous((mm::paddr_t)tag->framebuffer_addr, fb_bytes / CONFIG_ARCH_PAGE_SIZE);
+        ASSIGN_OR_PANIC(fb_virt_adr, mm::map_arbitrary_phys((mm::paddr_t)tag->framebuffer_addr, fb_bytes));
         return {
             .address = fb_virt_adr,
             .width = tag->framebuffer_width,

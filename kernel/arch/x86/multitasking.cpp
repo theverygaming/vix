@@ -2,6 +2,7 @@
 #include <vector>
 #include <vix/abi/linux/errno.h>
 #include <vix/arch/common/cpu.h>
+#include <vix/arch/common/paging.h>
 #include <vix/arch/cpubasics.h>
 #include <vix/arch/gdt.h>
 #include <vix/arch/multitasking.h>
@@ -12,6 +13,7 @@
 #include <vix/kprintf.h>
 #include <vix/macros.h>
 #include <vix/mm/kheap.h>
+#include <vix/mm/mm.h>
 #include <vix/mm/pmm.h>
 #include <vix/sched.h>
 #include <vix/stdio.h>
@@ -196,9 +198,16 @@ void multitasking::setPageRange(std::vector<process_pagerange> *range) {
     for (size_t i = 0; i < range->size(); i++) {
         if ((*range)[i].pages > 0) {
             size_t len = (*range)[i].pages;
-            void *virt = (void *)((*range)[i].virt_base);
-            void *phys = (void *)((*range)[i].phys_base);
-            paging::map_page(phys, virt, len, true);
+            mm::vaddr_t virt = (mm::vaddr_t)((*range)[i].virt_base);
+            mm::paddr_t phys = (mm::paddr_t)((*range)[i].phys_base);
+            for (size_t j = 0; j < len; j++) {
+                arch::vmm::set_page(
+                    virt + (j * CONFIG_ARCH_PAGE_SIZE),
+                    phys + (j * CONFIG_ARCH_PAGE_SIZE),
+                    arch::vmm::FLAGS_PRESENT | arch::vmm::FLAGS_WRITE_BACK | arch::vmm::FLAGS_USER
+                );
+                arch::vmm::flush_tlb_single(virt);
+            }
         }
     }
 }
