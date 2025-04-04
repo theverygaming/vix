@@ -27,6 +27,13 @@ jobs:
             nm: aarch64-none-elf-nm
             runcmd: qemu-system-aarch64 -m 1024m -bios "$VIX_QEMU_UEFI_BIOS_PATH" -cpu cortex-a53 -smp 4 -machine virt -device ramfb -device qemu-xhci -device usb-kbd -nographic -serial mon:stdio -hda vix_uefi.img
             ignore_test_failure: true
+          - flake: m68k
+            step_config: make alldefconfig MAKE_ARCH=m68k && make tests MAKE_ARCH=m68k
+            step_build: make MAKE_ARCH=m68k CROSS_COMPILE=m68k-elf-
+            step_bootimg: "true"
+            nm: m68k-elf-nm
+            runcmd: "true"
+            ignore_test_failure: true
     steps:
       - uses: actions/checkout@v4
         with:
