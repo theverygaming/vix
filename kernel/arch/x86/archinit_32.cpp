@@ -6,7 +6,6 @@
 #include <vix/arch/common/cpu.h>
 #include <vix/arch/cpubasics.h>
 #include <vix/arch/cpuid.h>
-#include <vix/arch/drivers/ps2.h>
 #include <vix/arch/drivers/serial.h>
 #include <vix/arch/drivers/text80x25.h>
 #include <vix/arch/elf.h>
