@@ -1,0 +1,6 @@
+START_INITCALL_LEVEL_0 = .;
+KEEP(*(.initcall0));
+END_INITCALL_LEVEL_0 = .;
+START_INITCALL_LEVEL_1 = .;
+KEEP(*(.initcall1));
+END_INITCALL_LEVEL_1 = .;
