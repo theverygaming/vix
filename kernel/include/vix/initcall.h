@@ -8,7 +8,9 @@ void initcall_init_level(int level);
 #define DEFINE_INITCALL(level, priority, function) \
     static initcall_t __initcall_##function __attribute__((section(".initcall" TOSTRING(level) "." TOSTRING(priority)), used)) = function
 
-#define INITCALL_PRIO_DEFAULT 1024
+#define INITCALL_PRIO_HIGH 1024
+#define INITCALL_PRIO_NORMAL 2048
+#define INITCALL_PRIO_LOW 3072
 
 // called almost immediately after control is handed to the kernel, shortly prior to initializing the allocators
 #define INITCALL_PRE_MM_INIT 0

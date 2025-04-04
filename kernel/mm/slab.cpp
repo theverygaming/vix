@@ -58,4 +58,4 @@ static int test_slab() {
     kprintf(KP_INFO, "slab: test end\n");
     return 0;
 }
-DEFINE_INITCALL(INITCALL_AFTER_MM_INIT, INITCALL_PRIO_DEFAULT, test_slab);
+DEFINE_INITCALL(INITCALL_AFTER_MM_INIT, INITCALL_PRIO_NORMAL, test_slab);

@@ -17,7 +17,9 @@ define_initcall_level!(INITCALL_EARLY_DRIVER_INIT, 1);
 // called from inside the very first scheduler thread (thread 0)
 define_initcall_level!(INITCALL_DRIVER_INIT, 2);
 
-define_initcall_level!(INITCALL_PRIO_DEFAULT, 1024);
+define_initcall_level!(INITCALL_PRIO_HIGH, 1024);
+define_initcall_level!(INITCALL_PRIO_NORMAL, 2048);
+define_initcall_level!(INITCALL_PRIO_LOW, 3072);
 
 #[macro_export]
 macro_rules! initcall {
