@@ -200,14 +200,17 @@ void multitasking::setPageRange(std::vector<process_pagerange> *range) {
             size_t len = (*range)[i].pages;
             mm::vaddr_t virt = (mm::vaddr_t)((*range)[i].virt_base);
             mm::paddr_t phys = (mm::paddr_t)((*range)[i].phys_base);
+#ifdef CONFIG_ARCH_HAS_PAGING
             for (size_t j = 0; j < len; j++) {
                 arch::vmm::set_page(
                     virt + (j * CONFIG_ARCH_PAGE_SIZE),
                     phys + (j * CONFIG_ARCH_PAGE_SIZE),
-                    arch::vmm::FLAGS_PRESENT | arch::vmm::FLAGS_WRITE_BACK | arch::vmm::FLAGS_USER
+                    arch::vmm::FLAGS_PRESENT | arch::vmm::FLAGS_WRITE_BACK |
+                        arch::vmm::FLAGS_USER
                 );
                 arch::vmm::flush_tlb_single(virt);
             }
+#endif
         }
     }
 }
