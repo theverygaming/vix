@@ -140,4 +140,4 @@ static int fake_card_init() {
     return 0;
 }
 
-DEFINE_INITCALL(INITCALL_FIRST_THREAD, fake_card_init);
+DEFINE_INITCALL(INITCALL_FIRST_THREAD, INITCALL_PRIO_DEFAULT, fake_card_init);

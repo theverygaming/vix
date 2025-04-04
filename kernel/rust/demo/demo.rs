@@ -19,11 +19,11 @@ extern "C" fn rust_initcall() -> core::ffi::c_int {
     return 0;
 }
 
-kernel::initcall!(kernel::INITCALL_FIRST_THREAD!(), rust_initcall, __INITCALL_RUST_INITCALL);
+kernel::initcall!(kernel::INITCALL_DRIVER_INIT!(), kernel::INITCALL_PRIO_DEFAULT!(), rust_initcall, __INITCALL_RUST_INITCALL);
 
 extern "C" fn rust_initcall2() -> core::ffi::c_int {
     kernel::klog!(kernel::klog::KP_INFO, "Rust initcall demo 2");
     return 0;
 }
 
-kernel::initcall!(kernel::INITCALL_FIRST_THREAD!(), rust_initcall2, __INITCALL_RUST_INITCALL2);
+kernel::initcall!(kernel::INITCALL_DRIVER_INIT!(), kernel::INITCALL_PRIO_DEFAULT!(), rust_initcall2, __INITCALL_RUST_INITCALL2);

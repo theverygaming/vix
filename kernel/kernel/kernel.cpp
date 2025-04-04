@@ -30,13 +30,14 @@ static void kthread0() {
     kprintf(KP_INFO, "kmain: first kernel thread started (PID %d)\n", sched::mytask()->pid);
     arch::startup::kthread0();
     //fs::vfs::print_tree();
-    initcall_init_level(INITCALL_FIRST_THREAD);
+    initcall_init_level(INITCALL_DRIVER_INIT);
     kprintf(KP_INFO, "kmain: first kernel thread dying (PID %d)\n", sched::mytask()->pid);
     sched::die();
 }
 
 void kernelstart() {
     kprintf(KP_INFO, "kmain: starting vix -- built " __DATE__ " " __TIME__ "\n");
+    initcall_init_level(INITCALL_PRE_MM_INIT);
 #ifdef CONFIG_ARCH_HAS_PAGING
     // the PMM needs the VMM to map it's bitmap etc. - so the VMM must be initialized before the PMM
     mm::vmm::init();
@@ -50,7 +51,7 @@ void kernelstart() {
 
     arch::startup::stage3_startup();
 
-    initcall_init_level(INITCALL_AFTER_MM_INIT);
+    initcall_init_level(INITCALL_EARLY_DRIVER_INIT);
 
 #ifdef CONFIG_ENABLE_TESTS
     run_all_tests();

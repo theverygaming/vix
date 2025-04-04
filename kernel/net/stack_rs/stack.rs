@@ -32,4 +32,4 @@ extern "C" fn netstack_init() -> core::ffi::c_int {
     });
     return 0;
 }
-kernel::initcall!(kernel::INITCALL_AFTER_MM_INIT!(), netstack_init, __INITCALL_NETSTACK_INIT);
+kernel::initcall!(kernel::INITCALL_EARLY_DRIVER_INIT!(), kernel::INITCALL_PRIO_DEFAULT!(), netstack_init, __INITCALL_NETSTACK_INIT);
