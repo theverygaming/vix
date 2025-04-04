@@ -27,6 +27,7 @@ struct directoryEntry {
 
 struct pagetableEntry {
     void *address;
+    bool avl_1;
     bool global;
     bool dirty;
     bool cache_disabled;
@@ -49,6 +50,7 @@ static uint32_t make_directory_entry(struct directoryEntry de) {
 
 static uint32_t make_table_entry(struct pagetableEntry pe) {
     uint32_t entry = ((uint32_t)pe.address) & 0xFFFFF000;
+    entry |= pe.avl_1 << 9;
     entry |= pe.global << 8;
     entry |= pe.dirty << 6;
     entry |= pe.cache_disabled << 4;
@@ -74,7 +76,6 @@ static struct directoryEntry get_directory_entry(uint32_t directoryEntry) {
     entry.write_through = (directoryEntry >> 3) & 0x1;
     entry.cache_disabled = (directoryEntry >> 4) & 0x1;
     // entry.accessed = (directoryEntry >> 5) & 0x1;
-    // entry.available = (directoryEntry >> 6) & 0x1;
     return entry;
 }
 
@@ -90,7 +91,7 @@ static struct pagetableEntry get_table_entry(uint32_t tableEntry) {
     entry.dirty = (tableEntry >> 6) & 0x1;
     // entry.PAT = (tableEntry >> 7) & 0x1;
     entry.global = (tableEntry >> 8) & 0x1;
-    // entry.available = (tableEntry >> 9) & 0x1;
+    entry.avl_1 = (tableEntry >> 9) & 0x1;
     return entry;
 }
 
@@ -188,6 +189,9 @@ static unsigned int entry_get_vmm_flags(struct pagetableEntry entry) {
     if (entry.global) {
         flags |= arch::vmm::FLAGS_NO_FLUSH_ON_PRIV_CHANGE;
     }
+    if (entry.avl_1) {
+        flags |= arch::vmm::FLAGS_OS_FLAG_1;
+    }
     // IA-32 has no no-execute bit
     return flags;
 }
@@ -202,6 +206,7 @@ static void entry_set_vmm_flags(struct pagetableEntry *entry, unsigned int flags
     entry->priv = flags & arch::vmm::FLAGS_USER ? page_priv::USER : page_priv::SUPERVISOR;
     entry->perms = flags & arch::vmm::FLAGS_READ_ONLY ? page_perms::R : page_perms::RW;
     entry->global = flags & arch::vmm::FLAGS_NO_FLUSH_ON_PRIV_CHANGE;
+    entry->avl_1 = flags & arch::vmm::FLAGS_OS_FLAG_1;
 }
 
 uintptr_t arch::vmm::get_page(uintptr_t virt, unsigned int *flags) {
