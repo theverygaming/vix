@@ -5,61 +5,76 @@
 #include <vix/fs/path.h>
 #include <vix/fs/vfs.h>
 #include <vix/mm/kheap.h>
+#include <vix/sched.h>
 
-//#define TEST_NEW_VFS // FIXME: this VFS testing stuff blows code up by 2K on m68k!! Fix IT!!!!
+#define TEST_NEW_VFS
 
 #ifdef TEST_NEW_VFS
-static std::shared_ptr<struct fs::vfs::node> root;
+static std::shared_ptr<struct fs::vfs::inode> root;
 #endif // TEST_NEW_VFS
 
 void fs::vfs::init() {
 #ifdef TEST_NEW_VFS
-    root = std::shared_ptr<struct fs::vfs::node>(new struct fs::vfs::node);
-    root->type = fs::vfs::node::type::DIRECTORY;
-    root->name = "";
+    root = std::shared_ptr<struct fs::vfs::inode>(new struct fs::vfs::inode);
+    root->type = fs::vfs::inode::type::DIRECTORY;
 
-    struct fs::vfs::node *node = new struct fs::vfs::node;
-    node->name = "dir 1";
-    node->type = fs::vfs::node::type::DIRECTORY;
-    root->children.push_back(std::shared_ptr<struct fs::vfs::node>(node));
+    struct fs::vfs::dirent *de = new struct fs::vfs::dirent;
+    de->name = "bin";
+    de->inode = std::shared_ptr<struct fs::vfs::inode>(new struct fs::vfs::inode);
+    de->inode->type = fs::vfs::inode::type::DIRECTORY;
+    de->inode->direntries.push_back(std::shared_ptr<struct fs::vfs::dirent>(new struct fs::vfs::dirent));
+    de->inode->direntries[0]->name = "sh";
+    de->inode->direntries[0]->inode = std::shared_ptr<struct fs::vfs::inode>(new struct fs::vfs::inode);
+    de->inode->direntries[0]->inode->type = fs::vfs::inode::type::REGULAR_FILE;
+    de->inode->direntries.push_back(std::shared_ptr<struct fs::vfs::dirent>(new struct fs::vfs::dirent));
+    de->inode->direntries[1]->name = "bash";
+    de->inode->direntries[1]->inode = std::shared_ptr<struct fs::vfs::inode>(new struct fs::vfs::inode);
+    de->inode->direntries[1]->inode->type = fs::vfs::inode::type::REGULAR_FILE;
+    root->direntries.push_back(std::shared_ptr<struct fs::vfs::dirent>(de));
 
-    node = new struct fs::vfs::node;
-    node->name = "file 1";
-    node->type = fs::vfs::node::type::REGULAR_FILE;
-    root->children.push_back(std::shared_ptr<struct fs::vfs::node>(node));
+    de = new struct fs::vfs::dirent;
+    de->name = "etc";
+    de->inode = std::shared_ptr<struct fs::vfs::inode>(new struct fs::vfs::inode);
+    de->inode->type = fs::vfs::inode::type::DIRECTORY;
+    de->inode->direntries.push_back(std::shared_ptr<struct fs::vfs::dirent>(new struct fs::vfs::dirent));
+    de->inode->direntries[0]->name = "test";
+    de->inode->direntries[0]->inode = std::shared_ptr<struct fs::vfs::inode>(new struct fs::vfs::inode);
+    de->inode->direntries[0]->inode->type = fs::vfs::inode::type::DIRECTORY;
+    de->inode->direntries[0]->inode->direntries.push_back(std::shared_ptr<struct fs::vfs::dirent>(new struct fs::vfs::dirent));
+    de->inode->direntries[0]->inode->direntries[0]->name = "test.conf";
+    de->inode->direntries[0]->inode->direntries[0]->inode = std::shared_ptr<struct fs::vfs::inode>(new struct fs::vfs::inode);
+    de->inode->direntries[0]->inode->direntries[0]->inode->type = fs::vfs::inode::type::REGULAR_FILE;
+    de->inode->direntries.push_back(std::shared_ptr<struct fs::vfs::dirent>(new struct fs::vfs::dirent));
+    de->inode->direntries[1]->name = "another-test";
+    de->inode->direntries[1]->inode = std::shared_ptr<struct fs::vfs::inode>(new struct fs::vfs::inode);
+    de->inode->direntries[1]->inode->type = fs::vfs::inode::type::DIRECTORY;
+    de->inode->direntries[1]->inode->direntries.push_back(std::shared_ptr<struct fs::vfs::dirent>(new struct fs::vfs::dirent));
+    de->inode->direntries[1]->inode->direntries[0]->name = "another_test.conf";
+    de->inode->direntries[1]->inode->direntries[0]->inode = std::shared_ptr<struct fs::vfs::inode>(new struct fs::vfs::inode);
+    de->inode->direntries[1]->inode->direntries[0]->inode->type = fs::vfs::inode::type::REGULAR_FILE;
+    de->inode->direntries[1]->inode->direntries.push_back(std::shared_ptr<struct fs::vfs::dirent>(new struct fs::vfs::dirent));
+    de->inode->direntries[1]->inode->direntries[1]->name = "another_test2.conf";
+    de->inode->direntries[1]->inode->direntries[1]->inode = std::shared_ptr<struct fs::vfs::inode>(new struct fs::vfs::inode);
+    de->inode->direntries[1]->inode->direntries[1]->inode->type = fs::vfs::inode::type::REGULAR_FILE;
+    root->direntries.push_back(std::shared_ptr<struct fs::vfs::dirent>(de));
 
-    node = new struct fs::vfs::node;
-    node->type = fs::vfs::node::type::DIRECTORY;
-    node->name = "file 3";
-
-    struct fs::vfs::node *node2 = new struct fs::vfs::node;
-    node2->name = "another file";
-    node2->type = fs::vfs::node::type::REGULAR_FILE;
-    node->children.push_back(std::shared_ptr<struct fs::vfs::node>(node2));
-
-    root->children.push_back(std::shared_ptr<struct fs::vfs::node>(node));
 #endif // TEST_NEW_VFS
 }
 
 #ifdef TEST_NEW_VFS
-static std::shared_ptr<struct fs::vfs::node> get_node(std::vector<std::string> &path) {
-    std::shared_ptr<struct fs::vfs::node> current;
-    return current;
-    //for ()
-}
-
-static void print_node(std::shared_ptr<struct fs::vfs::node> node, size_t depth) {
+static void print_node(std::shared_ptr<struct fs::vfs::inode> node, size_t depth) {
     std::string spaces;
     spaces.resize(depth * 4);
     for (size_t i = 0; i < depth * 4; i++) {
         spaces[i] = ' ';
     }
 
-    kprintf(KP_INFO, "%s-> VFS node \"%s\"\n", spaces.c_str(), node->name.c_str());
-
-    if (node->type == fs::vfs::node::type::DIRECTORY) {
-        for (size_t i = 0; i < node->children.size(); i++) {
-            print_node(node->children[i].get(), depth + 1);
+    if (node->type == fs::vfs::inode::type::DIRECTORY) {
+        for (size_t i = 0; i < node->direntries.size(); i++) {
+            kprintf(KP_INFO, "%s-> VFS node \"%s\"\n", spaces.c_str(), node->direntries[i]->name.c_str());
+            if (node->type == fs::vfs::inode::type::DIRECTORY) {
+                print_node(node->direntries[i]->inode, depth + 1);
+            }
         }
     }
 }
@@ -67,10 +82,9 @@ static void print_node(std::shared_ptr<struct fs::vfs::node> node, size_t depth)
 
 void fs::vfs::print_tree() {
 #ifdef TEST_NEW_VFS
-    sched::disable();
     kprintf(KP_INFO, "VFS tree:\n");
     print_node(root, 0);
-    KERNEL_PANIC("done");
+    kprintf(KP_INFO, "VFS tree done!\n");
 #endif // TEST_NEW_VFS
 }
 

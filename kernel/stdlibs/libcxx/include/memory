@@ -74,7 +74,6 @@ namespace std {
             if (refcount == nullptr) {
                 return;
             }
-            return; // BUG: figure out of there may be wrong code here or in VFS
             assertm(*refcount != 0, "refcount should not be zero");
             if (*refcount != 0) {
                 (*refcount)--;
