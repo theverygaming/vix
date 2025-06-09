@@ -21,6 +21,10 @@ namespace fs::vfs {
         std::vector<std::shared_ptr<struct dirent>> direntries; // TODO: we need a linked list! would be far more efficient here
     };
 
+    struct mount {
+        std::shared_ptr<struct dirent> mountpoint; // TODO: we need a linked list! would be far more efficient here
+    };
+
     /* new */
     struct fsinfo {
         void *info; // for internal use by the filesystem
