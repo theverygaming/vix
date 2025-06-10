@@ -9,6 +9,7 @@ uint32_t (*pagetables)[1024] = (uint32_t (*)[1024])(KERNEL_VIRT_ADDRESS + PAGE_T
 uint32_t *page_directory = (uint32_t *)(KERNEL_VIRT_ADDRESS + PAGE_DIRECTORY_OFFSET);
 
 extern "C" void loadPageDirectory(void *address);
+extern "C" void reloadPageDirectory();
 extern "C" void enablePaging();
 
 enum page_size { FOUR_KiB, FOUR_MB };
@@ -220,5 +221,5 @@ void arch::vmm::flush_tlb_single(uintptr_t virt) {
 }
 
 void arch::vmm::flush_tlb_all() {
-    loadPageDirectory(paging::get_physaddr(page_directory));
+    reloadPageDirectory();
 }

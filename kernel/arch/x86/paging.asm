@@ -4,6 +4,11 @@ mov eax, [esp+4]
 mov cr3, eax
 ret
 
+global reloadPageDirectory
+reloadPageDirectory:
+mov eax, cr3
+mov cr3, eax
+ret
 
 global enablePaging
 enablePaging:
