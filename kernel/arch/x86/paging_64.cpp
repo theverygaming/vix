@@ -34,5 +34,3 @@ void paging::clearPageTables(void *virtualaddr, uint32_t pagecount, bool massflu
 bool paging::is_readable(const void *virtualaddr) {
     return true;
 }
-
-void paging::copyPhysPage(void *dest, void *src) {}

@@ -149,22 +149,6 @@ bool paging::is_readable(const void *virtualaddr) {
     return pagetables[pdindex][ptindex] & 0x1;
 }
 
-void paging::copyPhysPage(void *dest, void *src) {
-    uint32_t before1 = pagetables[0][0];
-    uint32_t before2 = pagetables[0][1];
-    pagetables[0][0] = make_table_entry(
-        {.address = src, .global = false, .cache_disabled = false, .write_through = false, .priv = SUPERVISOR, .perms = RW, .present = true});
-    pagetables[0][1] = make_table_entry(
-        {.address = dest, .global = false, .cache_disabled = false, .write_through = false, .priv = SUPERVISOR, .perms = RW, .present = true});
-    invlpg((void *)0);
-    invlpg((void *)CONFIG_ARCH_PAGE_SIZE);
-    memcpy((char *)CONFIG_ARCH_PAGE_SIZE, (char *)0, CONFIG_ARCH_PAGE_SIZE);
-    pagetables[0][0] = before1;
-    pagetables[0][1] = before2;
-    invlpg((void *)0);
-    invlpg((void *)CONFIG_ARCH_PAGE_SIZE);
-}
-
 static unsigned int entry_get_vmm_flags(struct pagetableEntry entry) {
     unsigned int flags = 0;
     if (entry.present) {
