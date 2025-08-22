@@ -1,100 +1,23 @@
+#include <utility>
+#include <vix/kprintf.h>
+#include <vix/status.h>
 #include <string.h>
 #include <vix/arch/common/paging.h>
 #include <vix/arch/generic/memory.h>
 #include <vix/arch/paging.h>
 #include <vix/config.h>
+#include <vix/mm/mm.h>
+#include <vix/panic.h>
 #include <vix/stdio.h>
 
 uint32_t (*pagetables)[1024] = (uint32_t (*)[1024])(KERNEL_VIRT_ADDRESS + PAGE_TABLES_OFFSET);
 uint32_t *page_directory = (uint32_t *)(KERNEL_VIRT_ADDRESS + PAGE_DIRECTORY_OFFSET);
 
+arch::vmm::pt_t arch::vmm::kernel_pt = (uintptr_t)KERNEL_PHYS_ADDRESS + PAGE_DIRECTORY_OFFSET;
+
 extern "C" void loadPageDirectory(void *address);
 extern "C" void reloadPageDirectory();
 extern "C" void enablePaging();
-
-enum page_size { FOUR_KiB, FOUR_MB };
-enum page_priv { SUPERVISOR, USER };
-enum page_perms { R, RW };
-
-struct directoryEntry {
-    void *address;
-    enum page_size pagesize;
-    bool cache_disabled;
-    bool write_through;
-    enum page_priv priv;
-    enum page_perms perms;
-    bool present;
-};
-
-struct pagetableEntry {
-    void *address;
-    bool avl_1;
-    bool global;
-    bool dirty;
-    bool cache_disabled;
-    bool write_through;
-    enum page_priv priv;
-    enum page_perms perms;
-    bool present;
-};
-
-static uint32_t make_directory_entry(struct directoryEntry de) {
-    uint32_t entry = (uint32_t)de.address & 0xFFFFF000;
-    entry |= de.pagesize << 7;
-    entry |= de.cache_disabled << 4;
-    entry |= de.write_through << 3;
-    entry |= de.priv << 2;
-    entry |= de.perms << 1;
-    entry |= de.present;
-    return entry;
-}
-
-static uint32_t make_table_entry(struct pagetableEntry pe) {
-    uint32_t entry = ((uint32_t)pe.address) & 0xFFFFF000;
-    entry |= pe.avl_1 << 9;
-    entry |= pe.global << 8;
-    entry |= pe.dirty << 6;
-    entry |= pe.cache_disabled << 4;
-    entry |= pe.write_through << 3;
-    entry |= pe.priv << 2;
-    entry |= pe.perms << 1;
-    entry |= pe.present;
-    return entry;
-}
-
-static inline uint32_t change_table_address(uint32_t entry, void *address) {
-    uint32_t ret = ((uint32_t)address) & 0xFFFFF000;
-    ret |= entry & 0xFFF;
-    return ret;
-}
-
-static struct directoryEntry get_directory_entry(uint32_t directoryEntry) {
-    struct directoryEntry entry;
-    entry.address = (void *)(directoryEntry & 0xFFFFF000);
-    entry.present = directoryEntry & 0x1;
-    entry.perms = (page_perms)((directoryEntry >> 1) & 0x1);
-    entry.priv = (page_priv)((directoryEntry >> 2) & 0x1);
-    entry.write_through = (directoryEntry >> 3) & 0x1;
-    entry.cache_disabled = (directoryEntry >> 4) & 0x1;
-    // entry.accessed = (directoryEntry >> 5) & 0x1;
-    return entry;
-}
-
-static struct pagetableEntry get_table_entry(uint32_t tableEntry) {
-    struct pagetableEntry entry;
-    entry.address = (void *)(tableEntry & 0xFFFFF000);
-    entry.present = tableEntry & 0x1;
-    entry.perms = (page_perms)((tableEntry >> 1) & 0x1);
-    entry.priv = (page_priv)((tableEntry >> 2) & 0x1);
-    entry.write_through = (tableEntry >> 3) & 0x1;
-    entry.cache_disabled = (tableEntry >> 4) & 0x1;
-    // entry.accessed = (tableEntry >> 5) & 0x1;
-    entry.dirty = (tableEntry >> 6) & 0x1;
-    // entry.PAT = (tableEntry >> 7) & 0x1;
-    entry.global = (tableEntry >> 8) & 0x1;
-    entry.avl_1 = (tableEntry >> 9) & 0x1;
-    return entry;
-}
 
 static inline void invlpg(void *virtaddr) {
     uint32_t _virtaddr = (uint32_t)virtaddr;
@@ -122,7 +45,9 @@ void *paging::get_physaddr_unaligned(void *virtualaddr) {
     return (void *)((pagetables[pdindex][ptindex] & 0xFFFFF000) + misalignment);
 }
 
-void paging::clearPageTables(void *virtualaddr, uint32_t pagecount, bool massflush) {
+void paging::clearPageTables(
+    void *virtualaddr, uint32_t pagecount, bool massflush
+) {
     uint32_t pDirIndex;
     uint32_t pTableIndex;
     bool do_invlpg;
@@ -140,7 +65,7 @@ void paging::clearPageTables(void *virtualaddr, uint32_t pagecount, bool massflu
     }
 
     if (massflush) {
-        loadPageDirectory(get_physaddr(page_directory));
+        reloadPageDirectory();
     }
 }
 
@@ -150,70 +75,155 @@ bool paging::is_readable(const void *virtualaddr) {
     return pagetables[pdindex][ptindex] & 0x1;
 }
 
-static unsigned int entry_get_vmm_flags(struct pagetableEntry entry) {
+uintptr_t arch::vmm::get_page(uintptr_t virt, unsigned int *flags) {
+    pte_t pte;
+    ASSIGN_OR_PANIC(pte, walk(kernel_pt, virt));
+    auto pter = read_pte(pte);
+
+    *flags = pter.first;
+    return (uintptr_t)pter.second;
+}
+
+unsigned int
+arch::vmm::set_page(uintptr_t virt, uintptr_t phys, unsigned int flags) {
+    pte_t pte;
+    ASSIGN_OR_PANIC(pte, walk(kernel_pt, virt));
+    auto pter = read_pte(pte);
+
+    unsigned int flags_old = pter.first;
+
+    write_pte(pte, phys, flags);
+
+    return flags_old;
+}
+
+status::StatusOr<arch::vmm::pt_t> arch::vmm::alloc_user_pt() {
+    KERNEL_PANIC("not implemented");
+}
+
+void arch::vmm::free_user_pt(arch::vmm::pt_t pt) {
+    KERNEL_PANIC("not implemented");
+}
+
+static uint32_t phys_read(mm::paddr_t addr) {
+    // currently exclusively works for the page tables :3, will explode for everything else
+    return *((uint32_t *)(addr + (KERNEL_VIRT_ADDRESS - KERNEL_PHYS_ADDRESS)));
+}
+
+static void phys_write(mm::paddr_t addr, uint32_t val) {
+    // currently exclusively works for the page tables :3, will explode for everything else
+    *((uint32_t *)(addr + (KERNEL_VIRT_ADDRESS - KERNEL_PHYS_ADDRESS))) = val;
+}
+
+status::StatusOr<arch::vmm::pte_t> arch::vmm::walk(
+    arch::vmm::pt_t pt,
+    mm::vaddr_t vaddr,
+    bool create_pts,
+    unsigned int create_pts_flags
+) {
+    if (create_pts) {
+        KERNEL_PANIC("create_pts not implemented");
+    }
+    // inspired by xv6-riscv :3
+    mm::paddr_t pt_paddr = (mm::paddr_t)pt;
+    for (int level = 2; level >= 1; level--) {
+        // index into page table
+        pt_paddr += ((vaddr >> (2 + level * 10)) & 0x03FF) * 4;
+        // on the final level, there's no need to look any deeper, if we look deeper we'll get the physical address!
+        if (level == 1) {
+            break;
+        }
+        uint32_t pte_val = phys_read(pt_paddr);
+        // present bit set?
+        if (pte_val & 0x1) {
+            pt_paddr = pte_val & 0xFFFFF000;
+            continue;
+        }
+        return status::StatusCode::UNKNOWN_ERR;
+    }
+    return (arch::vmm::pte_t)pt_paddr;
+}
+
+std::pair<unsigned int, mm::paddr_t> arch::vmm::read_pte(arch::vmm::pte_t pte) {
+    uint32_t pte_val = phys_read(pte);
+
     unsigned int flags = 0;
-    if (entry.present) {
+    if (pte_val & 0x1) {
         flags |= arch::vmm::FLAGS_PRESENT;
     }
-    if (entry.dirty) {
+    if ((pte_val >> 5) & 0x1) {
+        flags |= arch::vmm::FLAGS_ACCESSED;
+    }
+    if ((pte_val >> 6) & 0x1) {
         flags |= arch::vmm::FLAGS_DIRTY;
     }
-    if (entry.cache_disabled) {
+    if ((pte_val >> 4) & 0x1) {
         flags |= arch::vmm::FLAGS_CACHE_DISABLE;
     }
-    if (entry.write_through) {
+    if ((pte_val >> 3) & 0x1) {
         flags |= arch::vmm::FLAGS_WRITE_THROUGH;
+    } else {
+        flags |= arch::vmm::FLAGS_WRITE_BACK;
     }
-    // FIXME: write combining flag is missing!
-    if (entry.priv == page_priv::USER) {
+    if ((pte_val >> 2) & 0x1) {
         flags |= arch::vmm::FLAGS_USER;
     }
-    if (entry.perms == page_perms::R) {
+    if (((pte_val >> 1) & 0x1) == 0) {
         flags |= arch::vmm::FLAGS_READ_ONLY;
     }
-    if (entry.global) {
+    if ((pte_val >> 8) & 0x1) {
         flags |= arch::vmm::FLAGS_NO_FLUSH_ON_PRIV_CHANGE;
     }
-    if (entry.avl_1) {
+    if ((pte_val >> 9) & 0x1) {
         flags |= arch::vmm::FLAGS_OS_FLAG_1;
     }
-    // IA-32 has no no-execute bit
-    return flags;
+    if ((pte_val >> 10) & 0x1) {
+        flags |= arch::vmm::FLAGS_OS_FLAG_2;
+    }
+
+    return {
+        flags,
+        (mm::paddr_t)(pte_val & 0xFFFFF000),
+    };
 }
 
-static void entry_set_vmm_flags(struct pagetableEntry *entry, unsigned int flags) {
-    // FIXME: write combining flag is missing!
-    entry->present = flags & arch::vmm::FLAGS_PRESENT;
-    entry->dirty = flags & arch::vmm::FLAGS_DIRTY;
-    entry->cache_disabled = flags & arch::vmm::FLAGS_CACHE_DISABLE;
-    entry->write_through = flags & arch::vmm::FLAGS_WRITE_THROUGH;
-    // FIXME: write combining flag is missing!
-    entry->priv = flags & arch::vmm::FLAGS_USER ? page_priv::USER : page_priv::SUPERVISOR;
-    entry->perms = flags & arch::vmm::FLAGS_READ_ONLY ? page_perms::R : page_perms::RW;
-    entry->global = flags & arch::vmm::FLAGS_NO_FLUSH_ON_PRIV_CHANGE;
-    entry->avl_1 = flags & arch::vmm::FLAGS_OS_FLAG_1;
-}
+void arch::vmm::write_pte(
+    arch::vmm::pte_t pte, mm::paddr_t phys, unsigned int flags
+) {
+    uint32_t pte_val = phys & 0xFFFFF000;
 
-uintptr_t arch::vmm::get_page(uintptr_t virt, unsigned int *flags) {
-    uint32_t pDirIndex = (uint32_t)virt >> 22;
-    uint32_t pTableIndex = (uint32_t)virt >> 12 & 0x03FF;
+    if (flags & arch::vmm::FLAGS_PRESENT) {
+        pte_val |= 0x1;
+    }
+    if (flags & arch::vmm::FLAGS_ACCESSED) {
+        pte_val |= (0x1 << 5);
+    }
+    if (flags & arch::vmm::FLAGS_DIRTY) {
+        pte_val |= (0x1 << 6);
+    }
+    if (flags & arch::vmm::FLAGS_CACHE_DISABLE) {
+        pte_val |= (0x1 << 4);
+    }
+    if (flags & arch::vmm::FLAGS_WRITE_THROUGH) {
+        pte_val |= (0x1 << 3);
+    }
+    if (flags & arch::vmm::FLAGS_USER) {
+        pte_val |= (0x1 << 2);
+    }
+    if ((flags & arch::vmm::FLAGS_READ_ONLY) == 0) {
+        pte_val |= (0x1 << 1);
+    }
+    if (flags & arch::vmm::FLAGS_NO_FLUSH_ON_PRIV_CHANGE) {
+        pte_val |= (0x1 << 8);
+    }
+    if (flags & arch::vmm::FLAGS_OS_FLAG_1) {
+        pte_val |= (0x1 << 9);
+    }
+    if (flags & arch::vmm::FLAGS_OS_FLAG_2) {
+        pte_val |= (0x1 << 10);
+    }
 
-    struct pagetableEntry entry = get_table_entry(pagetables[pDirIndex][pTableIndex]);
-
-    *flags = entry_get_vmm_flags(entry);
-    return (uintptr_t)entry.address;
-}
-
-unsigned int arch::vmm::set_page(uintptr_t virt, uintptr_t phys, unsigned int flags) {
-    uint32_t pDirIndex = (uint32_t)virt >> 22;
-    uint32_t pTableIndex = (uint32_t)virt >> 12 & 0x03FF;
-
-    struct pagetableEntry entry = get_table_entry(pagetables[pDirIndex][pTableIndex]);
-    unsigned int flags_old = entry_get_vmm_flags(entry);
-    entry = {.address = (void *)phys, .global = false};
-    entry_set_vmm_flags(&entry, flags);
-    pagetables[pDirIndex][pTableIndex] = make_table_entry(entry);
-    return flags_old;
+    phys_write(pte, pte_val);
 }
 
 void arch::vmm::flush_tlb_single(uintptr_t virt) {
