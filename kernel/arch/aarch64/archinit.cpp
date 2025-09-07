@@ -6,6 +6,8 @@
 #include <vix/arch/startup.h>
 #include <vix/config.h>
 #include <vix/framebuffer.h>
+#include <vix/fs/tarfs.h>
+#include <vix/fs/vfs.h>
 #include <vix/kernel.h>
 #include <vix/mm/kheap.h>
 #include <vix/mm/memmap.h>
@@ -18,11 +20,18 @@ static fb::fbconsole fbconsole;
 
 static volatile uint8_t static_alloc_mem[4096 * 1000];
 
-static volatile struct limine_terminal_request terminal_request = {.id = LIMINE_TERMINAL_REQUEST, .revision = 0};
+static volatile struct limine_memmap_request memmap_request = {
+    .id = LIMINE_MEMMAP_REQUEST, .revision = 0
+};
+static volatile struct limine_framebuffer_request framebuffer_request = {
+    .id = LIMINE_FRAMEBUFFER_REQUEST, .revision = 0
+};
+static volatile struct limine_module_request module_request = {
+    .id = LIMINE_MODULE_REQUEST, .revision = 0
+};
 
-static void limineputc(char c) {
-    struct limine_terminal *terminal = terminal_request.response->terminals[0];
-    terminal_request.response->write(terminal, &c, 1);
+static void fbputc(char c) {
+    fbconsole.fbputc(c);
 }
 
 static volatile bool done = false;
@@ -33,11 +42,26 @@ static void cpuinit(uint64_t cpu) {
     while (true) {}
 }
 
+// FIXME: whenever stack smashing protector is enabled on aarch64 it breaks
+
 static void kernelinit() {
-    if (terminal_request.response == nullptr || terminal_request.response->terminal_count < 1) {
+    if (framebuffer_request.response == nullptr ||
+        framebuffer_request.response->framebuffer_count < 1) {
         while (true) {}
     }
-    stdio::set_putc_function(limineputc, true);
+    struct limine_framebuffer *limine_framebuffer =
+        framebuffer_request.response->framebuffers[0];
+    struct fb::fbinfo fbinfo = {
+        .address = limine_framebuffer->address,
+        .width = limine_framebuffer->width,
+        .height = limine_framebuffer->height,
+        .pitch = limine_framebuffer->pitch,
+        .bpp = limine_framebuffer->bpp,
+        .rgb = true,
+        .monochrome = false,
+    };
+    framebuffer.init(fbinfo);
+    fbconsole.init(&framebuffer);
     puts("entry\n");
     // puts("enabling timer\n");
     // drivers::timer::init();
@@ -60,14 +84,17 @@ extern "C" void _kentry() {
 void arch::startup::stage2_startup() {}
 
 void arch::startup::stage3_startup() {
-    /*struct fb::fbinfo info;
-    if (drivers::gpu::setup_fb(1280, 720, 32, &info)) {
-        puts("got FB!\n");
-        framebuffer.init(info);
-        fbconsole.init(&framebuffer);
+    if (module_request.response != nullptr &&
+        module_request.response->module_count > 0) {
+        if (fs::filesystems::tarfs::init(
+                module_request.response->modules[0]->address
+            )) {
+            fs::filesystems::tarfs::mountInVFS();
+        }
     }
-    fbconsole.init2();*/
-    // stdio::set_putc_function(fbputc);
+    framebuffer.clear();
+    fbconsole.init2();
+    stdio::set_putc_function(fbputc);
     printf("Hello aarch64!\n");
     time::bootupTime = time::getCurrentUnixTime();
 }
