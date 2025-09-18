@@ -5,7 +5,7 @@ parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
 cd "$parent_path"
 
 
-cp ../kernel_shitshell.bin rootfs-x86_32/boot/kernel.bin
+cp ../kernel.bin rootfs-x86_32/boot/kernel.bin
 cp ../roramfs.fs rootfs-x86_32/boot/initramfs.bin
 grub-mkrescue -o ../vix.iso rootfs-x86_32/
 exit
@@ -40,7 +40,7 @@ else
 fi
 
 e2cp rootfs-x86_32/boot/limine.conf -G 0 -O 0 image_extracted.img:/boot/
-e2cp ../kernel_shitshell.bin -G 0 -O 0 image_extracted.img:/boot/kernel.bin
+e2cp ../kernel.bin -G 0 -O 0 image_extracted.img:/boot/kernel.bin
 e2cp ../roramfs.fs -G 0 -O 0 image_extracted.img:/boot/initramfs.bin
 
 dd if=image_extracted.img of=image.img bs=512 seek=2048 # write partition back to image
@@ -77,7 +77,7 @@ else
 fi
 
 mcopy -i image_extracted.img rootfs-x86_32/boot/limine.conf ::boot/
-mcopy -i image_extracted.img ../kernel_shitshell.bin ::boot/kernel.bin
+mcopy -i image_extracted.img ../kernel.bin ::boot/kernel.bin
 mcopy -i image_extracted.img ../roramfs.fs ::boot/initramfs.bin
 
 mmd -i image_extracted.img ::EFI

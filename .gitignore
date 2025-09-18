@@ -9,7 +9,6 @@
 *.rlib
 *.ors
 
-kernel_shitshell.bin
 kernel.bin
 initramfs.bin
 

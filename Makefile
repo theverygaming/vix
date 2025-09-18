@@ -27,7 +27,6 @@ bootimg-x86-32:
 	@cp modules/module.o sysroot/usr/lib/modules
 	@cp fonts/Unifont-APL8x16-15.0.01.psf sysroot/usr/share/consolefonts
 	@find sysroot/ -printf "%P\n" | tar --format=ustar -cf roramfs.fs --no-recursion -C sysroot/ -T -
-	@cat kernel.bin roramfs.fs /dev/zero | dd status=none iflag=fullblock of=kernel_shitshell.bin bs=65536 count=83
 	@boot/createimg-x86_32.sh
 
 bootimg-x86-64:
