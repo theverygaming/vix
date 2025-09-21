@@ -1,6 +1,6 @@
 #include <vix/mm/mm.h>
 #include <vix/status.h>
-#include <vix/arch/generic/archspecific.h>
+#include <vix/config.h>
 #include <vix/arch/multiboot2.h>
 #include <vix/arch/paging.h>
 #include <vix/config.h>

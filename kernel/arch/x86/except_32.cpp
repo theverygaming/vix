@@ -25,7 +25,7 @@ static void do_stack_trace(uintptr_t ebp) {
         DEBUG_PRINTF("trace: p: 0x%p ebp: 0x%p eip: 0x%p\n", p, p->eip, p->ebp);
         st_print_ip(p->eip);
         p = p->ebp;
-        if ((uintptr_t)p->ebp < KERNEL_VIRT_ADDRESS) {
+        if ((uintptr_t)p->ebp < CONFIG_KERNEL_HIGHER_HALF) {
             break;
         }
     }
@@ -78,7 +78,7 @@ extern "C" void handle_x86_except(struct arch::full_ctx *regs) {
                 regs->esp,
                 regs->ebp,
                 regs->eip);
-        if ((regs->eip >= KERNEL_VIRT_ADDRESS) && (regs->eip < KERNEL_VIRT_ADDRESS + KERNEL_MEMORY_END_OFFSET)) {
+        if (regs->eip >= CONFIG_KERNEL_HIGHER_HALF) {
             st_print_ip(regs->eip);
             do_stack_trace(regs->ebp);
             KERNEL_PANIC("kernel page fault");

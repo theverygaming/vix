@@ -1,6 +1,6 @@
 #include <string.h>
 #include <vix/arch/gdt.h>
-#include <vix/arch/generic/archspecific.h>
+#include <vix/config.h>
 #include <vix/arch/tss.h>
 #include <vix/debug.h>
 #include <vix/kprintf.h>
