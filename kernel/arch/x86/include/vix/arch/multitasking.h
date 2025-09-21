@@ -25,7 +25,14 @@ namespace multitasking {
     void initMultitasking();
     void interruptTrigger();
     void create_task(void *stackadr, void *codeadr, std::vector<process_pagerange> *pagerange, std::vector<std::string> *argv);
-    bool createPageRange(std::vector<process_pagerange> *range, uint32_t max_address = CONFIG_KERNEL_HIGHER_HALF);
+    bool createPageRange(
+        std::vector<process_pagerange> *range,
+#ifdef CONFIG_ARCH_HAS_PAGING
+        uint32_t max_address = CONFIG_KERNEL_HIGHER_HALF
+#else
+        uint32_t max_address = UINTPTR_MAX
+#endif
+    );
     void setPageRange(std::vector<process_pagerange> *range);
     void unsetPageRange(std::vector<process_pagerange> *range);
     void freePageRange(std::vector<process_pagerange> *range);
