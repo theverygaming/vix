@@ -51,7 +51,10 @@ status::StatusOr<void *> mm::map_arbitrary_phys(
     if (phys >= CONFIG_HHDM_PHYS_BASE && phys < CONFIG_HHDM_PHYS_BASE + CONFIG_HHDM_SIZE) {
         return (void *)(CONFIG_HHDM_VIRT_BASE + (phys - CONFIG_HHDM_PHYS_BASE));
     }
-    // TODO: this won't support unaligned stuff, but doesn't check either and it's not documented
+    // TODO: support unaligned
+    if (!IS_ALIGNED(phys, CONFIG_ARCH_PAGE_SIZE)) {
+        return status::StatusCode::UNKNOWN_ERR;
+    }
     size_t pages =
         (ALIGN_UP(bytes, CONFIG_ARCH_PAGE_SIZE)) / CONFIG_ARCH_PAGE_SIZE;
     unsigned int vm_flags =
@@ -76,6 +79,7 @@ void mm::unmap_arbitrary_phys(void *addr, size_t bytes) {
     if (((uintptr_t)addr)>= CONFIG_HHDM_VIRT_BASE && ((uintptr_t)addr) < CONFIG_HHDM_VIRT_BASE + CONFIG_HHDM_SIZE) {
         return;
     }
+    // TODO: support unaligned
     size_t n_pages =
         (ALIGN_UP(bytes, CONFIG_ARCH_PAGE_SIZE)) / CONFIG_ARCH_PAGE_SIZE;
     for (size_t i = 0; i < n_pages; i++) {
