@@ -5,19 +5,12 @@
 #include <vix/mm/memmap.h>
 #include <vix/panic.h>
 
-typedef struct {
-    uint64_t start;
-    uint64_t end;
+struct __attribute__((packed)) e820_entry {
+    uint64_t base;
+    uint64_t length;
     uint32_t type;
-} MemMapEntry;
-
-namespace memorymap {
-    SMAP_entry map_entries[MEMMAP_MAX_ENTRIES];
-    int map_entrycount = MEMMAP_MAX_ENTRIES;
-    size_t total_ram;
-}
-
-static struct mm::mem_map_entry converted_entries[MEMMAP_MAX_ENTRIES];
+    uint32_t reserved;
+};
 
 static mm::mem_map_entry::type_t convert_from_e820(uint32_t e820_type) {
     switch (e820_type) {
@@ -40,24 +33,35 @@ static mm::mem_map_entry::type_t convert_from_e820(uint32_t e820_type) {
     }
 }
 
-void memorymap::initMemoryMap(void *mapadr, int entrycount) {
-    memset(converted_entries, 0, MEMMAP_MAX_ENTRIES * sizeof(struct mm::mem_map_entry));
-    if (entrycount > MEMMAP_MAX_ENTRIES) {
-        KERNEL_PANIC("memmap: got %d memory map entries, MEMMAP_MAX_ENTRIES too low(%d)", entrycount, MEMMAP_MAX_ENTRIES);
-    }
-    SMAP_entry *entries = (SMAP_entry *)mapadr;
-    memcpy(&map_entries, entries, entrycount * sizeof(map_entries[0]));
-    for (int i = 0; i < entrycount; i++) {
-        DEBUG_PRINTF("#%d -> base: %u, length: %u type: %u\n",
-                     i,
-                     (uint32_t)(map_entries[i].Base & 0xFFFFFFFF),
-                     (uint32_t)(map_entries[i].Length & 0xFFFFFFFF),
-                     map_entries[i].Type);
-        converted_entries[i].base = map_entries[i].Base;
-        converted_entries[i].size = map_entries[i].Length;
-        converted_entries[i].type = convert_from_e820(map_entries[i].Type);
-    }
+void memorymap::initMemoryMap(void *mapadr, size_t entrycount, struct mm::mem_map_entry (*extra_entries)(size_t n), size_t extra_entry_count) {
+    struct set_mem_map_ctx {
+        size_t entrycount;
+        struct mm::mem_map_entry (*extra_entries)(size_t n);
+        struct e820_entry *entries;
+    };
 
-    kprintf(KP_INFO, "memorymap: initialized\n");
-    mm::set_mem_map(converted_entries, MEMMAP_MAX_ENTRIES);
+    struct set_mem_map_ctx extra_entries_ctx = {
+        .entrycount = entrycount,
+        .extra_entries = extra_entries,
+        .entries = (struct e820_entry *)mapadr,
+    };
+
+    mm::set_mem_map(
+        [](void *ctx, size_t n) -> struct mm::mem_map_entry {
+            struct set_mem_map_ctx *c = (struct set_mem_map_ctx *)ctx;
+            if (n >= c->entrycount) {
+                return c->extra_entries(n - c->entrycount);
+            }
+
+            struct mm::mem_map_entry r = {
+                .base = c->entries[n].base,
+                .size = c->entries[n].length,
+                .type = convert_from_e820(c->entries[n].type),
+            };
+
+            return r;
+        },
+        entrycount + extra_entry_count,
+        &extra_entries_ctx
+    );
 }

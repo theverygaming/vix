@@ -21,7 +21,7 @@ extern "C" uint8_t __bss_end;
 static void kernelinit() {
     stdio::set_putc_function(ets_write_char_uart, true);
     mm::set_mem_map(
-        [](size_t n) -> struct mm::mem_map_entry {
+        [](void *, size_t n) -> struct mm::mem_map_entry {
             struct mm::mem_map_entry r;
 
             r.base = (uintptr_t)&__bss_end;
@@ -62,7 +62,9 @@ extern "C" void _kentry() {
 
 void arch::startup::stage2_startup() {}
 
-void arch::startup::stage3_startup() {
+void arch::startup::stage3_startup() {}
+
+void arch::startup::stage4_startup() {
     time::bootupTime = time::getCurrentUnixTime();
 }
 

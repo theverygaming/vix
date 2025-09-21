@@ -1,33 +1,28 @@
-ENTRY(_kentry)
+/* TODO: run linker scripts trough C preprocessor - like linux does with .lds.S files */
+ENTRY(_prekernel_entry)
 
 PAGE = 0x1000;
 
-KERNEL_START = 0x1EA000;
+/* load the kernel into high memory right at 1MiB */
+KERNEL_PHYS_START = 0x100000;
 HIGHER_HALF = 0xC0000000;
-KERNEL_OFFSET = HIGHER_HALF - KERNEL_START;
-
-MEMORY
-{
-	ram (rwx) : org = 0xC0000000, l = 0xF0000
-}
 
 SECTIONS {
-	. = KERNEL_START + KERNEL_OFFSET;
+	. = HIGHER_HALF + KERNEL_PHYS_START;
 
-	.entry ALIGN(PAGE) : AT(ADDR(.entry) - KERNEL_OFFSET) {
+	_kcode_start = ABSOLUTE(.);
+
+	.text ALIGN(PAGE) : AT(ADDR(.text) - HIGHER_HALF) {
 		KEEP(*(.entry))
-	}>ram
-
-	.text ALIGN(PAGE) : AT(ADDR(.text) - KERNEL_OFFSET) {
 		KEEP(*(.text))
 		KEEP(*(.tests))
-	}>ram
+	}
 
-	.rodata ALIGN(PAGE) : AT(ADDR(.rodata) - KERNEL_OFFSET) {
+	.rodata ALIGN(PAGE) : AT(ADDR(.rodata) - HIGHER_HALF) {
 		KEEP(*(.rodata))
-	}>ram
+	}
 
-	.data ALIGN(PAGE) : AT(ADDR(.data) - KERNEL_OFFSET) {
+	.data ALIGN(PAGE) : AT(ADDR(.data) - HIGHER_HALF) {
         START_CONSTRUCTORS_INITARR = .;
         KEEP(*(.init_array));
         KEEP(*(SORT_BY_INIT_PRIORITY(.init_array.*)));
@@ -41,11 +36,13 @@ SECTIONS {
         KEEP(*(.sym_table))
         PROVIDE(symtab_start = .);
         PROVIDE(symtab_end = .);
-	}>ram
+	}
 
-	.bss ALIGN(PAGE) : AT(ADDR(.bss) - KERNEL_OFFSET) {
+	.bss ALIGN(PAGE) : AT(ADDR(.bss) - HIGHER_HALF) {
 		_bss_start = ABSOLUTE(.);
 		KEEP(*(.bss))
 		_bss_end = ABSOLUTE(.);
-	}>ram
+	}
+
+	_kcode_end = ABSOLUTE(.);
 }

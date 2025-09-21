@@ -1,78 +1,56 @@
 #include <utility>
-#include <vix/kprintf.h>
-#include <vix/status.h>
-#include <string.h>
 #include <vix/arch/common/paging.h>
 #include <vix/arch/generic/memory.h>
 #include <vix/arch/paging.h>
 #include <vix/config.h>
+#include <vix/kprintf.h>
 #include <vix/mm/mm.h>
+#include <vix/mm/pmm.h>
 #include <vix/panic.h>
+#include <vix/status.h>
 #include <vix/stdio.h>
 
-uint32_t (*pagetables)[1024] = (uint32_t (*)[1024])(KERNEL_VIRT_ADDRESS + PAGE_TABLES_OFFSET);
-uint32_t *page_directory = (uint32_t *)(KERNEL_VIRT_ADDRESS + PAGE_DIRECTORY_OFFSET);
-
-arch::vmm::pt_t arch::vmm::kernel_pt = (uintptr_t)KERNEL_PHYS_ADDRESS + PAGE_DIRECTORY_OFFSET;
+arch::vmm::pt_t arch::vmm::kernel_pt = 0;
 
 extern "C" void loadPageDirectory(void *address);
 extern "C" void reloadPageDirectory();
 extern "C" void enablePaging();
 
-static inline void invlpg(void *virtaddr) {
-    uint32_t _virtaddr = (uint32_t)virtaddr;
-    asm volatile("invlpg (%0)" ::"r"(_virtaddr) : "memory");
+static inline void invlpg(uintptr_t virtaddr) {
+    asm volatile("invlpg (%0)" ::"r"(virtaddr) : "memory");
 }
 
 void paging::init() {
-    clearPageTables((void *)0x0, KERNEL_VIRT_ADDRESS / CONFIG_ARCH_PAGE_SIZE);
-}
-
-void *paging::get_physaddr(void *virtualaddr) {
-    unsigned long pdindex = (unsigned long)virtualaddr >> 22;
-    unsigned long ptindex = (unsigned long)virtualaddr >> 12 & 0x03FF;
-
-    // TODO: check if entry is actually present
-    return (void *)(pagetables[pdindex][ptindex] & 0xFFFFF000);
-}
-
-void *paging::get_physaddr_unaligned(void *virtualaddr) {
-    uint64_t misalignment = ((uint64_t)virtualaddr) % CONFIG_ARCH_PAGE_SIZE;
-    unsigned long pdindex = (unsigned long)virtualaddr >> 22;
-    unsigned long ptindex = (unsigned long)virtualaddr >> 12 & 0x03FF;
-
-    // TODO: check if entry is actually present
-    return (void *)((pagetables[pdindex][ptindex] & 0xFFFFF000) + misalignment);
-}
-
-void paging::clearPageTables(
-    void *virtualaddr, uint32_t pagecount, bool massflush
-) {
-    uint32_t pDirIndex;
-    uint32_t pTableIndex;
-    bool do_invlpg;
-
-    for (size_t i = 0; i < pagecount; i++) {
-        pDirIndex = (uint32_t)virtualaddr >> 22;
-        pTableIndex = (uint32_t)virtualaddr >> 12 & 0x03FF;
-        do_invlpg = (pagetables[pDirIndex][pTableIndex] & 0x1) && !massflush;
-
-        pagetables[pDirIndex][pTableIndex] = 0;
-        if (do_invlpg) {
-            invlpg(virtualaddr);
+    // TODO: we should ask the allocator to give us memory in the HHDM range
+    ASSIGN_OR_PANIC(arch::vmm::kernel_pt, mm::pmm::alloc_contiguous(
+        (
+            // page directory
+            (1024*4)
+            // page tables
+            + (1024*(1024*4))
+        ) / CONFIG_ARCH_PAGE_SIZE
+    ));
+    // initialize the page directory
+    uint32_t *pd = (uint32_t*)arch::vmm::kernel_pt;
+    uint32_t (*pt)[1024] = (uint32_t(*)[1024])(arch::vmm::kernel_pt + CONFIG_ARCH_PAGE_SIZE);
+    for(int i = 0; i < 1024; i++) {
+        pd[i] = (uintptr_t)pt[i] & 0xFFFFF000;
+        pd[i] |= 1; // present
+        pd[i] |= (1 << 1); // RW
+        pd[i] |= (1 << 1); // RW
+        for(int j = 0; j < 1024; j++) {
+            pt[i][j] = 0;
         }
-        virtualaddr = ((uint8_t *)virtualaddr) + 4096;
     }
-
-    if (massflush) {
-        reloadPageDirectory();
+    // map the HHDM (only thing that was mapped before too)
+    for (uintptr_t addr = CONFIG_HHDM_VIRT_BASE; addr < CONFIG_HHDM_VIRT_BASE+CONFIG_HHDM_SIZE; addr += CONFIG_ARCH_PAGE_SIZE) {
+        arch::vmm::set_page(
+            addr,
+            CONFIG_HHDM_PHYS_BASE + (addr - CONFIG_HHDM_VIRT_BASE),
+            arch::vmm::FLAGS_PRESENT
+        );
     }
-}
-
-bool paging::is_readable(const void *virtualaddr) {
-    uint32_t pdindex = (uint32_t)virtualaddr >> 22;
-    uint32_t ptindex = (uint32_t)virtualaddr >> 12 & 0x03FF;
-    return pagetables[pdindex][ptindex] & 0x1;
+    loadPageDirectory(pd);
 }
 
 uintptr_t arch::vmm::get_page(uintptr_t virt, unsigned int *flags) {
@@ -80,7 +58,9 @@ uintptr_t arch::vmm::get_page(uintptr_t virt, unsigned int *flags) {
     ASSIGN_OR_PANIC(pte, walk(kernel_pt, virt));
     auto pter = read_pte(pte);
 
-    *flags = pter.first;
+    if (flags != nullptr) {
+        *flags = pter.first;
+    }
     return (uintptr_t)pter.second;
 }
 
@@ -106,13 +86,19 @@ void arch::vmm::free_user_pt(arch::vmm::pt_t pt) {
 }
 
 static uint32_t phys_read(mm::paddr_t addr) {
-    // currently exclusively works for the page tables :3, will explode for everything else
-    return *((uint32_t *)(addr + (KERNEL_VIRT_ADDRESS - KERNEL_PHYS_ADDRESS)));
+    if (addr <= CONFIG_HHDM_PHYS_BASE ||
+        addr >= (CONFIG_HHDM_PHYS_BASE + CONFIG_HHDM_SIZE)) {
+        KERNEL_PANIC("phys_read: out of HHDM range: 0x%p", addr);
+    }
+    return *((uint32_t *)((addr - CONFIG_HHDM_PHYS_BASE) + CONFIG_HHDM_VIRT_BASE));
 }
 
 static void phys_write(mm::paddr_t addr, uint32_t val) {
-    // currently exclusively works for the page tables :3, will explode for everything else
-    *((uint32_t *)(addr + (KERNEL_VIRT_ADDRESS - KERNEL_PHYS_ADDRESS))) = val;
+    if (addr <= CONFIG_HHDM_PHYS_BASE ||
+        addr >= (CONFIG_HHDM_PHYS_BASE + CONFIG_HHDM_SIZE)) {
+        KERNEL_PANIC("phys_read: out of HHDM range: 0x%p", addr);
+    }
+    *((uint32_t *)((addr - CONFIG_HHDM_PHYS_BASE) + CONFIG_HHDM_VIRT_BASE)) = val;
 }
 
 status::StatusOr<arch::vmm::pte_t> arch::vmm::walk(
@@ -227,7 +213,7 @@ void arch::vmm::write_pte(
 }
 
 void arch::vmm::flush_tlb_single(uintptr_t virt) {
-    invlpg((void *)virt);
+    invlpg(virt);
 }
 
 void arch::vmm::flush_tlb_all() {

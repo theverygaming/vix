@@ -83,7 +83,9 @@ extern "C" void _kentry() {
 
 void arch::startup::stage2_startup() {}
 
-void arch::startup::stage3_startup() {
+void arch::startup::stage3_startup() {}
+
+void arch::startup::stage4_startup() {
     if (module_request.response != nullptr &&
         module_request.response->module_count > 0) {
         if (fs::filesystems::tarfs::init(

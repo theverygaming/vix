@@ -46,9 +46,14 @@ status::StatusOr<void *> mm::map_arbitrary_phys(
     // FIXME: this should not be ignored!!! (NOTE: when done update comments in mm.h)
     vaddr_range vrange
 ) {
+#ifdef CONFIG_ARCH_HAS_PAGING
+    // in the HHDM?
+    if (phys >= CONFIG_HHDM_PHYS_BASE && phys < CONFIG_HHDM_PHYS_BASE + CONFIG_HHDM_SIZE) {
+        return (void *)(CONFIG_HHDM_VIRT_BASE + (phys - CONFIG_HHDM_PHYS_BASE));
+    }
+    // TODO: this won't support unaligned stuff, but doesn't check either and it's not documented
     size_t pages =
         (ALIGN_UP(bytes, CONFIG_ARCH_PAGE_SIZE)) / CONFIG_ARCH_PAGE_SIZE;
-#ifdef CONFIG_ARCH_HAS_PAGING
     unsigned int vm_flags =
         arch::vmm::FLAGS_PRESENT | get_vm_extra_flags(attrs);
 
@@ -67,6 +72,10 @@ status::StatusOr<void *> mm::map_arbitrary_phys(
 
 void mm::unmap_arbitrary_phys(void *addr, size_t bytes) {
 #ifdef CONFIG_ARCH_HAS_PAGING
+    // in the HHDM?
+    if (((uintptr_t)addr)>= CONFIG_HHDM_VIRT_BASE && ((uintptr_t)addr) < CONFIG_HHDM_VIRT_BASE + CONFIG_HHDM_SIZE) {
+        return;
+    }
     size_t n_pages =
         (ALIGN_UP(bytes, CONFIG_ARCH_PAGE_SIZE)) / CONFIG_ARCH_PAGE_SIZE;
     for (size_t i = 0; i < n_pages; i++) {

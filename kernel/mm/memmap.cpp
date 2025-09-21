@@ -46,12 +46,110 @@ static void align_map(struct mm::mem_map_entry *map, size_t len) {
 */
 
 #ifdef CONFIG_ENABLE_MEMMAP_SANITIZE
-static void sanitize(const struct mm::mem_map_entry *in,
-                     struct mm::mem_map_entry (*get_entry)(size_t n),
-                     bool use_func,
-                     size_t in_len,
-                     struct mm::mem_map_entry *out,
-                     size_t out_len) {
+static void sanitize_usable_entry(
+    const struct mm::mem_map_entry *in,
+    struct mm::mem_map_entry (*get_entry)(void *ctx, size_t n),
+    void *get_entry_ctx,
+    bool use_func,
+    size_t in_len,
+    struct mm::mem_map_entry *out,
+    size_t out_len,
+    struct mm::mem_map_entry in_ent,
+    size_t *out_i
+) {
+    uint64_t f_base = in_ent.base;
+    uint64_t f_size = in_ent.size;
+    for (size_t j = 0; j < in_len; j++) {
+        struct mm::mem_map_entry in_ent2;
+        if (use_func) {
+            in_ent2 = get_entry(get_entry_ctx, j);
+        } else {
+            in_ent2 = in[j];
+        }
+
+        if (in_ent2.size == 0 || mm::memmap_is_usable(in_ent2.type)) {
+            continue;
+        }
+
+        uint64_t end = f_base + f_size;
+        uint64_t cmp_end = in_ent2.base + in_ent2.size;
+
+        if (in_ent2.base >= f_base && end > cmp_end) {
+            // inside: split into two pieces
+            struct mm::mem_map_entry lower = {
+                .base = f_base,
+                .size = in_ent2.base - f_base,
+                .type = in_ent.type,
+            };
+            struct mm::mem_map_entry upper = {
+                .base = cmp_end,
+                .size = end - cmp_end,
+                .type = in_ent.type,
+            };
+
+            if (lower.size > 0) {
+                sanitize_usable_entry(
+                    in,
+                    get_entry,
+                    get_entry_ctx,
+                    use_func,
+                    in_len,
+                    out,
+                    out_len,
+                    lower,
+                    out_i
+                );
+            }
+
+            if (upper.size > 0) {
+                sanitize_usable_entry(
+                    in,
+                    get_entry,
+                    get_entry_ctx,
+                    use_func,
+                    in_len,
+                    out,
+                    out_len,
+                    upper,
+                    out_i
+                );
+            }
+
+            return; // stop processing current entry (it's been split up and added seperately so..)
+        } else if (in_ent2.base <= f_base && cmp_end > end) {
+            // full overlap
+            f_size = 0;
+            break;
+        } else if (cmp_end > end && in_ent2.base > f_base && in_ent2.base < end) {
+            // above
+            f_size = in_ent2.base - f_base;
+        } else if (cmp_end > f_base && in_ent2.base <= f_base) {
+            // below/equal
+            f_base = cmp_end;
+            f_size = end - f_base;
+        }
+    }
+    if (in_ent.size) {
+        if (*out_i >= out_len) {
+            KERNEL_PANIC("ran out of memory map space, try increasing CONFIG_MEMMAP_MAX_ENTRIES");
+            return;
+        }
+        out[*out_i].base = f_base;
+        out[*out_i].size = f_size;
+        out[*out_i].type = in_ent.type;
+        (*out_i)++;
+    }
+}
+
+static void sanitize(
+    const struct mm::mem_map_entry *in,
+    struct mm::mem_map_entry (*get_entry)(void *ctx, size_t n),
+    void *get_entry_ctx,
+    bool use_func,
+    size_t in_len,
+    struct mm::mem_map_entry *out,
+    size_t out_len
+) {
     size_t out_i = 0;
     if (out_i >= out_len) {
         KERNEL_PANIC("ran out of memory map space, try increasing CONFIG_MEMMAP_MAX_ENTRIES");
@@ -60,7 +158,7 @@ static void sanitize(const struct mm::mem_map_entry *in,
     for (size_t i = 0; i < in_len; i++) {
         struct mm::mem_map_entry in_ent;
         if (use_func) {
-            in_ent = get_entry(i);
+            in_ent = get_entry(get_entry_ctx, i);
         } else {
             in_ent = in[i];
         }
@@ -68,54 +166,20 @@ static void sanitize(const struct mm::mem_map_entry *in,
             continue;
         }
 
-        uint64_t f_base = in_ent.base;
-        uint64_t f_size = in_ent.size;
-
         if (mm::memmap_is_usable(in_ent.type)) {
-            for (size_t j = 0; j < in_len; j++) {
-
-                struct mm::mem_map_entry in_ent2;
-                if (use_func) {
-                    in_ent2 = get_entry(j);
-                } else {
-                    in_ent2 = in[j];
-                }
-
-                if (i == j || in_ent2.size == 0 || mm::memmap_is_usable(in_ent2.type)) {
-                    continue;
-                }
-
-                uint64_t end = f_base + f_size;
-                uint64_t cmp_end = in_ent2.base + in_ent2.size;
-
-                if (in_ent2.base >= f_base && end > cmp_end) {
-                    // inside
-                    KERNEL_PANIC("unsupported: usable memory mab entry inside free entry");
+            sanitize_usable_entry(in, get_entry, get_entry_ctx, use_func, in_len, out, out_len, in_ent, &out_i);
+        } else {
+            // just add non-usable entries unchanged
+            if (in_ent.size) {
+                if (out_i >= out_len) {
+                    KERNEL_PANIC("ran out of memory map space, try increasing CONFIG_MEMMAP_MAX_ENTRIES");
                     return;
-                } else if (in_ent2.base <= f_base && cmp_end > end) {
-                    // full overlap
-                    f_size = 0;
-                    break;
-                } else if (cmp_end > end && in_ent2.base > f_base && in_ent2.base < end) {
-                    // above
-                    f_size = in_ent2.base - f_base;
-                } else if (cmp_end > f_base && in_ent2.base <= f_base) {
-                    // below/equal
-                    f_base = cmp_end;
-                    f_size = end - f_base;
                 }
+                out[out_i].base = in_ent.base;
+                out[out_i].size = in_ent.size;
+                out[out_i].type = in_ent.type;
+                out_i++;
             }
-        }
-
-        if (f_size != 0) {
-            if (out_i >= out_len) {
-                KERNEL_PANIC("ran out of memory map space, try increasing CONFIG_MEMMAP_MAX_ENTRIES");
-                return;
-            }
-            out[out_i].base = f_base;
-            out[out_i].size = f_size;
-            out[out_i].type = in_ent.type;
-            out_i++;
         }
     }
 
@@ -206,23 +270,36 @@ void mm::set_mem_map(const struct mem_map_entry *in, size_t len) {
     }
     memset(memory_map, 0, CONFIG_MEMMAP_MAX_ENTRIES * sizeof(struct mm::mem_map_entry));
 #ifdef CONFIG_ENABLE_MEMMAP_SANITIZE
-    sanitize(in, nullptr, false, len, memory_map, CONFIG_MEMMAP_MAX_ENTRIES);
+    for (size_t i = 0; i < len; i++) {
+        if (in[i].size == 0) {
+            continue;
+        }
+        kprintf(KP_INFO, "memmap(unsanitized): [mem 0x%p l: %u] %s\n", (uintptr_t)in[i].base, (uintptr_t)in[i].size, type_string(in[i].type));
+    }
+    sanitize(in, nullptr, nullptr, false, len, memory_map, CONFIG_MEMMAP_MAX_ENTRIES);
 #else
     memcpy(memory_map, in, len * sizeof(struct mm::mem_map_entry));
 #endif
     init_map();
 }
 
-void mm::set_mem_map(struct mem_map_entry (*get_entry)(size_t n), size_t len) {
+void mm::set_mem_map(struct mem_map_entry (*get_entry)(void *ctx, size_t n), size_t len, void *get_entry_ctx) {
     if (len > CONFIG_MEMMAP_MAX_ENTRIES) {
         KERNEL_PANIC("too many memory map entries. There is space for %u but we got %u", CONFIG_MEMMAP_MAX_ENTRIES, len);
     }
     memset(memory_map, 0, CONFIG_MEMMAP_MAX_ENTRIES * sizeof(struct mm::mem_map_entry));
 #ifdef CONFIG_ENABLE_MEMMAP_SANITIZE
-    sanitize(nullptr, get_entry, true, len, memory_map, CONFIG_MEMMAP_MAX_ENTRIES);
+    for (size_t i = 0; i < len; i++) {
+        struct mem_map_entry e = get_entry(get_entry_ctx, i);
+        if (e.size == 0) {
+            continue;
+        }
+        kprintf(KP_INFO, "memmap(unsanitized): [mem 0x%p l: %u] %s\n", (uintptr_t)e.base, (uintptr_t)e.size, type_string(e.type));
+    }
+    sanitize(nullptr, get_entry, get_entry_ctx, true, len, memory_map, CONFIG_MEMMAP_MAX_ENTRIES);
 #else
     for (size_t i = 0; i < len; i++) {
-        memory_map[i] = get_entry(i);
+        memory_map[i] = get_entry(get_entry_ctx, i);
     }
 #endif
     init_map();

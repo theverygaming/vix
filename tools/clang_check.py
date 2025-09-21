@@ -73,8 +73,4 @@ kernel_paths = [
 ]
 kernel_paths = append_subdirs("kernel/arch/", kernel_paths)
 
-prekernel_paths = []
-prekernel_paths = append_subdirs("prekernel/", prekernel_paths)
-
 clang_check_dir(kernel_paths, excludes)
-clang_check_dir(prekernel_paths, excludes)

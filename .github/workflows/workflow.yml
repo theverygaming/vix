@@ -84,7 +84,7 @@ jobs:
           python3 tools/locchart.py >> $GITHUB_STEP_SUMMARY
           echo '# cloc output' >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
-          cloc kernel/ prekernel/ >> $GITHUB_STEP_SUMMARY
+          cloc kernel/ >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
 
       - name: codespell

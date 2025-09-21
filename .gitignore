@@ -11,6 +11,7 @@
 
 kernel.bin
 initramfs.bin
+kernel.elf
 
 /boot/boot
 /vix.img
@@ -23,7 +24,6 @@ initramfs.bin
 /boot/stage1
 /shitshell/shitshell
 /vix_app.img
-/prekernel/x86/startup
 /vix.iso
 /roramfs_create
 /roramfs.fs

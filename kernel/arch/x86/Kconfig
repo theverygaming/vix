@@ -13,6 +13,16 @@ config ARCH_PAGE_SIZE
   int
   default 4096
 
+config KERNEL_HIGHER_HALF
+  int
+  depends on !ENABLE_KERNEL_64
+  default 3221225472 # 0xC0000000
+
+config HHDM_SIZE
+  int
+  depends on !ENABLE_KERNEL_64
+  default 536870912 # 0x20000000 512MiB
+
 # END stuff from arch/Kconfig
 
 config ENABLE_KERNEL_64

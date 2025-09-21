@@ -25,5 +25,6 @@ inline __attribute__((always_inline)) uint32_t inl(uint16_t port) {
 }
 
 namespace cpubasics {
+    void cpuinit_early();
     void cpuinit();
 }

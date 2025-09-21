@@ -48,7 +48,7 @@ static void kernelinit() {
     paging::init();
     if (memmap_request.response != NULL) {
         mm::set_mem_map(
-            [](size_t n) -> struct mm::mem_map_entry {
+            [](void *, size_t n) -> struct mm::mem_map_entry {
                 struct mm::mem_map_entry r;
 
                 r.base = memmap_request.response->entries[n]->base;
@@ -86,7 +86,9 @@ extern "C" void _kentry() {
 
 void arch::startup::stage2_startup() {}
 
-void arch::startup::stage3_startup() {
+void arch::startup::stage3_startup() {}
+
+void arch::startup::stage4_startup() {
     time::bootupTime = time::getCurrentUnixTime();
     if (module_request.response != nullptr && module_request.response->module_count > 0) {
         if (fs::filesystems::tarfs::init(module_request.response->modules[0]->address)) {

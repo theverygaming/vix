@@ -1,3 +1,4 @@
+#include <vix/panic.h>
 #include <string.h>
 #include <vector>
 #include <vix/abi/linux/errno.h>
@@ -160,81 +161,21 @@ void multitasking::interruptTrigger() {
 }
 
 bool multitasking::createPageRange(std::vector<process_pagerange> *range, uint32_t max_address) {
-    std::vector<process_pagerange> pages;
-
-    size_t prange_counter = 0;
-
-    uintptr_t physAddress = 69420;
-    uintptr_t lastPhysAddress = 0;
-    bool invalidated = true;
-
-    for (uint32_t page = 0; page < (max_address / CONFIG_ARCH_PAGE_SIZE); page++) {
-        uint32_t virtadr = page * CONFIG_ARCH_PAGE_SIZE;
-        if (paging::is_readable((void *)virtadr)) {
-            physAddress = (uintptr_t)paging::get_physaddr((void *)virtadr);
-            if ((physAddress - CONFIG_ARCH_PAGE_SIZE) != lastPhysAddress || invalidated) {
-                pages.push_back({0, 0, 0});
-                prange_counter = pages.size() - 1;
-                pages[prange_counter].phys_base = physAddress;
-                pages[prange_counter].virt_base = virtadr;
-                invalidated = false;
-            }
-            pages[prange_counter].pages++;
-            lastPhysAddress = physAddress;
-        } else {
-            invalidated = true;
-        }
-    }
-    for (size_t i = 0; i < pages.size(); i++) {
-        if (pages[i].pages == 0) {
-            pages.erase(i);
-        }
-    }
-    *range = pages;
-    return true;
+    KERNEL_PANIC("TODO: fix bullshit");
 }
 
 void multitasking::setPageRange(std::vector<process_pagerange> *range) {
-    for (size_t i = 0; i < range->size(); i++) {
-        if ((*range)[i].pages > 0) {
-            size_t len = (*range)[i].pages;
-            mm::vaddr_t virt = (mm::vaddr_t)((*range)[i].virt_base);
-            mm::paddr_t phys = (mm::paddr_t)((*range)[i].phys_base);
-#ifdef CONFIG_ARCH_HAS_PAGING
-            for (size_t j = 0; j < len; j++) {
-                arch::vmm::set_page(
-                    virt + (j * CONFIG_ARCH_PAGE_SIZE),
-                    phys + (j * CONFIG_ARCH_PAGE_SIZE),
-                    arch::vmm::FLAGS_PRESENT | arch::vmm::FLAGS_WRITE_BACK |
-                        arch::vmm::FLAGS_USER
-                );
-                arch::vmm::flush_tlb_single(virt);
-            }
-#endif
-        }
-    }
+    KERNEL_PANIC("TODO: fix bullshit");
 }
 
 void multitasking::unsetPageRange(std::vector<process_pagerange> *range) {
-    for (size_t i = 0; i < range->size(); i++) {
-        if ((*range)[i].pages > 0) {
-            paging::clearPageTables((void *)(*range)[i].virt_base, (*range)[i].pages, true);
-        }
-    }
+    KERNEL_PANIC("TODO: fix bullshit");
 }
 
 void multitasking::freePageRange(std::vector<process_pagerange> *range) {
-    for (size_t i = 0; i < range->size(); i++) {
-        if ((*range)[i].pages > 0) {
-            mm::pmm::free_contiguous((*range)[i].phys_base, (*range)[i].pages);
-        }
-    }
+    KERNEL_PANIC("TODO: fix bullshit");
 }
 
 void multitasking::printPageRange(std::vector<process_pagerange> *range) {
-    for (size_t i = 0; i < range->size(); i++) {
-        if ((*range)[i].pages != 0) {
-            printf("pb: 0x%p vb: 0x%p pages: %u\n", (*range)[i].phys_base, (*range)[i].virt_base, (*range)[i].pages);
-        }
-    }
+    KERNEL_PANIC("TODO: fix bullshit");
 }

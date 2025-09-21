@@ -71,7 +71,7 @@ static void kernelinit() {
             entry = entry->next;
         }
         mm::set_mem_map(
-            [](size_t n) -> struct mm::mem_map_entry {
+            [](void *, size_t n) -> struct mm::mem_map_entry {
                 struct mm::mem_map_entry r;
                 struct macboot_memmap_response *entry = memmapreq.response;
                 for (size_t i = 0; i <= n; i++) {
@@ -107,7 +107,7 @@ static void kernelinit() {
     stdio::set_putc_function(mmio_putc, true);
 
     mm::set_mem_map(
-        [](size_t n) -> struct mm::mem_map_entry {
+        [](void *, size_t n) -> struct mm::mem_map_entry {
             struct mm::mem_map_entry r;
             r.base = (uintptr_t)&__kernel_end;
             r.size = (0xFFFC - 0x1000 /* stack.. */) - ((uintptr_t)&__kernel_end);
@@ -135,7 +135,9 @@ extern "C" void _kentry() {
     while (true) {}
 }
 
-void arch::startup::stage2_startup() {
+void arch::startup::stage2_startup() {}
+
+void arch::startup::stage3_startup() {
 #ifndef CONFIG_PLAIN_BINARY
     if (kmemreq.response != nullptr) {
         mm::pmm::force_alloc_contiguous(ALIGN_DOWN(kmemreq.response->base, CONFIG_ARCH_PAGE_SIZE),
@@ -148,7 +150,7 @@ void arch::startup::stage2_startup() {
 #endif
 }
 
-void arch::startup::stage3_startup() {
+void arch::startup::stage4_startup() {
     time::bootupTime = time::getCurrentUnixTime();
 }
 

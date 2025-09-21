@@ -21,9 +21,12 @@ static void clockHandler() {
     multitasking::interruptTrigger();
 }
 
-void cpubasics::cpuinit() {
+void cpubasics::cpuinit_early() {
     idt::i686_IDT_Initialize();
     isr::i686_ISR_Initialize();
+}
+
+void cpubasics::cpuinit() {
     drivers::pic::pic8259::init(32, 112);
     set_pit_freq(1000);
     irq::register_irq_handler(clockHandler, 0);

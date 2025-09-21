@@ -1,3 +1,4 @@
+#pragma once
 #include <vix/types.h>
 
 namespace mm {
@@ -19,7 +20,7 @@ namespace mm {
     };
 
     void set_mem_map(const struct mem_map_entry *in, size_t len);
-    void set_mem_map(struct mem_map_entry (*get_entry)(size_t n), size_t len);
+    void set_mem_map(struct mem_map_entry (*get_entry)(void *ctx, size_t n), size_t len, void *get_entry_ctx = nullptr);
     bool memmap_is_usable(mm::mem_map_entry::type_t type);
     const struct mem_map_entry *get_mem_map(size_t index);
     uint64_t mem_map_get_total_usable_bytes();

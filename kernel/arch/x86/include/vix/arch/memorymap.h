@@ -1,18 +1,7 @@
 #pragma once
 #include <vix/types.h>
-
-#define MEMMAP_MAX_ENTRIES 40
+#include <vix/mm/memmap.h>
 
 namespace memorymap {
-    void initMemoryMap(void *mapadr, int entrycount);
-    typedef struct __attribute__((packed)) {
-        uint64_t Base;
-        uint64_t Length;
-        uint32_t Type;
-        uint32_t reserved;
-    } SMAP_entry;
-
-    extern SMAP_entry map_entries[MEMMAP_MAX_ENTRIES];
-    extern int map_entrycount;
-    extern size_t total_ram;
+    void initMemoryMap(void *mapadr, size_t entrycount, struct mm::mem_map_entry (*extra_entries)(size_t n), size_t extra_entry_count);
 }

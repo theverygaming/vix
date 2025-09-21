@@ -7,7 +7,8 @@
 
 static const uint8_t DEFAULT_COLOR = 0x7;
 
-static uint8_t *g_ScreenBuffer = (uint8_t *)(KERNEL_VIRT_ADDRESS + VIDMEM_OFFSET);
+// magic number 0x4F2000 was previously VIDMEM_OFFSET but that hasn't been working for a long time lol
+static uint8_t *g_ScreenBuffer = (uint8_t *)(KERNEL_VIRT_ADDRESS + 0x4F2000);
 static int g_ScreenX = 0, g_ScreenY = 0;
 
 static void putchr(int x, int y, char c) {

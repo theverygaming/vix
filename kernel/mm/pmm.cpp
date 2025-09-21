@@ -6,7 +6,6 @@
 #include <vix/macros.h>
 #include <vix/mm/memmap.h>
 #include <vix/mm/pmm.h>
-#include <vix/mm/vmm.h>
 #include <vix/panic.h>
 #include <vix/status.h>
 #include <vix/types.h>
@@ -148,7 +147,13 @@ static const mm::mem_map_entry *get_suitable_memmap_entry(uintptr_t required_byt
         if (mm::memmap_is_usable(entry->type) && entry->size > CONFIG_ARCH_PAGE_SIZE) {
             uintptr_t start = ALIGN_UP(entry->base, CONFIG_ARCH_PAGE_SIZE);
             uintptr_t end = ALIGN_DOWN(entry->base + entry->size, CONFIG_ARCH_PAGE_SIZE);
-            if ((end - start) >= required_bytes) {
+            if (
+                (end - start) >= required_bytes
+#ifdef CONFIG_ARCH_HAS_PAGING
+                && start >= CONFIG_HHDM_PHYS_BASE
+                && end < (CONFIG_HHDM_PHYS_BASE + CONFIG_HHDM_SIZE)
+#endif
+            ) {
                 kprintf(KP_INFO, "pmm: found suitable entry for bitmap -> base: 0x%p size: %u\n", (uintptr_t)entry->base, (uintptr_t)entry->size);
                 break;
             }
@@ -174,19 +179,12 @@ static void populate_pmm_info() {
     uintptr_t entry_phys_start = ALIGN_UP(entry->base, CONFIG_ARCH_PAGE_SIZE);
     pm_phys_addr = entry_phys_start;
 #ifdef CONFIG_ARCH_HAS_PAGING
-    uintptr_t required_pages = required_bytes / CONFIG_ARCH_PAGE_SIZE;
-    void *vaddr = (void *)mm::vmm::kalloc(required_pages);
-    for (uintptr_t i = 0; i < required_pages; i++) {
-        uintptr_t virt = ((uintptr_t)vaddr) + (i * CONFIG_ARCH_PAGE_SIZE);
-        arch::vmm::set_page(virt, entry_phys_start + (i * CONFIG_ARCH_PAGE_SIZE), arch::vmm::FLAGS_PRESENT);
-        arch::vmm::flush_tlb_single(virt);
-    }
-    pm_areas = (struct area_info *)vaddr;
-    pm_bitmap = bitmap(((uint8_t *)vaddr) + (pm_n_areas * sizeof(struct area_info)), ALIGN_UP(pm_n_total_pages, 8) / 8);
+    void *base_addr = (void *)((entry_phys_start - CONFIG_HHDM_PHYS_BASE) + CONFIG_HHDM_VIRT_BASE);
 #else
-    pm_areas = (struct area_info *)entry_phys_start;
-    pm_bitmap = bitmap((uint8_t *)entry_phys_start + (pm_n_areas * sizeof(struct area_info)), ALIGN_UP(pm_n_total_pages, 8) / 8);
+    void *base_addr = (void *)entry_phys_start;
 #endif
+    pm_areas = (struct area_info *)base_addr;
+    pm_bitmap = bitmap(((uint8_t *)base_addr) + (pm_n_areas * sizeof(struct area_info)), ALIGN_UP(pm_n_total_pages, 8) / 8);
 }
 
 static void init_pmm_structures() {

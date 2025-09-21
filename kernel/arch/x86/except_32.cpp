@@ -13,19 +13,19 @@ struct stackframe {
 static void st_print_ip(uintptr_t ip) {
     std::pair<const char *, uintptr_t> sr = syms::find_func_sym(ip);
     if (sr.first == nullptr) {
-        kprintf(KP_ALERT, "TRACE: [0x%p] Failed to resolve symbol\n", ip);
+        kprintf(KP_ALERT, "trace: [0x%p] Failed to resolve symbol\n", ip);
         return;
     }
-    kprintf(KP_ALERT, "TRACE: [0x%p] %s+0x%p\n", ip, sr.first, ip - sr.second);
+    kprintf(KP_ALERT, "trace: [0x%p] %s+0x%p\n", ip, sr.first, ip - sr.second);
 }
 
 static void do_stack_trace(uintptr_t ebp) {
     struct stackframe *p = (struct stackframe *)ebp;
     while (p != nullptr) {
-        DEBUG_PRINTF("TRACE: p: 0x%p ebp: 0x%p eip: 0x%p\n", p, p->eip, p->ebp);
+        DEBUG_PRINTF("trace: p: 0x%p ebp: 0x%p eip: 0x%p\n", p, p->eip, p->ebp);
         st_print_ip(p->eip);
         p = p->ebp;
-        if ((uintptr_t)p->ebp < 0xC0000000) {
+        if ((uintptr_t)p->ebp < KERNEL_VIRT_ADDRESS) {
             break;
         }
     }

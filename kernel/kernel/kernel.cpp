@@ -33,18 +33,20 @@ static void kthread0() {
 void kernelstart() {
     kprintf(KP_INFO, "kmain: starting vix -- built " __DATE__ " " __TIME__ "\n");
     initcall_init_level(INITCALL_PRE_MM_INIT);
-#ifdef CONFIG_ARCH_HAS_PAGING
-    // the PMM needs the VMM to map it's bitmap etc. - so the VMM must be initialized before the PMM
-    mm::vmm::init();
-#endif
     mm::pmm::init();
     arch::startup::stage2_startup();
+#ifdef CONFIG_ARCH_HAS_PAGING
+    // the VMM needs the PMM to create page tables
+    // the PMM will use the HHDM, so it doesn't need the VMM (just the early HHDM setup)
+    mm::vmm::init();
+#endif
+    arch::startup::stage3_startup();
     cpp_init();
     kprintf(KP_INFO, "kmain: initialized C++\n");
     fs::vfs::init();
     kprintf(KP_INFO, "kmain: initialized VFS\n");
 
-    arch::startup::stage3_startup();
+    arch::startup::stage4_startup();
 
     initcall_init_level(INITCALL_EARLY_DRIVER_INIT);
 

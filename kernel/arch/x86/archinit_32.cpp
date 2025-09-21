@@ -46,6 +46,9 @@ static void fbputc(char c) {
 static void *initramfs_start = nullptr;
 static size_t initramfs_size = 0;
 
+extern "C" uint8_t _kcode_start;
+extern "C" uint8_t _kcode_end;
+
 static void kernelinit(void *multiboot2_info_ptr) {
     drivers::textmode::text80x25::init();
     stdio::set_putc_function(drivers::textmode::text80x25::putc);
@@ -56,25 +59,53 @@ static void kernelinit(void *multiboot2_info_ptr) {
     }
     mb2_info = multiboot2_info_ptr;
     mb2_info_size = multiboot2::get_tags_size(mb2_info);
-    int memMap_count = 0;
-    void *memMap = multiboot2::findMemMap(mb2_info, &memMap_count);
-    memorymap::initMemoryMap(memMap, memMap_count);
+    kprintf(KP_INFO, "archinit: multiboot2 info @ 0x%p size: 0x%p\n", mb2_info, mb2_info_size);
     if (multiboot2::find_initramfs(mb2_info, &initramfs_start, &initramfs_size)) {
-        initramfs_size = ALIGN_UP(initramfs_size, 4096);
+        initramfs_size = ALIGN_UP(initramfs_size, CONFIG_ARCH_PAGE_SIZE);
         kprintf(KP_INFO, "archinit: initramfs @ 0x%p size: 0x%p\n", initramfs_start, initramfs_size);
         if (!PTR_IS_ALIGNED(initramfs_start, CONFIG_ARCH_PAGE_SIZE)) {
             initramfs_size = 0;
         }
     }
+    int memMap_count;
+    void *memMap = multiboot2::findMemMap(mb2_info, &memMap_count);
+    memorymap::initMemoryMap(
+        memMap,
+        memMap_count,
+        [](size_t n) -> struct mm::mem_map_entry {
+            switch (n) {
+                case 0:
+                    return {
+                        .base = (uintptr_t)&_kcode_start - CONFIG_HHDM_VIRT_BASE,
+                        .size = ALIGN_UP((uintptr_t)&_kcode_end - (uintptr_t)&_kcode_start, CONFIG_ARCH_PAGE_SIZE),
+                        .type = mm::mem_map_entry::type_t::RESERVED,
+                    };
+                case 1:
+                    return {
+                        .base = (uintptr_t)mb2_info,
+                        .size = ALIGN_UP(mb2_info_size, CONFIG_ARCH_PAGE_SIZE),
+                        .type = mm::mem_map_entry::type_t::RECLAIMABLE,
+                    };
+                case 2:
+                    return {
+                        .base = (uintptr_t)initramfs_start,
+                        .size = ALIGN_UP(initramfs_size, CONFIG_ARCH_PAGE_SIZE),
+                        .type = mm::mem_map_entry::type_t::RECLAIMABLE,
+                    };
+            }
+            KERNEL_PANIC("unreachable");
+        },
+        initramfs_size > 0 ? 3 : 2
+    );
     gdt::init();
-    paging::init();
+    cpubasics::cpuinit_early(); // interrupt handlers are enabled here, before this all exceptions will cause a triplefault
     kernelstart();
 }
 
 extern "C" uint8_t _bss_start;
 extern "C" uint8_t _bss_end;
 
-extern "C" void __attribute__((section(".entry"))) _kentry(void *multiboot2_info_ptr) {
+extern "C" void __attribute__((section(".entry"))) _kentry(uint32_t multiboot2_info_ptr) {
     size_t sp;
     asm volatile("mov %%esp, %0" : "=a"(sp) :);
     if (sp < KERNEL_VIRT_ADDRESS) {
@@ -83,22 +114,15 @@ extern "C" void __attribute__((section(".entry"))) _kentry(void *multiboot2_info
     for (uint8_t *addr = &_bss_start; addr < &_bss_end; addr++) {
         *addr = 0;
     }
-    kernelinit(multiboot2_info_ptr);
+    kernelinit((void *)multiboot2_info_ptr);
     while (true) {}
 }
 
 void arch::startup::stage2_startup() {
-    mm::pmm::force_alloc_contiguous(
-        KERNEL_PHYS_ADDRESS,
-        ALIGN_UP(KERNEL_FREE_AREA_BEGIN_OFFSET, CONFIG_ARCH_PAGE_SIZE) /
-            CONFIG_ARCH_PAGE_SIZE
-    );
-    
-    mm::pmm::force_alloc_contiguous(
-        (mm::paddr_t)mb2_info,
-        ALIGN_UP(mb2_info_size, CONFIG_ARCH_PAGE_SIZE) /
-            CONFIG_ARCH_PAGE_SIZE
-    );
+    paging::init();
+}
+
+void arch::startup::stage3_startup() {
     ASSIGN_OR_PANIC(
         mb2_info,
         mm::map_arbitrary_phys((mm::paddr_t)mb2_info, mb2_info_size)
@@ -108,11 +132,6 @@ void arch::startup::stage2_startup() {
     fbconsole.init(&framebuffer);
 
     if (initramfs_size != 0) {
-        mm::pmm::force_alloc_contiguous(
-            (mm::paddr_t)initramfs_start,
-            ALIGN_UP(initramfs_size, CONFIG_ARCH_PAGE_SIZE) /
-                CONFIG_ARCH_PAGE_SIZE
-        );
         ASSIGN_OR_PANIC(
             initramfs_start,
             mm::map_arbitrary_phys((mm::paddr_t)initramfs_start, initramfs_size)
@@ -120,8 +139,8 @@ void arch::startup::stage2_startup() {
     }
 }
 
-void arch::startup::stage3_startup() {
-    cpubasics::cpuinit(); // interrupt handlers are enabled here, before this all exceptions will cause a triplefault
+void arch::startup::stage4_startup() {
+    cpubasics::cpuinit(); // interrupts are enabled here, the timer is also set up here
     cpuid::printFeatures();
     simd::enableSSE();
     if (initramfs_size != 0) {
