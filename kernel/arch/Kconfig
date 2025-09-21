@@ -14,27 +14,27 @@ config ARCH_PAGE_SIZE
     Page size, must be a power of two
 
 config KERNEL_HIGHER_HALF
-  int
+  hex
   depends on ARCH_HAS_PAGING
   help
     start of higher half (virtual address)
 
 config HHDM_PHYS_BASE
-  int
+  hex
   depends on ARCH_HAS_PAGING
   default 0
   help
     start of HHDM (physical address)
 
 config HHDM_VIRT_BASE
-  int
+  hex
   depends on ARCH_HAS_PAGING
   default KERNEL_HIGHER_HALF
   help
     start of HHDM (virtual address)
 
 config HHDM_SIZE
-  int
+  hex
   depends on ARCH_HAS_PAGING
   help
     size of HHDM in bytes
