@@ -1,5 +1,6 @@
 INT_CC := $(CC)
 INT_CXX := $(CXX)
+INT_CPP := $(CPP)
 INT_LD := $(LD)
 INT_NM := $(NM)
 INT_OBJCOPY := $(OBJCOPY)
@@ -21,6 +22,10 @@ override INT_CXXFLAGS += -I arch/$(BUILD_ARCH)/include -I stdlibs/libc/include -
 %.oS: %.S
 	@echo "  AS $<"
 	@$(INT_CXX) $(INT_CXXFLAGS) -c $< -o $@
+
+%.lds: %.lds.S
+	@echo "  CPP $<"
+	@$(INT_CPP) -P $(INT_CFLAGS) $< -o $@
 
 RUST_TARGET := i686-unknown-linux-gnu
 

@@ -39,6 +39,7 @@ export ARCH
 ifndef M
 CC      = $(CROSS_COMPILE)gcc
 CXX      = $(CROSS_COMPILE)g++
+CPP      = $(CROSS_COMPILE)cpp
 LD       = $(CROSS_COMPILE)ld
 NM       = $(CROSS_COMPILE)nm
 OBJCOPY  = $(CROSS_COMPILE)objcopy
@@ -54,8 +55,8 @@ BUILD_SUBDIRS += arch/$(BUILD_ARCH)
 include arch/$(BUILD_ARCH)/Makefile.arch
 endif
 
-export INT_CC INT_CXX INT_LD INT_NM INT_OBJCOPY INT_CFLAGS INT_CXXFLAGS INT_LDFLAGS
-export CXX LD NM OBJCOPY CFLAGS CXXFLAGS LDFLAGS
+export INT_CC INT_CXX INT_CPP INT_LD INT_NM INT_OBJCOPY INT_CFLAGS INT_CXXFLAGS INT_LDFLAGS
+export CC CXX CPP LD NM OBJCOPY CFLAGS CXXFLAGS LDFLAGS
 export BUILD_ARCH
 
 # module stuff
@@ -121,7 +122,7 @@ alldefconfig: scripts/kconfig/Makefile
 # clean targets
 clean: modclean
 	@rm -f kernel.o kernel.bin symtab.S symtab.oS kernel_partial.o
-	@find ./arch ./drivers ./fs ./include ./kernel ./net ./mm ./stdlibs ./tests ./abi ./rust \( -name '*.oasm' -o -name '*.onasm' -o -name '*.oc' -o -name '*.ocpp' -o -name '*.o' -o -name '*.os' -o -name '*.oS' -o -name '*.rlib' -o -name '*.ors' \) -type f -delete
+	@find ./arch ./drivers ./fs ./include ./kernel ./net ./mm ./stdlibs ./tests ./abi ./rust \( -name '*.oasm' -o -name '*.onasm' -o -name '*.oc' -o -name '*.ocpp' -o -name '*.lds' -o -name '*.o' -o -name '*.os' -o -name '*.oS' -o -name '*.rlib' -o -name '*.ors' \) -type f -delete
 
 distclean: clean
 	@rm -f .config .config_old

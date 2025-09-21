@@ -2,6 +2,7 @@
 *.o
 *.oc
 *.ocpp
+*.lds
 *.oasm
 *.onasm
 *.os
