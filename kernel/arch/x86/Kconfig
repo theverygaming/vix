@@ -25,6 +25,13 @@ config HHDM_SIZE
 
 # END stuff from arch/Kconfig
 
+config PHYS_ADDRESS
+  hex "Physical Load Address"
+  depends on !ENABLE_KERNEL_64
+  default 0x100000
+  help
+    physical address the kernel will be loaded at
+
 config ENABLE_KERNEL_64
   default n
   bool "64-bit kernel"

@@ -3,7 +3,7 @@ set -eu
 
 source .config
 
-ldscript="arch/x86/linker_32.ld"
+ldscript="arch/x86/linker_32.lds"
 ptrsize=".long"
 
 if [ "${CONFIG_ENABLE_KERNEL_64:-}" == "y" ]; then
