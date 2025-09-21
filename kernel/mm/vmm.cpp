@@ -9,15 +9,6 @@
 
 #ifdef CONFIG_ARCH_HAS_PAGING
 void mm::vmm::init() {
-    // unmap all that nonsense the prekernel does...
-    // FIXME: fix that x86 prekernel paging nonsense
-    void *addr = (void *)ARCH_KERNEL_HEAP_START;
-    // BUG: - CONFIG_ARCH_PAGE_SIZE due to seemingly conflicts with the multiboot2 framebuffer thing??????
-    while ((uintptr_t)addr < (ARCH_KERNEL_HEAP_END - CONFIG_ARCH_PAGE_SIZE)) {
-        arch::vmm::set_page((uintptr_t)addr, 0, 0);
-        arch::vmm::flush_tlb_single((uintptr_t)addr);
-        addr = (void *)((uintptr_t)addr + CONFIG_ARCH_PAGE_SIZE);
-    }
     kprintf(KP_INFO, "vmm: initialized virtual memory manager\n");
 }
 
