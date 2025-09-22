@@ -1,3 +1,4 @@
+#include <string.h>
 #include <utility>
 #include <vix/arch/common/paging.h>
 #include <vix/arch/generic/memory.h>
@@ -27,17 +28,18 @@ void paging::init() {
             // page directory
             (1024*4)
             // page tables
-            + (1024*(1024*4))
+            + ((CONFIG_KERNEL_HIGHER_HALF >> 22) * (1024 * 4))
         ) / CONFIG_ARCH_PAGE_SIZE
     ));
     // initialize the page directory
     uint32_t *pd = (uint32_t*)arch::vmm::kernel_pt;
+    memset(pd, 0, 1024 * 4);
+    // create and initialize page tables for the kernel address space
     uint32_t (*pt)[1024] = (uint32_t(*)[1024])(arch::vmm::kernel_pt + CONFIG_ARCH_PAGE_SIZE);
-    for(int i = 0; i < 1024; i++) {
-        pd[i] = (uintptr_t)pt[i] & 0xFFFFF000;
-        pd[i] |= 1; // present
-        pd[i] |= (1 << 1); // RW
-        pd[i] |= (1 << 1); // RW
+    for(unsigned int i = 0; i < (CONFIG_KERNEL_HIGHER_HALF >> 22); i++) {
+        pd[i + (CONFIG_KERNEL_HIGHER_HALF >> 22)] = (uintptr_t)pt[i] & 0xFFFFF000;
+        pd[i + (CONFIG_KERNEL_HIGHER_HALF >> 22)] |= 1; // present
+        pd[i + (CONFIG_KERNEL_HIGHER_HALF >> 22)] |= (1 << 1); // RW
         for(int j = 0; j < 1024; j++) {
             pt[i][j] = 0;
         }
