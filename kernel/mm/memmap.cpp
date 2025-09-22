@@ -2,6 +2,7 @@
 #include <string.h>
 #include <vix/arch/generic/memory.h>
 #include <vix/config.h>
+#include <vix/debug.h>
 #include <vix/kprintf.h>
 #include <vix/macros.h>
 #include <vix/mm/memmap.h>
@@ -34,17 +35,6 @@ static const char *type_string(mm::mem_map_entry::type_t type) {
     }
 }
 
-/*
-static void align_map(struct mm::mem_map_entry *map, size_t len) {
-    for (size_t i = 0; i < len; i++) {
-        if (mm::memmap_is_usable(map[i].type)) {
-            map[i].base = ALIGN_UP(map[i].base, CONFIG_ARCH_PAGE_SIZE);
-            map[i].size = ALIGN_DOWN(map[i].size, CONFIG_ARCH_PAGE_SIZE);
-        }
-    }
-}
-*/
-
 #ifdef CONFIG_ENABLE_MEMMAP_SANITIZE
 static void sanitize_usable_entry(
     const struct mm::mem_map_entry *in,
@@ -57,6 +47,7 @@ static void sanitize_usable_entry(
     struct mm::mem_map_entry in_ent,
     size_t *out_i
 ) {
+    DEBUG_PRINTF_INSANE("sanitize_usable_entry(IN): [mem 0x%p-0x%p l: %u] %s\n", (uintptr_t)in_ent.base, (uintptr_t)in_ent.base + (uintptr_t)in_ent.size, (uintptr_t)in_ent.size, type_string(in_ent.type));
     uint64_t f_base = in_ent.base;
     uint64_t f_size = in_ent.size;
     for (size_t j = 0; j < in_len; j++) {
@@ -72,22 +63,24 @@ static void sanitize_usable_entry(
         }
 
         uint64_t end = f_base + f_size;
-        uint64_t cmp_end = in_ent2.base + in_ent2.size;
+        uint64_t end_e2 = in_ent2.base + in_ent2.size;
 
-        if (in_ent2.base >= f_base && end > cmp_end) {
-            // inside: split into two pieces
+        if (in_ent2.base >= f_base && end >= end_e2) {
+            // inside OR equal: split into two pieces
+            DEBUG_PRINTF_INSANE("sanitize_usable_entry: splitting\n");
             struct mm::mem_map_entry lower = {
                 .base = f_base,
                 .size = in_ent2.base - f_base,
                 .type = in_ent.type,
             };
             struct mm::mem_map_entry upper = {
-                .base = cmp_end,
-                .size = end - cmp_end,
+                .base = end_e2,
+                .size = end - end_e2,
                 .type = in_ent.type,
             };
 
             if (lower.size > 0) {
+                DEBUG_PRINTF_INSANE("sanitize_usable_entry(SPLIT - lower): call\n");
                 sanitize_usable_entry(
                     in,
                     get_entry,
@@ -102,6 +95,7 @@ static void sanitize_usable_entry(
             }
 
             if (upper.size > 0) {
+                DEBUG_PRINTF_INSANE("sanitize_usable_entry(SPLIT - upper): call\n");
                 sanitize_usable_entry(
                     in,
                     get_entry,
@@ -116,17 +110,21 @@ static void sanitize_usable_entry(
             }
 
             return; // stop processing current entry (it's been split up and added seperately so..)
-        } else if (in_ent2.base <= f_base && cmp_end > end) {
-            // full overlap
+        } else if (in_ent2.base <= f_base && end_e2 >= end) {
+            // we are fully overlapped by a non-usable entry
             f_size = 0;
             break;
-        } else if (cmp_end > end && in_ent2.base > f_base && in_ent2.base < end) {
-            // above
+        } else if (in_ent2.base > f_base && end_e2 > end && in_ent2.base < end) {
+            // there is a non-usable entry overlapping with the top of our entry
             f_size = in_ent2.base - f_base;
-        } else if (cmp_end > f_base && in_ent2.base <= f_base) {
-            // below/equal
-            f_base = cmp_end;
+        } else if (end_e2 > f_base && in_ent2.base <= f_base) {
+            // there is a non-usable entry overlapping the bottom of our entry
+            f_base = end_e2;
             f_size = end - f_base;
+        } else if (end > in_ent2.base && end_e2 > f_base) {
+            // this can probably be removed at some point... It's a sanity check
+            // this shit was written at 3am so for the time being it'll stay her
+            KERNEL_PANIC("unhandled overlap (skill issue!)");
         }
     }
     if (in_ent.size) {
@@ -137,6 +135,7 @@ static void sanitize_usable_entry(
         out[*out_i].base = f_base;
         out[*out_i].size = f_size;
         out[*out_i].type = in_ent.type;
+        DEBUG_PRINTF_INSANE("sanitize_usable_entry(OUT): [mem 0x%p-0x%p l: %u] %s\n", (uintptr_t)out[*out_i].base, (uintptr_t)out[*out_i].base + (uintptr_t)out[*out_i].size, (uintptr_t)out[*out_i].size, type_string(out[*out_i].type));
         (*out_i)++;
     }
 }
@@ -178,12 +177,13 @@ static void sanitize(
                 out[out_i].base = in_ent.base;
                 out[out_i].size = in_ent.size;
                 out[out_i].type = in_ent.type;
+                DEBUG_PRINTF_INSANE("sanitize(adding unchanged): [mem 0x%p-0x%p l: %u] %s\n", (uintptr_t)out[out_i].base, (uintptr_t)out[out_i].base + (uintptr_t)out[out_i].size, (uintptr_t)out[out_i].size, type_string(out[out_i].type));
                 out_i++;
             }
         }
     }
 
-    // fix free overlaps
+    // fix usable overlaps
     for (size_t i = 0; i < out_i; i++) {
         if (!mm::memmap_is_usable(out[i].type) || out[i].size == 0) {
             continue;
@@ -198,37 +198,67 @@ static void sanitize(
             }
 
             uint64_t end = f_base + f_size;
-            uint64_t cmp_end = out[j].base + out[j].size;
+            uint64_t end_e2 = out[j].base + out[j].size;
 
-            if (out[j].base >= f_base && end > cmp_end) {
+            if (out[j].base >= f_base && end > end_e2) {
                 // inside
                 out[j].size = 0;
-            } else if (out[j].base <= f_base && cmp_end > end) {
+            } else if (out[j].base <= f_base && end_e2 >= end) {
                 // full overlap
                 f_size = 0;
                 break;
-            } else if (cmp_end > end && out[j].base > f_base && out[j].base < end) {
+            } else if (end_e2 > end && out[j].base > f_base && out[j].base < end) {
                 // above
-                f_size = cmp_end - f_base;
+                f_size = end_e2 - f_base;
                 out[j].size = 0;
-            } else if (cmp_end > f_base && out[j].base <= f_base) {
+            } else if (end_e2 > f_base && out[j].base <= f_base) {
                 // below/equal
                 f_base = out[j].base;
                 f_size = end - f_base;
             } else if (end == out[j].base) {
                 // cmp after
-                f_size = cmp_end - f_base;
+                f_size = end_e2 - f_base;
                 out[j].size = 0;
-            } else if (cmp_end == f_base) {
+            } else if (end_e2 == f_base) {
                 // cmp before
                 f_base = out[j].base;
                 f_size = end - f_base;
                 out[j].size = 0;
+            } else if (end > out[j].base && end_e2 > f_base) {
+                // this can probably be removed at some point... It's a sanity check
+                // this shit was written at 3am so for the time being it'll stay here
+                KERNEL_PANIC("unhandled overlap (skill issue!)");
             }
         }
 
         out[i].base = f_base;
         out[i].size = f_size;
+    }
+
+    // TODO: remove zero-sized entries (I think we may generate some of those)
+
+    // sanity check: no usable areas should overlap with any non-usable ones
+    for (size_t i = 0; i < out_i; i++) {
+        if (!mm::memmap_is_usable(out[i].type) || out[i].size == 0) {
+            continue;
+        }
+
+        DEBUG_PRINTF_INSANE("sanity checking: [mem 0x%p-0x%p l: %u] %s\n", (uintptr_t)out[i].base, (uintptr_t)out[i].base + (uintptr_t)out[i].size, (uintptr_t)out[i].size, type_string(out[i].type));
+
+        for (size_t j = 0; j < out_i; j++) {
+            if (mm::memmap_is_usable(out[j].type) || out[j].size == 0 || i == j) {
+                continue;
+            }
+
+            DEBUG_PRINTF_INSANE("sanity checking against: [mem 0x%p-0x%p l: %u] %s\n", (uintptr_t)out[j].base, (uintptr_t)out[j].base + (uintptr_t)out[j].size, (uintptr_t)out[j].size, type_string(out[j].type));
+
+            uint64_t end = out[i].base + out[i].size;
+            uint64_t end_e2 = out[j].base + out[j].size;
+
+            if (end > out[j].base && end_e2 > out[i].base) {
+                KERNEL_PANIC("sanity check failed: usable overlaps with non-usable!");
+            }
+        }
     }
 }
 #endif // CONFIG_ENABLE_MEMMAP_SANITIZE
@@ -238,7 +268,7 @@ static void print_map(const struct mm::mem_map_entry *map, size_t len) {
         if (map[i].size == 0) {
             continue;
         }
-        kprintf(KP_INFO, "memmap: [mem 0x%p l: %u] %s\n", (uintptr_t)map[i].base, (uintptr_t)map[i].size, type_string(map[i].type));
+        kprintf(KP_INFO, "memmap: [mem 0x%p-0x%p l: %u] %s\n", (uintptr_t)map[i].base, (uintptr_t)map[i].base + (uintptr_t)map[i].size, (uintptr_t)map[i].size, type_string(map[i].type));
     }
 }
 

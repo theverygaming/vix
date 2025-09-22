@@ -81,7 +81,7 @@ static void *fopen(void *info, std::vector<std::string> *path) {
     struct tarheader *file_ptr = (struct tarheader *)locationptr;
     while (!is_zero(file_ptr, 512 * 2)) {
         if (memcmp(file_ptr->magic, "ustar", 6)) {
-            DEBUG_PRINTF("invalid magic\n");
+            DEBUG_PRINTF("invalid magic (file_ptr: 0x%p)\n", file_ptr);
             return nullptr;
         }
 
