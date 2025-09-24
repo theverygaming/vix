@@ -2,3 +2,6 @@
 	path = shitshell
 	url = https://github.com/theverygaming/shitshell
 	branch = main
+[submodule "kernel/drivers/acpi/uacpi"]
+	path = kernel/drivers/acpi/uacpi
+	url = https://github.com/uACPI/uACPI.git
