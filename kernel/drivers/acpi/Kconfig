@@ -1,0 +1,3 @@
+config ENABLE_ACPI
+    default n
+    bool "Enable ACPI support (uACPI)"

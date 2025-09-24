@@ -1,3 +1,5 @@
+source "drivers/acpi/Kconfig"
+
 config ENABLE_FAKE_NETWORK_CARD
     depends on ENABLE_NETWORKING
     default y
