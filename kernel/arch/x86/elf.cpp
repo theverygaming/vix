@@ -13,6 +13,7 @@
 #include <vix/status.h>
 
 void elf::load_program(void *ELF_baseadr, std::vector<std::string> *argv, bool replace_task, int replace_pid, struct arch::full_ctx *regs) {
+#ifdef CONFIG_ARCH_HAS_PAGING
     ElfHeader header;
     ElfProgramHeader pHeader;
 
@@ -113,8 +114,7 @@ void elf::load_program(void *ELF_baseadr, std::vector<std::string> *argv, bool r
     if (replace_task) {
         //multitasking::replace_task((void *)(max + (CONFIG_ARCH_PAGE_SIZE * 40)), (void *)header.e_entry, &pageranges, argv, tls, replace_pid, regs);
     } else {
-#ifdef CONFIG_ARCH_HAS_PAGING
         multitasking::create_task((void *)(max + (CONFIG_ARCH_PAGE_SIZE * 40)), (void *)header.e_entry, pt, argv);
-#endif
     }
+#endif
 }
