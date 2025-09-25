@@ -22,28 +22,50 @@ static inline void invlpg(uintptr_t virtaddr) {
     asm volatile("invlpg (%0)" ::"r"(virtaddr) : "memory");
 }
 
+static mm::vaddr_t hhdm_offset(mm::paddr_t addr) {
+    if (addr <= CONFIG_HHDM_PHYS_BASE ||
+        addr >= (CONFIG_HHDM_PHYS_BASE + CONFIG_HHDM_SIZE)) {
+        KERNEL_PANIC("hhdm_offset: out of HHDM range: 0x%p", addr);
+    }
+    return (addr - CONFIG_HHDM_PHYS_BASE) + CONFIG_HHDM_VIRT_BASE;
+}
+
+static uint32_t phys_read(mm::paddr_t addr) {
+    if (addr <= CONFIG_HHDM_PHYS_BASE ||
+        addr >= (CONFIG_HHDM_PHYS_BASE + CONFIG_HHDM_SIZE)) {
+        KERNEL_PANIC("phys_read: out of HHDM range: 0x%p", addr);
+    }
+    return *((uint32_t *)((addr - CONFIG_HHDM_PHYS_BASE) + CONFIG_HHDM_VIRT_BASE));
+}
+
+static void phys_write(mm::paddr_t addr, uint32_t val) {
+    if (addr <= CONFIG_HHDM_PHYS_BASE ||
+        addr >= (CONFIG_HHDM_PHYS_BASE + CONFIG_HHDM_SIZE)) {
+        KERNEL_PANIC("phys_read: out of HHDM range: 0x%p", addr);
+    }
+    *((uint32_t *)((addr - CONFIG_HHDM_PHYS_BASE) + CONFIG_HHDM_VIRT_BASE)) = val;
+}
+
 void paging::init() {
     // TODO: we should ask the allocator to give us memory in the HHDM range
+    size_t alloc_bytes = (
+        // page directory
+        (1024*4)
+        // page tables
+        + ((1024 - (CONFIG_KERNEL_HIGHER_HALF >> 22)) * (1024 * 4))
+    );
     ASSIGN_OR_PANIC(arch::vmm::kernel_pt, mm::pmm::alloc_contiguous(
-        (
-            // page directory
-            (1024*4)
-            // page tables
-            + ((CONFIG_KERNEL_HIGHER_HALF >> 22) * (1024 * 4))
-        ) / CONFIG_ARCH_PAGE_SIZE
+        alloc_bytes / CONFIG_ARCH_PAGE_SIZE
     ));
     // initialize the page directory
-    uint32_t *pd = (uint32_t*)arch::vmm::kernel_pt;
-    memset(pd, 0, 1024 * 4);
+    uint32_t *pd = (uint32_t*)hhdm_offset(arch::vmm::kernel_pt);
+    memset(pd, 0, alloc_bytes);
     // create and initialize page tables for the kernel address space
     uint32_t (*pt)[1024] = (uint32_t(*)[1024])(arch::vmm::kernel_pt + CONFIG_ARCH_PAGE_SIZE);
-    for(unsigned int i = 0; i < (CONFIG_KERNEL_HIGHER_HALF >> 22); i++) {
+    for(unsigned int i = 0; i < (1024 - (CONFIG_KERNEL_HIGHER_HALF >> 22)); i++) {
         pd[i + (CONFIG_KERNEL_HIGHER_HALF >> 22)] = (uintptr_t)pt[i] & 0xFFFFF000;
         pd[i + (CONFIG_KERNEL_HIGHER_HALF >> 22)] |= 1; // present
         pd[i + (CONFIG_KERNEL_HIGHER_HALF >> 22)] |= (1 << 1); // RW
-        for(int j = 0; j < 1024; j++) {
-            pt[i][j] = 0;
-        }
     }
     // map the HHDM (only thing that was mapped before too)
     for (uintptr_t addr = CONFIG_HHDM_VIRT_BASE; addr < CONFIG_HHDM_VIRT_BASE+CONFIG_HHDM_SIZE; addr += CONFIG_ARCH_PAGE_SIZE) {
@@ -108,22 +130,6 @@ arch::vmm::pt_t arch::vmm::get_active_pt() {
 
 void arch::vmm::load_pt(pt_t pt) {
     loadPageDirectory((void *)pt);
-}
-
-static uint32_t phys_read(mm::paddr_t addr) {
-    if (addr <= CONFIG_HHDM_PHYS_BASE ||
-        addr >= (CONFIG_HHDM_PHYS_BASE + CONFIG_HHDM_SIZE)) {
-        KERNEL_PANIC("phys_read: out of HHDM range: 0x%p", addr);
-    }
-    return *((uint32_t *)((addr - CONFIG_HHDM_PHYS_BASE) + CONFIG_HHDM_VIRT_BASE));
-}
-
-static void phys_write(mm::paddr_t addr, uint32_t val) {
-    if (addr <= CONFIG_HHDM_PHYS_BASE ||
-        addr >= (CONFIG_HHDM_PHYS_BASE + CONFIG_HHDM_SIZE)) {
-        KERNEL_PANIC("phys_read: out of HHDM range: 0x%p", addr);
-    }
-    *((uint32_t *)((addr - CONFIG_HHDM_PHYS_BASE) + CONFIG_HHDM_VIRT_BASE)) = val;
 }
 
 status::StatusOr<arch::vmm::pte_t> arch::vmm::walk(
