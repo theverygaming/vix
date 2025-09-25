@@ -54,16 +54,26 @@ namespace arch::vmm {
     extern pt_t kernel_pt;
 
     /**
-     * Allocate a new user page table
+     * Allocate a new page table
      * @return the page table or an error
      */
-    status::StatusOr<pt_t> alloc_user_pt();
+    status::StatusOr<pt_t> alloc_pt();
 
     /**
-     * Free a user page table
+     * Free a page table
      * @param [in] pt The page table to free
      */
-    void free_user_pt(pt_t pt);
+    void free_pt(pt_t pt);
+
+    /**
+     * @return currently loaded page table
+     */
+    pt_t get_active_pt();
+
+    /**
+     * Load the specified page table
+     */
+    void load_pt(pt_t pt);
 
     /**
      * Walk a page table and find a page corresponding to the given virtual address.

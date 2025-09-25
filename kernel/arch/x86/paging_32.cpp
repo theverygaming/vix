@@ -15,6 +15,7 @@ arch::vmm::pt_t arch::vmm::kernel_pt = 0;
 
 extern "C" void loadPageDirectory(void *address);
 extern "C" void reloadPageDirectory();
+extern "C" void *getPageDirectory();
 extern "C" void enablePaging();
 
 static inline void invlpg(uintptr_t virtaddr) {
@@ -52,7 +53,7 @@ void paging::init() {
             arch::vmm::FLAGS_PRESENT
         );
     }
-    loadPageDirectory(pd);
+    arch::vmm::load_pt(arch::vmm::kernel_pt);
 }
 
 uintptr_t arch::vmm::get_page(uintptr_t virt, unsigned int *flags) {
@@ -79,12 +80,34 @@ arch::vmm::set_page(uintptr_t virt, uintptr_t phys, unsigned int flags) {
     return flags_old;
 }
 
-status::StatusOr<arch::vmm::pt_t> arch::vmm::alloc_user_pt() {
-    KERNEL_PANIC("not implemented");
+status::StatusOr<arch::vmm::pt_t> arch::vmm::alloc_pt() {
+    arch::vmm::pt_t pt;
+    // TODO: we should ask the allocator to give us memory in the HHDM range
+    ASSIGN_OR_PANIC(pt, mm::pmm::alloc_contiguous(
+        (
+            // page directory
+            (1024*4)
+        ) / CONFIG_ARCH_PAGE_SIZE
+    ));
+    return pt;
 }
 
-void arch::vmm::free_user_pt(arch::vmm::pt_t pt) {
-    KERNEL_PANIC("not implemented");
+void arch::vmm::free_pt(arch::vmm::pt_t pt) {
+    mm::pmm::free_contiguous(
+        pt,
+        (
+            // page directory
+            (1024*4)
+        ) / CONFIG_ARCH_PAGE_SIZE
+    );
+}
+
+arch::vmm::pt_t arch::vmm::get_active_pt() {
+    return (arch::vmm::pt_t)getPageDirectory();
+}
+
+void arch::vmm::load_pt(pt_t pt) {
+    loadPageDirectory((void *)pt);
 }
 
 static uint32_t phys_read(mm::paddr_t addr) {
@@ -219,5 +242,5 @@ void arch::vmm::flush_tlb_single(uintptr_t virt) {
 }
 
 void arch::vmm::flush_tlb_all() {
-    reloadPageDirectory();
+    arch::vmm::load_pt(arch::vmm::get_active_pt());
 }

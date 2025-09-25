@@ -4,6 +4,11 @@ mov eax, [esp+4]
 mov cr3, eax
 ret
 
+global getPageDirectory
+getPageDirectory:
+mov eax, cr3
+ret
+
 global reloadPageDirectory
 reloadPageDirectory:
 mov eax, cr3
