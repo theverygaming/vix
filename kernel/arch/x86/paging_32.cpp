@@ -90,9 +90,9 @@ uintptr_t arch::vmm::get_page(uintptr_t virt, unsigned int *flags) {
 }
 
 unsigned int
-arch::vmm::set_page(uintptr_t virt, uintptr_t phys, unsigned int flags) {
+arch::vmm::set_page_pt(pt_t pt, uintptr_t virt, uintptr_t phys, unsigned int flags) {
     pte_t pte;
-    ASSIGN_OR_PANIC(pte, walk(kernel_pt, virt));
+    ASSIGN_OR_PANIC(pte, walk(pt, virt));
     auto pter = read_pte(pte);
 
     unsigned int flags_old = pter.first;
@@ -102,16 +102,54 @@ arch::vmm::set_page(uintptr_t virt, uintptr_t phys, unsigned int flags) {
     return flags_old;
 }
 
+unsigned int
+arch::vmm::set_page(uintptr_t virt, uintptr_t phys, unsigned int flags) {
+    return set_page_pt(kernel_pt, virt, phys, flags);
+}
+
 status::StatusOr<arch::vmm::pt_t> arch::vmm::alloc_pt() {
-    arch::vmm::pt_t pt;
+    arch::vmm::pt_t pd;
     // TODO: we should ask the allocator to give us memory in the HHDM range
-    ASSIGN_OR_PANIC(pt, mm::pmm::alloc_contiguous(
+    ASSIGN_OR_PANIC(pd, mm::pmm::alloc_contiguous(
         (
             // page directory
             (1024*4)
         ) / CONFIG_ARCH_PAGE_SIZE
     ));
-    return pt;
+    uint32_t *pd_v = (uint32_t*)hhdm_offset(pd);
+    memset(pd_v, 0, 1024 * 4);
+
+    // walk still can't create new page tables on the fly, so we just allocate a bunch here..
+    // BUG: memory leak definitely here lmao
+    for(unsigned int i = 0; i < (CONFIG_KERNEL_HIGHER_HALF >> 22); i++) {
+        mm::paddr_t pt;
+        // TODO: we should ask the allocator to give us memory in the HHDM range
+        ASSIGN_OR_PANIC(pt, mm::pmm::alloc_contiguous(
+            (
+                // page table
+                (1024*4)
+            ) / CONFIG_ARCH_PAGE_SIZE
+        ));
+
+        pd_v[i] = pt & 0xFFFFF000;
+        pd_v[i] |= 1; // present
+        pd_v[i] |= (1 << 1); // RW
+        pd_v[i] |= (1 << 2); // user
+
+        uint32_t *pt_v = (uint32_t*)hhdm_offset(pt);
+        for(int j = 0; j < 1024; j++) {
+            pt_v[j] = 0;
+        }
+    }
+
+    // for the kernel space, copy entries from the kernel page directory
+    uint32_t *k_pd_v = (uint32_t*)hhdm_offset(arch::vmm::kernel_pt);
+    for(unsigned int i = 0; i < (1024 - (CONFIG_KERNEL_HIGHER_HALF >> 22)); i++) {
+        unsigned int pd_idx = i + (CONFIG_KERNEL_HIGHER_HALF >> 22);
+        pd_v[pd_idx] = k_pd_v[pd_idx];
+    }
+
+    return pd;
 }
 
 void arch::vmm::free_pt(arch::vmm::pt_t pt) {

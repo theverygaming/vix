@@ -127,6 +127,16 @@ namespace arch::vmm {
     set_page(mm::vaddr_t virt, mm::paddr_t phys, unsigned int flags);
 
     /**
+     * sets flags and physical address for page (a TLB flush may be required after this)
+     * @param [in] virt virtual address of page
+     * @param [in] phys physical address of page
+     * @param [in] flags flags to set
+     * @return previous flags
+     */
+    unsigned int
+    set_page_pt(pt_t pt, mm::vaddr_t virt, mm::paddr_t phys, unsigned int flags);
+
+    /**
      * flushes single page out of TLB
      * @param [in] virt virtual address of page
      */
