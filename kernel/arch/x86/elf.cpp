@@ -1,13 +1,14 @@
-#include <vix/mm/mm.h>
 #include <string.h>
 #include <string>
 #include <vector>
 #include <vix/arch/common/cpu.h>
+#include <vix/arch/common/paging.h>
 #include <vix/arch/elf.h>
 #include <vix/arch/multitasking.h>
 #include <vix/config.h>
 #include <vix/debug.h>
 #include <vix/mm/kheap.h>
+#include <vix/mm/mm.h>
 #include <vix/mm/pmm.h>
 #include <vix/status.h>
 
@@ -49,28 +50,26 @@ void elf::load_program(void *ELF_baseadr, std::vector<std::string> *argv, bool r
 
     uint32_t pagecount = ((max_v - min_v) / CONFIG_ARCH_PAGE_SIZE) + 41;
 
-    std::vector<multitasking::process_pagerange> pageranges;
+    arch::vmm::pt_t pt;
+    ASSIGN_OR_PANIC(pt, arch::vmm::alloc_pt());
 
     mm::paddr_t allocated_phys;
+    // huge nonsense, doesn't need to be contiguous
     ASSIGN_OR_PANIC(allocated_phys, mm::pmm::alloc_contiguous(pagecount));
-    pageranges.push_back({.phys_base = allocated_phys,
-                          .virt_base = min_v,
-                          .pages = pagecount,
-                          .type = multitasking::process_pagerange::range_type::STATIC});
-    ASSIGN_OR_PANIC(allocated_phys, mm::pmm::alloc_contiguous(1));
-    pageranges.push_back({.phys_base = allocated_phys,
-                          .virt_base = max_v + (CONFIG_ARCH_PAGE_SIZE * 47),
-                          .pages = 1,
-                          .type = multitasking::process_pagerange::range_type::BREAK});
-
-    std::vector<multitasking::process_pagerange> old_pageranges;
-    multitasking::createPageRange(&old_pageranges);
-    multitasking::setPageRange(&pageranges);
-
-    // zero all allocated memory
-    for (size_t i = 0; i < pageranges.size(); i++) {
-        memset((void *)pageranges[i].virt_base, 0, pageranges[i].pages * CONFIG_ARCH_PAGE_SIZE);
+    for (uint32_t i = 0; i < pagecount; i++) {
+        arch::vmm::set_page_pt(
+            pt,
+            min_v + (i *CONFIG_ARCH_PAGE_SIZE),
+            allocated_phys + (i *CONFIG_ARCH_PAGE_SIZE),
+            arch::vmm::FLAGS_PRESENT | arch::vmm::FLAGS_USER
+        );
     }
+
+    arch::vmm::pt_t prev_pt = arch::vmm::get_active_pt();
+    arch::vmm::load_pt(pt);
+
+    // zero allocated memory
+    memset((void *)min_v, 0, pagecount * CONFIG_ARCH_PAGE_SIZE);
 
     //struct multitasking::x86_process::tls_info tls;
 
@@ -109,12 +108,11 @@ void elf::load_program(void *ELF_baseadr, std::vector<std::string> *argv, bool r
     DEBUG_PRINTF("Entry point: 0x%p\n", header.e_entry);
     */
 
-    multitasking::unsetPageRange(&pageranges);
-    multitasking::setPageRange(&old_pageranges);
+    arch::vmm::load_pt(prev_pt);
 
     if (replace_task) {
         //multitasking::replace_task((void *)(max + (CONFIG_ARCH_PAGE_SIZE * 40)), (void *)header.e_entry, &pageranges, argv, tls, replace_pid, regs);
     } else {
-        multitasking::create_task((void *)(max + (CONFIG_ARCH_PAGE_SIZE * 40)), (void *)header.e_entry, &pageranges, argv);
+        multitasking::create_task((void *)(max + (CONFIG_ARCH_PAGE_SIZE * 40)), (void *)header.e_entry, pt, argv);
     }
 }

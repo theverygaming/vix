@@ -99,12 +99,13 @@ static void user_thread_launch() {
             sched::mytask()->task_arch.kernel_stack_top);
     tss::tss_entry.ss0 = GDT_KERNEL_DATA;
     tss::tss_entry.esp0 = (uintptr_t)sched::mytask()->task_arch.kernel_stack_top;
-    multitasking::setPageRange(&sched::mytask()->task_arch.pages);
+    arch::vmm::load_pt(sched::mytask()->task_arch.pt);
     x86_load_cpu_full_ctx((struct arch::full_ctx *)sched::mytask()->data);
 }
 
-void multitasking::create_task(void *stackadr, void *codeadr, std::vector<process_pagerange> *pagerange, std::vector<std::string> *argv) {
-    setPageRange(pagerange);
+void multitasking::create_task(void *stackadr, void *codeadr, arch::vmm::pt_t pt, std::vector<std::string> *argv) {
+    arch::vmm::pt_t prev_pt = arch::vmm::get_active_pt();
+    arch::vmm::load_pt(pt);
 
     stackadr = init_user_stack(stackadr, argv, codeadr, false);
 
@@ -124,9 +125,9 @@ void multitasking::create_task(void *stackadr, void *codeadr, std::vector<proces
     ctx->eip = (uintptr_t)codeadr;
     ctx->eflags = 1 << 9;
 
-    unsetPageRange(pagerange);
+    arch::vmm::load_pt(prev_pt);
     struct sched::task t = sched::init_thread(user_thread_launch, ctx);
-    t.task_arch.pages = *pagerange;
+    t.task_arch.pt = pt;
     t.task_arch.is_ring_3 = true;
     sched::start_thread(t);
 }
@@ -158,24 +159,4 @@ void multitasking::interruptTrigger() {
         arch::set_interrupt_state(arch::INTERRUPT_STATE_DISABLED);
         KERNEL_PANIC("interrupts on in isr");
     }
-}
-
-bool multitasking::createPageRange(std::vector<process_pagerange> *range, uint32_t max_address) {
-    KERNEL_PANIC("TODO: fix bullshit");
-}
-
-void multitasking::setPageRange(std::vector<process_pagerange> *range) {
-    KERNEL_PANIC("TODO: fix bullshit");
-}
-
-void multitasking::unsetPageRange(std::vector<process_pagerange> *range) {
-    KERNEL_PANIC("TODO: fix bullshit");
-}
-
-void multitasking::freePageRange(std::vector<process_pagerange> *range) {
-    KERNEL_PANIC("TODO: fix bullshit");
-}
-
-void multitasking::printPageRange(std::vector<process_pagerange> *range) {
-    KERNEL_PANIC("TODO: fix bullshit");
 }

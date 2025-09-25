@@ -1,4 +1,5 @@
 #include <vix/arch/common/cpu.h>
+#include <vix/arch/common/paging.h>
 #include <vix/arch/gdt.h>
 #include <vix/config.h>
 #include <vix/debug.h>
@@ -72,14 +73,13 @@ extern "C" void sched_switch(struct arch::ctx **old, struct arch::ctx *_new, str
         if (tss::tss_entry.esp0 != 0 && (tss::tss_entry.esp0 != (uintptr_t)prev->task_arch.kernel_stack_top)) {
             KERNEL_PANIC("invalid TSS ESP0 - got 0x%p expected 0x%p", tss::tss_entry.esp0, prev->task_arch.kernel_stack_top);
         }
-        // maybe before unsetting we should save it? Maybe multitasking::createPageRange(&old_pageranges);?
-        multitasking::unsetPageRange(&prev->task_arch.pages);
+        arch::vmm::load_pt(arch::vmm::kernel_pt); // I think this is nonsense lol, useless
     }
 #endif
 #ifdef CONFIG_ENABLE_KERNEL_32
     if (next->task_arch.is_ring_3) {
         tss::tss_entry.esp0 = (uintptr_t)next->task_arch.kernel_stack_top;
-        multitasking::setPageRange(&next->task_arch.pages);
+        arch::vmm::load_pt(next->task_arch.pt);
     }
 #endif
     // silly note: after the switch the parameters passed to this function will be well...
