@@ -103,6 +103,7 @@ static void user_thread_launch() {
     x86_load_cpu_full_ctx((struct arch::full_ctx *)sched::mytask()->data);
 }
 
+#ifdef CONFIG_ARCH_HAS_PAGING
 void multitasking::create_task(void *stackadr, void *codeadr, arch::vmm::pt_t pt, std::vector<std::string> *argv) {
     arch::vmm::pt_t prev_pt = arch::vmm::get_active_pt();
     arch::vmm::load_pt(pt);
@@ -131,6 +132,7 @@ void multitasking::create_task(void *stackadr, void *codeadr, arch::vmm::pt_t pt
     t.task_arch.is_ring_3 = true;
     sched::start_thread(t);
 }
+#endif
 
 // called on every timer interrupt
 void multitasking::interruptTrigger() {

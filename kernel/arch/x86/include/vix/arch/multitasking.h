@@ -14,5 +14,7 @@ namespace multitasking {
 
     void initMultitasking();
     void interruptTrigger();
+#ifdef CONFIG_ARCH_HAS_PAGING
     void create_task(void *stackadr, void *codeadr, arch::vmm::pt_t pt, std::vector<std::string> *argv);
+#endif
 }
