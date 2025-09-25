@@ -25,6 +25,8 @@ static void do_stack_trace(uintptr_t ebp) {
         DEBUG_PRINTF("trace: p: 0x%p ebp: 0x%p eip: 0x%p\n", p, p->eip, p->ebp);
         st_print_ip(p->eip);
         p = p->ebp;
+        // TODO: this won't prevent a page fault, if a page fault happens here, we will go into an infinite loop of page faults (til the kernel explodes)
+        // yes, this has happened before lol
         if ((uintptr_t)p->ebp < CONFIG_KERNEL_HIGHER_HALF) {
             break;
         }
