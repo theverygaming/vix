@@ -1,11 +1,11 @@
 #include <string.h>
 #include <vector>
 #include <vix/arch/common/cpu.h>
+#include <vix/arch/common/paging.h>
 #include <vix/arch/drivers/net/rtl8139.h>
 #include <vix/arch/drivers/pci.h>
 #include <vix/arch/drivers/pic_8259.h>
 #include <vix/arch/isr.h>
-#include <vix/arch/paging.h>
 #include <vix/debug.h>
 #include <vix/initcall.h>
 #include <vix/kernel/io.h>
@@ -33,6 +33,12 @@ struct __attribute__((packed)) packetInfo {
     uint16_t header;
     uint16_t size;
 };
+
+static mm::paddr_t get_physaddr_unaligned(mm::vaddr_t virt) {
+    size_t diff = ALIGN_DOWN_DIFF(virt, CONFIG_ARCH_PAGE_SIZE);
+    mm::paddr_t addr = arch::vmm::get_page(ALIGN_DOWN(virt, CONFIG_ARCH_PAGE_SIZE), nullptr);
+    return addr + diff;
+}
 
 static struct net::ethernet_card_ops rtl8139_ops = {
     .transmit = drivers::net::rtl8139::sendPacket,
@@ -156,7 +162,7 @@ bool drivers::net::rtl8139::sendPacket(struct ::net::ethernet_card *card, uint8_
     if (reg_counter > 3) {
         reg_counter = 0;
     }
-    iowrite32(io_handle + 0x20 + (reg_counter * 4), (uintptr_t)paging::get_physaddr_unaligned(data)); // transmit
+    iowrite32(io_handle + 0x20 + (reg_counter * 4), get_physaddr_unaligned((mm::vaddr_t)data)); // transmit
     iowrite32(io_handle + 0x10 + (reg_counter * 4), len);                                             // status/command
     reg_counter++;
     return true;
@@ -212,7 +218,7 @@ static int rtl8139_init() {
     void *tmp_alloc;
     ASSIGN_OR_PANIC(tmp_alloc, mm::allocate_contiguous(RX_BUFFER_SIZE + 16)); // TODO: free
     bufferptr = (uint8_t *)tmp_alloc;
-    iowrite32(io_handle + 0x30, (uintptr_t)paging::get_physaddr_unaligned(bufferptr));
+    iowrite32(io_handle + 0x30, get_physaddr_unaligned((mm::vaddr_t)bufferptr));
 
     // iowrite16(io_handle + 0x3C, 0x0005); // Sets the TOK and ROK bits high
 
