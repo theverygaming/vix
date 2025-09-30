@@ -6,8 +6,9 @@
 namespace status {
     enum class StatusCode : int {
         OK = 0,
-        UNKNOWN_ERR = -1,
-        OOM_ERROR = -2,
+        EGENERIC = -1, // generic error
+        EOOM = -2,     // out of memory
+        EINVAL = -3,   // invalid argument
     };
 
     template <typename StatusCodeT = StatusCode> class [[nodiscard]] Status {

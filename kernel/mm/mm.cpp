@@ -53,7 +53,7 @@ status::StatusOr<void *> mm::map_arbitrary_phys(
     }
     // TODO: support unaligned
     if (!IS_ALIGNED(phys, CONFIG_ARCH_PAGE_SIZE)) {
-        return status::StatusCode::UNKNOWN_ERR;
+        return status::StatusCode::EGENERIC;
     }
     size_t pages =
         (ALIGN_UP(bytes, CONFIG_ARCH_PAGE_SIZE)) / CONFIG_ARCH_PAGE_SIZE;

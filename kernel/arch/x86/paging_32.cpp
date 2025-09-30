@@ -11,7 +11,10 @@
 #include <vix/status.h>
 #include <vix/stdio.h>
 
-arch::vmm::pt_t arch::vmm::kernel_pt = 0;
+arch::vmm::pt_t arch::vmm::kernel_pt = {
+    .level = 2,
+    .ptr = 0,
+};
 
 extern "C" void loadPageDirectory(void *address);
 extern "C" void reloadPageDirectory();
@@ -54,14 +57,14 @@ void paging::init() {
         // page tables
         + ((1024 - (CONFIG_KERNEL_HIGHER_HALF >> 22)) * (1024 * 4))
     );
-    ASSIGN_OR_PANIC(arch::vmm::kernel_pt, mm::pmm::alloc_contiguous(
+    ASSIGN_OR_PANIC(arch::vmm::kernel_pt.ptr, mm::pmm::alloc_contiguous(
         alloc_bytes / CONFIG_ARCH_PAGE_SIZE
     ));
     // initialize the page directory
-    uint32_t *pd = (uint32_t*)hhdm_offset(arch::vmm::kernel_pt);
+    uint32_t *pd = (uint32_t*)hhdm_offset(arch::vmm::kernel_pt.ptr);
     memset(pd, 0, alloc_bytes);
     // create and initialize page tables for the kernel address space
-    uint32_t (*pt)[1024] = (uint32_t(*)[1024])(arch::vmm::kernel_pt + CONFIG_ARCH_PAGE_SIZE);
+    uint32_t (*pt)[1024] = (uint32_t(*)[1024])(arch::vmm::kernel_pt.ptr + CONFIG_ARCH_PAGE_SIZE);
     for(unsigned int i = 0; i < (1024 - (CONFIG_KERNEL_HIGHER_HALF >> 22)); i++) {
         pd[i + (CONFIG_KERNEL_HIGHER_HALF >> 22)] = (uintptr_t)pt[i] & 0xFFFFF000;
         pd[i + (CONFIG_KERNEL_HIGHER_HALF >> 22)] |= 1; // present
@@ -107,16 +110,22 @@ arch::vmm::set_page(uintptr_t virt, uintptr_t phys, unsigned int flags) {
     return set_page_pt(kernel_pt, virt, phys, flags);
 }
 
-status::StatusOr<arch::vmm::pt_t> arch::vmm::alloc_pt() {
-    arch::vmm::pt_t pd;
+status::StatusOr<arch::vmm::pt_t> arch::vmm::alloc_pt(short level) {
+    if (level != 2) {
+        KERNEL_PANIC("not implemented: alloc_pt level != 2");
+    }
+    arch::vmm::pt_t pd = {
+        .level = 2,
+        .ptr = 0,
+    };
     // TODO: we should ask the allocator to give us memory in the HHDM range
-    ASSIGN_OR_PANIC(pd, mm::pmm::alloc_contiguous(
+    ASSIGN_OR_PANIC(pd.ptr, mm::pmm::alloc_contiguous(
         (
             // page directory
             (1024*4)
         ) / CONFIG_ARCH_PAGE_SIZE
     ));
-    uint32_t *pd_v = (uint32_t*)hhdm_offset(pd);
+    uint32_t *pd_v = (uint32_t*)hhdm_offset(pd.ptr);
     memset(pd_v, 0, 1024 * 4);
 
     // walk still can't create new page tables on the fly, so we just allocate a bunch here..
@@ -143,7 +152,7 @@ status::StatusOr<arch::vmm::pt_t> arch::vmm::alloc_pt() {
     }
 
     // for the kernel space, copy entries from the kernel page directory
-    uint32_t *k_pd_v = (uint32_t*)hhdm_offset(arch::vmm::kernel_pt);
+    uint32_t *k_pd_v = (uint32_t*)hhdm_offset(arch::vmm::kernel_pt.ptr);
     for(unsigned int i = 0; i < (1024 - (CONFIG_KERNEL_HIGHER_HALF >> 22)); i++) {
         unsigned int pd_idx = i + (CONFIG_KERNEL_HIGHER_HALF >> 22);
         pd_v[pd_idx] = k_pd_v[pd_idx];
@@ -154,7 +163,7 @@ status::StatusOr<arch::vmm::pt_t> arch::vmm::alloc_pt() {
 
 void arch::vmm::free_pt(arch::vmm::pt_t pt) {
     mm::pmm::free_contiguous(
-        pt,
+        pt.ptr,
         (
             // page directory
             (1024*4)
@@ -163,11 +172,17 @@ void arch::vmm::free_pt(arch::vmm::pt_t pt) {
 }
 
 arch::vmm::pt_t arch::vmm::get_active_pt() {
-    return (arch::vmm::pt_t)getPageDirectory();
+    return {
+        .level = 2,
+        .ptr = (mm::paddr_t)getPageDirectory(),
+    };
 }
 
 void arch::vmm::load_pt(pt_t pt) {
-    loadPageDirectory((void *)pt);
+    if (pt.level != 2) {
+        KERNEL_PANIC("load_pt invalid level");
+    }
+    loadPageDirectory((void *)pt.ptr);
 }
 
 status::StatusOr<arch::vmm::pte_t> arch::vmm::walk(
@@ -180,8 +195,8 @@ status::StatusOr<arch::vmm::pte_t> arch::vmm::walk(
         KERNEL_PANIC("create_pts not implemented");
     }
     // inspired by xv6-riscv :3
-    mm::paddr_t pt_paddr = (mm::paddr_t)pt;
-    for (int level = 2; level >= 1; level--) {
+    mm::paddr_t pt_paddr = (mm::paddr_t)pt.ptr;
+    for (int level = CONFIG_ARCH_PAGING_LEVELS; level >= 1; level--) {
         // index into page table
         pt_paddr += ((vaddr >> (2 + level * 10)) & 0x03FF) * 4;
         // on the final level, there's no need to look any deeper, if we look deeper we'll get the physical address!
@@ -194,7 +209,7 @@ status::StatusOr<arch::vmm::pte_t> arch::vmm::walk(
             pt_paddr = pte_val & 0xFFFFF000;
             continue;
         }
-        return status::StatusCode::UNKNOWN_ERR;
+        return status::StatusCode::EGENERIC;
     }
     return (arch::vmm::pte_t)pt_paddr;
 }

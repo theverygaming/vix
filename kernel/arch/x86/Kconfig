@@ -13,6 +13,10 @@ config ARCH_PAGE_SIZE
   int
   default 4096
 
+config ARCH_PAGING_LEVELS
+  int
+  default 2
+
 config KERNEL_HIGHER_HALF
   hex
   depends on !ENABLE_KERNEL_64

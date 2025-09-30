@@ -37,7 +37,7 @@ namespace mm::slab {
     status::StatusOr<struct cache *> create_cache(const char *obj_name, size_t obj_size) {
         // check if things will fit into the first block/page, if they don't we might as well abort here
         if (ALIGN_ANY_UP(sizeof(slab) + sizeof(cache), obj_size) <= CONFIG_ARCH_PAGE_SIZE) { // TODO: check for off-by-one error
-            return status::StatusCode::UNKNOWN_ERR;
+            return status::StatusCode::EGENERIC;
         }
         void *first_page = alloc_pages(1);
         struct slab *first = (struct slab *)first_page;

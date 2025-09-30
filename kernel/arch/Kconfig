@@ -13,6 +13,13 @@ config ARCH_PAGE_SIZE
   help
     Page size, must be a power of two
 
+config ARCH_PAGING_LEVELS
+  int
+  depends on ARCH_HAS_PAGING
+  help
+    Maximum number of paging levels
+    1 means there is at most a single page table
+
 config KERNEL_HIGHER_HALF
   hex
   depends on ARCH_HAS_PAGING

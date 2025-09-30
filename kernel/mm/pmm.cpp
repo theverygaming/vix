@@ -274,7 +274,7 @@ status::StatusOr<mm::paddr_t> mm::pmm::alloc_contiguous(size_t pages) {
         }
         pages_before += pm_areas[i].n_pages;
     }
-    return status::StatusCode::OOM_ERROR;
+    return status::StatusCode::EOOM;
 }
 
 void mm::pmm::free_contiguous(paddr_t paddr, size_t pages) {

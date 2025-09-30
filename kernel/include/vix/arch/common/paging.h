@@ -4,6 +4,7 @@
 #include <vix/mm/mm.h>
 #include <vix/status.h>
 #include <vix/types.h>
+#include <vix/arch/common/paging_types.h>
 
 #ifdef CONFIG_ARCH_HAS_PAGING
 namespace arch::vmm {
@@ -35,9 +36,6 @@ namespace arch::vmm {
     // flag that never gets touched by the MMU, usable for the OS for arbitrary purposes
     inline const unsigned int FLAGS_OS_FLAG_2 = (0x1 << 12);
 
-    typedef uintptr_t pt_t;  // page table
-    typedef uintptr_t pte_t; // page table entry
-
     /*
     HHDM (higher half direct map), may be all of physical memory or only a part of it
     */
@@ -57,7 +55,7 @@ namespace arch::vmm {
      * Allocate a new page table
      * @return the page table or an error
      */
-    status::StatusOr<pt_t> alloc_pt();
+    status::StatusOr<pt_t> alloc_pt(short level);
 
     /**
      * Free a page table
@@ -66,12 +64,12 @@ namespace arch::vmm {
     void free_pt(pt_t pt);
 
     /**
-     * @return currently loaded page table
+     * @return currently loaded highest-level page table
      */
     pt_t get_active_pt();
 
     /**
-     * Load the specified page table
+     * Load the specified page table as the new highest-level page table
      */
     void load_pt(pt_t pt);
 
@@ -96,7 +94,7 @@ namespace arch::vmm {
     /**
      * gets flags and physical address for page table entry
      * @param [in] pte page table entry
-     * @return the flags and physical address of the page table entry 
+     * @return the flags and physical address of the page table entry
      */
     std::pair<unsigned int, mm::paddr_t> read_pte(pte_t pte);
 

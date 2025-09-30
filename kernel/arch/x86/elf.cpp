@@ -52,7 +52,8 @@ void elf::load_program(void *ELF_baseadr, std::vector<std::string> *argv, bool r
     uint32_t pagecount = ((max_v - min_v) / CONFIG_ARCH_PAGE_SIZE) + 41;
 
     arch::vmm::pt_t pt;
-    ASSIGN_OR_PANIC(pt, arch::vmm::alloc_pt());
+    // TODO: not a problem as long as this is arch-specific but we should probably, maybe not allocate a e.g. level 5 page table on x86_64 with 5-level paging.. 
+    ASSIGN_OR_PANIC(pt, arch::vmm::alloc_pt(CONFIG_ARCH_PAGING_LEVELS));
 
     mm::paddr_t allocated_phys;
     // huge nonsense, doesn't need to be contiguous
