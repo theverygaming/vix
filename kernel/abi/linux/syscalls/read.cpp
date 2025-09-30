@@ -34,7 +34,7 @@ __DEF_LINUX_SYSCALL(sys_read) {
     }
 
     if (fd != 0) {
-        return -EBADF;
+        return -LINUX_EBADF;
     }
 
     // we allocate a second buffer as when they key_listener gets called

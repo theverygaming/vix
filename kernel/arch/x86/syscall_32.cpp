@@ -461,7 +461,7 @@ extern "C" void syscallHandler(struct arch::full_ctx *regs) {
         abi::linux::syscall_arg_t retval;
         if (syscall_table[regs->eax] == nullptr) {
             kprintf(KP_INFO, "syscall %u not found\n", regs->eax);
-            regs->eax = -ENOSYS;
+            regs->eax = -LINUX_ENOSYS;
             return;
         }
         retval = syscall_table[regs->eax]((abi::linux::syscall_arg_t)regs->ebx,
@@ -475,5 +475,5 @@ extern "C" void syscallHandler(struct arch::full_ctx *regs) {
         return;
     }
     kprintf(KP_INFO, "syscall %u not found\n", regs->eax);
-    regs->eax = -ENOSYS;
+    regs->eax = -LINUX_ENOSYS;
 }

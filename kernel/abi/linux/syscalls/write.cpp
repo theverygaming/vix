@@ -11,7 +11,7 @@ __DEF_LINUX_SYSCALL(sys_write) {
     size_t count = (size_t)sysarg2;
 
     if (!(fd == 1 || fd == 2)) {
-        return -EBADF;
+        return -LINUX_EBADF;
     }
 
     for (size_t i = 0; i < count; i++) {
