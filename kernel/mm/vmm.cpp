@@ -7,7 +7,6 @@
 #include <vix/mm/vmm.h>
 #include <vix/panic.h>
 
-#ifdef CONFIG_ARCH_HAS_PAGING
 void mm::vmm::init() {
     kprintf(KP_INFO, "vmm: initialized virtual memory manager\n");
 }
@@ -52,5 +51,3 @@ mm::vaddr_t mm::vmm::kalloc(size_t pages) {
 void mm::vmm::dealloc(vaddr_t start, size_t n) {
     KERNEL_PANIC("not implemented");
 }
-
-#endif
