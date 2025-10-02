@@ -10,6 +10,7 @@
 #include <vix/panic.h>
 #include <vix/status.h>
 #include <vix/stdio.h>
+#include <vix/pgtable.h>
 
 arch::vmm::pt_t arch::vmm::kernel_pt = {
     .level = 2,
@@ -49,6 +50,8 @@ static void phys_write(mm::paddr_t addr, uint32_t val) {
     *((uint32_t *)((addr - CONFIG_HHDM_PHYS_BASE) + CONFIG_HHDM_VIRT_BASE)) = val;
 }
 
+arch::pgtable::pdl4_t *arch::pgtable::kernel_global_pdl4 = nullptr;
+
 void paging::init() {
     // TODO: we should ask the allocator to give us memory in the HHDM range
     size_t alloc_bytes = (
@@ -79,6 +82,8 @@ void paging::init() {
         );
     }
     arch::vmm::load_pt(arch::vmm::kernel_pt);
+
+    arch::pgtable::kernel_global_pdl4 = (arch::pgtable::pdl4_t *)arch::pgtable::hhdm_to_virt(arch::vmm::kernel_pt.ptr);
 }
 
 uintptr_t arch::vmm::get_page(uintptr_t virt, unsigned int *flags) {
