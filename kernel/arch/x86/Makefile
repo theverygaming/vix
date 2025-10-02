@@ -8,7 +8,7 @@ obj-y += generic/cpu.o generic/devices.o
 obj-y += cpubasics.o cpuid.o elf.o gdt.o modelf.o multitasking.o sched.o multitasking_s.o simd.o tss.o io.o
 
 obj-$(CONFIG_ENABLE_KERNEL_32) += drivers/text80x25.o
-obj-$(CONFIG_ENABLE_KERNEL_32) += paging.onasm isr_s.onasm simd_s.onasm gdt_s.onasm idt_s.onasm
+obj-$(CONFIG_ENABLE_KERNEL_32) += paging.o isr_s.o simd_s.o gdt_s.o idt_s.o
 obj-$(CONFIG_ENABLE_KERNEL_32) += archinit_32.o multiboot2.o memorymap.o isr.o isrs.o ldt.o idt.o paging_32.o syscall_32_s.o syscall_32.o except_32_s.o except_32.o
 obj-$(CONFIG_ENABLE_KERNEL_32) += libgcc.o
 obj-$(CONFIG_ENABLE_KERNEL_32) += ia32_prekernel.o

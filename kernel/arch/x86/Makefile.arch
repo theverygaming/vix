@@ -6,7 +6,7 @@ override INT_CFLAGS += -mcmodel=kernel
 override INT_CXXFLAGS += -mcmodel=kernel
 endif
 
-%.onasm: %.asm
+%.o: %.asm
 	@echo "  NASM $<"
 	@nasm -f elf $< -o $@
 

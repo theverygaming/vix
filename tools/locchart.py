@@ -68,7 +68,6 @@ excludes = [
     "kernel/arch/example/",
 
     "*.o",
-    "*.oasm",
 
     "*Makefile",
     "*Kconfig",
