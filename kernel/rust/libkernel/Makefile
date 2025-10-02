@@ -1,4 +1,4 @@
-lib-$(CONFIG_RUST_SUPPORT) += rust.ocpp libkernel.rlib $(wildcard $(shell rustc --print sysroot)/lib/rustlib/$(RUST_TARGET)/lib/libcore*.rlib) $(wildcard $(shell rustc --print sysroot)/lib/rustlib/$(RUST_TARGET)/lib/liballoc*.rlib)
+lib-$(CONFIG_RUST_SUPPORT) += rust.o libkernel.rlib $(wildcard $(shell rustc --print sysroot)/lib/rustlib/$(RUST_TARGET)/lib/libcore*.rlib) $(wildcard $(shell rustc --print sysroot)/lib/rustlib/$(RUST_TARGET)/lib/liballoc*.rlib)
 
 $(objtree)/libkernel.rlib: $(objtree)/kernel.rs $(objtree)/bindings.rs
 	$(call build_rust,$<,$@,)

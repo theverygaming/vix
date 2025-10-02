@@ -1,1 +1,1 @@
-obj-$(CONFIG_ENABLE_TESTS) := tests.ocpp malloc_test.ocpp initcall_test.ocpp
+obj-$(CONFIG_ENABLE_TESTS) := tests.o malloc_test.o initcall_test.o

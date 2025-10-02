@@ -1,2 +1,2 @@
-obj-y += kheap.ocpp pmm.ocpp memmap.ocpp memtest.ocpp slab.ocpp mm.ocpp
-obj-$(CONFIG_ARCH_HAS_PAGING) += vmm.ocpp pgtable.ocpp
+obj-y += kheap.o pmm.o memmap.o memtest.o slab.o mm.o
+obj-$(CONFIG_ARCH_HAS_PAGING) += vmm.o pgtable.o

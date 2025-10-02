@@ -1,1 +1,1 @@
-obj-$(CONFIG_ENABLE_ABI_VIX) += exit.ocpp
+obj-$(CONFIG_ENABLE_ABI_VIX) += exit.o

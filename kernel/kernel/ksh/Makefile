@@ -1,1 +1,1 @@
-obj-$(CONFIG_ENABLE_KSH) := ksh.ocpp
+obj-$(CONFIG_ENABLE_KSH) := ksh.o

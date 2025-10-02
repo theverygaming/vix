@@ -1,9 +1,9 @@
-obj-$(CONFIG_ENABLE_STACKPROTECTOR) += stackprotector.ocpp
+obj-$(CONFIG_ENABLE_STACKPROTECTOR) += stackprotector.o
 
 obj-d += drivers
 
-obj-y += generic/cpu.ocpp generic/devices.ocpp
-obj-y += archinit.ocpp memmap.ocpp exceptions.ocpp sched.ocpp sched_s.oS
+obj-y += generic/cpu.o generic/devices.o
+obj-y += archinit.o memmap.o exceptions.o sched.o sched_s.oS
 
 
 extratargets-y += include/vix/arch/limine.h

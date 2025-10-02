@@ -1,5 +1,5 @@
 obj-$(CONFIG_ENABLE_ACPI) := $(patsubst %.c,%.oc,$(subst $(srctree)/,,$(wildcard $(srctree)/uacpi/source/*.c)))
-obj-$(CONFIG_ENABLE_ACPI) += uacpi_interface.ocpp
+obj-$(CONFIG_ENABLE_ACPI) += uacpi_interface.o
 
 # TODO: allow kernel makefiles to specify extra CFLAGS, include paths (goes with CFLAGS ig) and stuff..
 

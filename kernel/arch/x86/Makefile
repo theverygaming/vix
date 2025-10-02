@@ -1,19 +1,19 @@
 extratargets-$(CONFIG_ENABLE_KERNEL_32) += linker_32.lds
-obj-$(CONFIG_ENABLE_NETWORKING) += drivers/net/rtl8139.ocpp
-obj-$(CONFIG_ENABLE_FTRACE) += trace.ocpp
-obj-$(CONFIG_ENABLE_STACKPROTECTOR) += stackprotector.ocpp
+obj-$(CONFIG_ENABLE_NETWORKING) += drivers/net/rtl8139.o
+obj-$(CONFIG_ENABLE_FTRACE) += trace.o
+obj-$(CONFIG_ENABLE_STACKPROTECTOR) += stackprotector.o
 
-obj-y += drivers/ps2.ocpp drivers/pci.ocpp drivers/pic_8259.ocpp drivers/rtc.ocpp drivers/serial.ocpp
-obj-y += generic/cpu.ocpp generic/devices.ocpp
-obj-y += cpubasics.ocpp cpuid.ocpp elf.ocpp gdt.ocpp modelf.ocpp multitasking.ocpp sched.ocpp multitasking_s.oS simd.ocpp tss.ocpp io.ocpp
+obj-y += drivers/ps2.o drivers/pci.o drivers/pic_8259.o drivers/rtc.o drivers/serial.o
+obj-y += generic/cpu.o generic/devices.o
+obj-y += cpubasics.o cpuid.o elf.o gdt.o modelf.o multitasking.o sched.o multitasking_s.oS simd.o tss.o io.o
 
-obj-$(CONFIG_ENABLE_KERNEL_32) += drivers/text80x25.ocpp
+obj-$(CONFIG_ENABLE_KERNEL_32) += drivers/text80x25.o
 obj-$(CONFIG_ENABLE_KERNEL_32) += paging.onasm isr_s.onasm simd_s.onasm gdt_s.onasm idt_s.onasm
-obj-$(CONFIG_ENABLE_KERNEL_32) += archinit_32.ocpp multiboot2.ocpp memorymap.ocpp isr.ocpp isrs.ocpp ldt.ocpp idt.ocpp paging_32.ocpp syscall_32_s.oS syscall_32.ocpp except_32_s.oS except_32.ocpp
-obj-$(CONFIG_ENABLE_KERNEL_32) += libgcc.ocpp
+obj-$(CONFIG_ENABLE_KERNEL_32) += archinit_32.o multiboot2.o memorymap.o isr.o isrs.o ldt.o idt.o paging_32.o syscall_32_s.oS syscall_32.o except_32_s.oS except_32.o
+obj-$(CONFIG_ENABLE_KERNEL_32) += libgcc.o
 obj-$(CONFIG_ENABLE_KERNEL_32) += ia32_prekernel.oS
 
-obj-$(CONFIG_ENABLE_KERNEL_64) += archinit_64.ocpp paging_64.ocpp isr_64.ocpp
+obj-$(CONFIG_ENABLE_KERNEL_64) += archinit_64.o paging_64.o isr_64.o
 
 extratargets-$(CONFIG_ENABLE_KERNEL_64) += include/vix/arch/limine.h
 

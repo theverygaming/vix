@@ -1,2 +1,2 @@
-obj-y += gpu/mbox.ocpp gpu/fb.ocpp
-obj-y += uart.ocpp timer.ocpp
+obj-y += gpu/mbox.o gpu/fb.o
+obj-y += uart.o timer.o

@@ -1,5 +1,5 @@
-obj-y += string.ocpp cpp.ocpp stdio.ocpp
+obj-y += string.o cpp.o stdio.o
 
-obj-$(CONFIG_UBSAN) += ubsan.ocpp
+obj-$(CONFIG_UBSAN) += ubsan.o
 
 obj-d += tests

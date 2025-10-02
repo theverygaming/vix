@@ -1,1 +1,1 @@
-obj-$(CONFIG_ENABLE_NETWORKING) := arp.ocpp ethernet.ocpp icmp.ocpp ip.ocpp stack.ocpp
+obj-$(CONFIG_ENABLE_NETWORKING) := arp.o ethernet.o icmp.o ip.o stack.o

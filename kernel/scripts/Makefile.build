@@ -15,7 +15,7 @@ override INT_CXXFLAGS += -I arch/$(BUILD_ARCH)/include -I stdlibs/libc/include -
 	@echo "  CC $<"
 	@$(INT_CC) $(INT_CFLAGS) -c $< -o $@
 
-%.ocpp: %.cpp
+%.o: %.cpp
 	@echo "  CXX $<"
 	@$(INT_CXX) $(INT_CXXFLAGS) -c $< -o $@
 

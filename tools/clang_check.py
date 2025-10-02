@@ -41,7 +41,6 @@ excludes = [
 
     "*.o",
     "*.oc",
-    "*.ocpp",
     "*.oS",
     "*.oasm",
 

@@ -1,6 +1,6 @@
-obj-$(CONFIG_ENABLE_STACKPROTECTOR) += stackprotector.ocpp
+obj-$(CONFIG_ENABLE_STACKPROTECTOR) += stackprotector.o
 
-obj-y += generic/cpu.ocpp generic/devices.ocpp
-obj-y += archinit.ocpp sched_s.oS sched.ocpp
+obj-y += generic/cpu.o generic/devices.o
+obj-y += archinit.o sched_s.oS sched.o
 
-obj-y += libgcc.ocpp
+obj-y += libgcc.o
