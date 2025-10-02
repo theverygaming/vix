@@ -1,6 +1,5 @@
 .vscode
 *.o
-*.oc
 *.lds
 *.oasm
 *.onasm

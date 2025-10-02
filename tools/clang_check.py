@@ -40,7 +40,6 @@ excludes = [
     "kernel/arch/example/",
 
     "*.o",
-    "*.oc",
     "*.oS",
     "*.oasm",
 

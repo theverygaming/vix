@@ -1,3 +1,3 @@
 obj-d += tests
-obj-y += string.oc stdlib.oc
-obj-y += nonstd.oc
+obj-y += string.o stdlib.o
+obj-y += nonstd.o
