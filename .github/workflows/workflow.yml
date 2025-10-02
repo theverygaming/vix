@@ -36,7 +36,7 @@ jobs:
             runcmd: "true"
             ignore_test_failure: true
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           submodules: recursive
       - name: Install Nix
@@ -69,7 +69,7 @@ jobs:
   formatting_and_spelling:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           submodules: recursive
 
