@@ -1,10 +1,7 @@
 .vscode
 *.o
 *.lds
-*.oasm
-*.onasm
 *.rlib
-*.ors
 
 kernel.bin
 initramfs.bin

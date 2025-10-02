@@ -1,1 +1,1 @@
-obj-$(CONFIG_RUST_SUPPORT) := demo.ors
+obj-$(CONFIG_RUST_SUPPORT) := demo.o

@@ -1,1 +1,1 @@
-obj-$(CONFIG_ENABLE_NETWORKING) += stack.ors
+obj-$(CONFIG_ENABLE_NETWORKING) += stack.o

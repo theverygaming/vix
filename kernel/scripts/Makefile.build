@@ -44,7 +44,7 @@ define build_rust
 	$(1) -o $(2)
 endef
 
-%.ors: %.rs ./rust/libkernel/libkernel.rlib
+%.o: %.rs ./rust/libkernel/libkernel.rlib
 	$(call build_rust,$<,$@,--extern kernel=$(objtree)/rust/libkernel/libkernel.rlib --emit=obj)
 
 ifeq ($(CONFIG_UBSAN), y)
