@@ -3,7 +3,7 @@ obj-$(CONFIG_ENABLE_STACKPROTECTOR) += stackprotector.o
 obj-d += drivers
 
 obj-y += generic/cpu.o generic/devices.o
-obj-y += archinit.o memmap.o exceptions.o sched.o sched_s.oS
+obj-y += archinit.o memmap.o exceptions.o sched.o sched_s.o
 
 
 extratargets-y += include/vix/arch/limine.h

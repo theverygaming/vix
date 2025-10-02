@@ -3,8 +3,6 @@
 *.lds
 *.oasm
 *.onasm
-*.os
-*.oS
 *.rlib
 *.ors
 
