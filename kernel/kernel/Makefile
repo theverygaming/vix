@@ -8,6 +8,7 @@ obj-$(CONFIG_ENABLE_BUILTIN_FONT) += unifont.bin.o
 
 obj-$(CONFIG_ENABLE_SYMBOL_TABLE) += symbols.o
 
-$(objtree)/%.bin.cpp: ../fonts/Unifont-APL8x16-15.0.01.psf
+.INTERMEDIATE: $(objtree)/unifont.bin.cpp
+$(objtree)/unifont.bin.cpp: ../fonts/Unifont-APL8x16-15.0.01.psf
 	@echo "  BIN2C $<"
 	@xxd -i $< $@

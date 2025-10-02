@@ -65,7 +65,7 @@ include $(M)/Makefile
 endif
 
 .PHONY: all
-all: syncconfig
+all:
 ifndef M
 	@$(MAKE) kernel
 endif
@@ -82,6 +82,10 @@ scripts/kconfig/Makefile:
 	@cp scripts/kconfig_Makefile scripts/kconfig/Makefile
 
 syncconfig: scripts/kconfig/Makefile
+	@$(MAKE) --quiet -C scripts/kconfig/ config
+	@scripts/kconfig/config Kconfig --silent --syncconfig
+
+include/generated/autoconf.h: scripts/kconfig/Makefile .config
 	@$(MAKE) --quiet -C scripts/kconfig/ config
 	@scripts/kconfig/config Kconfig --silent --syncconfig
 
@@ -122,7 +126,7 @@ alldefconfig: scripts/kconfig/Makefile
 # clean targets
 clean: modclean
 	@rm -f kernel.o kernel.bin symtab.S symtab.o kernel_partial.o
-	@find ./arch ./drivers ./fs ./include ./kernel ./net ./mm ./stdlibs ./tests ./abi ./rust \( -name '*.lds' -o -name '*.o' -o -name '*.os' -o -name '*.rlib' \) -type f -delete
+	@find ./arch ./drivers ./fs ./include ./kernel ./net ./mm ./stdlibs ./tests ./abi ./rust \( -name '*.lds' -o -name '*.o' -o -name '*.rlib' -o -name '*.d' \) -type f -delete
 
 distclean: clean
 	@rm -f .config .config_old
@@ -164,7 +168,7 @@ $(foreach dir, $(BUILD_SUBDIRS), $(eval $(call build_subdir,$(dir))))
 endif
 
 .PHONY: pre_build
-pre_build: $(EXTRATARGETS)
+pre_build: include/generated/autoconf.h $(EXTRATARGETS)
 
 .PHONY: build_libs
 build_libs: $(LIBS)
@@ -183,6 +187,9 @@ kernel: | pre_build build_libs build_objs
 ifdef M
 MODS = $(addprefix $(M)/, $(obj-m))
 endif
+
+DEP = $(OBJS:%.o=%.d)
+-include $(DEP)
 
 MOD_OBJS := 
 

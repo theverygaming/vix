@@ -13,19 +13,19 @@ override INT_CXXFLAGS += -I arch/$(BUILD_ARCH)/include -I stdlibs/libc/include -
 
 %.o: %.c
 	@echo "  CC $<"
-	@$(INT_CC) $(INT_CFLAGS) -c $< -o $@
+	@$(INT_CC) $(INT_CFLAGS) -MMD -c $< -o $@
 
 %.o: %.cpp
 	@echo "  CXX $<"
-	@$(INT_CXX) $(INT_CXXFLAGS) -c $< -o $@
+	@$(INT_CXX) $(INT_CXXFLAGS) -MMD -c $< -o $@
 
 %.o: %.S
 	@echo "  AS $<"
-	@$(INT_CXX) $(INT_CXXFLAGS) -c $< -o $@
+	@$(INT_CXX) $(INT_CXXFLAGS) -MMD -c $< -o $@
 
 %.lds: %.lds.S
 	@echo "  CPP $<"
-	@$(INT_CPP) -P $(INT_CFLAGS) $< -o $@
+	@$(INT_CPP) -P $(INT_CFLAGS) -MMD $< -o $@
 
 RUST_TARGET := i686-unknown-linux-gnu
 

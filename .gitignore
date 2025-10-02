@@ -2,6 +2,7 @@
 *.o
 *.lds
 *.rlib
+*.d
 
 kernel.bin
 initramfs.bin
