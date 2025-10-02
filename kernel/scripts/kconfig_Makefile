@@ -12,7 +12,7 @@ HOST_LDFLAGS +=
 	@echo "  CC $<"
 	@$(HOST_CC) $(HOST_CFLAGS) -c $< -o $@
 
-%.ocpp: %.cc
+%.o: %.cc
 	@echo "  CXX $<"
 	@$(HOST_CXX) $(HOST_CFLAGS) -c $< -o $@
 
@@ -56,11 +56,11 @@ nconfig: nconf.o nconf.gui.o $(common-objs)
 
 xconfig: HOST_CFLAGS+=$(shell pkg-config Qt5Core Qt5Gui Qt5Widgets --cflags)
 xconfig: HOST_LDFLAGS+=$(shell pkg-config Qt5Core Qt5Gui Qt5Widgets --libs)
-xconfig: qconf.ocpp qconf-moc.ocpp images.o $(common-objs)
+xconfig: qconf.o qconf-moc.o images.o $(common-objs)
 	@echo "  CXX $@"
 	@$(HOST_CXX) $^ -o $@ $(HOST_LDFLAGS)
 
-qconf-moc.ocpp: qconf.h
+qconf-moc.o: qconf.h
 	@$(HOST_MOC) $^ -o qconf-moc.cpp
 	@$(HOST_CXX) $(HOST_CFLAGS) -c qconf-moc.cpp -o $@
 
@@ -73,6 +73,6 @@ help:
 	@echo  '  alldefconfig	  - New config with all symbols set to default'
 
 clean:
-	@rm -f *.o *.ocpp
+	@rm -f *.o
 	@rm -f parser.tab.c parser.tab.h lexer.lex.c qconf-moc.cpp
 	@rm -f config nconfig menuconfig xconfig gconfig
