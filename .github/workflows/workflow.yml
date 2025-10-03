@@ -15,7 +15,7 @@ jobs:
             runcmd: qemu-system-x86_64 -cdrom vix.iso -nographic
             ignore_test_failure: false
           - flake: x86-64
-            step_config: make alldefconfig MAKE_ARCH=x86 && make tests MAKE_ARCH=x86 && sed -i "s/CONFIG_ENABLE_KERNEL_32=y/# CONFIG_ENABLE_KERNEL_32=y\nCONFIG_ENABLE_KERNEL_64=y/g" kernel/.config
+            step_config: make alldefconfig MAKE_ARCH=x86 && make tests MAKE_ARCH=x86 && sed -i "s/CONFIG_ENABLE_KERNEL_32=y/# CONFIG_ENABLE_KERNEL_32=y\nCONFIG_ENABLE_KERNEL_64=y/g" kernel/.config && make syncconfig
             step_build: make MAKE_ARCH=x86 CROSS_COMPILE=x86_64-elf-
             step_bootimg: make bootimg-x86-64 MAKE_ARCH=x86
             nm: x86_64-elf-nm
