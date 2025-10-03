@@ -179,6 +179,11 @@ void arch::startup::kthread0() {
         elf::load_module(elfptr);
     }
 
+    if (fs::vfs::fptr("/usr/lib/modules/module2.o", &elfptr)) {
+        kprintf(KP_INFO, "archinit: loading kernel module #2\n");
+        elf::load_module(elfptr);
+    }
+
     std::vector<std::string> args;
     if (fs::vfs::fptr("/bin/sh", &elfptr)) {
         args.push_back("/bin/sh");
