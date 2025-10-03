@@ -209,20 +209,18 @@ endif
 DEP = $(OBJS:%.o=%.d)
 -include $(DEP)
 
-MOD_OBJS := 
-
 define build_mod
-MOD_OBJS += $(addprefix $(dir $(1)),$($(notdir $(basename $(1)))-y))
+MOD_OBJS = $(addprefix $(dir $(1)),$($(notdir $(basename $(1)))-y))
 
-$(1): $(addprefix $(dir $(1)),$($(notdir $(basename $(1)))-y))
+$(1): $$(MOD_OBJS)
 	@echo "  LD $(notdir $(1))"
-	@$(INT_LD) $(INT_LDFLAGS) -r $(addprefix $(dir $(1)),$($(notdir $(basename $(1)))-y)) -o $(1)
+	@$(INT_LD) $(INT_LDFLAGS) -r $$^ -o $(1)
 endef
 
 $(foreach dir, $(MODS), $(eval $(call build_mod,$(dir))))
 
 modules: $(MODS)
-	@echo "  M: $(notdir $(MODS))"
+	@echo "  M: $(notdir $^)"
 
 modclean:
 	@rm -f $(MODS) $(MOD_OBJS)
