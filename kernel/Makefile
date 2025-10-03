@@ -85,7 +85,7 @@ syncconfig: scripts/kconfig/Makefile
 	@$(MAKE) --quiet -C scripts/kconfig/ config
 	@scripts/kconfig/config Kconfig --silent --syncconfig
 
-include/generated/autoconf.h: scripts/kconfig/Makefile .config
+include/generated/autoconf.h: scripts/kconfig/Makefile $(wildcard .config)
 	@$(MAKE) --quiet -C scripts/kconfig/ config
 	@scripts/kconfig/config Kconfig --silent --syncconfig
 
