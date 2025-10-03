@@ -325,6 +325,7 @@ void elf::load_module(void *ELF_baseadr) {
         }
     }
 
+    DEBUG_PRINTF("module loaded\n");
     return; // we do not want to exit the GUI module
 
     void (*modexit)() = (void (*)())elf32_find_symbol("__MODULE_EXIT", ELF_baseadr, &sections);
