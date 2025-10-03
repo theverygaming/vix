@@ -70,6 +70,10 @@ ifndef M
 	@$(MAKE) kernel
 endif
 
+ifndef ARCH_DEFCONFIG
+ARCH_DEFCONFIG := defconfig
+endif
+
 clangd_compile_flags_txt:
 	@echo -working-directory=$(CURDIR) > compile_flags.txt
 	@echo --language=c++ >> compile_flags.txt
@@ -123,6 +127,14 @@ alldefconfig: scripts/kconfig/Makefile
 	@$(MAKE) --quiet -C scripts/kconfig/ config
 	@scripts/kconfig/config Kconfig --silent --alldefconfig
 
+savedefconfig: scripts/kconfig/Makefile
+	@$(MAKE) --quiet -C scripts/kconfig/ config
+	@scripts/kconfig/config Kconfig --silent --savedefconfig ./defconfig
+
+defconfig: scripts/kconfig/Makefile
+	@$(MAKE) --quiet -C scripts/kconfig/ config
+	@scripts/kconfig/config Kconfig --silent --defconfig arch/$(BUILD_ARCH)/configs/$(ARCH_DEFCONFIG)
+
 # clean targets
 clean: modclean
 	@rm -f kernel.o kernel.bin symtab.S symtab.o kernel_partial.o
@@ -143,9 +155,11 @@ define build_subdir
 objtree := $$(objtree)/$(1)
 srctree := $$(srctree)/$(1)
 
+# TODO: refactor this whole thing to be more reusable for e.g. modules
+# TODO: support setting cflags n stuff here?
 obj-m :=
 obj-y :=
-lib-y := 
+lib-y :=
 obj-d :=
 extratargets-y :=
 

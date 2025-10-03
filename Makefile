@@ -8,11 +8,18 @@ all: kernel-$(MAKE_ARCH)
 alldefconfig:
 	@$(MAKE) --no-print-directory -C kernel alldefconfig
 
+defconfig:
+	@$(MAKE) --no-print-directory -C kernel defconfig
+
+savedefconfig:
+	@$(MAKE) --no-print-directory -C kernel savedefconfig
+
 syncconfig:
 	@$(MAKE) --no-print-directory -C kernel syncconfig
 
 tests:
 	@cd kernel && echo "CONFIG_ENABLE_TESTS=y" >> .config # hacky but "works"
+	$(MAKE) syncconfig
 
 menuconfig:
 	@$(MAKE) --no-print-directory -C kernel menuconfig
