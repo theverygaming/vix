@@ -1,3 +1,4 @@
+# FIXME: this whole build system is kinda cool but grew out of a whole lot of bullshit :3 Also the code is unreadable lmfao
 # erase defaults
 CXX=
 LD=
@@ -72,6 +73,9 @@ endif
 all:
 ifndef M
 	@$(MAKE) kernel
+ifdef CONFIG_MODULES
+	@$(MAKE) modules
+endif
 endif
 
 ifndef ARCH_DEFCONFIG
@@ -183,7 +187,23 @@ endef
 
 ifndef M
 $(foreach dir, $(BUILD_SUBDIRS), $(eval $(call build_subdir,$(dir))))
+
+# in-tree modules when configured as non-module
+define build_obj
+MOD_OBJS_Y = $(addprefix $(dir $(1)),$($(notdir $(basename $(1)))-y))
+
+# Only add rule if $(...-y) exists and is non-empty
+ifneq ($$(strip $$(MOD_OBJS_Y)),)
+$(1): $$(MOD_OBJS_Y)
+	@echo "  LD $(notdir $(1))"
+	@$(INT_LD) $(INT_LDFLAGS) -r $$^ -o $(1)
 endif
+endef
+
+$(foreach o, $(OBJS), $(eval $(call build_obj,$(o))))
+
+endif
+
 
 .PHONY: pre_build
 pre_build: include/generated/autoconf.h $(EXTRATARGETS)

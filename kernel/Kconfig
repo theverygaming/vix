@@ -57,6 +57,11 @@ config KVERSION
     string
     default "$(KVERSION)"
 
+config MODULES
+	bool "Enable loadable module support"
+	modules
+	default y
+
 menu "build options"
 
 config CXX_OPTIM_LEVEL
