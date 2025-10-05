@@ -66,6 +66,7 @@ excludes = [
     "kernel/include/config",
     "kernel/include/generated/",
     "kernel/arch/example/",
+    "kernel/drivers/acpi/uacpi/",
 
     "*.o",
 
