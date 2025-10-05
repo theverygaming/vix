@@ -31,7 +31,7 @@ static void kthread0() {
 }
 
 void kernelstart() {
-    kprintf(KP_INFO, "kmain: starting vix -- built " __DATE__ " " __TIME__ "\n");
+    kprintf(KP_INFO, "kmain: initializing vix " CONFIG_KVERSION " (built " __DATE__ " " __TIME__ ")\n");
     initcall_init_level(INITCALL_PRE_MM_INIT);
     mm::pmm::init();
     arch::startup::stage2_startup();
