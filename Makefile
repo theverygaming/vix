@@ -33,6 +33,7 @@ bootimg-x86-32:
 	@mkdir -p sysroot/usr/share/consolefonts/ sysroot/usr/lib/modules sysroot/bin/
 	@cp shitshell/shitshell sysroot/bin/sh
 	@cp modules/module.o modules/module2.o sysroot/usr/lib/modules
+	@cp kernel/drivers/intree-mod.o sysroot/usr/lib/modules || true
 	@cp fonts/Unifont-APL8x16-15.0.01.psf sysroot/usr/share/consolefonts
 	@find sysroot/ -printf "%P\n" | tar --format=ustar -cf roramfs.fs --no-recursion -C sysroot/ -T -
 	@boot/createimg-x86_32.sh

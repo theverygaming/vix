@@ -4,3 +4,6 @@ config ENABLE_FAKE_NETWORK_CARD
     depends on ENABLE_NETWORKING
     default y
     bool "Enable a fake network card for testing stuff"
+
+config INTREE_SAMPLE_MODULE
+    tristate "In-tree sample module"
