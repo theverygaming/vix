@@ -10,20 +10,7 @@ pkgs.stdenv.mkDerivation {
     cross.gcc
     cross.gdb
     nasm
-
-    # Rust stuff
-    (rust-bin.stable.latest.default.override
-      {
-        targets = [ "i686-unknown-linux-gnu" ];
-      }
-    )
-    rust-bindgen
-    /*
-      (rust-bin.selectLatestNightlyWith (toolchain: toolchain.default.override {
-      targets = [ "i686-unknown-linux-gnu" ];
-      }))
-    */
-  ] ++ common.commonPkgs ++ common.limine ++ common.grub ++ common.fatTools;
+  ] ++ common.commonPkgs ++ common.limine ++ common.grub ++ common.fatTools ++ (common.rust "i686-unknown-linux-gnu");
 
   shellHook = common.shellHook + ''
     alias vix-build='make MAKE_ARCH=x86 CROSS_COMPILE=i686-elf- -j$NIX_BUILD_CORES && make bootimg-x86-32 MAKE_ARCH=x86'
