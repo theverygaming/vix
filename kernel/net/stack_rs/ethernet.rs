@@ -41,7 +41,7 @@ struct EthernetCard {
     // Rust part of the struct, not included in the C part
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn netstack_ethernet_rx(card: *mut EthernetCard, buf: *mut u8, size: usize) {
     let packet_buffer = unsafe { slice::from_raw_parts_mut(buf, size) };
     let (mut eframe, eoffset) = EthernetFrame::deserialize(packet_buffer).expect("invalid ethernet frame");
@@ -78,7 +78,7 @@ pub extern "C" fn netstack_ethernet_rx(card: *mut EthernetCard, buf: *mut u8, si
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn netstack_ethernet_register_card(ops: *const EthernetCardOps) ->  *mut EthernetCard {
     let mut stack_guard = crate::NET_STACK.lock();
     let mut stack = stack_guard.as_mut().expect("network stack not initialized");

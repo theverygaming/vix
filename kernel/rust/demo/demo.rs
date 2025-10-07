@@ -4,7 +4,7 @@ use core::convert::TryFrom;
 extern crate kernel;
 
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn rust_test(n: i32) -> i32 {
     kernel::klog!(kernel::klog::KP_INFO, "hello world from rust!! :3 {}", "test string");
 

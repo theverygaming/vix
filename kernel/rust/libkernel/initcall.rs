@@ -24,7 +24,7 @@ define_initcall_level!(INITCALL_PRIO_LOW, 3072);
 #[macro_export]
 macro_rules! initcall {
     ($level:expr, $prio:expr, $func:ident, $varname:ident) => {
-        #[link_section = concat!(".initcall", $level, ".", $prio)]
+        #[unsafe(link_section = concat!(".initcall", $level, ".", $prio))]
         #[used]
         static $varname: extern "C" fn() -> core::ffi::c_int = $func;
     };
