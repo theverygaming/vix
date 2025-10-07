@@ -1,7 +1,7 @@
-lib-$(CONFIG_RUST_SUPPORT) += rust.o libkernel.rlib $(wildcard $(shell rustc --print sysroot)/lib/rustlib/$(RUST_TARGET)/lib/libcore*.rlib) $(wildcard $(shell rustc --print sysroot)/lib/rustlib/$(RUST_TARGET)/lib/liballoc*.rlib)
+lib-$(CONFIG_RUST_SUPPORT) += libkernel.rlib
 
-$(objtree)/libkernel.rlib: $(objtree)/kernel.rs $(objtree)/bindings.rs
-	$(call build_rust,$<,$@,)
+$(objtree)/libkernel.rlib: $(objtree)/kernel.rs $(objtree)/bindings.rs rust/stdlibs/liballoc.rlib
+	$(call build_rust,$<,$@,--crate-name kernel -L $(objtree)/rust/stdlibs)
 
 $(objtree)/bindings.rs: $(objtree)/bindings.h
 	@bindgen $< --use-core --raw-line $$'#![allow(non_camel_case_types)]\n#![allow(non_snake_case)]' -o $@ -- -x c++ $(INT_CXXFLAGS) --target=$(RUST_TARGET)

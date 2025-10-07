@@ -33,6 +33,8 @@ define build_rust
 @echo "  RS $(1)"
 @rustc \
 	--target $(RUST_TARGET) \
+	--edition=2024 \
+	--sysroot=/dev/null \
 	-Cpanic=abort \
 	-Cno-redzone \
 	-Ccode-model=kernel \
@@ -45,7 +47,7 @@ define build_rust
 endef
 
 %.o: %.rs ./rust/libkernel/libkernel.rlib
-	$(call build_rust,$<,$@,--extern kernel=$(objtree)/rust/libkernel/libkernel.rlib --emit=obj)
+	$(call build_rust,$<,$@,-L $(objtree)/rust/stdlibs --extern kernel=$(objtree)/rust/libkernel/libkernel.rlib --emit=obj)
 
 ifeq ($(CONFIG_UBSAN), y)
 override INT_CFLAGS += -fsanitize=undefined -fno-strict-overflow
