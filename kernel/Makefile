@@ -226,7 +226,8 @@ ifdef M
 MODS = $(addprefix $(M)/, $(obj-m))
 endif
 
-DEP = $(OBJS:%.o=%.d)
+ALL_DEP_OBJS = $(OBJS) $(LIBS)
+DEP = $(filter %.d,$(ALL_DEP_OBJS:%.o=%.d) $(ALL_DEP_OBJS:%.rlib=%.d))
 -include $(DEP)
 
 define build_mod

@@ -29,25 +29,38 @@ override INT_CXXFLAGS += -I arch/$(BUILD_ARCH)/include -I stdlibs/libc/include -
 
 RUST_TARGET := i686-unknown-linux-gnu
 
+define rustc_common_flags
+--target $(RUST_TARGET) \
+--edition=2024 \
+--sysroot=/dev/null \
+-Cpanic=abort \
+-Cno-redzone \
+-Ccode-model=kernel \
+-Ctarget-cpu=generic \
+-Ctarget-feature=-sse,-sse2,-sse3,-ssse3,-sse4.1,-sse4.2,-avx,-avx2 \
+-Cforce-frame-pointers=yes \
+--crate-type rlib
+endef
+
 define build_rust
 @echo "  RS $(1)"
 @rustc \
-	--target $(RUST_TARGET) \
-	--edition=2024 \
-	--sysroot=/dev/null \
-	-Cpanic=abort \
-	-Cno-redzone \
-	-Ccode-model=kernel \
-	-Ctarget-cpu=generic \
-	-Ctarget-feature=-sse,-sse2,-sse3,-ssse3,-sse4.1,-sse4.2,-avx,-avx2 \
-	-Cforce-frame-pointers=yes \
-	--crate-type rlib \
+	$(call rustc_common_flags) \
 	$(3) \
 	$(1) -o $(2)
+$(if $(filter $(4),RS_GEN_DEPINFO),\
+	$(eval build_rust_depfile = $(patsubst %.o,%.d,$(patsubst %.rlib,%.d,$(2))))
+	@rustc \
+		$(call rustc_common_flags) \
+		--emit=dep-info \
+		$(3) \
+		$(1) -o $(build_rust_depfile)
+	@sed -i 's|^$(build_rust_depfile):|$(2):|' $(build_rust_depfile)
+,)
 endef
 
 %.o: %.rs ./rust/libkernel/libkernel.rlib
-	$(call build_rust,$<,$@,-L $(objtree)/rust/stdlibs --extern kernel=$(objtree)/rust/libkernel/libkernel.rlib --emit=obj)
+	$(call build_rust,$<,$@,-L $(objtree)/rust/stdlibs --extern kernel=$(objtree)/rust/libkernel/libkernel.rlib --emit=obj,RS_GEN_DEPINFO)
 
 ifeq ($(CONFIG_UBSAN), y)
 override INT_CFLAGS += -fsanitize=undefined -fno-strict-overflow
