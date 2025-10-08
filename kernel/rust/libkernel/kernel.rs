@@ -1,6 +1,7 @@
 #![no_std]
 #![feature(alloc_error_handler)]
 #![feature(rustc_attrs)]
+#![feature(pointer_is_aligned_to)]
 
 extern crate alloc;
 

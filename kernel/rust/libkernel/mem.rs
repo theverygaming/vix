@@ -10,18 +10,17 @@ use crate::bindings::{
 
 unsafe impl GlobalAlloc for VixAlloc {
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
-        /*
-        if (layout.align() != 1) {
-            // we cannot use standard panic here because that could result in an infinite loop if panic allocates memory!
-            // HACK: we manually add a silly null terminator because rust strings are not null-terminated
-            kernel_panic(
-                "Rust allocator: unable to provide correct alignment (asked for %u)\n\0".as_bytes().as_ptr() as *const core::ffi::c_char,
-                layout.align() as core::ffi::c_uint
-            );
+        if (layout.size() == 0) {
+            panic!("zero-size sob");
         }
-        mm_kmalloc(layout.size()) as *mut u8
-        */
-        mm_kmalloc_aligned(layout.size(), layout.align()) as *mut u8
+        let ptr = mm_kmalloc_aligned(layout.size(), layout.align()) as *mut u8;
+        if ptr.is_null() {
+            panic!("nullptr");
+        }
+        if (!ptr.is_aligned_to(layout.align())) {
+            panic!("bad alignment");
+        }
+        ptr
     }
 
     unsafe fn dealloc(&self, ptr: *mut u8, _layout: Layout) {
@@ -50,6 +49,7 @@ fn __rust_alloc_error_handler(size: usize, align: usize) -> ! {
 
 #[rustc_std_internal_symbol]
 fn __rust_alloc_error_handler_should_panic_v2() -> u8 {
+    panic!("unreachable");
     // FIXME: do we really need this? Is this ever called?
     1 // always panic!
 }

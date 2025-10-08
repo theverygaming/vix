@@ -22,6 +22,8 @@ pub use crate::bindings::{
 pub fn do_klog(level: u32, args: core::fmt::Arguments) {
     use core::ptr;
 
+    // TODO: an allocation just for logging aint that great lol
+
     let formatted = format!("{}\n", args);
 
     if let Ok(c_string) = CString::new(formatted) {
