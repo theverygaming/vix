@@ -20,10 +20,12 @@ extern "C" void x86_interrupt_return();
 
 #define THREAD_KERNEL_STACK_SIZE (65536)
 
+// FIXME: lmao we don't deallocate anything ever
+
 void sched::arch_init_thread(struct sched::task *proc, void (*func)()) {
 #ifdef CONFIG_ENABLE_KERNEL_32
     // TODO: stack guard page! Also just use a block allocator instead of the heap
-    void *stack_bottom = mm::kmalloc(THREAD_KERNEL_STACK_SIZE);
+    void *stack_bottom = mm::kmalloc_aligned(THREAD_KERNEL_STACK_SIZE, 4);
     void *stack_top = ((uint8_t *)stack_bottom + THREAD_KERNEL_STACK_SIZE);
     uint32_t *stack = (uint32_t *)stack_top;
 
