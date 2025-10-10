@@ -3,8 +3,11 @@ lib-$(CONFIG_RUST_SUPPORT) += libkernel.rlib
 $(objtree)/libkernel.rlib: $(objtree)/kernel.rs $(objtree)/bindings.rs rust/stdlibs/liballoc.rlib
 	$(call build_rust,$<,$@,--crate-name kernel -L $(objtree)/rust/stdlibs,RS_GEN_DEPINFO)
 
+RUST_BINDGEN_TARGET_x86	:= i686-unknown-linux-gnu
+RUST_BINDGEN_TARGET		:= $(RUST_BINDGEN_TARGET_$(BUILD_ARCH))
+
 $(objtree)/bindings.rs: $(objtree)/bindings.h
-	@bindgen $< --use-core --raw-line $$'#![allow(non_camel_case_types)]\n#![allow(non_snake_case)]' -o $@ -- -x c++ $(INT_CXXFLAGS) --target=$(RUST_TARGET)
+	@bindgen $< --use-core --raw-line $$'#![allow(non_camel_case_types)]\n#![allow(non_snake_case)]' -o $@ -- -x c++ $(INT_CXXFLAGS) --target=$(RUST_BINDGEN_TARGET)
 	@# FIXME: Problem:
 	@# 
 	@# for gcc the target i686-elf is used, for clang i686-unknown-linux-gnu (rustup doesn't really offer anything better)

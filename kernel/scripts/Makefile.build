@@ -27,7 +27,7 @@ override INT_CXXFLAGS += -I arch/$(BUILD_ARCH)/include -I stdlibs/libc/include -
 	@echo "  CPP $<"
 	@$(INT_CPP) -P $(INT_CFLAGS) -MMD $< -o $@
 
-RUST_TARGET := i686-unknown-linux-gnu
+RUST_TARGET := rust/rust-target-gen.json
 
 define rustc_common_flags
 --target $(RUST_TARGET) \
@@ -39,7 +39,8 @@ define rustc_common_flags
 -Ctarget-cpu=generic \
 -Ctarget-feature=-sse,-sse2,-sse3,-ssse3,-sse4.1,-sse4.2,-avx,-avx2 \
 -Cforce-frame-pointers=yes \
---crate-type rlib
+--crate-type rlib \
+-g
 endef
 
 define build_rust
