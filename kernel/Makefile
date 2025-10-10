@@ -215,9 +215,8 @@ build_libs: $(LIBS)
 build_objs: $(OBJS)
 
 # final link
-# use .WAIT when GNU Make 4.4 is finally common
 .PHONY: kernel
-kernel: | pre_build build_libs build_objs
+kernel: pre_build .WAIT build_libs build_objs
 	@$(INT_LD) $(INT_LDFLAGS) -r $(OBJS) $(LIBS) -o kernel_partial.o
 	@./arch/$(BUILD_ARCH)/archlink.sh
 
