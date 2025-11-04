@@ -1,9 +1,9 @@
 #include <vix/kernel/io.h>
 #include <vix/panic.h>
 
-io_handle_t io_pio_map(uintptr_t base) {
+io_handle_t io_pmio_map(uintptr_t base) {
     if (base > 0xFFFF) {
-        KERNEL_PANIC("invalid pio_map address 0x%p", base);
+        KERNEL_PANIC("invalid io_pmio_map address 0x%p", base);
     }
     return base;
 }
@@ -12,7 +12,7 @@ io_handle_t io_mmio_map(uintptr_t base, size_t max_offset) {
     return 0; // FIXME: well that isn't gonna work very well
 }
 
-void io_mmio_unmap(io_handle_t handle) {}
+void io_unmap(io_handle_t handle) {}
 
 uint8_t ioread8(io_handle_t handle) {
     // IO space

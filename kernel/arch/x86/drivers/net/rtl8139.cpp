@@ -187,7 +187,7 @@ static int rtl8139_init() {
         return 0;
     }
 
-    io_handle = io_pio_map(bar_io_port);
+    io_handle = io_pmio_map(bar_io_port, 0x3E + 2);
 
     if (drivers::pci::enableMastering(bus, device, function)) {
         DEBUG_PRINTF("enabled mastering for rtl8139!\n");
