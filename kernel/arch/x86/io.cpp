@@ -3,9 +3,16 @@
 
 #define PMIO_MAX (0xFFFF)
 
-io_handle_t io_pmio_map(uintptr_t base) {
+io_handle_t io_pmio_map(uintptr_t base, size_t max_offset) {
     if (base > PMIO_MAX) {
         KERNEL_PANIC("invalid io_pmio_map address 0x%p", base);
+    }
+    if ((base + max_offset) > PMIO_MAX) {
+        KERNEL_PANIC(
+            "io_pmio_map offset too large address: 0x%p max offset: 0x%p",
+            base,
+            max_offset
+        );
     }
     return base;
 }
