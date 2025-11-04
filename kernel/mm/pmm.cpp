@@ -279,7 +279,7 @@ status::StatusOr<mm::paddr_t> mm::pmm::alloc_contiguous(size_t pages) {
 
 void mm::pmm::free_contiguous(paddr_t paddr, size_t pages) {
     size_t idx = find_bitmap_idx_for_paddr((void *)paddr);
-    pm_bitmap.setRange(idx, pages);
+    pm_bitmap.unsetRange(idx, pages);
 }
 
 size_t mm::pmm::get_free_blocks() {
