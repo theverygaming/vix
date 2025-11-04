@@ -1,22 +1,33 @@
 #include <vix/kernel/io.h>
 #include <vix/panic.h>
 
+#define PMIO_MAX (0xFFFF)
+
 io_handle_t io_pmio_map(uintptr_t base) {
-    if (base > 0xFFFF) {
+    if (base > PMIO_MAX) {
         KERNEL_PANIC("invalid io_pmio_map address 0x%p", base);
     }
     return base;
 }
 
 io_handle_t io_mmio_map(uintptr_t base, size_t max_offset) {
+    if (base <= PMIO_MAX) {
+        KERNEL_PANIC("invalid io_mmio_map address 0x%p", base);
+    }
     return 0; // FIXME: well that isn't gonna work very well
 }
 
-void io_unmap(io_handle_t handle) {}
+void io_unmap(io_handle_t handle) {
+    if (handle > PMIO_MAX) {
+        // MMIO space
+        // FIXME: well that isn't gonna work very well
+        return;
+    }
+}
 
 uint8_t ioread8(io_handle_t handle) {
     // IO space
-    if (handle <= 0xFFFF) {
+    if (handle <= PMIO_MAX) {
         uint8_t value;
         asm volatile("inb %%dx, %%al" : "=a"(value) : "d"(handle));
         return value;
@@ -27,7 +38,7 @@ uint8_t ioread8(io_handle_t handle) {
 
 uint16_t ioread16(io_handle_t handle) {
     // IO space
-    if (handle <= 0xFFFF) {
+    if (handle <= PMIO_MAX) {
         uint16_t value;
         asm volatile("inw %%dx, %%ax" : "=a"(value) : "d"(handle));
         return value;
@@ -38,7 +49,7 @@ uint16_t ioread16(io_handle_t handle) {
 
 uint32_t ioread32(io_handle_t handle) {
     // IO space
-    if (handle <= 0xFFFF) {
+    if (handle <= PMIO_MAX) {
         uint32_t value;
         asm volatile("inl %%dx, %%eax" : "=a"(value) : "d"(handle));
         return value;
@@ -49,7 +60,7 @@ uint32_t ioread32(io_handle_t handle) {
 
 uint64_t ioread64(io_handle_t handle) {
     // IO space
-    if (handle <= 0xFFFF) {
+    if (handle <= PMIO_MAX) {
         return 0; // ??? doesn't exist lmao
     }
     // MMIO space
@@ -58,7 +69,7 @@ uint64_t ioread64(io_handle_t handle) {
 
 void iowrite8(io_handle_t handle, uint8_t data) {
     // IO space
-    if (handle <= 0xFFFF) {
+    if (handle <= PMIO_MAX) {
         asm volatile("outb %%al, %%dx" ::"d"(handle), "a"(data));
         return;
     }
@@ -68,7 +79,7 @@ void iowrite8(io_handle_t handle, uint8_t data) {
 
 void iowrite16(io_handle_t handle, uint16_t data) {
     // IO space
-    if (handle <= 0xFFFF) {
+    if (handle <= PMIO_MAX) {
         asm volatile("outw %%ax, %%dx" ::"d"(handle), "a"(data));
         return;
     }
@@ -78,7 +89,7 @@ void iowrite16(io_handle_t handle, uint16_t data) {
 
 void iowrite32(io_handle_t handle, uint32_t data) {
     // IO space
-    if (handle <= 0xFFFF) {
+    if (handle <= PMIO_MAX) {
         asm volatile("outl %%eax, %%dx" ::"d"(handle), "a"(data));
         return;
     }
@@ -88,7 +99,7 @@ void iowrite32(io_handle_t handle, uint32_t data) {
 
 void iowrite64(io_handle_t handle, uint64_t data) {
     // IO space
-    if (handle <= 0xFFFF) {
+    if (handle <= PMIO_MAX) {
         return; // ??? doesn't exist lmao
     }
     // MMIO space
