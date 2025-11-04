@@ -1,4 +1,4 @@
-#include "vix/panic.h"
+#include <vix/panic.h>
 #include <vix/pgtable.h>
 #include <vix/initcall.h>
 #include <vix/status.h>
