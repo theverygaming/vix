@@ -37,16 +37,6 @@ fn alloc_error_handler(layout: Layout) -> ! {
     panic!("alloc_error_handler AAAAAAAAA");
 }
 
-// make sure our error handler will actually get called LOL
-// #[alloc_error_handler] doesn't seem to work idk
-#[rustc_std_internal_symbol]
-fn __rust_alloc_error_handler(size: usize, align: usize) -> ! {
-    let layout = unsafe {
-        Layout::from_size_align_unchecked(size, align)
-    };
-    alloc_error_handler(layout)
-}
-
 #[rustc_std_internal_symbol]
 fn __rust_alloc_error_handler_should_panic_v2() -> u8 {
     panic!("unreachable");
