@@ -8,8 +8,8 @@ INT_CFLAGS := $(CFLAGS)
 INT_CXXFLAGS := $(CXXFLAGS)
 INT_LDFLAGS := $(LDFLAGS)
 
-override INT_CFLAGS += -I arch/$(BUILD_ARCH)/include -I stdlibs/libc/include -I stdlibs/libcxx/include -I include -O$(CXX_OPTIM_LEVEL) -std=c11 -Wall -Wextra -Wpedantic -Wno-unused-parameter -Werror=return-type -g
-override INT_CXXFLAGS += -I arch/$(BUILD_ARCH)/include -I stdlibs/libc/include -I stdlibs/libcxx/include -I include -O$(CXX_OPTIM_LEVEL) -std=c++20 -Wall -Wextra -Wpedantic -Wno-unused-parameter -Werror=return-type -g
+override INT_CFLAGS += -I arch/$(BUILD_ARCH)/include -I stdlibs/libc/include -I stdlibs/libcxx/include -I include -O$(CXX_OPTIM_LEVEL) -std=gnu11 -Wall -Wextra -Wpedantic -Wno-unused-parameter -Werror=return-type -g
+override INT_CXXFLAGS += -I arch/$(BUILD_ARCH)/include -I stdlibs/libc/include -I stdlibs/libcxx/include -I include -O$(CXX_OPTIM_LEVEL) -std=gnu++20 -Wall -Wextra -Wpedantic -Wno-unused-parameter -Werror=return-type -g
 
 %.o: %.c
 	@echo "  CC $<"
