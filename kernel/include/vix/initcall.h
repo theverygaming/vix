@@ -6,7 +6,7 @@ typedef int (*initcall_t)();
 void initcall_init_level(int level);
 
 #define DEFINE_INITCALL(level, priority, function) \
-    static initcall_t __initcall_##function __attribute__((section(".initcall" TOSTRING(level) "." TOSTRING(priority)), used)) = function
+    static initcall_t __initcall_##function __attribute__((section(".initcall" STRINGIFY(level) "." STRINGIFY(priority)), used)) = function
 
 #define INITCALL_PRIO_HIGH 1024
 #define INITCALL_PRIO_NORMAL 2048

@@ -1,8 +1,8 @@
 #pragma once
 #include <vix/types.h>
 
-#define STRINGIFY(x) #x
-#define TOSTRING(x)  STRINGIFY(x)
+#define STRINGIFY_(x) #x
+#define STRINGIFY(x)  STRINGIFY_(x)
 
 #define likely(cond)   __builtin_expect((cond), 1)
 #define unlikely(cond) __builtin_expect((cond), 0)
