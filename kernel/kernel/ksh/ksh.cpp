@@ -3,7 +3,7 @@
 #include <vix/abi/abi.h>
 #include <vix/debug.h>
 #include <vix/drivers/keyboard.h>
-#include <vix/initcall.h>
+#include <vix/initfn.h>
 #include <vix/kprintf.h>
 #include <vix/sched.h>
 
@@ -91,7 +91,7 @@ static void ksh_input(char c) {
     }
 }
 
-static int init_ksh() {
+static void init_ksh() {
     ksh_buf[KSH_BUF_SIZE] = '\0';
     kprintf(KP_INFO, "ksh: init\n");
     drivers::keyboard::events.register_listener(
@@ -100,7 +100,6 @@ static int init_ksh() {
             return false;
         },
         nullptr);
-    return 0;
 }
 
-DEFINE_INITCALL(INITCALL_AFTER_MM_INIT, INITCALL_PRIO_NORMAL, init_ksh);
+INITFN_DEFINE(ksh, INITFN_DRIVER_INIT, 0, init_ksh);

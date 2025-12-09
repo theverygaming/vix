@@ -4,7 +4,7 @@
 #include <vix/config.h>
 #include <vix/debug.h>
 #include <vix/fs/vfs.h>
-#include <vix/initcall.h>
+#include <vix/initfn.h>
 #include <vix/kernel.h>
 #include <vix/kprintf.h>
 #include <vix/mm/kheap.h>
@@ -25,14 +25,14 @@ static void kthread0() {
     kprintf(KP_INFO, "kmain: first kernel thread started (PID %d)\n", sched::mytask()->pid);
     arch::startup::kthread0();
     fs::vfs::print_tree();
-    initcall_init_level(INITCALL_DRIVER_INIT);
+    initfn_call_level(INITFN_DRIVER_INIT);
     kprintf(KP_INFO, "kmain: first kernel thread dying (PID %d)\n", sched::mytask()->pid);
     sched::die();
 }
 
 void kernelstart() {
     kprintf(KP_INFO, "kmain: initializing vix " CONFIG_KVERSION " (built " __DATE__ " " __TIME__ ")\n");
-    initcall_init_level(INITCALL_PRE_MM_INIT);
+    initfn_call_level(INITFN_PRE_MM_INIT);
     mm::pmm::init();
     arch::startup::stage2_startup();
 #ifdef CONFIG_ARCH_HAS_PAGING
@@ -48,7 +48,7 @@ void kernelstart() {
 
     arch::startup::stage4_startup();
 
-    initcall_init_level(INITCALL_EARLY_DRIVER_INIT);
+    initfn_call_level(INITFN_EARLY_DRIVER_INIT);
 
 #ifdef CONFIG_ENABLE_TESTS
     run_all_tests();

@@ -1,6 +1,6 @@
 obj-d += ksh
 
-obj-y += kernel.o sched.o stdio.o time.o kprintf.o interrupts.o elf.o initcall.o irq.o panic.o
+obj-y += kernel.o sched.o stdio.o time.o kprintf.o interrupts.o elf.o initfn.o irq.o panic.o
 
 obj-$(CONFIG_FB_SUPPORT) += framebuffer.o psf.o
 

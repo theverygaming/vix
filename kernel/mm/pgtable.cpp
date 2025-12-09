@@ -1,6 +1,6 @@
 #include <vix/panic.h>
 #include <vix/pgtable.h>
-#include <vix/initcall.h>
+#include <vix/initfn.h>
 #include <vix/status.h>
 #include <vix/kprintf.h>
 
@@ -61,11 +61,10 @@ static void walk(
     kprintf(KP_INFO, "pt: 0x%p\n", arch::pgtable::pt_addr(pt));
 }
 
-static int test() {
+static void test() {
     walk(0xC0000000, false, 0);
     walk(0xC02af123, false, 0);
     //KERNEL_PANIC("good");
-    return 0;
 }
 
-DEFINE_INITCALL(INITCALL_DRIVER_INIT, INITCALL_PRIO_NORMAL, test);
+INITFN_DEFINE(pgtable_test, INITFN_DRIVER_INIT, 0, test);

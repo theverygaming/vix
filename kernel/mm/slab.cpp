@@ -1,7 +1,7 @@
 #include <vix/arch/common/paging.h>
 #include <vix/arch/generic/memory.h>
 #include <vix/config.h>
-#include <vix/initcall.h> // FIXME: for testing only!
+#include <vix/initfn.h> // FIXME: for testing only!
 #include <vix/kprintf.h>
 #include <vix/macros.h>
 #include <vix/mm/pmm.h>
@@ -48,7 +48,7 @@ namespace mm::slab {
 }
 
 // FIXME: for testing only!
-static int test_slab() {
+static void test_slab() {
     kprintf(KP_INFO, "slab: test start\n");
     auto cache_st = mm::slab::create_cache("test object", 4096);
     if (!cache_st.status().ok()) {
@@ -56,6 +56,5 @@ static int test_slab() {
     }
     struct mm::slab::cache *cache = cache_st.value();
     kprintf(KP_INFO, "slab: test end\n");
-    return 0;
 }
-DEFINE_INITCALL(INITCALL_AFTER_MM_INIT, INITCALL_PRIO_NORMAL, test_slab);
+INITFN_DEFINE(slab_test, INITFN_EARLY_DRIVER_INIT, 0, test_slab);

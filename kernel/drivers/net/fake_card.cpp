@@ -1,5 +1,5 @@
 #include <vector>
-#include <vix/initcall.h>
+#include <vix/initfn.h>
 #include <vix/kprintf.h>
 #include <vix/mm/kheap.h>
 #include <vix/net/stack_rs/ethernet.h>
@@ -128,7 +128,7 @@ static void fake_packet_gen() {
     }
 }
 
-static int fake_card_init() {
+static void fake_card_init() {
     kprintf(KP_INFO, "registering fake_card\n");
     current_card = netstack_ethernet_register_card(&fake_card_ops);
     kprintf(KP_INFO, "fake_card registered!\n");
@@ -136,8 +136,6 @@ static int fake_card_init() {
     sched::start_thread(fake_packet_gen);
 
     kprintf(KP_INFO, "fake_card done initializing\n");
-
-    return 0;
 }
 
-DEFINE_INITCALL(INITCALL_DRIVER_INIT, INITCALL_PRIO_NORMAL, fake_card_init);
+INITFN_DEFINE(fake_card, INITFN_DRIVER_INIT, 0, fake_card_init);

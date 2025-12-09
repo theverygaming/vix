@@ -1,6 +1,6 @@
 #include <vix/kprintf.h>
 #include <vix/module.h>
-#include <vix/initcall.h>
+#include <vix/initfn.h>
 
 MODULE_AUTHOR("theverygaming");
 MODULE_DESCRIPTION("intree");
@@ -21,5 +21,9 @@ static void exit() {
 MODULE_INIT(init);
 MODULE_EXIT(exit);
 
-// HACK: initcall when the module is in-tree
-DEFINE_INITCALL(INITCALL_DRIVER_INIT, INITCALL_PRIO_NORMAL, init);
+static void init_intree() {
+    init();
+}
+
+// HACK: initfn when the module is in-tree
+INITFN_DEFINE(intree, INITFN_DRIVER_INIT, 0, init_intree);

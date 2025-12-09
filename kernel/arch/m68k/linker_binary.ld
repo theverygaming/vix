@@ -39,7 +39,7 @@ SECTIONS
         KEEP(*(.ctors));
         KEEP(*(SORT_BY_INIT_PRIORITY(.ctors.*)));
         END_CONSTRUCTORS_CTORS = .;
-        INCLUDE arch/common_initcall.ld
+        INCLUDE arch/common_initfn.ld
         KEEP(*(.data))
         KEEP(*(.sym_table))
         PROVIDE(symtab_start = .);

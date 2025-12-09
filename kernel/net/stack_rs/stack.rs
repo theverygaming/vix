@@ -1,4 +1,5 @@
 #![no_std]
+#![feature(macro_metavar_expr_concat)]
 extern crate alloc;
 extern crate kernel;
 
@@ -24,12 +25,11 @@ impl Stack {
 
 static NET_STACK: Mutex<Option<Stack>> = Mutex::new(None);
 
-extern "C" fn netstack_init() -> core::ffi::c_int {
+extern "C" fn netstack_init() {
     kernel::klog!(kernel::klog::KP_INFO, "Initializing Rust Network Stack");
     let mut stk = NET_STACK.lock();
     *stk = Some(Stack {
         ethernet_cards: alloc::vec!(),
     });
-    return 0;
 }
-kernel::initcall!(kernel::INITCALL_EARLY_DRIVER_INIT!(), kernel::INITCALL_PRIO_NORMAL!(), netstack_init, __INITCALL_NETSTACK_INIT);
+kernel::initfn!(netstack, kernel::INITFN_EARLY_DRIVER_INIT!(), 0, netstack_init);

@@ -1,4 +1,5 @@
 #![no_std]
+#![feature(macro_metavar_expr_concat)]
 use core::convert::TryFrom;
 
 extern crate kernel;
@@ -14,16 +15,14 @@ pub extern "C" fn rust_test(n: i32) -> i32 {
     return n;
 }
 
-extern "C" fn rust_initcall() -> core::ffi::c_int {
-    kernel::klog!(kernel::klog::KP_INFO, "Rust initcall demo");
-    return 0;
+extern "C" fn rust_initfn() {
+    kernel::klog!(kernel::klog::KP_INFO, "Rust initfn demo");
 }
 
-kernel::initcall!(kernel::INITCALL_DRIVER_INIT!(), kernel::INITCALL_PRIO_NORMAL!(), rust_initcall, __INITCALL_RUST_INITCALL);
+kernel::initfn!(rust_demo_1, kernel::INITFN_DRIVER_INIT!(), 0, rust_initfn, rust_demo_2);
 
-extern "C" fn rust_initcall2() -> core::ffi::c_int {
-    kernel::klog!(kernel::klog::KP_INFO, "Rust initcall demo 2");
-    return 0;
+extern "C" fn rust_initfn2() {
+    kernel::klog!(kernel::klog::KP_INFO, "Rust initfn demo 2");
 }
 
-kernel::initcall!(kernel::INITCALL_DRIVER_INIT!(), kernel::INITCALL_PRIO_NORMAL!(), rust_initcall2, __INITCALL_RUST_INITCALL2);
+kernel::initfn!(rust_demo_2, kernel::INITFN_DRIVER_INIT!(), 0, rust_initfn2);
