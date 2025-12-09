@@ -156,12 +156,12 @@ bool fs::filesystems::tarfs::init(void *location) {
     struct tarheader *file_ptr = (struct tarheader *)locationptr;
     while (!is_zero(file_ptr, 512 * 2)) {
         if (memcmp(file_ptr->magic, "ustar", 6)) {
-            DEBUG_PRINTF("invalid magic\n");
+            kprintf(KP_INFO, "tarfs: invalid magic\n");
             return false;
         }
 
         if (!verify_checksum(file_ptr)) {
-            DEBUG_PRINTF("tar checksum failure\n");
+            kprintf(KP_INFO, "tarfs: checksum failure\n");
             return false;
         }
 
