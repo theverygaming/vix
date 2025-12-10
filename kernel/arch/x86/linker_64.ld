@@ -9,11 +9,6 @@ PHDRS
     data    PT_LOAD    FLAGS((1 << 1) | (1 << 2)) ; /* Write + Read */
 }
 
-MEMORY
-{
-    ram (rwx) : org = 0xffffffff80000000, l = 0xF0000
-}
-
 SECTIONS
 {
     . = 0xffffffff80000000;
@@ -21,15 +16,11 @@ SECTIONS
     .text ALIGN(PAGE) : {
 		*(.text)
         KEEP(*(.tests))
-	}>ram :text
-
-    . += CONSTANT(MAXPAGESIZE);
+	} :text
 
     .rodata ALIGN(PAGE) : {
         *(.rodata)
-    }>ram :rodata
-
-    . += CONSTANT(MAXPAGESIZE);
+    } :rodata
 
     .data ALIGN(PAGE) : {
         START_CONSTRUCTORS_INITARR = .;
@@ -45,14 +36,14 @@ SECTIONS
         KEEP(*(.sym_table))
         PROVIDE(symtab_start = .);
         PROVIDE(symtab_end = .);
-    }>ram :data
+    } :data
 
     .bss ALIGN(PAGE) : {
         . = ALIGN(16);
         __bss_start = .;
         *(.bss)
         __bss_end = .;
-    }>ram : data
+    } : data
 
     /DISCARD/ : { *(.comment) *(.gnu*) *(.note*) *(.eh_frame*) }   
 }
