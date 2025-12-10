@@ -22,24 +22,21 @@ struct init_function {
     unsigned int level;
     unsigned int flags;
     void (*function)();
-    struct init_function **deps;
+    struct init_function ***deps;
     size_t n_deps;
 };
 
-#define INIT_DEFINE_SYM_EXTERN(name) \
-    extern "C" struct init_function INIT_GET_FN_SYMBOL(name);
+#define INIT_DEFINE_SYM_EXTERN(name) extern "C" struct init_function *INIT_GET_FN_SYMBOL(name);
 #define INIT_GET_DEP_ARR_EL(name) &INIT_GET_FN_SYMBOL(name),
 
 #define INITFN_DEFINE(name_, level_, flags_, function_, ...)                                  \
     MACRO_FOREACH_ARG(INIT_DEFINE_SYM_EXTERN, __VA_ARGS__)                                    \
-    static struct init_function *INIT_GET_DEPS_SYMBOL(name_)[] = {                            \
+    static struct init_function **INIT_GET_DEPS_SYMBOL(name_)[] = {                           \
         MACRO_FOREACH_ARG(                                                                    \
             INIT_GET_DEP_ARR_EL, __VA_ARGS__                                                  \
         ) nullptr, /* nullptr to prevent a zero-sized array when there are no dependencies */ \
     };                                                                                        \
-    extern "C" {                                                                              \
-    struct init_function __attribute__((section(".initfn_functions")))                        \
-    INIT_GET_FN_SYMBOL(name_) = {                                                             \
+    static struct init_function INIT_GET_FN_STRUCT_SYMBOL(name_) = {                          \
         .name = STRINGIFY(name_),                                                             \
         .level = level_,                                                                      \
         .flags = flags_,                                                                      \
@@ -47,4 +44,7 @@ struct init_function {
         .deps = INIT_GET_DEPS_SYMBOL(name_),                                                  \
         .n_deps = MACRO_ARG_COUNT(__VA_ARGS__),                                               \
     };                                                                                        \
+    extern "C" {                                                                              \
+    struct init_function __attribute__((section(".initfn_functions"), used)) *                \
+        INIT_GET_FN_SYMBOL(name_) = &INIT_GET_FN_STRUCT_SYMBOL(name_);                        \
     }

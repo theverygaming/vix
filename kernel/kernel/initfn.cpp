@@ -3,8 +3,8 @@
 #include <vix/kprintf.h>
 #include <vix/panic.h>
 
-extern "C" struct init_function START_INITFN_FUNCTIONS;
-extern "C" struct init_function END_INITFN_FUNCTIONS;
+extern "C" struct init_function *START_INITFN_FUNCTIONS;
+extern "C" struct init_function *END_INITFN_FUNCTIONS;
 
 void initfn_call(struct init_function *fn, unsigned int level) {
     DEBUG_PRINTF("initfn_call: ptr: 0x%p name: %s\n", fn, fn->name);
@@ -17,7 +17,7 @@ void initfn_call(struct init_function *fn, unsigned int level) {
         return;
     }
     for (size_t i = 0; i < fn->n_deps; i++) {
-        initfn_call(fn->deps[i], level);
+        initfn_call(*fn->deps[i], level);
     }
     kprintf(KP_INFO, "initfn: %s\n", fn->name);
     fn->flags |= INIT_FUNCTION_FLAG_EXECUTED;
@@ -28,9 +28,9 @@ void initfn_call(struct init_function *fn, unsigned int level) {
 
 void initfn_call_level(unsigned int level) {
     kprintf(KP_INFO, "initfn: calling level %d\n", level);
-    for (struct init_function *fn = &START_INITFN_FUNCTIONS; fn < &END_INITFN_FUNCTIONS; fn++) {
+    for (struct init_function **fni = &START_INITFN_FUNCTIONS; fni < &END_INITFN_FUNCTIONS; fni++) {
+        struct init_function *fn = *fni;
         if(fn->level == level) {
-            DEBUG_PRINTF("calling initfn ptr: 0x%p name: %s\n", fn, fn->name);
             initfn_call(fn, level);
         }
     }
