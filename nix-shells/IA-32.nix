@@ -15,6 +15,6 @@ pkgs.stdenv.mkDerivation {
     alias vix-build='make MAKE_ARCH=x86 CROSS_COMPILE=i686-elf- -j$NIX_BUILD_CORES && make bootimg-x86-32 MAKE_ARCH=x86'
     alias vix-run='qemu-system-x86_64 -cdrom vix.iso -m 512'
     alias vix-debug='vix-run -s -S'
-    alias vix-debugger='gdb kernel/kernel.o -ex "set architecture i386:x86-64" -ex "target remote localhost:1234" -ex "" -ex "c"'
+    alias vix-debugger='gdb kernel/kernel.o -ex "set architecture i386:x86-64" -ex "target remote localhost:1234"'
   '';
 }
