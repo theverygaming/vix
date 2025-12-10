@@ -1,6 +1,6 @@
 lib-$(CONFIG_RUST_SUPPORT) += libcore.rlib libcompiler_builtins.rlib liballoc.rlib
 
-RUST_CORE_LIB_SRC := $(shell rustc --print sysroot)/lib/rustlib/src/rust/library
+RUST_CORE_LIB_SRC := $(shell rustc --print sysroot 2>/dev/null)/lib/rustlib/src/rust/library
 
 $(objtree)/libcore.rlib: $(RUST_CORE_LIB_SRC)/core/src/lib.rs
 	$(call build_rust,$<,$@,--crate-name core --cfg no_fp_fmt_parse)
