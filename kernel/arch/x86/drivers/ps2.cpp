@@ -2,7 +2,6 @@
 #include <vix/arch/cpubasics.h>
 #include <vix/arch/drivers/pic_8259.h>
 #include <vix/arch/drivers/ps2.h>
-#include <vix/arch/drivers/text80x25.h>
 #include <vix/arch/isr.h>
 #include <vix/drivers/keyboard.h>
 #include <vix/drivers/ms_mouse.h>

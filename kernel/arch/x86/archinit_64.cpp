@@ -104,13 +104,9 @@ void arch::startup::stage4_startup() {
 void arch::startup::kthread0() {}
 
 // dummy functions
-#include <vix/arch/drivers/text80x25.h>
 #include <vix/arch/idt.h>
 #include <vix/arch/isr.h>
 
-void drivers::textmode::text80x25::delc() {}
-void drivers::textmode::text80x25::putc(char c) {}
-void drivers::textmode::text80x25::putc(char c, color foreground, color background) {}
 void idt::i686_IDT_Initialize() {}
 void isr::i686_ISR_Initialize() {}
 extern "C" void GDT_load_32() {}

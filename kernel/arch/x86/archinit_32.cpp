@@ -7,7 +7,6 @@
 #include <vix/arch/cpubasics.h>
 #include <vix/arch/cpuid.h>
 #include <vix/arch/drivers/serial.h>
-#include <vix/arch/drivers/text80x25.h>
 #include <vix/arch/elf.h>
 #include <vix/arch/gdt.h>
 #include <vix/arch/generic/memory.h>
@@ -50,8 +49,6 @@ extern "C" uint8_t _kcode_start;
 extern "C" uint8_t _kcode_end;
 
 static void kernelinit(void *multiboot2_info_ptr) {
-    drivers::textmode::text80x25::init();
-    stdio::set_putc_function(drivers::textmode::text80x25::putc);
     drivers::serial::init();
     stdio::set_putc_function(drivers::serial::putc, true);
     if ((size_t)multiboot2_info_ptr & 7) {
