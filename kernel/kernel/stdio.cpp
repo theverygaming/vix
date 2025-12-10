@@ -206,35 +206,9 @@ static int printf_base(va_list *args, const char *fmt, char *buf, bool buf_write
     return chars_written;
 }
 
-// quick hack for loading linux hello world module
-extern "C" int _printk(const char *fmt, ...) {
-    va_list args;
-    va_start(args, fmt);
-    printf_base(&args, fmt, nullptr, false, 0, false);
-    va_end(args);
-    return 0;
-}
-
 void printf(const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
     printf_base(&args, fmt, nullptr, false, 0, false);
     va_end(args);
 }
-
-void printf_serial(const char *fmt, ...) {
-    va_list args;
-    va_start(args, fmt);
-    printf_base(&args, fmt, nullptr, false, 0, true);
-    va_end(args);
-}
-
-/*
-int snprintf(char *s, size_t n, const char *fmt, ...) {
-    va_list args;
-    va_start(args, fmt);
-    int ret = printf_base(&args, fmt, 0, s, true, n);
-    va_end(args);
-    return ret;
-}
-*/
