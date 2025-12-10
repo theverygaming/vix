@@ -16,6 +16,9 @@
 
     qemu
 
+    # gdb-multiarch, the only somewhat sane way to deal with GDB and qemu
+    gdb
+
     # for CI
     ansifilter
   ];
@@ -47,5 +50,6 @@
   shellHook = ''
     unset SOURCE_DATE_EPOCH
     echo "you can use 'vix-build' and 'vix-run' to compile & run vix"
+    echo "you may also get 'vix-debug' (emulator with debugger support) and 'vix-debugger'"
   '';
 }
