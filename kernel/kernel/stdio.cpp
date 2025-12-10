@@ -48,6 +48,7 @@ void puts(const char *str, bool debugonly) {
 
 static int printf_base(va_list *args, const char *fmt, char *buf, bool buf_write, size_t buf_len, bool serialonly) {
     size_t chars_written = 0;
+    char n_buf[22]; // buffer for itoa, needs to work for all architectures, approx. max buffer size (incl. null) for base 10
     while (*fmt) {
         if (*fmt == '%') {
             fmt++;
@@ -92,7 +93,6 @@ static int printf_base(va_list *args, const char *fmt, char *buf, bool buf_write
             case 'u': {
                 fmt += 1;
                 size_t arg = va_arg(*args, size_t);
-                char n_buf[11];
                 char *ret = itoa(arg, n_buf, 10);
                 if (buf_write) {
                     size_t can_write = (buf_len - 1) - chars_written;
@@ -113,7 +113,6 @@ static int printf_base(va_list *args, const char *fmt, char *buf, bool buf_write
             case 'p': {
                 fmt += 1;
                 uintptr_t arg = va_arg(*args, uintptr_t);
-                char n_buf[17];
                 char *ret = itoa(arg, n_buf, 16);
                 if (buf_write) {
                     size_t can_write = (buf_len - 1) - chars_written;
@@ -134,7 +133,6 @@ static int printf_base(va_list *args, const char *fmt, char *buf, bool buf_write
             case 'd': {
                 fmt += 1;
                 size_t arg = va_arg(*args, size_t);
-                char n_buf[12];
                 char *ret = itoa_signed(arg, n_buf, 10);
                 if (buf_write) {
                     size_t can_write = (buf_len - 1) - chars_written;
