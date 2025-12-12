@@ -82,6 +82,7 @@ static void ksh_input(char c) {
             str += strlen(str) + 1;
         }
         ksh_exec(argc, ksh_arg_arr);
+        memset(ksh_buf, 0, KSH_BUF_SIZE);
         return;
     }
     ksh_buf[ksh_buf_p] = c;
