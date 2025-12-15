@@ -44,6 +44,18 @@ static void mouse_event(void *, struct drivers::ms_mouse::mouse_packet packet) {
     mouse_x = std::clamp(mouse_x, (ssize_t)0, (ssize_t)framebuffer.get_width());
     mouse_y = std::clamp(mouse_y, (ssize_t)0, (ssize_t)framebuffer.get_height());
 
+    if (packet.lmb) {
+        for (size_t y = 0; y < mouse_h; y++) {
+            for (size_t x = 0; x < mouse_w; x++) {
+                size_t p_x = (mouse_x+x);
+                size_t p_y = (mouse_y+y);
+                if (p_x < framebuffer.get_width() && p_y < framebuffer.get_height()) {
+                    framebuffer.write_pixel(p_x, p_y, p_x+p_y, p_x-p_y, p_x*p_y);
+                }
+            }
+        }
+    }
+
     if (mouse_x + mouse_w < framebuffer.get_width() && mouse_y + mouse_h < framebuffer.get_height()) {
         for (size_t y = 0; y < mouse_h; y++) {
             for (size_t x = 0; x < mouse_w; x++) {
