@@ -83,7 +83,8 @@ clean: clean-$(MAKE_ARCH)
 	@rm -f vix.img vix.iso *.o
 	@$(MAKE) --no-print-directory -C kernel clean
 	@$(MAKE) --no-print-directory -C shitshell clean
-	@$(MAKE) --no-print-directory -C kernel/ M=$(PWD)/modules clean
+	@$(MAKE) --no-print-directory -C kernel/ M=$(PWD)/modules/guimodule clean
+	@$(MAKE) --no-print-directory -C kernel/ M=$(PWD)/modules/module2 clean
 
 distclean: clean
 	@$(MAKE) --no-print-directory -C kernel distclean
