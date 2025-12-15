@@ -457,10 +457,10 @@ abi::linux::syscall_arg_t (*syscall_table[440])(abi::linux::syscall_arg_t sysarg
 
 extern "C" void syscallHandler(struct arch::full_ctx *regs) {
     if (regs->eax <= (sizeof(syscall_table) / sizeof(syscall_table[0]))) {
-        kprintf(KP_INFO, "calling syscall %u\n", regs->eax);
+        DEBUG_PRINTF("calling syscall %u\n", regs->eax);
         abi::linux::syscall_arg_t retval;
         if (syscall_table[regs->eax] == nullptr) {
-            kprintf(KP_INFO, "syscall %u not found\n", regs->eax);
+            DEBUG_PRINTF("syscall %u not found\n", regs->eax);
             regs->eax = -LINUX_ENOSYS;
             return;
         }
@@ -470,10 +470,10 @@ extern "C" void syscallHandler(struct arch::full_ctx *regs) {
                                           (abi::linux::syscall_arg_t)regs->esi,
                                           (abi::linux::syscall_arg_t)regs->edi,
                                           (abi::linux::syscall_arg_t)regs->ebp);
-        kprintf(KP_INFO, "syscall return %d\n", retval);
+        DEBUG_PRINTF("syscall return %d\n", retval);
         regs->eax = retval;
         return;
     }
-    kprintf(KP_INFO, "syscall %u not found\n", regs->eax);
+    DEBUG_PRINTF("syscall %u not found\n", regs->eax);
     regs->eax = -LINUX_ENOSYS;
 }
