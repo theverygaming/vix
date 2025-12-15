@@ -45,8 +45,8 @@ jobs:
         uses: nix-community/cache-nix-action@v6
         with:
           primary-key: nix-${{ runner.os }}-${{ matrix.stuff.flake }}-${{ hashFiles('**/*.nix', 'flake.lock') }}
-          restore-prefixes-first-match: nix-${{ runner.os }}-
-          purge-prefixes: cache-${{ runner.os }}
+          purge: true
+          purge-last-accessed: 2419200 # 28 days
       - name: Build development environment
         run: nix develop .#${{ matrix.stuff.flake }} --print-build-logs --command bash -c "ls -lah"
       - name: Run Kconfig
