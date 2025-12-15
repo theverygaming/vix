@@ -26,13 +26,14 @@ menuconfig:
 
 bootimg-x86-32:
 	@$(MAKE) --no-print-directory -C shitshell
-	@$(MAKE) --no-print-directory -C kernel/ M=$(PWD)/modules modules
+	@$(MAKE) --no-print-directory -C kernel/ M=$(PWD)/modules/guimodule modules
+	@$(MAKE) --no-print-directory -C kernel/ M=$(PWD)/modules/module2 modules
 	@#g++ -m32 -march=i386 -static -static-libgcc -static-libstdc++ -mno-red-zone -fno-pie -fno-stack-protector tools/glibctest.cpp -o libctest
 	@#gcc -m32 -march=i386 -static -static-libgcc -mno-red-zone -fno-pie -fno-stack-protector tools/glibctest.c -o libctest -pthread
 	@#musl-gcc -m32 -march=i386 -static -static-libgcc -mno-red-zone -fno-pie -fno-stack-protector tools/glibctest.c -o libctest
 	@mkdir -p sysroot/usr/share/consolefonts/ sysroot/usr/lib/modules sysroot/bin/
 	@cp shitshell/shitshell sysroot/bin/sh
-	@cp modules/module.o modules/module2.o sysroot/usr/lib/modules
+	@cp modules/guimodule/module.o modules/module2/module2.o sysroot/usr/lib/modules
 	@cp kernel/drivers/intree-mod.o sysroot/usr/lib/modules || true
 	@cp fonts/Unifont-APL8x16-15.0.01.psf sysroot/usr/share/consolefonts
 	@find sysroot/ -printf "%P\n" | tar --format=ustar -cf roramfs.fs --no-recursion -C sysroot/ -T -
