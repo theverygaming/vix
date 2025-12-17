@@ -8,23 +8,6 @@
 #define VFS_SEEK_END (1 << 0)
 
 namespace fs::vfs {
-    /*
-    even newer :tm:
-    */
-    struct dirent {
-        std::string name;
-        std::shared_ptr<struct inode> inode;
-    };
-
-    struct inode {
-        enum class type { REGULAR_FILE, DIRECTORY } type;
-        std::vector<std::shared_ptr<struct dirent>> direntries; // TODO: we need a linked list! would be far more efficient here
-    };
-
-    struct mount {
-        std::shared_ptr<struct dirent> mountpoint; // TODO: we need a linked list! would be far more efficient here
-    };
-
     /* new */
     struct fsinfo {
         void *info; // for internal use by the filesystem
@@ -48,8 +31,6 @@ namespace fs::vfs {
     } file;
 
     void init();
-
-    void print_tree();
 
     void mount_fs(struct fsinfo fs, std::string mountpoint);
 
