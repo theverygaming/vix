@@ -28,11 +28,13 @@ pub struct init_function_ptr {
 unsafe impl Sync for init_function_ptr {}
 
 // called almost immediately after control is handed to the kernel, shortly prior to initializing the allocators
-define_initfn_level!(INITFN_PRE_MM_INIT, 0);
+define_initfn_level!(INITFN_PRE_MM_INIT, 10);
+// called shortly after memory allocators have been initialized and C++ constructors called but before some architecture things have been initialized
+define_initfn_level!(INITFN_SUPER_EARLY_DRIVER_INIT, 19);
 // called shortly after memory allocators have been initialized and C++ constructors called but before the scheduler has been initialized
-define_initfn_level!(INITFN_EARLY_DRIVER_INIT, 1);
+define_initfn_level!(INITFN_EARLY_DRIVER_INIT, 20);
 // called from inside the very first scheduler thread (thread 0)
-define_initfn_level!(INITFN_DRIVER_INIT, 2);
+define_initfn_level!(INITFN_DRIVER_INIT, 30);
 
 
 #[macro_export]

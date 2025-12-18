@@ -5,11 +5,13 @@ void initfn_call_level(unsigned int level);
 void initfn_call(struct init_function *);
 
 // called almost immediately after control is handed to the kernel, shortly prior to initializing the allocators
-#define INITFN_PRE_MM_INIT 0
+#define INITFN_PRE_MM_INIT 10
+// called shortly after memory allocators have been initialized and C++ constructors called but before some architecture things have been initialized
+#define INITFN_SUPER_EARLY_DRIVER_INIT 19
 // called shortly after memory allocators have been initialized and C++ constructors called but before the scheduler has been initialized
-#define INITFN_EARLY_DRIVER_INIT 1
+#define INITFN_EARLY_DRIVER_INIT 20
 // called from inside the very first scheduler thread (thread 0)
-#define INITFN_DRIVER_INIT 2
+#define INITFN_DRIVER_INIT 30
 
 #define INIT_FUNCTION_FLAG_EXECUTED 1
 
