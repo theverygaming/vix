@@ -32,8 +32,8 @@ INITFN_DEFINE(
 );
 INITFN_DEFINE(
     initfn_test_4,
-    0,
     INITFN_PRE_MM_INIT,
+    0,
     initfn_test_4,
     initfn_test_1,
     initfn_test_3
