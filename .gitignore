@@ -20,7 +20,6 @@ kernel.elf
 /shitshell/shitshell
 /vix_app.img
 /vix.iso
-/roramfs_create
 /roramfs.fs
 /kernel/include/generated
 /kernel/config_gen
