@@ -1,11 +1,9 @@
 #include <stdlib.h>
-#include <string>
-#include <vector>
 #include <vix/debug.h>
-#include <vix/fs/path.h>
 #include <vix/fs/tarfs.h>
 #include <vix/fs/vfs.h>
 #include <vix/macros.h>
+#include <vix/status.h>
 #include <vix/types.h>
 
 // https://www.gnu.org/software/tar/manual/html_node/Standard.html
@@ -77,78 +75,6 @@ static bool verify_checksum(const void *mem) {
     return (u == parse_octal((const char *)ptr + 148, 8));
 }
 
-static void *fopen(void *info, std::vector<std::string> *path) {
-    struct tarheader *file_ptr = (struct tarheader *)locationptr;
-    while (!is_zero(file_ptr, 512 * 2)) {
-        if (memcmp(file_ptr->magic, "ustar", 6)) {
-            DEBUG_PRINTF("invalid magic (file_ptr: 0x%p)\n", file_ptr);
-            return nullptr;
-        }
-
-        if (!verify_checksum(file_ptr)) {
-            DEBUG_PRINTF("tar checksum failure\n");
-            return nullptr;
-        }
-
-        size_t size = parse_octal(file_ptr->size, sizeof(file_ptr->size));
-
-        if (file_ptr->typeflag == '0') {
-            std::string p = file_ptr->name;
-            std::vector<std::string> p_s = fs::path::split_path(&p);
-            if (fs::path::equals(path, &p_s)) {
-                struct file *f = new struct file;
-                f->position = 0;
-                f->size = size;
-                f->base = (uint8_t *)file_ptr + 512;
-                return f;
-            }
-        }
-
-        file_ptr = (struct tarheader *)(PTR_ALIGN_UP((uint8_t *)file_ptr + 512 + size, 512));
-    }
-    return nullptr;
-}
-
-static void fclose(void *info, void *file) {
-    struct file *f = (struct file *)file;
-    if (f == nullptr) {
-        return;
-    }
-    delete f;
-}
-
-static size_t fread(void *info, void *file, void *buf, size_t count) {
-    struct file *f = (struct file *)file;
-    if ((count + f->position) > f->size) {
-        count = f->size - f->position;
-    }
-
-    memcpy(buf, (uint8_t *)f->base + f->position, count);
-
-    f->position += count;
-
-    return count;
-}
-
-static size_t ftell(void *info, void *file) {
-    struct file *f = (struct file *)file;
-    return f->position;
-}
-
-static void fseek(void *info, void *file, size_t pos, unsigned int flags) {
-    struct file *f = (struct file *)file;
-
-    if (pos >= f->size) {
-        pos = f->size;
-    }
-
-    if (flags & VFS_SEEK_END) {
-        pos = f->size;
-    }
-
-    f->position = pos;
-}
-
 bool fs::filesystems::tarfs::init(void *location) {
     locationptr = location;
     uint32_t total_size = 0;
@@ -185,11 +111,51 @@ bool fs::filesystems::tarfs::init(void *location) {
 void fs::filesystems::tarfs::deinit() {}
 
 void fs::filesystems::tarfs::mountInVFS() {
-    struct fs::vfs::fsinfo fs {
-        .info = nullptr, .fopen = fopen, .fclose = fclose, .fread = fread, .ftell = ftell, .fseek = fseek,
-    };
 
-    fs::vfs::mount_fs(fs, "/");
+    struct tarheader *file_ptr = (struct tarheader *)locationptr;
+    while (!is_zero(file_ptr, 512 * 2)) {
+        if (memcmp(file_ptr->magic, "ustar", 6)) {
+            DEBUG_PRINTF("invalid magic (file_ptr: 0x%p)\n", file_ptr);
+            return;
+        }
 
-    kprintf(KP_INFO, "tarfs: mounted\n");
+        if (!verify_checksum(file_ptr)) {
+            DEBUG_PRINTF("tar checksum failure\n");
+            return;
+        }
+
+        size_t size = parse_octal(file_ptr->size, sizeof(file_ptr->size));
+
+        struct ::vfs::vnode *node;
+
+        DEBUG_PRINTF(
+            "tarfs: vfs copy: %s ('%c')\n", file_ptr->name, file_ptr->typeflag
+        );
+
+        switch (file_ptr->typeflag) {
+        case '0': {
+            ASSIGN_OR_PANIC(
+                node, ::vfs::create(file_ptr->name, ::vfs::vnode_type::REGULAR)
+            );
+            PANIC_IF_ERROR(node->ops->open(node));
+            PANIC_IF_ERROR(::vfs::write(node, 0, (uint8_t *)file_ptr + 512, size));
+            break;
+        }
+        case '5': {
+            ASSIGN_OR_PANIC(
+                node, ::vfs::create(file_ptr->name, ::vfs::vnode_type::DIR)
+            );
+            break;
+        };
+        default:
+            DEBUG_PRINTF("tarfs: unknown typeflag '%c'\n", file_ptr->typeflag);
+            break;
+        }
+
+        file_ptr = (struct tarheader *)(PTR_ALIGN_UP(
+            (uint8_t *)file_ptr + 512 + size, 512
+        ));
+    }
+
+    kprintf(KP_INFO, "tarfs: copied data\n");
 }

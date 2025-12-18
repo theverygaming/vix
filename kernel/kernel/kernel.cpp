@@ -43,7 +43,7 @@ void kernelstart() {
     cpp_init();
     kprintf(KP_INFO, "kmain: initialized C++\n");
     initfn_call_level(INITFN_SUPER_EARLY_DRIVER_INIT);
-    fs::vfs::init();
+    vfs::mount_root();
     kprintf(KP_INFO, "kmain: initialized VFS\n");
 
     arch::startup::stage4_startup();
