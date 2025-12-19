@@ -2,7 +2,6 @@
 #include <string.h>
 #include <string>
 #include <unordered_map>
-#include <utility>
 #include <vector>
 #include <vix/fs/vfs.h>
 #include <vix/initfn.h>
@@ -88,17 +87,22 @@ status::StatusOr<struct vfs::vnode *> tmpfs_create(
     struct tmpfs_node *tmpfsparent = (struct tmpfs_node *)parent;
 
     struct tmpfs_node *node = new struct tmpfs_node({
-        .refcount = 1,
-        .ino = 124, // FIXME: I MADE IT THE FUCK UP
-        .attrs =
+        .vnode =
             {
-                .sz_bytes = 0,
-                .sz_blocks = 0,
+                .refcount = 1,
+                .ino = 124, // FIXME: I MADE IT THE FUCK UP
+                .attrs =
+                    {
+                        .sz_bytes = 0,
+                        .sz_blocks = 0,
+                    },
+                .type = type,
+                .vfs = parent->vfs,
+                .vfs_mounted = nullptr,
+                .ops = parent->ops,
             },
-        .type = type,
-        .vfs = parent->vfs,
-        .vfs_mounted = nullptr,
-        .ops = parent->ops,
+        .children = std::unordered_map<std::string, struct tmpfs_node *>(),
+        .data = std::vector<uint8_t>(),
     });
 
     tmpfsparent->children[std::string(name)] = node;
@@ -121,17 +125,22 @@ status::StatusOr<struct vfs::vfs *> tmpfs_mount(
     struct vfs::vnode *dev
 ) {
     struct vfs::vnode *root = (struct vfs::vnode *)new struct tmpfs_node({
-        .refcount = 1,
-        .ino = 123, // FIXME: I MADE IT THE FUCK UP
-        .attrs =
+        .vnode =
             {
-                .sz_bytes = 0,
-                .sz_blocks = 0,
+                .refcount = 1,
+                .ino = 123, // FIXME: I MADE IT THE FUCK UP
+                .attrs =
+                    {
+                        .sz_bytes = 0,
+                        .sz_blocks = 0,
+                    },
+                .type = vfs::vnode_type::DIR,
+                .vfs = nullptr,
+                .vfs_mounted = nullptr,
+                .ops = &tmpfs_node_ops,
             },
-        .type = vfs::vnode_type::DIR,
-        .vfs = nullptr,
-        .vfs_mounted = nullptr,
-        .ops = &tmpfs_node_ops,
+        .children = std::unordered_map<std::string, struct tmpfs_node *>(),
+        .data = std::vector<uint8_t>(),
     });
     struct vfs::vfs *vfs = new struct vfs::vfs({
         .ops = ops,
