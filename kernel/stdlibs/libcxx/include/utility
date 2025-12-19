@@ -21,4 +21,10 @@ namespace std {
             return first == cmp.first && second == cmp.second;
         }
     };
+
+    template <class T> struct equal_to {
+        bool operator()(const T &lhs, const T &rhs) const {
+            return rhs == lhs;
+        }
+    };
 }

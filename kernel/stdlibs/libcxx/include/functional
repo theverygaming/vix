@@ -1,4 +1,5 @@
 #pragma once
+#include <vix/types.h>
 
 namespace std {
     template <class T> struct greater {
@@ -11,4 +12,25 @@ namespace std {
             return a < b;
         }
     };
+
+    template <class T> struct hash;
+
+#define _functional_define_trivial_hash(tp)        \
+    template <> struct hash<tp> {                  \
+        size_t operator()(tp val) const noexcept { \
+            return (size_t)val;                    \
+        }                                          \
+    }
+    _functional_define_trivial_hash(bool);
+    _functional_define_trivial_hash(char);
+    _functional_define_trivial_hash(signed char);
+    _functional_define_trivial_hash(unsigned char);
+    _functional_define_trivial_hash(short);
+    _functional_define_trivial_hash(unsigned short);
+    _functional_define_trivial_hash(int);
+    _functional_define_trivial_hash(unsigned int);
+    _functional_define_trivial_hash(long);
+    _functional_define_trivial_hash(unsigned long);
+    _functional_define_trivial_hash(long long);
+    _functional_define_trivial_hash(unsigned long long);
 }
