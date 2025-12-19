@@ -10,21 +10,21 @@ jobs:
           - flake: IA-32
             step_config: make defconfig MAKE_ARCH=x86 && make tests MAKE_ARCH=x86
             step_build: make MAKE_ARCH=x86 CROSS_COMPILE=i686-elf-
-            step_bootimg: make bootimg-x86-32 MAKE_ARCH=x86
+            step_bootimg: make bootimg-x86-32 MAKE_ARCH=x86 CROSS_COMPILE=i686-elf-
             nm: i686-elf-nm
             runcmd: qemu-system-x86_64 -cdrom vix.iso -nographic
             ignore_test_failure: false
           - flake: x86-64
             step_config: make defconfig MAKE_ARCH=x86 && make tests MAKE_ARCH=x86 && sed -i "s/CONFIG_ENABLE_KERNEL_32=y/# CONFIG_ENABLE_KERNEL_32=y\nCONFIG_ENABLE_KERNEL_64=y/g" kernel/.config && make syncconfig
             step_build: make MAKE_ARCH=x86 CROSS_COMPILE=x86_64-elf-
-            step_bootimg: make bootimg-x86-64 MAKE_ARCH=x86
+            step_bootimg: make bootimg-x86-64 MAKE_ARCH=x86 CROSS_COMPILE=x86_64-elf-
             nm: x86_64-elf-nm
             runcmd: qemu-system-x86_64 -nographic -serial mon:stdio -hda vix_uefi.img
             ignore_test_failure: false
           - flake: aarch64
             step_config: make alldefconfig MAKE_ARCH=aarch64 && make tests MAKE_ARCH=aarch64
             step_build: make MAKE_ARCH=aarch64 CROSS_COMPILE=aarch64-none-elf-
-            step_bootimg: make bootimg-aarch64 MAKE_ARCH=aarch64
+            step_bootimg: make bootimg-aarch64 MAKE_ARCH=aarch64 CROSS_COMPILE=aarch64-none-elf-
             nm: aarch64-none-elf-nm
             runcmd: qemu-system-aarch64 -m 1024m -bios "$VIX_QEMU_UEFI_BIOS_PATH" -cpu cortex-a53 -smp 4 -machine virt -device ramfb -device qemu-xhci -device usb-kbd -nographic -serial mon:stdio -hda vix_uefi.img
             ignore_test_failure: true
