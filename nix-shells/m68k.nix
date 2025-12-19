@@ -11,7 +11,7 @@ pkgs.stdenv.mkDerivation {
   ] ++ common.commonPkgs ++ common.fatTools;
 
   shellHook = common.shellHook + ''
-    alias vix-build='make MAKE_ARCH=m68k CROSS_COMPILE=m68k-elf- -j$NIX_BUILD_CORES && make bootimg-m68k MAKE_ARCH=m68k'
+    alias vix-build='make MAKE_ARCH=m68k CROSS_COMPILE=m68k-elf- -j$NIX_BUILD_CORES && make bootimg-m68k MAKE_ARCH=m68k CROSS_COMPILE=m68k-elf-'
     alias vix-run='minivmacPlus -r "../Mini vMac/vMac.ROM" disk.img'
   '';
 }
