@@ -1,5 +1,4 @@
 #include <algorithm>
-#include <stdint.h>
 #include <vix/arch/generic/devices.h>
 #include <vix/framebuffer.h>
 #include <vix/sched.h>

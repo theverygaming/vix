@@ -5,6 +5,7 @@
 #include <vix/abi/vix/vix.h>
 #include <vix/arch/common/cpu.h>
 #include <vix/arch/common/sched.h>
+#include <vix/config.h>
 
 namespace sched {
 
