@@ -23,15 +23,6 @@ endif
 endef
 
 $(eval $(call getcfgvar,ARCH))
-ifdef M
-$(eval $(call getcfgvar,CXX))
-$(eval $(call getcfgvar,LD))
-$(eval $(call getcfgvar,NM))
-$(eval $(call getcfgvar,OBJCOPY))
-$(eval $(call getcfgvar,CFLAGS))
-$(eval $(call getcfgvar,CXXFLAGS))
-$(eval $(call getcfgvar,LDFLAGS))
-endif
 
 
 ifndef ARCH
@@ -41,7 +32,6 @@ endif
 export ARCH
 
 # compiler stuff
-ifndef M
 CC      = $(CROSS_COMPILE)gcc
 CXX      = $(CROSS_COMPILE)g++
 CPP      = $(CROSS_COMPILE)cpp
@@ -51,7 +41,6 @@ OBJCOPY  = $(CROSS_COMPILE)objcopy
 CFLAGS = 
 CXXFLAGS = 
 LDFLAGS  = 
-endif
 
 include scripts/Makefile.build
 
