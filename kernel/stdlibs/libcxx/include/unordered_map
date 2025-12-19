@@ -1,0 +1,121 @@
+#pragma once
+#include <forward_list>
+#include <utility>
+#include <vector>
+#include <vix/types.h>
+
+namespace std {
+    template <typename T> struct unordered_map_default_construct {
+        T operator()() const {
+            return T();
+        }
+    };
+
+    template <
+        class TKey,
+        class TValue,
+        class TValueFactory = unordered_map_default_construct<TValue>>
+    class unordered_map {
+    public:
+        unordered_map(size_t n_buckets = 10) {
+            if (n_buckets == 0) {
+                n_buckets = 1;
+            }
+            buckets.resize(n_buckets);
+        }
+
+        unordered_map(const unordered_map &obj) {
+            this->buckets = obj.buckets;
+        }
+
+        ~unordered_map() {}
+
+        TValue &insert(TKey key, TValue value) {
+            TValue *found = find_ptr(key);
+            if (found != nullptr) {
+                *found = value;
+                return *found;
+            }
+            return force_insert(key, value);
+        }
+
+        bool erase(TKey key) {
+            auto bucket = &buckets[hash_buckets_index(key)];
+            auto ptr = find_ptr_pair(bucket, key);
+            if (ptr != nullptr) {
+                bucket->erase_first_ptr(ptr);
+                return true;
+            }
+
+            return false;
+        }
+
+        bool contains(TKey key) {
+            return find_ptr(key) != nullptr;
+        }
+
+        TValue &operator[](TKey key) {
+            TValue *found = find_ptr(key);
+            if (found == nullptr) {
+                return force_insert(key, TValueFactory()());
+            }
+            return *found;
+        }
+
+        TValue &operator[](TKey key) const {
+            return this->operator[](key);
+        }
+
+        unordered_map<TKey, TValue> &
+        operator=(const unordered_map<TKey, TValue> &obj) {
+            this->buckets = obj.buckets;
+        }
+
+    private:
+        std::vector<std::forward_list<std::pair<TKey, TValue>>> buckets;
+
+        std::pair<TKey, TValue> *find_ptr_pair(
+            std::forward_list<std::pair<TKey, TValue>> *bucket, TKey key
+        ) {
+            for (auto it = (*bucket).begin(); it != (*bucket).end(); it++) {
+                if (it->first == key) {
+                    return &(*it);
+                }
+            }
+            return nullptr;
+        }
+
+        std::pair<TKey, TValue> *find_ptr_pair(TKey key) {
+            auto bucket = &buckets[hash_buckets_index(key)];
+            return find_ptr_pair(bucket, key);
+        }
+
+        TValue *find_ptr(TKey key) {
+            auto p = find_ptr_pair(key);
+            if (p != nullptr) {
+                return &p->second;
+            }
+            return nullptr;
+        }
+
+        size_t hash_buckets_index(TKey key) {
+            size_t idx = hash_key(key) % buckets.size();
+            return idx;
+        }
+
+        size_t hash_key(TKey key) {
+            // FIXME: use std::hash or something here, and only if it's not avaiable compute from memory (required for objects (e.g. std::string) to be a key!)
+            size_t hash = 0;
+            uint8_t *ptr = (uint8_t *)&key;
+            for (size_t i = 0; i < sizeof(key); i++) {
+                hash += ptr[i];
+            }
+            return hash;
+        }
+
+        TValue &force_insert(TKey key, TValue value) {
+            auto bucket = &buckets[hash_buckets_index(key)];
+            return (*bucket).push_front({key, value}).second;
+        }
+    };
+}
