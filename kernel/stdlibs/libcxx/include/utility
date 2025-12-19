@@ -16,5 +16,9 @@ namespace std {
 
         T1 first;
         T2 second;
+
+        bool operator==(const pair<T1, T2> &cmp) {
+            return first == cmp.first && second == cmp.second;
+        }
     };
 }
