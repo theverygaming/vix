@@ -38,7 +38,13 @@ struct testclass_factory {
 };
 
 TEST(std_unordered_map_int) {
-    std::unordered_map<int, testclass, testclass_factory> map1;
+    std::unordered_map<
+        int,
+        testclass,
+        std::hash<int>,
+        std::equal_to<int>,
+        testclass_factory>
+        map1;
 
     // insertion
     TEST_ASSERT(map1.size() == 0);

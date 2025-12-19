@@ -1,5 +1,6 @@
 #pragma once
 #include <forward_list>
+#include <functional>
 #include <utility>
 #include <vector>
 #include <vix/types.h>
@@ -14,6 +15,8 @@ namespace std {
     template <
         class TKey,
         class TValue,
+        class Hash = std::hash<TKey>,
+        class KeyEqual = std::equal_to<TKey>,
         class TValueFactory = unordered_map_default_construct<TValue>>
     class unordered_map {
     public:
@@ -86,7 +89,7 @@ namespace std {
             std::forward_list<std::pair<TKey, TValue>> *bucket, TKey key
         ) {
             for (auto it = (*bucket).begin(); it != (*bucket).end(); it++) {
-                if (it->first == key) {
+                if (KeyEqual()(it->first, key)) {
                     return &(*it);
                 }
             }
@@ -107,18 +110,8 @@ namespace std {
         }
 
         size_t hash_buckets_index(TKey key) {
-            size_t idx = hash_key(key) % buckets.size();
+            size_t idx = Hash()(key) % buckets.size();
             return idx;
-        }
-
-        size_t hash_key(TKey key) {
-            // FIXME: use std::hash or something here, and only if it's not avaiable compute from memory (required for objects (e.g. std::string) to be a key!)
-            size_t hash = 0;
-            uint8_t *ptr = (uint8_t *)&key;
-            for (size_t i = 0; i < sizeof(key); i++) {
-                hash += ptr[i];
-            }
-            return hash;
         }
 
         TValue &force_insert(TKey key, TValue value) {
