@@ -1,9 +1,10 @@
 #pragma once
-#include <vix/debug.h>
+#include <functional>
 #include <libcxx/pnew.h>
-#include <vix/mm/kheap.h>
 #include <string.h>
 #include <vector>
+#include <vix/debug.h>
+#include <vix/mm/kheap.h>
 
 namespace std {
     class string {
@@ -32,7 +33,12 @@ namespace std {
             return _data[i];
         }
 
-        bool operator==(const string &str) {
+        const char &operator[](size_t i) const {
+            assertm(i < _size, "out of bounds string access");
+            return _data[i];
+        }
+
+        bool operator==(const string &str) const {
             if (str._size != _size) {
                 return false;
             }
@@ -117,7 +123,7 @@ namespace std {
             return _data.size();
         }
 
-        size_t size() {
+        size_t size() const {
             return _size;
         }
 
@@ -163,6 +169,16 @@ namespace std {
         }
 
         std::vector<char> _data;
+    };
+
+    template <> struct hash<string> {
+        size_t operator()(const string &str) const noexcept {
+            size_t hash = 0;
+            for (size_t i = 0; i < str.size(); i++) {
+                hash += str[i];
+            }
+            return hash;
+        }
     };
 }
 
