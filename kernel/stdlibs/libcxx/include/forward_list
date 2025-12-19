@@ -25,14 +25,16 @@ namespace std {
         }
 
         // Adds the element to the front.
-        void push_front(const T &e) {
-            struct list_node *le = new struct list_node;
-            le->data = e;
-            le->next = first;
+        T &push_front(const T &e) {
+            struct list_node *le = new struct list_node({
+                .data = e,
+                .next = first,
+            });
             first = le;
             if (last == nullptr) {
                 last = first;
             }
+            return first->data;
         }
 
         // Returns reference to first element. UB when empty.
