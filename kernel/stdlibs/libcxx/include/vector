@@ -81,9 +81,18 @@ namespace std {
         }
 
         void resize(size_t n) {
-            // BUG: destructors not called here??
-            _size = n;
-            reallocate(n);
+            size_t size_prev = size();
+            reserve(n);
+            if (size_prev > n) {
+                while (size() != n) {
+                    pop_back();
+                }
+            } else if (size_prev < n) {
+                while (size() != n) {
+                    push_back(T()); // default constructor
+                }
+                shrink_to_fit();
+            }
         }
 
         void reserve(size_t n) {
