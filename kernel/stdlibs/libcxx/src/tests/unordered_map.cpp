@@ -41,20 +41,24 @@ TEST(std_unordered_map_int) {
     std::unordered_map<int, testclass, testclass_factory> map1;
 
     // insertion
+    TEST_ASSERT(map1.size() == 0);
     TEST_ASSERT(!map1.contains(1));
     map1[1];
     TEST_ASSERT(map1.contains(1));
     TEST_ASSERT(map1[1].value == -1234);
+    TEST_ASSERT(map1.size() == 1);
 
     TEST_ASSERT(!map1.contains(2));
     map1[2] = testclass(25);
     TEST_ASSERT(map1.contains(2));
     TEST_ASSERT(map1[2].value == 25);
+    TEST_ASSERT(map1.size() == 2);
 
     TEST_ASSERT(!map1.contains(3));
     map1.insert(3, testclass(26));
     TEST_ASSERT(map1.contains(3));
     TEST_ASSERT(map1[3].value == 26);
+    TEST_ASSERT(map1.size() == 3);
 
     // replace
     TEST_ASSERT(map1[1].value == -1234);
@@ -66,9 +70,11 @@ TEST(std_unordered_map_int) {
     TEST_ASSERT(map1[2].value == 6);
 
     // replace pointers/references
+    TEST_ASSERT(map1.size() == 3);
     auto ptr = &map1[4];
     map1[4] = testclass(7);
     TEST_ASSERT(ptr == &map1[4]);
+    TEST_ASSERT(map1.size() == 4);
 
     ptr = &map1[3];
     auto ptr2 = &map1.insert(3, testclass(27));
@@ -77,21 +83,26 @@ TEST(std_unordered_map_int) {
     TEST_ASSERT(map1[3].value == 27);
 
     // erase
+    TEST_ASSERT(map1.size() == 4);
     TEST_ASSERT(map1.contains(1));
     map1.erase(1);
     TEST_ASSERT(!map1.contains(1));
+    TEST_ASSERT(map1.size() == 3);
 
     TEST_ASSERT(map1.contains(2));
     map1.erase(2);
     TEST_ASSERT(!map1.contains(2));
+    TEST_ASSERT(map1.size() == 2);
 
     TEST_ASSERT(map1.contains(3));
     map1.erase(3);
     TEST_ASSERT(!map1.contains(3));
+    TEST_ASSERT(map1.size() == 1);
 
     TEST_ASSERT(map1.contains(4));
     map1.erase(4);
     TEST_ASSERT(!map1.contains(4));
+    TEST_ASSERT(map1.size() == 0);
 
     return true;
 }

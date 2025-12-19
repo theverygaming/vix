@@ -71,6 +71,14 @@ namespace std {
             this->buckets = obj.buckets;
         }
 
+        size_t size() {
+            size_t n = 0;
+            for (size_t i = 0; i < buckets.size(); i++) {
+                n += buckets[i].size();
+            }
+            return n;
+        }
+
     private:
         std::vector<std::forward_list<std::pair<TKey, TValue>>> buckets;
 
