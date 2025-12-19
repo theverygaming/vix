@@ -1,6 +1,4 @@
 #pragma once
-#include <string>
-#include <vector>
 #include <vix/mm/kheap.h>
 #include <vix/status.h>
 #include <vix/types.h>

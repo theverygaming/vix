@@ -1,14 +1,16 @@
 #include <algorithm>
 #include <string.h>
 #include <string>
+#include <unordered_map>
 #include <utility>
+#include <vector>
 #include <vix/fs/vfs.h>
 #include <vix/initfn.h>
 #include <vix/status.h>
 
 struct tmpfs_node {
     struct vfs::vnode vnode;
-    std::vector<std::pair<std::string, struct tmpfs_node *>> children;
+    std::unordered_map<std::string, struct tmpfs_node *> children;
     std::vector<uint8_t> data;
 };
 
@@ -67,12 +69,11 @@ tmpfs_lookup(struct vfs::vnode *vnode, const char *name) {
         return status::StatusCode::EGENERIC; // FIXME: proper errors
     }
 
-    for (size_t i = 0; i < tmpfsnode->children.size(); i++) {
-        if (tmpfsnode->children[i].first != name) {
-            continue;
-        }
-        return (struct vfs::vnode *)tmpfsnode->children[i].second;
+    auto name_stdstr = std::string(name);
+    if (tmpfsnode->children.contains(std::string(name))) {
+        return (struct vfs::vnode *)tmpfsnode->children[name_stdstr];
     }
+
     return status::StatusCode::EGENERIC; // FIXME: proper errors
 }
 
@@ -100,7 +101,7 @@ status::StatusOr<struct vfs::vnode *> tmpfs_create(
         .ops = parent->ops,
     });
 
-    tmpfsparent->children.push_back(std::pair(std::string(name), node));
+    tmpfsparent->children[std::string(name)] = node;
 
     return (struct vfs::vnode *)node;
 }

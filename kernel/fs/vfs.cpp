@@ -1,4 +1,5 @@
-#include <vector>
+#include <string.h>
+#include <unordered_map>
 #include <vix/debug.h>
 #include <vix/fs/path.h>
 #include <vix/fs/vfs.h>
@@ -16,9 +17,30 @@ static struct vfs::vnode *find_last_mount(struct vfs::vnode *node) {
     return node;
 }
 
+struct hash_cstring {
+    size_t operator()(const char *str) const noexcept {
+        size_t hash = 0;
+        while (*str != '\0') {
+            hash += *(str++);
+        }
+        return hash;
+    }
+};
+
+struct cmp_cstring {
+    bool operator()(const char *const a, const char *const b) const noexcept {
+        return strcmp(a, b) == 0;
+    }
+};
+
 namespace vfs {
     static struct vnode *root;
-    static std::vector<struct fsdriver *> drivers;
+    static std::unordered_map<
+        const char *,
+        struct fsdriver *,
+        hash_cstring,
+        cmp_cstring>
+        drivers;
 
     void mount_root() {
         root = new struct vnode({
@@ -39,15 +61,11 @@ namespace vfs {
     }
 
     void register_driver(struct fsdriver *drv) {
-        drivers.push_back(drv);
+        drivers[drv->name] = drv;
     }
 
     void remove_driver(struct fsdriver *drv) {
-        for (size_t i = 0; i < drivers.size(); i++) {
-            if (drivers[i] == drv) {
-                drivers.erase(i);
-            }
-        }
+        drivers.erase(drv->name);
     }
 
     status::Status<>
@@ -65,12 +83,10 @@ namespace vfs {
 
     status::Status<>
     mount(const char *mountpoint, const char *fsname, struct vnode *dev) {
-        for (size_t i = 0; i < drivers.size(); i++) {
-            if (strcmp(drivers[i]->name, fsname) == 0) {
-                struct vnode *mp;
-                ASSIGN_OR_RETURN(mp, lookup(mountpoint));
-                return mount(drivers[i]->ops, mp, dev);
-            }
+        if (drivers.contains(fsname)) {
+            struct vnode *mp;
+            ASSIGN_OR_RETURN(mp, lookup(mountpoint));
+            return mount(drivers[fsname]->ops, mp, dev);
         }
         return status::StatusCode::
             EGENERIC; // FIXME: error code -> should be fs type not found

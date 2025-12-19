@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include <vix/debug.h>
 #include <vix/fs/tarfs.h>
 #include <vix/fs/vfs.h>
@@ -100,7 +101,9 @@ bool fs::filesystems::tarfs::init(void *location) {
             DEBUG_PRINTF("    -> %s %u [UNSUPPORTED]\n", file_ptr->name, size);
         }
 
-        file_ptr = (struct tarheader *)(PTR_ALIGN_UP((uint8_t *)file_ptr + 512 + size, 512));
+        file_ptr = (struct tarheader *)(PTR_ALIGN_UP(
+            (uint8_t *)file_ptr + 512 + size, 512
+        ));
     }
 
     DEBUG_PRINTF("    -> total: %u\n", total_size);
@@ -138,7 +141,9 @@ void fs::filesystems::tarfs::mountInVFS() {
                 node, ::vfs::create(file_ptr->name, ::vfs::vnode_type::REGULAR)
             );
             PANIC_IF_ERROR(node->ops->open(node));
-            PANIC_IF_ERROR(::vfs::write(node, 0, (uint8_t *)file_ptr + 512, size));
+            PANIC_IF_ERROR(
+                ::vfs::write(node, 0, (uint8_t *)file_ptr + 512, size)
+            );
             break;
         }
         case '5': {
