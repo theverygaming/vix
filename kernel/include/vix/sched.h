@@ -50,6 +50,7 @@ namespace sched {
 
     struct task init_thread(void (*func)(), void *data = nullptr);
 
+    // FIXME: start_thread should prolly return a PID!
     void start_thread(void (*func)(), void *data = nullptr);
     void start_thread(struct task);
 
