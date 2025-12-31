@@ -129,7 +129,7 @@ void fs::filesystems::tarfs::mountInVFS() {
 
         size_t size = parse_octal(file_ptr->size, sizeof(file_ptr->size));
 
-        struct ::vfs::vnode *node;
+        std::shared_ptr<struct ::vfs::vnode> node;
 
         DEBUG_PRINTF(
             "tarfs: vfs copy: %s ('%c')\n", file_ptr->name, file_ptr->typeflag

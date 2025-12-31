@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 #include <vix/mm/kheap.h>
 #include <vix/status.h>
 #include <vix/types.h>
@@ -29,7 +30,6 @@ namespace vfs {
     };
 
     struct vnode {
-        int refcount;
         ino_t ino;
         vnode_attrs attrs;
         vnode_type type;
@@ -39,32 +39,42 @@ namespace vfs {
     };
 
     struct vnodeops {
-        status::Status<> (*open)(struct vnode *vnode);
-        status::Status<> (*close)(struct vnode *vnode);
+        status::Status<> (*open)(std::shared_ptr<struct vnode> vnode);
+        status::Status<> (*close)(std::shared_ptr<struct vnode> vnode);
         status::StatusOr<size_t> (*read)(
-            struct vnode *vnode, size_t offset, void *data, size_t bytes_max
+            std::shared_ptr<struct vnode> vnode,
+            size_t offset,
+            void *data,
+            size_t bytes_max
         );
         status::StatusOr<size_t> (*write)(
-            struct vnode *vnode, size_t offset, void *data, size_t bytes
+            std::shared_ptr<struct vnode> vnode,
+            size_t offset,
+            void *data,
+            size_t bytes
         );
-        status::StatusOr<struct vnode *> (*lookup)(
-            struct vnode *vnode, const char *name
+        status::StatusOr<std::shared_ptr<struct vnode>> (*lookup)(
+            std::shared_ptr<struct vnode> vnode, const char *name
         );
-        status::StatusOr<struct vnode *> (*create)(
-            struct vnode *parent, const char *name, vnode_type type
+        status::StatusOr<std::shared_ptr<struct vnode>> (*create)(
+            std::shared_ptr<struct vnode> parent,
+            const char *name,
+            vnode_type type
         );
     };
 
     struct vfs {
         struct vfsops *ops;
-        struct vnode *root;
-        struct vnode *mounted_on;
+        std::shared_ptr<struct vnode> root;
+        std::shared_ptr<struct vnode> mounted_on;
     };
 
     struct vfsops {
         // mount the filesystem, allocate a vfs struct (this is the only point where one is ever allocated)
         status::StatusOr<struct vfs *> (*mount)(
-            struct vfsops *ops, struct vnode *mountpoint, struct vnode *dev
+            struct vfsops *ops,
+            std::shared_ptr<struct vnode> mountpoint,
+            std::shared_ptr<struct vnode> dev
         );
         // unmount the filesystem, clear a vfs struct for deallocation (this is the only point where one is ever deallocated)
         status::Status<> (*unmount)(struct vfs *vfs);
@@ -83,33 +93,45 @@ namespace vfs {
     void register_driver(struct fsdriver *drv);
     void remove_driver(struct fsdriver *drv);
 
-    // FIXME: ops should not really be passed to mount, it needs to find the fs type by itself via struct fsdriver
-    // or.. maybe overload it?
-    status::Status<>
-    mount(struct vfsops *ops, struct vnode *mountpoint, struct vnode *dev);
-    status::Status<>
-    mount(const char *mountpoint, const char *fsname, struct vnode *dev);
+    status::Status<> mount(
+        struct vfsops *ops,
+        std::shared_ptr<struct vnode> mountpoint,
+        std::shared_ptr<struct vnode> dev
+    );
+    status::Status<> mount(
+        const char *mountpoint,
+        const char *fsname,
+        std::shared_ptr<struct vnode> dev
+    );
 
-    status::StatusOr<struct vnode *> lookup(const char *path);
-    status::StatusOr<struct vnode *>
-    lookup(struct vnode *start, const char *path);
+    status::StatusOr<std::shared_ptr<struct vnode>> lookup(const char *path);
+    status::StatusOr<std::shared_ptr<struct vnode>>
+    lookup(std::shared_ptr<struct vnode> start, const char *path);
 
-    status::StatusOr<struct vnode *> open(const char *path);
-    status::StatusOr<struct vnode *>
-    open(struct vnode *start, const char *path);
-    status::Status<> close(struct vnode *vnode);
+    status::StatusOr<std::shared_ptr<struct vnode>> open(const char *path);
+    status::StatusOr<std::shared_ptr<struct vnode>>
+    open(std::shared_ptr<struct vnode> start, const char *path);
+    status::Status<> close(std::shared_ptr<struct vnode> vnode);
 
-    status::StatusOr<size_t>
-    read(struct vnode *vnode, size_t offset, void *data, size_t bytes_max);
-    status::StatusOr<size_t>
-    write(struct vnode *vnode, size_t offset, void *data, size_t bytes);
+    status::StatusOr<size_t> read(
+        std::shared_ptr<struct vnode> vnode,
+        size_t offset,
+        void *data,
+        size_t bytes_max
+    );
+    status::StatusOr<size_t> write(
+        std::shared_ptr<struct vnode> vnode,
+        size_t offset,
+        void *data,
+        size_t bytes
+    );
 
-    status::StatusOr<struct vnode *>
-    create(struct vnode *parent, const char *name, vnode_type type);
-    status::StatusOr<struct vnode *> create(const char *path, vnode_type type);
+    status::StatusOr<std::shared_ptr<struct vnode>> create(
+        std::shared_ptr<struct vnode> parent, const char *name, vnode_type type
+    );
+    status::StatusOr<std::shared_ptr<struct vnode>>
+    create(const char *path, vnode_type type);
 }
-
-#define VFS_SEEK_END (1 << 0)
 
 namespace fs::vfs {
     // FIXME: really old, but here because some things need it still

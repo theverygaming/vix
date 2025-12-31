@@ -10,7 +10,8 @@
 #include <vix/status.h>
 
 // finds the last mountpoint on a given node, if there are mountpoints
-static struct vfs::vnode *find_last_mount(struct vfs::vnode *node) {
+static std::shared_ptr<struct vfs::vnode>
+find_last_mount(std::shared_ptr<struct vfs::vnode> node) {
     while (node->vfs_mounted != nullptr) {
         node = node->vfs_mounted->root;
     }
@@ -34,7 +35,7 @@ struct cmp_cstring {
 };
 
 namespace vfs {
-    static struct vnode *root;
+    static std::shared_ptr<struct vnode> root;
     static std::unordered_map<
         const char *,
         struct fsdriver *,
@@ -44,7 +45,6 @@ namespace vfs {
 
     void mount_root() {
         root = new struct vnode({
-            .refcount = 1,
             .ino = 1, // FIXME: I made it the FUCK UP
             .attrs =
                 {
@@ -68,23 +68,28 @@ namespace vfs {
         drivers.erase(drv->name);
     }
 
-    status::Status<>
-    mount(struct vfsops *ops, struct vnode *mountpoint, struct vnode *dev) {
+    status::Status<> mount(
+        struct vfsops *ops,
+        std::shared_ptr<struct vnode> mountpoint,
+        std::shared_ptr<struct vnode> dev
+    ) {
         if (mountpoint->vfs_mounted != nullptr) {
             KERNEL_PANIC("mount skill issue");
         }
         struct vfs *vfs;
         ASSIGN_OR_RETURN(vfs, ops->mount(ops, mountpoint, dev));
-        mountpoint->refcount += 1;
         mountpoint->vfs_mounted = vfs;
         vfs->mounted_on = mountpoint;
         return status::StatusCode::OK;
     }
 
-    status::Status<>
-    mount(const char *mountpoint, const char *fsname, struct vnode *dev) {
+    status::Status<> mount(
+        const char *mountpoint,
+        const char *fsname,
+        std::shared_ptr<struct vnode> dev
+    ) {
         if (drivers.contains(fsname)) {
-            struct vnode *mp;
+            std::shared_ptr<struct vnode> mp;
             ASSIGN_OR_RETURN(mp, lookup(mountpoint));
             return mount(drivers[fsname]->ops, mp, dev);
         }
@@ -92,12 +97,12 @@ namespace vfs {
             EGENERIC; // FIXME: error code -> should be fs type not found
     }
 
-    status::StatusOr<struct vnode *> lookup(const char *path) {
+    status::StatusOr<std::shared_ptr<struct vnode>> lookup(const char *path) {
         return lookup(root, path);
     }
 
-    status::StatusOr<struct vnode *>
-    lookup(struct vnode *start, const char *path) {
+    status::StatusOr<std::shared_ptr<struct vnode>>
+    lookup(std::shared_ptr<struct vnode> start, const char *path) {
         size_t pathlen = strlen(path);
         char *pathbuf = new char[pathlen + 1];
         memcpy(pathbuf, path, pathlen + 1);
@@ -109,7 +114,7 @@ namespace vfs {
             }
         }
 
-        struct vnode *node = find_last_mount(start);
+        std::shared_ptr<struct vnode> node = find_last_mount(start);
 
         for (size_t i = 0; i < pathlen; i++) {
             // empty path segment (e.g. double slash) -> ignore
@@ -146,43 +151,51 @@ namespace vfs {
         return node;
     }
 
-    status::StatusOr<struct vnode *> open(const char *path) {
+    status::StatusOr<std::shared_ptr<struct vnode>> open(const char *path) {
         return open(root, path);
     }
 
-    status::StatusOr<struct vnode *>
-    open(struct vnode *start, const char *path) {
-        struct vnode *node;
+    status::StatusOr<std::shared_ptr<struct vnode>>
+    open(std::shared_ptr<struct vnode> start, const char *path) {
+        std::shared_ptr<struct vnode> node;
         ASSIGN_OR_RETURN(node, lookup(path));
         RETURN_IF_ERROR(node->ops->open(node));
-        node->refcount++;
         return node;
     }
 
-    status::Status<> close(struct vnode *vnode) {
-        vnode->refcount--;
+    status::Status<> close(std::shared_ptr<struct vnode> vnode) {
         return vnode->ops->close(vnode);
     }
 
-    status::StatusOr<size_t>
-    read(struct vnode *vnode, size_t offset, void *data, size_t bytes_max) {
+    status::StatusOr<size_t> read(
+        std::shared_ptr<struct vnode> vnode,
+        size_t offset,
+        void *data,
+        size_t bytes_max
+    ) {
         return vnode->ops->read(vnode, offset, data, bytes_max);
     }
 
-    status::StatusOr<size_t>
-    write(struct vnode *vnode, size_t offset, void *data, size_t bytes) {
+    status::StatusOr<size_t> write(
+        std::shared_ptr<struct vnode> vnode,
+        size_t offset,
+        void *data,
+        size_t bytes
+    ) {
         return vnode->ops->write(vnode, offset, data, bytes);
     }
 
     // FIXME: on create check if file exists!! else sounds like a pretty damn bad idea!
     // FIXME: also "." and ".." files shall never be created sob
 
-    status::StatusOr<struct vnode *>
-    create(struct vnode *parent, const char *name, vnode_type type) {
+    status::StatusOr<std::shared_ptr<struct vnode>> create(
+        std::shared_ptr<struct vnode> parent, const char *name, vnode_type type
+    ) {
         return parent->ops->create(parent, name, type);
     }
 
-    status::StatusOr<struct vnode *> create(const char *path, vnode_type type) {
+    status::StatusOr<std::shared_ptr<struct vnode>>
+    create(const char *path, vnode_type type) {
         // TODO: lookup should probably have a way to just simply get the parent.. then we wouldn't need this mess
 
         size_t pathlen = strlen(path);

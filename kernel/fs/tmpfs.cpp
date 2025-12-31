@@ -9,22 +9,26 @@
 
 struct tmpfs_node {
     struct vfs::vnode vnode;
-    std::unordered_map<std::string, struct tmpfs_node *> children;
+    std::unordered_map<std::string, std::shared_ptr<struct tmpfs_node>>
+        children;
     std::vector<uint8_t> data;
 };
 
-status::Status<> tmpfs_open(struct vfs::vnode *vnode) {
+status::Status<> tmpfs_open(std::shared_ptr<struct vfs::vnode> vnode) {
     return status::StatusCode::OK;
 }
 
-status::Status<> tmpfs_close(struct vfs::vnode *vnode) {
+status::Status<> tmpfs_close(std::shared_ptr<struct vfs::vnode> vnode) {
     return status::StatusCode::OK;
 }
 
 status::StatusOr<size_t> tmpfs_read(
-    struct vfs::vnode *vnode, size_t offset, void *data, size_t bytes_max
+    std::shared_ptr<struct vfs::vnode> vnode,
+    size_t offset,
+    void *data,
+    size_t bytes_max
 ) {
-    struct tmpfs_node *tmpfsnode = (struct tmpfs_node *)vnode;
+    auto tmpfsnode = std::static_pointer_cast<struct tmpfs_node>(vnode);
 
     // not a file
     if (tmpfsnode->vnode.type != vfs::vnode_type::REGULAR) {
@@ -40,9 +44,13 @@ status::StatusOr<size_t> tmpfs_read(
     return read_size;
 }
 
-status::StatusOr<size_t>
-tmpfs_write(struct vfs::vnode *vnode, size_t offset, void *data, size_t bytes) {
-    struct tmpfs_node *tmpfsnode = (struct tmpfs_node *)vnode;
+status::StatusOr<size_t> tmpfs_write(
+    std::shared_ptr<struct vfs::vnode> vnode,
+    size_t offset,
+    void *data,
+    size_t bytes
+) {
+    auto tmpfsnode = std::static_pointer_cast<struct tmpfs_node>(vnode);
 
     // not a file
     if (tmpfsnode->vnode.type != vfs::vnode_type::REGULAR) {
@@ -59,9 +67,9 @@ tmpfs_write(struct vfs::vnode *vnode, size_t offset, void *data, size_t bytes) {
     return bytes;
 }
 
-status::StatusOr<struct vfs::vnode *>
-tmpfs_lookup(struct vfs::vnode *vnode, const char *name) {
-    struct tmpfs_node *tmpfsnode = (struct tmpfs_node *)vnode;
+status::StatusOr<std::shared_ptr<struct vfs::vnode>>
+tmpfs_lookup(std::shared_ptr<struct vfs::vnode> vnode, const char *name) {
+    auto tmpfsnode = std::static_pointer_cast<struct tmpfs_node>(vnode);
 
     // not a directory (the user asked e.g. /dir/dir/file/something)
     if (tmpfsnode->vnode.type != vfs::vnode_type::DIR) {
@@ -70,26 +78,29 @@ tmpfs_lookup(struct vfs::vnode *vnode, const char *name) {
 
     auto name_stdstr = std::string(name);
     if (tmpfsnode->children.contains(std::string(name))) {
-        return (struct vfs::vnode *)tmpfsnode->children[name_stdstr];
+        return static_pointer_cast<struct vfs::vnode>(
+            tmpfsnode->children[name_stdstr]
+        );
     }
 
     return status::StatusCode::EGENERIC; // FIXME: proper errors
 }
 
-status::StatusOr<struct vfs::vnode *> tmpfs_create(
-    struct vfs::vnode *parent, const char *name, vfs::vnode_type type
+status::StatusOr<std::shared_ptr<struct vfs::vnode>> tmpfs_create(
+    std::shared_ptr<struct vfs::vnode> parent,
+    const char *name,
+    vfs::vnode_type type
 ) {
     // parent must be a directory
     if (parent->type != vfs::vnode_type::DIR) {
         return status::StatusCode::EGENERIC; // FIXME: proper errors
     }
 
-    struct tmpfs_node *tmpfsparent = (struct tmpfs_node *)parent;
+    auto tmpfsparent = std::static_pointer_cast<struct tmpfs_node>(parent);
 
-    struct tmpfs_node *node = new struct tmpfs_node({
+    std::shared_ptr<struct tmpfs_node> node(new struct tmpfs_node({
         .vnode =
             {
-                .refcount = 1,
                 .ino = 124, // FIXME: I MADE IT THE FUCK UP
                 .attrs =
                     {
@@ -101,13 +112,14 @@ status::StatusOr<struct vfs::vnode *> tmpfs_create(
                 .vfs_mounted = nullptr,
                 .ops = parent->ops,
             },
-        .children = std::unordered_map<std::string, struct tmpfs_node *>(),
+        .children = std::
+            unordered_map<std::string, std::shared_ptr<struct tmpfs_node>>(),
         .data = std::vector<uint8_t>(),
-    });
+    }));
 
     tmpfsparent->children[std::string(name)] = node;
 
-    return (struct vfs::vnode *)node;
+    return std::static_pointer_cast<struct vfs::vnode>(node);
 }
 
 static struct vfs::vnodeops tmpfs_node_ops{
@@ -121,13 +133,12 @@ static struct vfs::vnodeops tmpfs_node_ops{
 
 status::StatusOr<struct vfs::vfs *> tmpfs_mount(
     struct vfs::vfsops *ops,
-    struct vfs::vnode *mountpoint,
-    struct vfs::vnode *dev
+    std::shared_ptr<struct vfs::vnode> mountpoint,
+    std::shared_ptr<struct vfs::vnode> dev
 ) {
-    struct vfs::vnode *root = (struct vfs::vnode *)new struct tmpfs_node({
+    std::shared_ptr<struct tmpfs_node> root(new struct tmpfs_node({
         .vnode =
             {
-                .refcount = 1,
                 .ino = 123, // FIXME: I MADE IT THE FUCK UP
                 .attrs =
                     {
@@ -139,25 +150,25 @@ status::StatusOr<struct vfs::vfs *> tmpfs_mount(
                 .vfs_mounted = nullptr,
                 .ops = &tmpfs_node_ops,
             },
-        .children = std::unordered_map<std::string, struct tmpfs_node *>(),
+        .children = std::
+            unordered_map<std::string, std::shared_ptr<struct tmpfs_node>>(),
         .data = std::vector<uint8_t>(),
-    });
+    }));
+    auto rootv = std::static_pointer_cast<struct vfs::vnode>(root);
     struct vfs::vfs *vfs = new struct vfs::vfs({
         .ops = ops,
-        .root = root,
+        .root = rootv,
         .mounted_on = nullptr,
     });
-    root->vfs = vfs;
+    rootv->vfs = vfs;
 
     return vfs;
 }
 
 status::Status<> tmpfs_unmount(struct vfs::vfs *vfs) {
-    // FIXME: check refcounts
-    if (vfs->root->refcount != 1) {
+    if (vfs->root.use_count() != 1) {
         return status::StatusCode::EGENERIC; // FIXME: proper error code.. ?
     }
-    delete vfs->root;
     delete vfs;
     return status::StatusCode::OK;
 }
