@@ -8,14 +8,20 @@ extern "C" struct init_function *END_INITFN_FUNCTIONS;
 
 void initfn_call(struct init_function *fn, unsigned int level) {
     DEBUG_PRINTF("initfn_call: ptr: 0x%p name: %s\n", fn, fn->name);
-    // TODO: this should be an assertion instead sometime
-    if (fn->level != level) {
-        KERNEL_PANIC("initfn %s (level %u) called at level %u", fn->name, fn->level, level);
-    }
 
     if (fn->flags & INIT_FUNCTION_FLAG_EXECUTED) {
         return;
     }
+
+    // TODO: this should be an assertion instead sometime
+    // check below the already executed check as things from higher
+    // levels are free to depend on lower levels if they want to.
+    // It's just not allowed that something from a higher level causes
+    // something from a lower level to be executed / the other way around
+    if (fn->level != level) {
+        KERNEL_PANIC("initfn %s (level %u) called at level %u", fn->name, fn->level, level);
+    }
+
     for (size_t i = 0; i < fn->n_deps; i++) {
         initfn_call(*fn->deps[i], level);
     }
