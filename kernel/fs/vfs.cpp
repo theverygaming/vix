@@ -1,7 +1,6 @@
 #include <string.h>
 #include <unordered_map>
 #include <vix/debug.h>
-#include <vix/fs/path.h>
 #include <vix/fs/vfs.h>
 #include <vix/kprintf.h>
 #include <vix/mm/kheap.h>

@@ -1,1 +1,1 @@
-obj-y := path.o vfs.o tarfs.o tmpfs.o
+obj-y := vfs.o tarfs.o tmpfs.o
