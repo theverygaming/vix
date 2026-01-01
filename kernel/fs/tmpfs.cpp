@@ -122,6 +122,12 @@ status::StatusOr<std::shared_ptr<struct vfs::vnode>> tmpfs_create(
     return std::static_pointer_cast<struct vfs::vnode>(node);
 }
 
+status::Status<> tmpfs_ioctl(
+    std::shared_ptr<struct vfs::vnode> vnode, unsigned int cmd, void *arg
+) {
+    return status::StatusCode::EGENERIC; // FIXME: proper error code.. ?
+}
+
 static struct vfs::vnodeops tmpfs_node_ops{
     .open = tmpfs_open,
     .close = tmpfs_close,
@@ -129,6 +135,7 @@ static struct vfs::vnodeops tmpfs_node_ops{
     .write = tmpfs_write,
     .lookup = tmpfs_lookup,
     .create = tmpfs_create,
+    .ioctl = tmpfs_ioctl,
 };
 
 status::StatusOr<struct vfs::vfs *> tmpfs_mount(

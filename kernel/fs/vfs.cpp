@@ -246,6 +246,11 @@ namespace vfs {
 
         return create_ret.value();
     }
+
+    status::Status<>
+    ioctl(std::shared_ptr<struct vnode> vnode, unsigned int cmd, void *arg) {
+        return vnode->ops->ioctl(vnode, cmd, arg);
+    }
 }
 
 bool fs::vfs::fptr(const char *path, void **fileptr) {

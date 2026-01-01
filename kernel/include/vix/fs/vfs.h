@@ -12,9 +12,9 @@ namespace vfs {
         DIR,     // directory
         CHRDEV,  // character device
         BLKDEV,  // block device
-        FIFO,
-        LINK,
-        SOCKET,
+        //FIFO,
+        //LINK,
+        //SOCKET,
     };
 
     struct dirent {
@@ -60,6 +60,9 @@ namespace vfs {
             std::shared_ptr<struct vnode> parent,
             const char *name,
             vnode_type type
+        );
+        status::Status<> (*ioctl)(
+            std::shared_ptr<struct vnode> vnode, unsigned int cmd, void *arg
         );
     };
 
@@ -131,6 +134,9 @@ namespace vfs {
     );
     status::StatusOr<std::shared_ptr<struct vnode>>
     create(const char *path, vnode_type type);
+
+    status::Status<>
+    ioctl(std::shared_ptr<struct vnode> vnode, unsigned int cmd, void *arg);
 }
 
 namespace fs::vfs {
