@@ -82,6 +82,75 @@ namespace std {
             return n;
         }
 
+        struct Iterator {
+            Iterator(
+                unordered_map *map,
+                size_t bucket_idx,
+                struct forward_list<std::pair<TKey, TValue>>::Iterator lit
+            )
+                : map(map), bucket_idx(bucket_idx), lit(lit) {
+                til_next_nonempty();
+            }
+
+            std::pair<TKey, TValue> &operator*() const {
+                return *lit;
+            }
+
+            std::pair<TKey, TValue> *operator->() {
+                return &(*lit);
+            }
+
+            Iterator &operator++() {
+                if (lit != map->buckets[bucket_idx].end()) { // not last node
+                    lit++;
+                    til_next_nonempty();
+                } else if (bucket_idx + 1 <
+                           map->buckets.size()) { // last node, but more buckets
+                    bucket_idx++;
+                    lit = map->buckets[bucket_idx].begin();
+                    til_next_nonempty();
+                } else { // end of iteration
+                }
+                return *this;
+            }
+
+            Iterator operator++(int) {
+                Iterator tmp = *this;
+                ++(*this);
+                return tmp;
+            }
+
+            bool operator!=(const Iterator &it) {
+                return bucket_idx != it.bucket_idx || lit != it.lit;
+            };
+
+            bool operator==(const Iterator &it) {
+                return bucket_idx == it.bucket_idx && lit == it.lit;
+            };
+
+        private:
+            unordered_map *map;
+            size_t bucket_idx;
+            struct forward_list<std::pair<TKey, TValue>>::Iterator lit;
+
+            void til_next_nonempty() {
+                while (lit == map->buckets[bucket_idx].end() &&
+                       bucket_idx + 1 < map->buckets.size()) {
+                    bucket_idx++;
+                    lit = map->buckets[bucket_idx].begin();
+                }
+            }
+        };
+
+        Iterator begin() {
+            return Iterator(this, 0, buckets[0].begin());
+        }
+
+        Iterator end() {
+            size_t i = buckets.size() - 1;
+            return Iterator(this, i, buckets[i].end());
+        }
+
     private:
         std::vector<std::forward_list<std::pair<TKey, TValue>>> buckets;
 
