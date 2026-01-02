@@ -251,6 +251,15 @@ namespace vfs {
     ioctl(std::shared_ptr<struct vnode> vnode, unsigned int cmd, void *arg) {
         return vnode->ops->ioctl(vnode, cmd, arg);
     }
+
+    status::StatusOr<size_t> getdents(
+        std::shared_ptr<struct vnode> vnode,
+        struct dirent *buf,
+        size_t buf_max,
+        size_t *offset
+    ) {
+        return vnode->ops->getdents(vnode, buf, buf_max, offset);
+    }
 }
 
 bool fs::vfs::fptr(const char *path, void **fileptr) {

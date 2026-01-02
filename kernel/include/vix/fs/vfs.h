@@ -18,10 +18,10 @@ namespace vfs {
     };
 
     struct dirent {
+        size_t reclen;
         ino_t ino;
-        size_t len;
         vnode_type type;
-        char name[255 + 1]; // max 255 chars
+        char name[1]; // variable length
     };
 
     struct vnode_attrs {
@@ -63,6 +63,12 @@ namespace vfs {
         );
         status::Status<> (*ioctl)(
             std::shared_ptr<struct vnode> vnode, unsigned int cmd, void *arg
+        );
+        status::StatusOr<size_t> (*getdents)(
+            std::shared_ptr<struct vnode> vnode,
+            struct dirent *buf,
+            size_t buf_max,
+            size_t *offset
         );
     };
 
@@ -137,6 +143,15 @@ namespace vfs {
 
     status::Status<>
     ioctl(std::shared_ptr<struct vnode> vnode, unsigned int cmd, void *arg);
+
+    // returns either error, or amount of bytes written to buffer (zero on end of directory!), offset
+    // must be initialized to 0, and is required as an internal reference
+    status::StatusOr<size_t> getdents(
+        std::shared_ptr<struct vnode> vnode,
+        struct dirent *buf,
+        size_t buf_max,
+        size_t *offset
+    );
 }
 
 namespace fs::vfs {

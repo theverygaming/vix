@@ -128,6 +128,51 @@ status::Status<> tmpfs_ioctl(
     return status::StatusCode::EGENERIC; // FIXME: proper error code.. ?
 }
 
+status::StatusOr<size_t> tmpfs_getdents(
+    std::shared_ptr<struct vfs::vnode> vnode,
+    struct vfs::dirent *buf,
+    size_t buf_max,
+    size_t *offset
+) {
+    auto tmpfsnode = std::static_pointer_cast<struct tmpfs_node>(vnode);
+
+    // not a directory (the user asked e.g. /dir/dir/file/something)
+    if (tmpfsnode->vnode.type != vfs::vnode_type::DIR) {
+        return status::StatusCode::EGENERIC; // FIXME: proper errors
+    }
+
+    auto it = tmpfsnode->children.begin();
+
+    // advance iterator to offset (cursed because unordered_map but whatever)
+    // FIXME: probably not safe when another thread inserts a file into the directory?
+    for (size_t i = 0; it != tmpfsnode->children.end() && i != *offset;
+         i++, it++) {}
+
+    size_t bytes_written = 0;
+
+    while (it != tmpfsnode->children.end()) {
+        // dirent struct includes null terminator
+        size_t bytes = sizeof(struct vfs::dirent) + it->first.size();
+        // won't fit?
+        if (buf_max < bytes) {
+            break;
+        }
+        buf->reclen = bytes;
+        buf->ino = tmpfsnode->vnode.ino;
+        buf->type = tmpfsnode->vnode.type;
+        memcpy(buf->name, it->first.c_str(), it->first.size() + 1);
+
+        // FIXME: alignment?
+        buf = (struct vfs::dirent *)((uint8_t *)buf + bytes);
+
+        buf_max -= bytes;
+        (*offset)++;
+        bytes_written += bytes;
+        it++;
+    }
+    return bytes_written;
+}
+
 static struct vfs::vnodeops tmpfs_node_ops{
     .open = tmpfs_open,
     .close = tmpfs_close,
@@ -136,6 +181,7 @@ static struct vfs::vnodeops tmpfs_node_ops{
     .lookup = tmpfs_lookup,
     .create = tmpfs_create,
     .ioctl = tmpfs_ioctl,
+    .getdents = tmpfs_getdents,
 };
 
 status::StatusOr<struct vfs::vfs *> tmpfs_mount(
