@@ -3,18 +3,70 @@
 #include <vix/abi/abi.h>
 #include <vix/debug.h>
 #include <vix/drivers/keyboard.h>
+#include <vix/fs/vfs.h>
 #include <vix/initfn.h>
 #include <vix/kprintf.h>
 #include <vix/sched.h>
 
 #define KSH_PRINTF(...) kprintf(KP_ALERT, "ksh: " __VA_ARGS__)
 
-static const int KSH_BUF_SIZE = 10;
-static const int KSH_ARGC_MAX = 1;
+static const int KSH_BUF_SIZE = 30;
+static const int KSH_ARGC_MAX = 2;
 
 static char ksh_buf[KSH_BUF_SIZE + 1];
 static int ksh_buf_p = 0;
 static char *ksh_arg_arr[KSH_ARGC_MAX];
+
+static void
+ksh_tree(std::string path_full, std::shared_ptr<struct vfs::vnode> node) {
+    if (node->type != vfs::vnode_type::DIR) {
+        KSH_PRINTF("tree: %s\n", path_full.c_str());
+    } else {
+        KSH_PRINTF("tree: %s (DIR)\n", path_full.c_str());
+        uint8_t buf[500];
+        size_t offset = 0;
+        while (true) {
+            auto res = vfs::getdents(
+                node, (struct vfs::dirent *)buf, sizeof(buf), &offset
+            );
+            if (!res.status().ok()) {
+                KSH_PRINTF("tree: encountered error\n");
+                return;
+            }
+            size_t bytes_read = res.value();
+            if (bytes_read == 0) {
+                break;
+            }
+            struct vfs::dirent *d;
+            uint8_t *ptr = buf;
+
+            while (ptr < buf + bytes_read) {
+                d = (struct vfs::dirent *)ptr;
+                auto res2 = vfs::lookup(node, d->name);
+                if (!res2.status().ok()) {
+                    KSH_PRINTF("tree: encountered error\n");
+                    continue;
+                }
+                auto path_concat = path_full;
+                if (path_concat[path_concat.size() - 1] != '/') {
+                    path_concat += "/";
+                }
+                path_concat += d->name;
+                ksh_tree(path_concat, res2.value());
+                ptr += d->reclen;
+            }
+        }
+    }
+}
+
+static void ksh_tree(const char *begin) {
+    auto res = vfs::lookup(begin);
+    if (!res.status().ok()) {
+        KSH_PRINTF("tree: encountered error\n");
+        return;
+    }
+    ksh_tree(begin, res.value());
+}
 
 static void ksh_exec(int argc, char **argv) {
     if (argc == 0) {
@@ -28,17 +80,32 @@ static void ksh_exec(int argc, char **argv) {
     if (strcmp(argv[0], "help") == 0) {
         KSH_PRINTF("-- list of commands --\n");
         KSH_PRINTF("help - displays this help menu\n");
-        KSH_PRINTF("tasks - displays a compact list of tasks and their respective states\n");
+        KSH_PRINTF(
+            "tasks - displays a compact list of tasks and their respective "
+            "states\n"
+        );
+        KSH_PRINTF("tree [optional: starting path] - VFS tree\n");
         return;
     }
     if (strcmp(argv[0], "tasks") == 0) {
         KSH_PRINTF("-- list of tasks --\n");
-        for (auto it = sched::sched_readyqueue.begin(); it != sched::sched_readyqueue.end(); it++) {
-            KSH_PRINTF("PID: %d state: %c ABI: %s\n",
-                       it->pid,
-                       (it->state == sched::task::state::RUNNING) ? 'R' : 'S',
-                       (it->abi_type == abi::type::KERNEL_ONLY ? "Kernel" : ((it->abi_type == abi::type::LINUX) ? "Linux" : "vix")));
+        for (auto it = sched::sched_readyqueue.begin();
+             it != sched::sched_readyqueue.end();
+             it++) {
+            KSH_PRINTF(
+                "PID: %d state: %c ABI: %s\n",
+                it->pid,
+                (it->state == sched::task::state::RUNNING) ? 'R' : 'S',
+                (it->abi_type == abi::type::KERNEL_ONLY
+                     ? "Kernel"
+                     : ((it->abi_type == abi::type::LINUX) ? "Linux" : "vix"))
+            );
         }
+        return;
+    }
+    if (strcmp(argv[0], "tree") == 0) {
+        KSH_PRINTF("-- FS tree --\n");
+        ksh_tree(argc >= 2 ? argv[1] : "/");
         return;
     }
 }
@@ -100,7 +167,8 @@ static void init_ksh() {
             ksh_input(c);
             return false;
         },
-        nullptr);
+        nullptr
+    );
 }
 
 INITFN_DEFINE(ksh, INITFN_DRIVER_INIT, 0, init_ksh);
