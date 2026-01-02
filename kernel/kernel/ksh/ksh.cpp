@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <string.h>
+#include <string>
 #include <vix/abi/abi.h>
 #include <vix/debug.h>
 #include <vix/drivers/keyboard.h>
