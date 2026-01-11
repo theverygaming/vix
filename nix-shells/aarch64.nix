@@ -1,14 +1,22 @@
 { pkgs }:
 let
   common = import ./common.nix { pkgs = pkgs; };
-  cross = import ./cross.nix { pkgs = pkgs; target = "aarch64-none-elf"; };
+  cross = import ./cross.nix {
+    pkgs = pkgs;
+    target = "aarch64-none-elf";
+  };
 in
 pkgs.stdenv.mkDerivation {
   name = "vix aarch64";
-  buildInputs = with pkgs; [
-    cross.binutils
-    cross.gcc
-  ] ++ common.commonPkgs ++ common.limine ++ common.fatTools;
+  buildInputs =
+    with pkgs;
+    [
+      cross.binutils
+      cross.gcc
+    ]
+    ++ common.commonPkgs
+    ++ common.limine
+    ++ common.fatTools;
 
   shellHook = common.shellHook + ''
     export VIX_QEMU_UEFI_BIOS_PATH="${pkgs.qemu}/share/qemu/edk2-aarch64-code.fd"

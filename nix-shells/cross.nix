@@ -34,7 +34,12 @@ in
       url = "https://ftp.gnu.org/gnu/gcc/gcc-13.2.0/gcc-13.2.0.tar.xz";
       sha256 = "sha256-4nXnZEKmBnNBon8Exca4PYYTFEAEwEE1KIY9xrXHQ9o=";
     };
-    buildInputs = [ pkgs.gmp pkgs.mpfr pkgs.libmpc binutils ];
+    buildInputs = [
+      pkgs.gmp
+      pkgs.mpfr
+      pkgs.libmpc
+      binutils
+    ];
 
     hardeningDisable = [ "format" ];
 

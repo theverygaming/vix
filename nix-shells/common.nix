@@ -37,15 +37,19 @@
     (limine.override { enableAll = true; })
   ];
 
-  rust = target: with pkgs; [
-    (pkgs.rust-bin.fromRustupToolchain {
-      channel = "nightly";
-      components = [ "rustc" "rust-src" ];
-      targets = [ target ];
-      profile = "minimal";
-    })
-    rust-bindgen
-  ];
+  rust =
+    target: with pkgs; [
+      (pkgs.rust-bin.fromRustupToolchain {
+        channel = "nightly";
+        components = [
+          "rustc"
+          "rust-src"
+        ];
+        targets = [ target ];
+        profile = "minimal";
+      })
+      rust-bindgen
+    ];
 
   shellHook = ''
     unset SOURCE_DATE_EPOCH
