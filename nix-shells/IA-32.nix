@@ -14,6 +14,7 @@ pkgs.stdenv.mkDerivation {
       cross.binutils
       cross.gcc
       nasm
+      e2tools
     ]
     ++ common.commonPkgs
     ++ common.limine
