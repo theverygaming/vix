@@ -20,7 +20,7 @@ static const uint8_t cursor[8] = {
     0b00010001,
     0b00100001,
     0b01000001,
-    0b10000000,
+    0b00000000,
 };
 
 static ssize_t mouse_x = 0;
