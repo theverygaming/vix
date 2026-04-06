@@ -37,8 +37,7 @@
       "inputs": {
         "flake-utils": "flake-utils",
         "nixpkgs": "nixpkgs",
-        "rust-overlay": "rust-overlay",
-        "sillystrap": "sillystrap"
+        "rust-overlay": "rust-overlay"
       }
     },
     "rust-overlay": {
@@ -60,22 +59,6 @@
         "repo": "rust-overlay",
         "type": "github"
       }
-    },
-    "sillystrap": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "path": "./sillystrap",
-        "type": "path"
-      },
-      "original": {
-        "path": "./sillystrap",
-        "type": "path"
-      },
-      "parent": []
     },
     "systems": {
       "locked": {
