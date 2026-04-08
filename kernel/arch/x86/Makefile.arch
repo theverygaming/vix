@@ -1,5 +1,5 @@
-override INT_CFLAGS += -nostdlib -fno-pie -mno-red-zone -ffreestanding -fno-exceptions -mno-mmx -mno-sse -mno-sse2
-override INT_CXXFLAGS += -nostdlib -fno-pie -mno-red-zone -ffreestanding -fno-exceptions -mno-mmx -mno-sse -mno-sse2
+override INT_CFLAGS += -nostdlib -fno-pie -mno-red-zone -ffreestanding -fno-exceptions -mno-mmx -mno-sse -mno-sse2 -msoft-float
+override INT_CXXFLAGS += -nostdlib -fno-pie -mno-red-zone -ffreestanding -fno-exceptions -mno-mmx -mno-sse -mno-sse2 -msoft-float
 
 ifeq ($(CONFIG_ENABLE_KERNEL_64), y)
 override INT_CFLAGS += -mcmodel=kernel
