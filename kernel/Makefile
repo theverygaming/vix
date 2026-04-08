@@ -112,14 +112,6 @@ menuconfig: scripts/kconfig/Makefile
 	@$(MAKE) --quiet -C scripts/kconfig/ menuconfig
 	@scripts/kconfig/menuconfig Kconfig
 
-xconfig: scripts/kconfig/Makefile
-	@$(MAKE) --quiet -C scripts/kconfig/ xconfig
-	@scripts/kconfig/xconfig Kconfig
-
-gconfig: scripts/kconfig/Makefile
-	@$(MAKE) --quiet -C scripts/kconfig/ gconfig
-	@scripts/kconfig/gconfig Kconfig
-
 alldefconfig: scripts/kconfig/Makefile
 	@$(MAKE) --quiet -C scripts/kconfig/ config
 	@scripts/kconfig/config Kconfig --silent --alldefconfig
