@@ -4,6 +4,7 @@ let
   cross = import ./cross.nix {
     pkgs = pkgs;
     target = "x86_64-elf";
+    libgccExtraFlags = "-mcmodel=large -mno-red-zone";
   };
 in
 pkgs.stdenv.mkDerivation {
