@@ -38,10 +38,10 @@ def main():
     }
     match config["CONFIG_ARCH"]:
         case "x86":
+            # FIXME: ideally we'd use rustc-abi: x86-softfloat and the feature +soft-float but that results in a linker error rn :c
             target = target | {
-                "rustc-abi": "x86-softfloat",
                 "data-layout": "e-m:e-p:32:32-p270:32:32-p271:32:32-p272:64:64-i128:128-f64:32:64-f80:32-n8:16:32-S128",
-                "features": "-mmx,+soft-float",
+                "features": "-mmx,-sse,-sse2",
                 "llvm-target": "i386-unknown-linux-gnu",
                 "target-pointer-width": 32,
                 "stack-probes": {

@@ -30,6 +30,7 @@ override INT_CXXFLAGS += -I arch/$(BUILD_ARCH)/include -I stdlibs/libc/include -
 RUST_TARGET := rust/rust-target-gen.json
 
 define rustc_common_flags
+-Zunstable-options \
 --target $(RUST_TARGET) \
 --edition=2024 \
 --sysroot=/dev/null \
