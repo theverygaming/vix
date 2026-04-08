@@ -1,0 +1,3 @@
+config ENABLE_PCI
+    default y
+    bool "Enable PCI support"

@@ -1,4 +1,5 @@
 source "drivers/acpi/Kconfig"
+source "drivers/pci/Kconfig"
 
 config ENABLE_FAKE_NETWORK_CARD
     depends on ENABLE_NETWORKING
