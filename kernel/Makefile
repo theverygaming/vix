@@ -200,7 +200,7 @@ build_objs: $(OBJS)
 # final link
 .PHONY: kernel
 kernel: pre_build .WAIT build_libs build_objs
-	@$(INT_LD) $(INT_LDFLAGS) -r $(OBJS) $(LIBS) -o kernel_partial.o
+	@$(INT_LD) $(INT_LDFLAGS) -r $(OBJS) $(LIBS) $(shell $(INT_CC) -print-libgcc-file-name) -o kernel_partial.o
 	@./arch/$(BUILD_ARCH)/archlink.sh
 
 # kernel module stuff
