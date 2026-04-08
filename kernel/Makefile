@@ -77,9 +77,11 @@ clangd_compile_flags_txt:
 	@echo "${INT_CXXFLAGS}" | sed -e 's/ /\n/g' >> compile_flags.txt
 
 scripts/kconfig/Makefile:
-	@curl https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.7.5.tar.xz -o linux-6.7.5.tar.xz
-	@tar -xvf linux-6.7.5.tar.xz linux-6.7.5/scripts/kconfig/ -C scripts/kconfig --strip-components=1
-	@rm -f linux-6.7.5.tar.xz
+	@curl https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.19.11.tar.xz -o linux-6.19.11.tar.xz
+	@mkdir -p scripts/kconfig
+	@tar -xvf linux-6.19.11.tar.xz -C scripts/kconfig --strip-components=3 linux-6.19.11/scripts/kconfig/
+	@tar -xvf linux-6.19.11.tar.xz -C scripts/kconfig --strip-components=2 linux-6.19.11/scripts/include/
+	@rm -f linux-6.19.11.tar.xz
 	@cp scripts/kconfig_Makefile scripts/kconfig/Makefile
 
 syncconfig: scripts/kconfig/Makefile

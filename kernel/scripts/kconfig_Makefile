@@ -5,7 +5,7 @@ HOST_YACC ?= bison
 HOST_LD ?= ld
 HOST_MOC ?= moc
 
-HOST_CFLAGS += -O2
+HOST_CFLAGS += -O2 -I include/
 HOST_LDFLAGS += 
 
 %.o: %.c
@@ -38,13 +38,13 @@ config: conf.o $(common-objs)
 
 menuconfig: HOST_CFLAGS+=$(shell pkg-config ncurses --cflags)
 menuconfig: HOST_LDFLAGS+=$(shell pkg-config ncurses --libs)
-menuconfig: mconf.o $(lxdialog) $(common-objs)
+menuconfig: mconf.o mnconf-common.o $(lxdialog) $(common-objs)
 	@echo "  CC $@"
 	@$(HOST_CC) $^ -o $@ $(HOST_LDFLAGS)
 
 nconfig: HOST_CFLAGS+=$(shell pkg-config ncurses menu panel --cflags)
 nconfig: HOST_LDFLAGS+=$(shell pkg-config ncurses menu panel --libs)
-nconfig: nconf.o nconf.gui.o $(common-objs)
+nconfig: nconf.o nconf.gui.o mnconf-common.o $(common-objs)
 	@echo "  CC $@"
 	@$(HOST_CC) $^ -o $@ $(HOST_LDFLAGS)
 
