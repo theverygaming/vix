@@ -1,5 +1,4 @@
 extratargets-$(CONFIG_ENABLE_KERNEL_32) += linker_32.lds
-obj-$(CONFIG_ENABLE_NETWORKING) += drivers/net/rtl8139.o
 obj-$(CONFIG_ENABLE_FTRACE) += trace.o
 obj-$(CONFIG_ENABLE_STACKPROTECTOR) += stackprotector.o
 
