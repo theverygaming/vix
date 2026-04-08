@@ -21,6 +21,7 @@ io_handle_t io_mmio_map(uintptr_t base, size_t max_offset) {
     if (base <= PMIO_MAX) {
         KERNEL_PANIC("invalid io_mmio_map address 0x%p", base);
     }
+    KERNEL_PANIC("io_mmio_map not implemented");
     return 0; // FIXME: well that isn't gonna work very well
 }
 

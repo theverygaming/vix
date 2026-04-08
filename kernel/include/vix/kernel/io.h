@@ -16,5 +16,6 @@ void iowrite64(io_handle_t handle, uint64_t data);
 io_handle_t io_pmio_map(uintptr_t base, size_t max_offset);
 
 // memory-mapped IO
+// FIXME: add a caching type?? PCI for example has the prefetch field on BARs, cached IO is real lol
 io_handle_t io_mmio_map(uintptr_t base, size_t max_offset);
 void io_unmap(io_handle_t handle);
