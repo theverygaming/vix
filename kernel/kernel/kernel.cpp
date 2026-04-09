@@ -36,7 +36,7 @@ static void kthread0() {
 }
 
 void kernelstart() {
-    kprintf(KP_INFO, "kmain: initializing vix " CONFIG_KVERSION " (built " __DATE__ " " __TIME__ ")\n");
+    kprintf(KP_INFO, "kmain: entry\n");
     initfn_call_level(INITFN_PRE_MM_INIT);
     mm::pmm::init();
     arch::startup::stage2_startup();
@@ -76,6 +76,8 @@ void kernelstart() {
         freemem /= 1024;
     }
     kprintf(KP_INFO, "kmain: free physical memory: %u%ciB\n", freemem, unit);
+
+    kprintf(KP_INFO, "kmain: vix " CONFIG_KVERSION " (built " __DATE__ " " __TIME__ ")\n");
 
     kprintf(KP_INFO, "kmain: initializing scheduler\n");
     sched::init();
