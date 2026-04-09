@@ -15,6 +15,11 @@ fb::fb::~fb() {}
 
 void fb::fb::init(struct fbinfo info) {
     _info = info;
+#ifdef CONFIG_FB_DOUBLE_BUFFER
+    draw_buffer_address = mm::kmalloc(_info.pitch * _info.height);
+#else
+    draw_buffer_address = info.address;
+#endif
 }
 
 size_t fb::fb::get_width() {
@@ -28,7 +33,7 @@ size_t fb::fb::get_height() {
 void fb::fb::write_pixel(size_t x, size_t y, uint8_t r, uint8_t g, uint8_t b) {
     if (_info.monochrome && _info.bpp == 1) {
         uint16_t val = (uint16_t)r + g + b;
-        volatile uint8_t *ptr = (volatile uint8_t *)((uintptr_t)_info.address + (y * _info.pitch) + (x / 8));
+        volatile uint8_t *ptr = (volatile uint8_t *)((uintptr_t)draw_buffer_address + (y * _info.pitch) + (x / 8));
         if (val) {
             val = 0x1;
         }
@@ -37,40 +42,44 @@ void fb::fb::write_pixel(size_t x, size_t y, uint8_t r, uint8_t g, uint8_t b) {
     }
     size_t offset = _info.pitch * y + (_info.bpp / 8) * x;
     if (_info.rgb) {
-        *(((uint8_t *)_info.address) + offset + 0) = r;
-        *(((uint8_t *)_info.address) + offset + 1) = g;
-        *(((uint8_t *)_info.address) + offset + 2) = b;
+        *(((uint8_t *)draw_buffer_address) + offset + 0) = r;
+        *(((uint8_t *)draw_buffer_address) + offset + 1) = g;
+        *(((uint8_t *)draw_buffer_address) + offset + 2) = b;
     } else {
-        *(((uint8_t *)_info.address) + offset + 0) = b;
-        *(((uint8_t *)_info.address) + offset + 1) = g;
-        *(((uint8_t *)_info.address) + offset + 2) = r;
+        *(((uint8_t *)draw_buffer_address) + offset + 0) = b;
+        *(((uint8_t *)draw_buffer_address) + offset + 1) = g;
+        *(((uint8_t *)draw_buffer_address) + offset + 2) = r;
     }
 }
 
 void fb::fb::read_pixel(size_t x, size_t y, uint8_t *r, uint8_t *g, uint8_t *b) {
     size_t offset = _info.pitch * y + (_info.bpp / 8) * x;
     if (_info.rgb) {
-        *r = *(((uint8_t *)_info.address) + offset + 0);
-        *g = *(((uint8_t *)_info.address) + offset + 1);
-        *b = *(((uint8_t *)_info.address) + offset + 2);
+        *r = *(((uint8_t *)draw_buffer_address) + offset + 0);
+        *g = *(((uint8_t *)draw_buffer_address) + offset + 1);
+        *b = *(((uint8_t *)draw_buffer_address) + offset + 2);
     } else {
-        *b = *(((uint8_t *)_info.address) + offset + 0);
-        *g = *(((uint8_t *)_info.address) + offset + 1);
-        *r = *(((uint8_t *)_info.address) + offset + 2);
+        *b = *(((uint8_t *)draw_buffer_address) + offset + 0);
+        *g = *(((uint8_t *)draw_buffer_address) + offset + 1);
+        *r = *(((uint8_t *)draw_buffer_address) + offset + 2);
     }
 }
 
-void fb::fb::flush() {}
+void fb::fb::flush() {
+#ifdef CONFIG_FB_DOUBLE_BUFFER
+    memcpy(_info.address, draw_buffer_address, _info.pitch * _info.height);
+#endif
+}
 
 void fb::fb::clear() {
-    memset(_info.address, 0, _info.pitch * _info.height);
+    memset(draw_buffer_address, 0, _info.pitch * _info.height);
 }
 
 void fb::fb::scroll_y(size_t pixels) {
     size_t move_bytes = _info.pitch * pixels;
     size_t all_bytes = _info.pitch * _info.height;
-    memmove(_info.address, ((uint8_t *)_info.address) + move_bytes, all_bytes - move_bytes);
-    memset(((uint8_t *)_info.address) + (all_bytes - move_bytes), 0, move_bytes);
+    memmove(draw_buffer_address, ((uint8_t *)draw_buffer_address) + move_bytes, all_bytes - move_bytes);
+    memset(((uint8_t *)draw_buffer_address) + (all_bytes - move_bytes), 0, move_bytes);
 }
 
 void fb::fbconsole::init(fb *framebuffer) {

@@ -26,6 +26,7 @@ namespace fb {
 
     private:
         struct fbinfo _info;
+        void *draw_buffer_address;
     };
 
     class fbconsole {

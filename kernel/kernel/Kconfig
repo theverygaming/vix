@@ -47,6 +47,11 @@ config FB_SUPPORT
   	default y
   	bool "support for framebuffers in the kernel"
 
+config FB_DOUBLE_BUFFER
+  	depends on FB_SUPPORT
+	default n
+  	bool "use double buffering for framebuffers"
+
 config ENABLE_BUILTIN_FONT
   	depends on FB_SUPPORT
   	default y if ARCH_AARCH64
