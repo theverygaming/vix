@@ -33,7 +33,7 @@ bootimg-x86-32:
 	@#musl-gcc -m32 -march=i386 -static -static-libgcc -mno-red-zone -fno-pie -fno-stack-protector tools/glibctest.c -o libctest
 	@mkdir -p sysroot/usr/share/consolefonts/ sysroot/usr/lib/modules sysroot/bin/
 	@cp shitshell/shitshell sysroot/bin/sh
-	@rm sysroot/usr/lib/modules/*.ko
+	@rm -f sysroot/usr/lib/modules/*.ko
 	@cp $$(find modules/ -name "*.ko") sysroot/usr/lib/modules
 	@cp $$(for x in $$(make --no-print-directory -C kernel/ modlist); do echo "kernel/$$x"; done) sysroot/usr/lib/modules || true
 	@cp fonts/Unifont-APL8x16-15.0.01.psf sysroot/usr/share/consolefonts
