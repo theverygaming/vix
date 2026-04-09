@@ -35,7 +35,7 @@ bootimg-x86-32:
 	@cp shitshell/shitshell sysroot/bin/sh
 	@rm sysroot/usr/lib/modules/*.ko
 	@cp $$(find modules/ -name "*.ko") sysroot/usr/lib/modules
-	@cp $$(find kernel/ -name "*.ko") sysroot/usr/lib/modules || true
+	@cp $$(for x in $$(make --no-print-directory -C kernel/ modlist); do echo "kernel/$$x"; done) sysroot/usr/lib/modules || true
 	@cp fonts/Unifont-APL8x16-15.0.01.psf sysroot/usr/share/consolefonts
 	@find sysroot/ -printf "%P\n" | tar --format=ustar -cf roramfs.fs --no-recursion -C sysroot/ -T -
 	@boot/createimg-x86_32.sh

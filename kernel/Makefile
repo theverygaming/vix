@@ -227,3 +227,6 @@ modules: $(MODS)
 
 modclean:
 	@rm -f $(MODS) $(MOD_OBJS)
+
+modlist:
+	@echo $(MODS)
