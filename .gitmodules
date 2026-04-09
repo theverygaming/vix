@@ -5,3 +5,4 @@
 [submodule "kernel/drivers/acpi/uacpi"]
 	path = kernel/drivers/acpi/uacpi
 	url = https://github.com/uACPI/uACPI.git
+	ignore = untracked
