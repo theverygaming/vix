@@ -105,10 +105,10 @@ void fb::fbconsole::init2() {
 #endif
 }
 
-void fb::fbconsole::fbputs(const char *str) {
-    while (*str) {
-        fbputc(*str);
-        str++;
+void fb::fbconsole::fbputs(const char *str, size_t len) {
+    while (len) {
+        fbputc(*(str++));
+        len--;
     }
 }
 

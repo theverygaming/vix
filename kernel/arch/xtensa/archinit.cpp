@@ -15,11 +15,18 @@
 // ESP32 ROM
 void (*ets_write_char_uart)(char c) = (void (*)(char))0x40007cf8;
 
+static void romputs(const char *str, size_t n) {
+    while (n) {
+        ets_write_char_uart(*(str++));
+        n--;
+    }
+}
+
 extern "C" uint8_t __bss_start;
 extern "C" uint8_t __bss_end;
 
 static void kernelinit() {
-    stdio::set_putc_function(ets_write_char_uart, true);
+    stdio::set_puts_function(romputs, true);
     mm::set_mem_map(
         [](void *, size_t n) -> struct mm::mem_map_entry {
             struct mm::mem_map_entry r;

@@ -4,12 +4,13 @@
 #include <vix/types.h>
 
 namespace stdio {
-    void set_putc_function(void (*putc_function)(char c), bool debugonly = false);
-    void unset_putc_function(bool debugonly = false);
+    void set_puts_function(void (*puts_function)(const char *s, size_t n), bool debugonly = false);
+    void unset_puts_function(bool debugonly = false);
 }
 
 void putc(char c, bool serialonly = false);
 void puts(const char *str, bool serialonly = false);
+void puts_sized(const char *str, size_t n, bool serialonly = false);
 void printf(const char *fmt, ...);
 
 #include <stdlib.h>

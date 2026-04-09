@@ -5,45 +5,56 @@
 #include <vix/stdio.h>
 #include <vix/types.h>
 
-static void (*putc_function_ptr)(char c) = nullptr;
-static void (*putc_dbg_function_ptr)(char c) = nullptr;
+static void (*puts_function_ptr)(const char *s, size_t n) = nullptr;
+static void (*puts_dbg_function_ptr)(const char *s, size_t n) = nullptr;
 
-void stdio::set_putc_function(void (*putc_function)(char c), bool debugonly) {
+void stdio::set_puts_function(void (*puts_function)(const char *s, size_t n), bool debugonly) {
     if (debugonly) {
-        putc_dbg_function_ptr = putc_function;
+        puts_dbg_function_ptr = puts_function;
         return;
     }
-    putc_function_ptr = putc_function;
+    puts_function_ptr = puts_function;
 }
 
-void stdio::unset_putc_function(bool debugonly) {
+void stdio::unset_puts_function(bool debugonly) {
     if (debugonly) {
-        putc_dbg_function_ptr = nullptr;
+        puts_dbg_function_ptr = nullptr;
         return;
     }
-    putc_function_ptr = nullptr;
+    puts_function_ptr = nullptr;
 }
 
 void putc(char c, bool debugonly) {
     // this is slow as fuck
-    if (putc_dbg_function_ptr != nullptr) {
-        putc_dbg_function_ptr(c);
+    if (puts_dbg_function_ptr != nullptr) {
+        puts_dbg_function_ptr(&c, 1);
     }
 
     if (debugonly) {
         return;
     }
 
-    if (putc_function_ptr != nullptr) {
-        putc_function_ptr(c);
+    if (puts_function_ptr != nullptr) {
+        puts_function_ptr(&c, 1);
+    }
+}
+
+void puts_sized(const char *str, size_t n, bool debugonly) {
+    if (puts_dbg_function_ptr != nullptr) {
+        puts_dbg_function_ptr(str, n);
+    }
+
+    if (debugonly) {
+        return;
+    }
+
+    if (puts_function_ptr != nullptr) {
+        puts_function_ptr(str, n);
     }
 }
 
 void puts(const char *str, bool debugonly) {
-    while (*str) {
-        putc(*str, debugonly);
-        str++;
-    }
+    puts_sized(str, strlen(str), debugonly);
 }
 
 static int printf_base(va_list *args, const char *fmt, char *buf, bool buf_write, size_t buf_len, bool serialonly) {

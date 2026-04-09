@@ -40,8 +40,8 @@ static void *mb2_info_paddr = nullptr;
 static void *mb2_info_vaddr = nullptr;
 static size_t mb2_info_size;
 
-static void fbputc(char c) {
-    fbconsole.fbputc(c);
+static void fbputs(const char *str, size_t n) {
+    fbconsole.fbputs(str, n);
 }
 
 static void *initramfs_start = nullptr;
@@ -52,7 +52,7 @@ extern "C" uint8_t _kcode_end;
 
 static void kernelinit(void *multiboot2_info_ptr) {
     drivers::serial::init();
-    stdio::set_putc_function(drivers::serial::putc, true);
+    stdio::set_puts_function(drivers::serial::puts, true);
     if ((size_t)multiboot2_info_ptr & 7) {
         KERNEL_PANIC("multiboot2 info structure is not aligned, something is wrong here");
     }
@@ -150,7 +150,7 @@ void arch::startup::stage4_startup() {
     time::bootupTime = time::getCurrentUnixTime();
     framebuffer.clear();
     fbconsole.init2();
-    stdio::set_putc_function(fbputc);
+    stdio::set_puts_function(fbputs);
 }
 
 static void kt1() {

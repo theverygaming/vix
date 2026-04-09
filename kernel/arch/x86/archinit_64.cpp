@@ -21,8 +21,8 @@ static volatile struct limine_memmap_request memmap_request = {.id = LIMINE_MEMM
 static volatile struct limine_framebuffer_request framebuffer_request = {.id = LIMINE_FRAMEBUFFER_REQUEST, .revision = 0};
 static volatile struct limine_module_request module_request = {.id = LIMINE_MODULE_REQUEST, .revision = 0};
 
-static void fbputc(char c) {
-    fbconsole.fbputc(c);
+static void fbputs(const char *str, size_t n) {
+    fbconsole.fbputs(str, n);
 }
 
 static void kernelinit() {
@@ -30,7 +30,7 @@ static void kernelinit() {
         while (true) {}
     }
     drivers::serial::init();
-    stdio::set_putc_function(drivers::serial::putc, true);
+    stdio::set_puts_function(drivers::serial::puts, true);
     struct limine_framebuffer *limine_framebuffer = framebuffer_request.response->framebuffers[0];
     struct fb::fbinfo fbinfo = {
         .address = limine_framebuffer->address,
@@ -97,7 +97,7 @@ void arch::startup::stage4_startup() {
     }
     framebuffer.clear();
     fbconsole.init2();
-    stdio::set_putc_function(fbputc);
+    stdio::set_puts_function(fbputs);
     printf("Hello x86_64!\n");
 }
 

@@ -21,8 +21,8 @@
 static fb::fb framebuffer;
 static fb::fbconsole fbconsole;
 
-static void fbputc(char c) {
-    fbconsole.fbputc(c);
+static void fbputs(const char *str, size_t n) {
+    fbconsole.fbputs(str, n);
 }
 
 extern "C" void _kentry();
@@ -42,6 +42,13 @@ extern "C" uint8_t __kernel_end;
 static void mmio_putc(char c) {
     *((volatile uint8_t *)0x100000) = (uint8_t)c;
 }
+
+static void mmio_puts(const char *str, size_t n) {
+    while (n) {
+        mmio_putc(*(str++));
+        n--;
+    }
+}
 #endif
 
 static void kernelinit() {
@@ -60,7 +67,7 @@ static void kernelinit() {
         framebuffer.init(info);
         fbconsole.init(&framebuffer);
         fbconsole.init2();
-        stdio::set_putc_function(fbputc, true);
+        stdio::set_puts_function(fbputs, true);
     }
 
     if (memmapreq.response != nullptr) {
@@ -104,7 +111,7 @@ static void kernelinit() {
     for (uint8_t *addr = &__bss_start; addr < &__bss_end; addr++) {
         *addr = 0;
     }
-    stdio::set_putc_function(mmio_putc, true);
+    stdio::set_puts_function(mmio_puts, true);
 
     mm::set_mem_map(
         [](void *, size_t n) -> struct mm::mem_map_entry {

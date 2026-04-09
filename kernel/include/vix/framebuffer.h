@@ -31,7 +31,7 @@ namespace fb {
     public:
         void init(fb *framebuffer);
         void init2(); // font init
-        void fbputs(const char *str);
+        void fbputs(const char *str, size_t len);
         void fbputc(char c);
 
     private:

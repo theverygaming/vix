@@ -8,5 +8,6 @@ namespace drivers::serial {
     void putb(uint8_t b);
     uint8_t getb();
     void putc(char c);
+    void puts(const char *str, size_t n);
     char getc();
 }

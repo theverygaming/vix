@@ -26,18 +26,18 @@ struct __attribute__((packed)) kp_buf_info {
     uint64_t time;
 };
 
-inline void putc_kbuf(char c, int loglevel) {
+inline void puts_kbuf(const char *s, size_t n, int loglevel) {
+    puts_sized(s, n, false);
+    return;
     if (unlikely(loglevel <= KP_ALERT)) {
-        putc(c, false);
+        puts_sized(s, n, false);
         return; // FIXME: this is a workaround for double printing
     }
-    putc(c, true);
+    puts_sized(s, n, true);
 }
 
-inline void puts_kbuf(char *s, int loglevel) {
-    while (*s) {
-        putc_kbuf(*s++, loglevel);
-    }
+inline void puts_kbuf(const char *s, int loglevel) {
+    puts_kbuf(s, strlen(s), loglevel);
 }
 
 static size_t log10(size_t n) {
@@ -66,10 +66,8 @@ static void print_kbuf(struct kp_buf_info *info, size_t idx, const char *buf) {
     char w_buf[19];
     snprintf(w_buf, 19, "<%d>[%u.%s%u][%d] ", info->loglevel, secs, zeros, ms, pid);
     puts_kbuf(w_buf, info->loglevel);
-    for (size_t j = 0; j < info->len; j++) {
-        putc_kbuf(buf[idx + j], info->loglevel);
-    }
-    // putc_kbuf('\n', info->loglevel);
+    puts_kbuf(&buf[idx], info->len, info->loglevel);
+    // puts_kbuf(&'\n', 1, info->loglevel);
 }
 
 #ifdef CONFIG_KPRINTF_ENABLE_BUF

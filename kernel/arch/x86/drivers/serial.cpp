@@ -55,6 +55,13 @@ void drivers::serial::putc(char c) {
     putb(c);
 }
 
+void drivers::serial::puts(const char *str, size_t n) {
+    while (n) {
+        drivers::serial::putc(*(str++));
+        n--;
+    }
+}
+
 char drivers::serial::getc() {
     return getb();
 }

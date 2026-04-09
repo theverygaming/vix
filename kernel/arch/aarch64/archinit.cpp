@@ -30,8 +30,8 @@ static volatile struct limine_module_request module_request = {
     .id = LIMINE_MODULE_REQUEST, .revision = 0
 };
 
-static void fbputc(char c) {
-    fbconsole.fbputc(c);
+static void fbputs(const char *str, size_t n) {
+    fbconsole.fbputs(str, n);
 }
 
 static volatile bool done = false;
@@ -96,7 +96,7 @@ void arch::startup::stage4_startup() {
     }
     framebuffer.clear();
     fbconsole.init2();
-    stdio::set_putc_function(fbputc);
+    stdio::set_puts_function(fbputs);
     printf("Hello aarch64!\n");
     time::bootupTime = time::getCurrentUnixTime();
 }
