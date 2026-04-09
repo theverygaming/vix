@@ -1,3 +1,4 @@
 config ENABLE_ACPI
     default n
+    depends on ENABLE_PCI
     bool "Enable ACPI support (uACPI)"
