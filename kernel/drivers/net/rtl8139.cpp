@@ -7,6 +7,11 @@
 #include <vix/sched.h>
 #include <vix/drivers/pci.h>
 #include <vix/kernel/irq.h>
+#include <vix/module.h>
+
+MODULE_AUTHOR("theverygaming");
+MODULE_DESCRIPTION("rtl8139");
+MODULE_VERSION("0.0.1");
 
 #define RX_BUFFER_SIZE_IDX 1
 #define RX_BUFFER_SIZE     (8192 << RX_BUFFER_SIZE_IDX)
@@ -265,4 +270,18 @@ static void rtl8139_driver_init() {
     pci::register_driver(&rtl8139_pci);
 }
 
+static int init() {
+    kprintf(KP_INFO, "rtl8139: loaded\n");
+    rtl8139_driver_init();
+    return 0;
+}
+
+static void exit() {
+    kprintf(KP_INFO, "rtl8139: unloaded\n");
+}
+
+MODULE_INIT(init);
+MODULE_EXIT(exit);
+
+// HACK: initfn when the module is in-tree
 INITFN_DEFINE(rtl8139_driver_init, INITFN_DRIVER_INIT, 0, rtl8139_driver_init);

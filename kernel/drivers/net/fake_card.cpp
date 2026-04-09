@@ -4,6 +4,11 @@
 #include <vix/mm/kheap.h>
 #include <vix/net/stack_rs/ethernet.h>
 #include <vix/sched.h>
+#include <vix/module.h>
+
+MODULE_AUTHOR("theverygaming");
+MODULE_DESCRIPTION("fake_card");
+MODULE_VERSION("0.0.1");
 
 // clang-format off
 static const uint8_t test_packet_0[] = {
@@ -138,4 +143,19 @@ static void fake_card_init() {
     kprintf(KP_INFO, "fake_card done initializing\n");
 }
 
+
+static int init() {
+    kprintf(KP_INFO, "fake_card: loaded\n");
+    fake_card_init();
+    return 0;
+}
+
+static void exit() {
+    kprintf(KP_INFO, "fake_card: unloaded\n");
+}
+
+MODULE_INIT(init);
+MODULE_EXIT(exit);
+
+// HACK: initfn when the module is in-tree
 INITFN_DEFINE(fake_card, INITFN_DRIVER_INIT, 0, fake_card_init);

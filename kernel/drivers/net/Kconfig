@@ -1,10 +1,10 @@
 config ENABLE_FAKE_NETWORK_CARD
     depends on ENABLE_NETWORKING
     default y
-    bool "Enable a fake network card for testing stuff"
+    tristate "Enable a fake network card for testing stuff"
 
 config ENABLE_RTL8139
     depends on ENABLE_NETWORKING
     depends on ENABLE_PCI
     default y
-    bool "RTL8139 support"
+    tristate "RTL8139 support"
