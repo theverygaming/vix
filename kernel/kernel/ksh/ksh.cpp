@@ -8,6 +8,7 @@
 #include <vix/initfn.h>
 #include <vix/kprintf.h>
 #include <vix/sched.h>
+#include <vix/drivers/acpi.h>
 
 #define KSH_PRINTF(...) kprintf(KP_ALERT, "ksh: " __VA_ARGS__)
 
@@ -86,6 +87,10 @@ static void ksh_exec(int argc, char **argv) {
             "states\n"
         );
         KSH_PRINTF("tree [optional: starting path] - VFS tree\n");
+#ifdef CONFIG_ENABLE_ACPI
+        KSH_PRINTF("shutdown - ACPI shutdown\n");
+        KSH_PRINTF("reboot - ACPI reboot\n");
+#endif
         return;
     }
     if (strcmp(argv[0], "tasks") == 0) {
@@ -109,6 +114,16 @@ static void ksh_exec(int argc, char **argv) {
         ksh_tree(argc >= 2 ? argv[1] : "/");
         return;
     }
+#ifdef CONFIG_ENABLE_ACPI
+    if (strcmp(argv[0], "shutdown") == 0) {
+        acpi::shutdown();
+        return;
+    }
+    if (strcmp(argv[0], "reboot") == 0) {
+        acpi::reboot();
+        return;
+    }
+#endif
 }
 
 static void ksh_input(char c) {
