@@ -72,7 +72,7 @@ extern "C" void i686_ISR_Handler(struct arch::full_ctx *regs) {
     }
 
     if ((regs->cs & 0b11) == 3) {
-        kprintf(KP_INFO, "going to ring 3\n");
+        DEBUG_PRINTF_INSANE("going to ring 3\n");
     }
 }
 
