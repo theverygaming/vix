@@ -12,6 +12,8 @@
 #include <vix/mm/vmm.h>
 #include <vix/sched.h>
 #include <vix/types.h>
+#include <vix/panic.h>
+#include <vix/time.h>
 
 #ifdef CONFIG_ENABLE_TESTS
 void run_all_tests();
@@ -22,10 +24,14 @@ extern "C" uint32_t rust_test(uint32_t);
 #endif
 
 static void kthread0() {
+    uint64_t t1 = time::ns_since_bootup;
     kprintf(KP_INFO, "kmain: first kernel thread started (PID %d)\n", sched::mytask()->pid);
     arch::startup::kthread0();
     initfn_call_level(INITFN_DRIVER_INIT);
     kprintf(KP_INFO, "kmain: first kernel thread dying (PID %d)\n", sched::mytask()->pid);
+    if (t1 == time::ns_since_bootup) {
+        kprintf(KP_ERR, "time::ns_since_bootup does not seem to be running!\n");
+    }
     sched::die();
 }
 

@@ -17,7 +17,7 @@ static void set_pit_freq(int hz) {
 }
 
 static void clockHandler() {
-    time::ns_since_bootup = time::ns_since_bootup + 1000000;
+    time::ns_since_bootup += 1000000;
     multitasking::interruptTrigger();
 }
 
