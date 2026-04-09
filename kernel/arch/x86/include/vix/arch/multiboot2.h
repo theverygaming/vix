@@ -13,4 +13,7 @@ namespace multiboot2 {
 
     /* NOTE: these functions can only be called after VMM & PMM are initialized */
     struct fb::fbinfo findFrameBuffer(const void *multiboot2_info_adr);
+
+    // either the 1.0 or preferrably 2.0 one
+    bool find_acpi_rsdp(const void *multiboot2_info_adr, void **addr);
 }

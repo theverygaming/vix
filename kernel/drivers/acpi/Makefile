@@ -1,7 +1,6 @@
+# TODO: improve the way we can set flags in general. Requires significant refactor of core Makefiles
+ifeq ($(CONFIG_ENABLE_ACPI),y)
+override INT_CFLAGS += -DUACPI_BAREBONES_MODE
+endif
 obj-$(CONFIG_ENABLE_ACPI) := $(patsubst %.c,%.o,$(subst $(srctree)/,,$(wildcard $(srctree)/uacpi/source/*.c)))
-obj-$(CONFIG_ENABLE_ACPI) += uacpi_interface.o
-
-# TODO: allow kernel makefiles to specify extra CFLAGS, include paths (goes with CFLAGS ig) and stuff..
-
-# atm this is stuck on us being unable to configure uacpi because we can't provide any cflags from this makefile
-# and the kernel makefiles probably need a significant amount of rewriting to support that lol
+obj-$(CONFIG_ENABLE_ACPI) += uacpi_interface.o uacpi_kernel_api.o

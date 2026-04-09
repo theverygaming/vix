@@ -31,11 +31,13 @@
 #include <vix/sched.h>
 #include <vix/stdio.h>
 #include <vix/time.h>
+#include <vix/arch/common/acpi.h>
 
 fb::fb framebuffer; // HACK: exported so modules can use it // TODO: have a central framebuffer manager that takes care of this
 static fb::fbconsole fbconsole;
 
-static void *mb2_info;
+static void *mb2_info_paddr = nullptr;
+static void *mb2_info_vaddr = nullptr;
 static size_t mb2_info_size;
 
 static void fbputc(char c) {
@@ -54,10 +56,10 @@ static void kernelinit(void *multiboot2_info_ptr) {
     if ((size_t)multiboot2_info_ptr & 7) {
         KERNEL_PANIC("multiboot2 info structure is not aligned, something is wrong here");
     }
-    mb2_info = multiboot2_info_ptr;
-    mb2_info_size = multiboot2::get_tags_size(mb2_info);
-    kprintf(KP_INFO, "archinit: multiboot2 info @ 0x%p size: 0x%p\n", mb2_info, mb2_info_size);
-    if (multiboot2::find_initramfs(mb2_info, &initramfs_start, &initramfs_size)) {
+    mb2_info_paddr = multiboot2_info_ptr;
+    mb2_info_size = multiboot2::get_tags_size(mb2_info_paddr);
+    kprintf(KP_INFO, "archinit: multiboot2 info @ 0x%p size: 0x%p\n", mb2_info_paddr, mb2_info_size);
+    if (multiboot2::find_initramfs(mb2_info_paddr, &initramfs_start, &initramfs_size)) {
         initramfs_size = ALIGN_UP(initramfs_size, CONFIG_ARCH_PAGE_SIZE);
         kprintf(KP_INFO, "archinit: initramfs @ 0x%p size: 0x%p\n", initramfs_start, initramfs_size);
         if (!PTR_IS_ALIGNED(initramfs_start, CONFIG_ARCH_PAGE_SIZE)) {
@@ -65,7 +67,7 @@ static void kernelinit(void *multiboot2_info_ptr) {
         }
     }
     int memMap_count;
-    void *memMap = multiboot2::findMemMap(mb2_info, &memMap_count);
+    void *memMap = multiboot2::findMemMap(mb2_info_paddr, &memMap_count);
     memorymap::initMemoryMap(
         memMap,
         memMap_count,
@@ -79,7 +81,7 @@ static void kernelinit(void *multiboot2_info_ptr) {
                     };
                 case 1:
                     return {
-                        .base = (uintptr_t)mb2_info,
+                        .base = (uintptr_t)mb2_info_paddr,
                         .size = ALIGN_UP(mb2_info_size, CONFIG_ARCH_PAGE_SIZE),
                         .type = mm::mem_map_entry::type_t::RECLAIMABLE,
                     };
@@ -121,11 +123,11 @@ void arch::startup::stage2_startup() {
 
 void arch::startup::stage3_startup() {
     ASSIGN_OR_PANIC(
-        mb2_info,
-        mm::map_arbitrary_phys((mm::paddr_t)mb2_info, mb2_info_size)
+        mb2_info_vaddr,
+        mm::map_arbitrary_phys((mm::paddr_t)mb2_info_paddr, mb2_info_size)
     );
 
-    framebuffer.init(multiboot2::findFrameBuffer(mb2_info));
+    framebuffer.init(multiboot2::findFrameBuffer(mb2_info_vaddr));
     fbconsole.init(&framebuffer);
 
     if (initramfs_size != 0) {
@@ -236,4 +238,21 @@ void arch::startup::kthread0() {
     // args.~vector();
 
     multitasking::initMultitasking(); // this will kill this process
+}
+
+static mm::paddr_t get_physaddr_unaligned(mm::vaddr_t virt) {
+    size_t diff = ALIGN_DOWN_DIFF(virt, CONFIG_ARCH_PAGE_SIZE);
+    mm::paddr_t addr = arch::vmm::get_page(ALIGN_DOWN(virt, CONFIG_ARCH_PAGE_SIZE), nullptr);
+    return addr + diff;
+}
+
+status::StatusOr<mm::paddr_t> arch::acpi_get_rsdp() {
+    if (mb2_info_paddr == nullptr) {
+        return status::StatusCode::EGENERIC;
+    }
+    void *addr;
+    if (!multiboot2::find_acpi_rsdp(mb2_info_vaddr, &addr)) {
+        return status::StatusCode::EGENERIC;
+    }
+    return get_physaddr_unaligned((mm::vaddr_t)addr);
 }

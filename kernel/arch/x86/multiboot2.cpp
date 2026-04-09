@@ -118,3 +118,24 @@ bool multiboot2::find_initramfs(const void *multiboot2_info_adr, void **start, s
     }
     return false;
 }
+
+struct __attribute__((packed)) rsdp_tag {
+    uint32_t type; // 3
+    uint32_t size;
+    uint8_t data;
+};
+
+bool multiboot2::find_acpi_rsdp(const void *multiboot2_info_adr, void **addr) {
+    struct rsdp_tag *tag;
+    // new RSDP
+    if (multiboot_find_tag(multiboot2_info_adr, 15, (struct multiboot2_tag **)&tag)) {
+        *addr = &tag->data;
+        return true;
+    }
+    // old RSDP
+    if (multiboot_find_tag(multiboot2_info_adr, 14, (struct multiboot2_tag **)&tag)) {
+        *addr = &tag->data;
+        return true;
+    }
+    return false;
+}
