@@ -22,7 +22,7 @@ namespace pci {
 
     struct pci_dev {
         struct hostbridge *hb;
-        int8_t bus;
+        uint8_t bus;
         uint8_t device;
         uint8_t function;
     };
