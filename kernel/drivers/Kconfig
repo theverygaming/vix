@@ -1,10 +1,6 @@
 source "drivers/acpi/Kconfig"
 source "drivers/pci/Kconfig"
-
-config ENABLE_FAKE_NETWORK_CARD
-    depends on ENABLE_NETWORKING
-    default y
-    bool "Enable a fake network card for testing stuff"
+source "drivers/net/Kconfig"
 
 config INTREE_SAMPLE_MODULE
     tristate "In-tree sample module"

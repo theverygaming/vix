@@ -1,7 +1,6 @@
-obj-d := acpi pci
+obj-d := acpi pci net
 
 obj-y := ms_mouse.o keyboard.o
-obj-$(CONFIG_ENABLE_FAKE_NETWORK_CARD) += net/fake_card.o
 
 obj-$(CONFIG_INTREE_SAMPLE_MODULE) += intree-mod.o
 

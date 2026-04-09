@@ -1,1 +1,0 @@
-obj-$(CONFIG_ENABLE_NETWORKING) := rtl8139.o
