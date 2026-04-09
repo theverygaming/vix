@@ -55,4 +55,8 @@ config ENABLE_STACKPROTECTOR
   default y
   bool "Enable Stack Smashing Protector"
 
+config ARCH_HAS_PCI_SUPPORT
+  bool
+  default y
+
 endmenu

@@ -1,3 +1,4 @@
 config ENABLE_PCI
     default y
+    depends on ARCH_HAS_PCI_SUPPORT
     bool "Enable PCI support"

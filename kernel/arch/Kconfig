@@ -46,4 +46,8 @@ config HHDM_SIZE
   help
     size of HHDM in bytes
 
+config ARCH_HAS_PCI_SUPPORT
+  bool
+  default n
+
 endmenu
