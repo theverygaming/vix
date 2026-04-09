@@ -88,7 +88,7 @@ struct fb::fbinfo multiboot2::findFrameBuffer(const void *multiboot2_info_adr) {
         void *fb_virt_adr;
         // FIXME: we should probably try to force alloc it? But currently force alloc can't handle errors and just panics when the fb is not in normal memory..
         //mm::pmm::force_alloc_contiguous((mm::paddr_t)tag->framebuffer_addr, fb_bytes / CONFIG_ARCH_PAGE_SIZE);
-        ASSIGN_OR_PANIC(fb_virt_adr, mm::map_arbitrary_phys((mm::paddr_t)tag->framebuffer_addr, fb_bytes));
+        ASSIGN_OR_PANIC(fb_virt_adr, mm::map_arbitrary_phys((mm::paddr_t)tag->framebuffer_addr, fb_bytes, {false, false, false, mm::caching_type::WRITE_COMBINING}));
         return {
             .address = fb_virt_adr,
             .width = tag->framebuffer_width,
