@@ -34,7 +34,7 @@ static const uint8_t test_packet_1[] = {
     // Differential services: 0
     0x00,
     // Total Length (IPv4 Header + Data)
-    0x00, 20 + 12, // FIXME:
+    0x00, 20 + 12,
     // Identification - used in case of fragmented packets
     0x12, 0x34,
     // Flags & Fragment offset
@@ -44,7 +44,7 @@ static const uint8_t test_packet_1[] = {
     // Next layer protocol
     17, // UDP
     // Checksum
-    0x00, 0x00, // FIXME:
+    0x38, 0x27,
     // Source address
     111, 222, 233, 244,
     // Destination address
