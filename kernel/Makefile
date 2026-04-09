@@ -129,7 +129,7 @@ defconfig: scripts/kconfig/Makefile
 # clean targets
 clean: modclean
 	@rm -f kernel.o kernel.bin symtab.S symtab.o kernel_partial.o rust/rust-target-gen.json
-	@find ./arch ./drivers ./fs ./include ./kernel ./net ./mm ./stdlibs ./tests ./abi ./rust \( -name '*.lds' -o -name '*.o' -o -name '*.rlib' -o -name '*.d' \) -type f -delete
+	@find ./arch ./drivers ./fs ./include ./kernel ./net ./mm ./stdlibs ./tests ./abi ./rust \( -name '*.lds' -o -name '*.o' -o -name '*.ko' -o -name '*.rlib' -o -name '*.d' \) -type f -delete
 
 distclean: clean
 	@rm -f .config .config_old
