@@ -46,7 +46,7 @@ static mm::paddr_t get_physaddr_unaligned(mm::vaddr_t virt) {
 
 static uint8_t get_mac_byte(struct rtl8139_card *ctx, int n) {
     if (n < 6) {
-        return ioread8(ctx->iohandle + 0x0 + n);
+        return ioread8(ctx->iohandle, 0x0 + n);
     }
     return 0;
 }
@@ -61,8 +61,8 @@ static bool send_packet(struct ::net::ethernet_card *card, uint8_t *data, size_t
     if (ctx->reg_counter > 3) {
         ctx->reg_counter = 0;
     }
-    iowrite32(ctx->iohandle + 0x20 + (ctx->reg_counter * 4), get_physaddr_unaligned((mm::vaddr_t)data)); // transmit
-    iowrite32(ctx->iohandle + 0x10 + (ctx->reg_counter * 4), len);                                            // status/command
+    iowrite32(ctx->iohandle, 0x20 + (ctx->reg_counter * 4), get_physaddr_unaligned((mm::vaddr_t)data)); // transmit
+    iowrite32(ctx->iohandle, 0x10 + (ctx->reg_counter * 4), len);                                            // status/command
     ctx->reg_counter++;
     return true;
 }
@@ -99,7 +99,7 @@ static void rtl8139_irq(struct rtl8139_card *ctx) {
     std::vector<struct packet> received;
 
     // we must read packets in a loop until BUFE is set, could have received multiple
-    while ((ioread8(ctx->iohandle + 0x37) & 0x1) == 0) {
+    while ((ioread8(ctx->iohandle, 0x37) & 0x1) == 0) {
 
         DEBUG_PRINTF("Buffer offset: %u\n", ctx->bufferoffset);
 
@@ -163,10 +163,10 @@ static void rtl8139_irq(struct rtl8139_card *ctx) {
 
         // set CAPR to offset of next expected packet
         // DEBUG_PRINTF("offset: %u\n", (uint32_t)bufferoffset);
-        iowrite16(ctx->iohandle + 0x38, ctx->bufferoffset - 0x10);
+        iowrite16(ctx->iohandle, 0x38, ctx->bufferoffset - 0x10);
     }
 
-    iowrite16(ctx->iohandle + 0x3E, 0x5); // clear RX ok bit
+    iowrite16(ctx->iohandle, 0x3E, 0x5); // clear RX ok bit
 
     DEBUG_PRINTF("got %u packets\n", received.size());
 
@@ -189,39 +189,39 @@ static void rtl8139_init(struct rtl8139_card *ctx) {
     pci::pci_dev_master(ctx->pcidev, true);
 
     // turn on the card
-    iowrite8(ctx->iohandle + 0x52, 0x0);
+    iowrite8(ctx->iohandle, 0x52, 0x0);
 
     // soft reset
-    iowrite8(ctx->iohandle + 0x37, 0x10);
+    iowrite8(ctx->iohandle, 0x37, 0x10);
     uint32_t timeout = 0;
-    while ((ioread8(ctx->iohandle + 0x37) & 0x10) != 0 && timeout < 0xFFFFFFF0) {
+    while ((ioread8(ctx->iohandle, 0x37) & 0x10) != 0 && timeout < 0xFFFFFFF0) {
         timeout++;
     }
 
     DEBUG_PRINTF("rtl8139 mac:\n");
     for (int i = 0; i < 5; i++) {
-        DEBUG_PRINTF("%p:\n", (uint32_t)ioread8(ctx->iohandle + 0x0 + i));
+        DEBUG_PRINTF("%p:\n", (uint32_t)ioread8(ctx->iohandle, 0x0 + i));
     }
-    DEBUG_PRINTF("%p\n", (uint32_t)ioread8(ctx->iohandle + 0x5));
+    DEBUG_PRINTF("%p\n", (uint32_t)ioread8(ctx->iohandle, 0x5));
 
     // receive buffer
     // rx buf len RX_BUFFER_SIZE + 16 byte
     void *tmp_alloc;
     ASSIGN_OR_PANIC(tmp_alloc, mm::allocate_contiguous(RX_BUFFER_SIZE + 16)); // TODO: free
     ctx->bufferptr = (uint8_t *)tmp_alloc;
-    iowrite32(ctx->iohandle + 0x30, get_physaddr_unaligned((mm::vaddr_t)ctx->bufferptr));
+    iowrite32(ctx->iohandle, 0x30, get_physaddr_unaligned((mm::vaddr_t)ctx->bufferptr));
 
-    // iowrite16(ctx->iohandle + 0x3C, 0x0005); // Sets the TOK and ROK bits high
+    // iowrite16(ctx->iohandle, 0x3C, 0x0005); // Sets the TOK and ROK bits high
 
-    iowrite16(ctx->iohandle + 0x3C, 0x1); // set ROK bit high
+    iowrite16(ctx->iohandle, 0x3C, 0x1); // set ROK bit high
 
-    // iowrite16(ctx->iohandle + 0x3C, 0xE1FF); // enable all possible interrupts
+    // iowrite16(ctx->iohandle, 0x3C, 0xE1FF); // enable all possible interrupts
 
     // configure receive buffer
-    iowrite32(ctx->iohandle + 0x44, 0xf | (0 << 7) | (RX_BUFFER_SIZE_IDX << 11)); // (1 << 7) is the WRAP bit, 0xf is AB+AM+APM+AAP
+    iowrite32(ctx->iohandle, 0x44, 0xf | (0 << 7) | (RX_BUFFER_SIZE_IDX << 11)); // (1 << 7) is the WRAP bit, 0xf is AB+AM+APM+AAP
 
     // enable RX and TX
-    iowrite8(ctx->iohandle + 0x37, 0x0C);
+    iowrite8(ctx->iohandle, 0x37, 0x0C);
     ctx->irqline = pci::pci_dev_get_irqline(ctx->pcidev);
     DEBUG_PRINTF("rtl8139 irq: %u\n", (uint32_t)ctx->irqline);
 

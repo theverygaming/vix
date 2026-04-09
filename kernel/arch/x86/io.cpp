@@ -33,83 +33,83 @@ void io_unmap(io_handle_t handle) {
     }
 }
 
-uint8_t ioread8(io_handle_t handle) {
+uint8_t ioread8(io_handle_t handle, size_t offset) {
     // IO space
     if (handle <= PMIO_MAX) {
         uint8_t value;
-        asm volatile("inb %%dx, %%al" : "=a"(value) : "d"(handle));
+        asm volatile("inb %%dx, %%al" : "=a"(value) : "d"(handle + offset));
         return value;
     }
     // MMIO space
-    return *((volatile uint8_t *)handle);
+    return *((volatile uint8_t *)handle + offset);
 }
 
-uint16_t ioread16(io_handle_t handle) {
+uint16_t ioread16(io_handle_t handle, size_t offset) {
     // IO space
     if (handle <= PMIO_MAX) {
         uint16_t value;
-        asm volatile("inw %%dx, %%ax" : "=a"(value) : "d"(handle));
+        asm volatile("inw %%dx, %%ax" : "=a"(value) : "d"(handle + offset));
         return value;
     }
     // MMIO space
-    return *((volatile uint16_t *)handle);
+    return *((volatile uint16_t *)handle + offset);
 }
 
-uint32_t ioread32(io_handle_t handle) {
+uint32_t ioread32(io_handle_t handle, size_t offset) {
     // IO space
     if (handle <= PMIO_MAX) {
         uint32_t value;
-        asm volatile("inl %%dx, %%eax" : "=a"(value) : "d"(handle));
+        asm volatile("inl %%dx, %%eax" : "=a"(value) : "d"(handle + offset));
         return value;
     }
     // MMIO space
-    return *((volatile uint32_t *)handle);
+    return *((volatile uint32_t *)handle + offset);
 }
 
-uint64_t ioread64(io_handle_t handle) {
+uint64_t ioread64(io_handle_t handle, size_t offset) {
     // IO space
     if (handle <= PMIO_MAX) {
         return 0; // ??? doesn't exist lmao
     }
     // MMIO space
-    return *((volatile uint64_t *)handle);
+    return *((volatile uint64_t *)handle + offset);
 }
 
-void iowrite8(io_handle_t handle, uint8_t data) {
+void iowrite8(io_handle_t handle, size_t offset, uint8_t data) {
     // IO space
     if (handle <= PMIO_MAX) {
-        asm volatile("outb %%al, %%dx" ::"d"(handle), "a"(data));
+        asm volatile("outb %%al, %%dx" ::"d"(handle + offset), "a"(data));
         return;
     }
     // MMIO space
-    *((volatile uint8_t *)handle) = data;
+    *((volatile uint8_t *)handle + offset) = data;
 }
 
-void iowrite16(io_handle_t handle, uint16_t data) {
+void iowrite16(io_handle_t handle, size_t offset, uint16_t data) {
     // IO space
     if (handle <= PMIO_MAX) {
-        asm volatile("outw %%ax, %%dx" ::"d"(handle), "a"(data));
+        asm volatile("outw %%ax, %%dx" ::"d"(handle + offset), "a"(data));
         return;
     }
     // MMIO space
-    *((volatile uint16_t *)handle) = data;
+    *((volatile uint16_t *)handle + offset) = data;
 }
 
-void iowrite32(io_handle_t handle, uint32_t data) {
+void iowrite32(io_handle_t handle, size_t offset, uint32_t data) {
     // IO space
     if (handle <= PMIO_MAX) {
-        asm volatile("outl %%eax, %%dx" ::"d"(handle), "a"(data));
+        asm volatile("outl %%eax, %%dx" ::"d"(handle + offset), "a"(data));
         return;
     }
     // MMIO space
-    *((volatile uint32_t *)handle) = data;
+    *((volatile uint32_t *)handle + offset) = data;
 }
 
-void iowrite64(io_handle_t handle, uint64_t data) {
+void iowrite64(io_handle_t handle, size_t offset, uint64_t data) {
     // IO space
     if (handle <= PMIO_MAX) {
         return; // ??? doesn't exist lmao
     }
     // MMIO space
-    *((volatile uint64_t *)handle) = data;
+    *((volatile uint64_t *)handle + offset) = data;
 }
