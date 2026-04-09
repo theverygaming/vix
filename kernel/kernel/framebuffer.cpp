@@ -60,6 +60,8 @@ void fb::fb::read_pixel(size_t x, size_t y, uint8_t *r, uint8_t *g, uint8_t *b) 
     }
 }
 
+void fb::fb::flush() {}
+
 void fb::fb::clear() {
     memset(_info.address, 0, _info.pitch * _info.height);
 }
@@ -74,6 +76,7 @@ void fb::fb::scroll_y(size_t pixels) {
 void fb::fbconsole::init(fb *framebuffer) {
     _framebuffer = framebuffer;
     _framebuffer->clear();
+    _framebuffer->flush();
 
     state.escaped = false;
     state.escapeseq_index = 0;
@@ -110,6 +113,7 @@ void fb::fbconsole::fbputs(const char *str, size_t len) {
         fbputc(*(str++));
         len--;
     }
+    _framebuffer->flush();
 }
 
 void fb::fbconsole::linebreak() {

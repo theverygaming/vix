@@ -20,6 +20,7 @@ namespace fb {
         size_t get_height();
         void write_pixel(size_t x, size_t y, uint8_t r, uint8_t g, uint8_t b);
         void read_pixel(size_t x, size_t y, uint8_t *r, uint8_t *g, uint8_t *b);
+        void flush(); // write changes to screen
         void clear();
         void scroll_y(size_t pixels);
 

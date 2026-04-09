@@ -168,6 +168,7 @@ static void tree_generator() {
 
             draw_circle(x, y, local_blend / (255 / light_radius_max), r, g, b);
         }
+        framebuffer.flush();
         blend_ctr += blend_add;
         if (blend_ctr == 255) {
             blend_add = -1;

@@ -96,6 +96,7 @@ void arch::startup::stage4_startup() {
         }
     }
     framebuffer.clear();
+    framebuffer.flush();
     fbconsole.init2();
     stdio::set_puts_function(fbputs);
     printf("Hello x86_64!\n");

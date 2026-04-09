@@ -68,6 +68,8 @@ static void mouse_event(void *, struct drivers::ms_mouse::mouse_packet packet) {
         }
         restorebg = true;
     }
+
+    framebuffer.flush();
 }
 
 void mouse_init() {
