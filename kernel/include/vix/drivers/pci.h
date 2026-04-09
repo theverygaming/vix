@@ -39,6 +39,9 @@ namespace pci {
     void register_hostbridge(struct hostbridge *hb);
     void register_driver(struct pci_driver *drv);
 
+    struct pci_dev *pci_dev_open_force(uint16_t segment_group, uint8_t bus, uint8_t device, uint8_t function) ;
+    void pci_dev_close(struct pci_dev *dev);
+
     uint8_t pci_dev_config_read_8(struct pci_dev *dev, uint16_t offset);
     uint16_t pci_dev_config_read_16(struct pci_dev *dev, uint16_t offset);
     uint32_t pci_dev_config_read_32(struct pci_dev *dev, uint16_t offset);

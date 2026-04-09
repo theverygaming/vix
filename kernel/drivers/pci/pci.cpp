@@ -210,6 +210,30 @@ namespace pci {
         try_attach_driver(drv);
     }
 
+    struct pci_dev *pci_dev_open_force(uint16_t segment_group, uint8_t bus, uint8_t device, uint8_t function) {
+        kprintf(KP_INFO, "pci: trying to force open device %p:%p:%p.%p\n", (uint32_t)segment_group, (uint32_t)bus, (uint32_t)device, (uint32_t)function);
+        struct hostbridge *hb = nullptr;
+        for (auto it = hostbridges.begin(); it != hostbridges.end(); it++) {
+            if ((*it)->segment_group == segment_group) {
+                hb = *it;
+            }
+        }
+        if (hb == nullptr) {
+            return nullptr;
+        }
+        kprintf(KP_INFO, "pci: force opened device %p:%p:%p.%p\n", (uint32_t)segment_group, (uint32_t)bus, (uint32_t)device, (uint32_t)function);
+        return new pci_dev {
+            .hb = hb,
+            .bus = bus,
+            .device = device,
+            .function = function,
+        };
+    }
+
+    void pci_dev_close(struct pci_dev *dev) {
+        delete dev;
+    }
+
     uint8_t pci_dev_config_read_8(struct pci_dev *dev, uint16_t offset) {
         return dev->hb->pci_config_read_8(dev->hb, dev->bus, dev->device, dev->function, offset);
     }
