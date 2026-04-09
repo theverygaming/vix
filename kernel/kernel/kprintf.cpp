@@ -27,8 +27,6 @@ struct __attribute__((packed)) kp_buf_info {
 };
 
 inline void puts_kbuf(const char *s, size_t n, int loglevel) {
-    puts_sized(s, n, false);
-    return;
     if (unlikely(loglevel <= KP_ALERT)) {
         puts_sized(s, n, false);
         return; // FIXME: this is a workaround for double printing
