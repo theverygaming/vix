@@ -120,13 +120,14 @@ static PCIHeaderType get_header_type(struct pci_header_generic header) {
 }
 
 static void enumerate_hostbridge(struct pci::hostbridge *hb) {
+    kprintf(KP_INFO, "pci: enumerating hostbridge with segment_group %u\n", (unsigned int)hb->segment_group);
     for (unsigned int bus = 0; bus < 256; bus++) {
         for (unsigned int device = 0; device < 32; device++) {
             uint8_t function = 0;
             struct pci_header_generic pciHeader = read_header_generic(hb, bus, device, function);
             if (pciHeader.vendorID != 0xFFFF) {
                 kprintf(KP_INFO,
-                        "PCI: - %p:%p.%p -> type: 0x%p 0x%p vendor: 0x%p device: 0x%p\n",
+                        "pci: - %p:%p.%p -> type: 0x%p 0x%p vendor: 0x%p device: 0x%p\n",
                         (uint32_t)bus,
                         (uint32_t)device,
                         (uint32_t)function,
@@ -135,7 +136,7 @@ static void enumerate_hostbridge(struct pci::hostbridge *hb) {
                         (uint32_t)pciHeader.vendorID,
                         (uint32_t)pciHeader.deviceID);
                 if (get_header_type(pciHeader) != PCIHeaderType::HEADER_TYPE_0x0) {
-                    kprintf(KP_INFO, "PCI: ^ header not 0x0\n");
+                    kprintf(KP_INFO, "pci: ^ header not 0x0\n");
                 }
                 devices_available.push_front(new pci::pci_dev {
                     .hb = hb,
@@ -148,7 +149,7 @@ static void enumerate_hostbridge(struct pci::hostbridge *hb) {
                         struct pci_header_generic pciHeader = read_header_generic(hb, bus, device, function);
                         if (pciHeader.vendorID != 0xFFFF) {
                             kprintf(KP_INFO,
-                                    "PCI: - %p:%p.%p -> type: 0x%p 0x%p vendor: 0x%p device: 0x%p\n",
+                                    "pci: - %p:%p.%p -> type: 0x%p 0x%p vendor: 0x%p device: 0x%p\n",
                                     (uint32_t)bus,
                                     (uint32_t)device,
                                     (uint32_t)function,
@@ -157,7 +158,7 @@ static void enumerate_hostbridge(struct pci::hostbridge *hb) {
                                     (uint32_t)pciHeader.vendorID,
                                     (uint32_t)pciHeader.deviceID);
                             if (get_header_type(pciHeader) != PCIHeaderType::HEADER_TYPE_0x0) {
-                                kprintf(KP_INFO, "PCI: ^ header not 0x0\n");
+                                kprintf(KP_INFO, "pci: ^ header not 0x0\n");
                             }
                             devices_available.push_front(new pci::pci_dev {
                                 .hb = hb,
@@ -171,6 +172,7 @@ static void enumerate_hostbridge(struct pci::hostbridge *hb) {
             }
         }
     }
+    kprintf(KP_INFO, "pci: done enumerating hostbridge with segment_group %u\n", (unsigned int)hb->segment_group);
 }
 
 static void try_attach_driver(struct pci::pci_driver *drv) {
