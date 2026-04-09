@@ -168,23 +168,60 @@ static void kt1() {
     }
 }
 
+static void load_all_modules(const char *moddir) {
+    kprintf(KP_INFO, "archinit: discovering kernel modules in %s\n", moddir);
+    auto dir_res = vfs::lookup(moddir);
+    if (!dir_res.status().ok()) {
+        kprintf(KP_INFO, "archinit: could not open %s\n", moddir);
+        return;
+    }
+    std::shared_ptr<vfs::vnode> dir = dir_res.value();
+    if (dir->type != vfs::vnode_type::DIR) {
+        kprintf(KP_WARNING, "archinit: %s is not a directory\n", moddir);
+        return;
+    }
+    uint8_t buf[500];
+    size_t offset = 0;
+    while (true) {
+        auto res = vfs::getdents(
+            dir, (struct vfs::dirent *)buf, sizeof(buf), &offset
+        );
+        if (!res.status().ok()) {
+            kprintf(KP_WARNING, "archinit: getdents error\n");
+            return;
+        }
+        size_t bytes_read = res.value();
+        if (bytes_read == 0) {
+            break;
+        }
+        struct vfs::dirent *d;
+        uint8_t *ptr = buf;
+
+        while (ptr < buf + bytes_read) {
+            d = (struct vfs::dirent *)ptr;
+            auto res2 = vfs::lookup(dir, d->name);
+            if (!res2.status().ok()) {
+                kprintf(KP_WARNING, "archinit: lookup error\n");
+                continue;
+            }
+
+            std::string fpath = std::string(moddir) + std::string("/") + std::string(d->name);
+            kprintf(KP_INFO, "archinit: found module %s, trying to load\n", fpath.c_str());
+            void *elfptr = nullptr;
+            if (fs::vfs::fptr(fpath.c_str(), &elfptr)) {
+                kprintf(KP_INFO, "archinit: loading kernel module %s\n", fpath.c_str());
+                elf::load_module(elfptr);
+            }
+
+            ptr += d->reclen;
+        }
+    }
+}
+
 void arch::startup::kthread0() {
     void *elfptr = nullptr;
 
-    if (fs::vfs::fptr("/usr/lib/modules/module.o", &elfptr)) {
-        kprintf(KP_INFO, "archinit: loading kernel module\n");
-        elf::load_module(elfptr);
-    }
-
-    if (fs::vfs::fptr("/usr/lib/modules/module2.o", &elfptr)) {
-        kprintf(KP_INFO, "archinit: loading kernel module #2\n");
-        elf::load_module(elfptr);
-    }
-
-    if (fs::vfs::fptr("/usr/lib/modules/intree-mod.o", &elfptr)) {
-        kprintf(KP_INFO, "archinit: loading kernel module #3\n");
-        elf::load_module(elfptr);
-    }
+    load_all_modules("/usr/lib/modules");
 
     std::vector<std::string> args;
     if (fs::vfs::fptr("/bin/sh", &elfptr)) {
