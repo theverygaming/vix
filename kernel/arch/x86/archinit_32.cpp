@@ -154,18 +154,15 @@ void arch::startup::stage4_startup() {
 }
 
 static void kt1() {
-    uint32_t counter = 0;
+    time_t tlast = 0;
     while (true) {
         push_interrupt_disable();
         volatile int test = 5;
-        if (counter == 0) {
+        if (time::getCurrentUnixTime() - tlast > 30) {
             kprintf(KP_INFO, "hi from kernel thread(PID %d) stack: 0x%p\n", sched::mytask()->pid, &test);
+            tlast = time::getCurrentUnixTime();
         }
         pop_interrupt_disable();
-        counter++;
-        if (counter > 600000) {
-            counter = 0;
-        }
         sched::yield();
     }
 }
