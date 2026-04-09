@@ -1,1 +1,1 @@
-obj-d := stack stack_rs
+obj-d := stack_rs
