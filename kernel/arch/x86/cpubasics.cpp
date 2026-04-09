@@ -16,9 +16,10 @@ static void set_pit_freq(int hz) {
     outb(0x40, divisor >> 8);   /* Set high byte of divisor */
 }
 
-static void clockHandler() {
+static bool clockHandler(void *) {
     time::ns_since_bootup += 1000000;
     multitasking::interruptTrigger();
+    return true;
 }
 
 void cpubasics::cpuinit_early() {
@@ -29,6 +30,6 @@ void cpubasics::cpuinit_early() {
 void cpubasics::cpuinit() {
     drivers::pic::pic8259::init(32, 112);
     set_pit_freq(1000);
-    irq::register_irq_handler(clockHandler, 0);
+    irq::register_irq_handler(clockHandler, 0, nullptr);
     asm volatile("sti");
 }

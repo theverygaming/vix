@@ -179,8 +179,9 @@ static void rtl8139_irq(struct rtl8139_card *ctx) {
 // FIXME: fix IRQs
 static rtl8139_card *irq_card = nullptr;
 
-static void irq_handler() {
+static bool irq_handler(void *) {
     rtl8139_irq(irq_card);
+    return true;
 }
 
 static void rtl8139_init(struct rtl8139_card *ctx) {
@@ -231,7 +232,8 @@ static void rtl8139_init(struct rtl8139_card *ctx) {
         KERNEL_PANIC("more than one rtl8139 not supported. The IRQ implementation would have to be fixed for that");
     }
 
-    irq::register_irq_handler(irq_handler, ctx->irqline);
+    // TODO: save return value
+    irq::register_irq_handler(irq_handler, ctx->irqline, nullptr);
 
     DEBUG_PRINTF("rtl8139 init finished!... registering card\n");
 

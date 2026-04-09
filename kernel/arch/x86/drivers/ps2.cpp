@@ -74,18 +74,19 @@ static void mouse_int_handler_base() {
 }
 
 static void kbd_int_handler_base();
-static void mouse_int_handler() {
+static bool mouse_int_handler(void *) {
     // printf("mouse int\n");
     uint8_t status = inb(PS2_STATUS);
     if (!(status & 0x20)) { // is this not from port 2?
         kbd_int_handler_base();
-        return;
+        return true;
     }
     mouse_int_handler_base();
+    return true;
 }
 
 void mouse_init() {
-    irq::register_irq_handler(mouse_int_handler, 12);
+    irq::register_irq_handler(mouse_int_handler, 12, nullptr);
 
     ps2_write_command(0x20);
     uint8_t config = ps2_read_data();
@@ -200,13 +201,14 @@ static void kbd_int_handler_base() {
     drivers::keyboard::events.dispatch(kbmap[sc]);
 }
 
-static void ps2_int() {
+static bool ps2_int(void *) {
     uint8_t status = inb(PS2_STATUS);
     if (status & 0x20) { // is this from port 2?
         mouse_int_handler_base();
-        return;
+        return true;
     }
     kbd_int_handler_base();
+    return true;
 }
 
 namespace drivers::ps2_keyboard {
@@ -216,7 +218,7 @@ namespace drivers::ps2_keyboard {
 }
 
 void keyboard_init() {
-    irq::register_irq_handler(ps2_int, 1);
+    irq::register_irq_handler(ps2_int, 1, nullptr);
 }
 
 
