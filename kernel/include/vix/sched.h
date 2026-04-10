@@ -51,9 +51,8 @@ namespace sched {
 
     struct task init_thread(void (*func)(), void *data = nullptr);
 
-    // FIXME: start_thread should prolly return a PID!
-    void start_thread(void (*func)(), void *data = nullptr);
-    void start_thread(struct task);
+    int start_thread(void (*func)(), void *data = nullptr);
+    int start_thread(struct task);
 
     // Returns pointer to task structure of current running task
     struct sched::task *mytask();

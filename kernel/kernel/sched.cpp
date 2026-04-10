@@ -74,14 +74,15 @@ struct sched::task sched::init_thread(void (*func)(), void *data) {
     return t;
 }
 
-void sched::start_thread(struct sched::task t) {
+int sched::start_thread(struct sched::task t) {
     push_interrupt_disable();
     sched_readyqueue.push_front(t);
     pop_interrupt_disable();
+    return t.pid;
 }
 
-void sched::start_thread(void (*func)(), void *data) {
-    start_thread(init_thread(func, data));
+int sched::start_thread(void (*func)(), void *data) {
+    return start_thread(init_thread(func, data));
 }
 
 struct sched::task *sched::mytask() {
