@@ -172,7 +172,12 @@ void fb::fbconsole::linebreak() {
     if ((pos_y + psfreader.get_height() + psfreader.get_height()) < _framebuffer->get_height()) {
         pos_y += psfreader.get_height();
     } else {
+#ifdef CONFIG_FBCON_NO_SCROLL
+        _framebuffer->clear();
+        pos_y = 0;
+#else
         _framebuffer->scroll_y(psfreader.get_height());
+#endif
     }
     pos_x = 0;
 }

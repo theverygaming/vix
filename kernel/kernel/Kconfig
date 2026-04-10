@@ -52,6 +52,11 @@ config FB_DOUBLE_BUFFER
 	default n
   	bool "use double buffering for framebuffers"
 
+config FBCON_NO_SCROLL
+  	depends on FB_SUPPORT
+	default n
+  	bool "clear instead of scrolling framebuffer console (useful when fb writes are slow)"
+
 config ENABLE_BUILTIN_FONT
   	depends on FB_SUPPORT
   	default y if ARCH_AARCH64
