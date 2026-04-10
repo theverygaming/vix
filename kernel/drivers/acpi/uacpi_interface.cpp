@@ -16,7 +16,7 @@ void acpi::reboot() {
     uacpi_status ret = uacpi_prepare_for_sleep_state(UACPI_SLEEP_STATE_S5);
     if (uacpi_unlikely_error(ret)) {
         kprintf(KP_ERR, "uacpi reboot: uacpi_prepare_for_sleep_state error: %s\n", uacpi_status_to_string(ret));
-        return;
+        // NOTE: infy told me I can ignore errors from uacpi_prepare_for_sleep_state for reboot
     }
     push_interrupt_disable();
     ret = uacpi_reboot();
