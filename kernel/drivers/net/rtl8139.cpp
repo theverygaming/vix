@@ -21,6 +21,7 @@ struct rtl8139_card {
     struct pci::pci_dev *pcidev;
     io_handle_t iohandle;
     uint8_t irqline;
+    void *irq_handle;
 
     // external references
     struct net::ethernet_card *card;
@@ -176,11 +177,9 @@ static void rtl8139_irq(struct rtl8139_card *ctx) {
     }
 }
 
-// FIXME: fix IRQs
-static rtl8139_card *irq_card = nullptr;
-
-static bool irq_handler(void *) {
-    rtl8139_irq(irq_card);
+static bool irq_handler(void *ictx) {
+    rtl8139_card *ctx = (rtl8139_card *)ictx;
+    rtl8139_irq(ctx);
     return true;
 }
 
@@ -226,14 +225,7 @@ static void rtl8139_init(struct rtl8139_card *ctx) {
     ctx->irqline = pci::pci_dev_get_irqline(ctx->pcidev);
     DEBUG_PRINTF("rtl8139 irq: %u\n", (uint32_t)ctx->irqline);
 
-    if (irq_card == nullptr) {
-        irq_card = ctx;
-    } else {
-        KERNEL_PANIC("more than one rtl8139 not supported. The IRQ implementation would have to be fixed for that");
-    }
-
-    // TODO: save return value
-    irq::register_irq_handler(irq_handler, ctx->irqline, nullptr);
+    ctx->irq_handle = irq::register_irq_handler(irq_handler, ctx->irqline, ctx);
 
     DEBUG_PRINTF("rtl8139 init finished!... registering card\n");
 
@@ -249,6 +241,7 @@ static bool rtl8139_probe(struct pci::pci_dev *dev) {
         .pcidev = dev,
         .iohandle = pci_bar_iomap(pci::pci_dev_get_bar(dev, 0)),
         .irqline = 0,
+        .irq_handle = nullptr,
         .card = nullptr,
         .bufferptr = nullptr,
         .bufferoffset = 0,
