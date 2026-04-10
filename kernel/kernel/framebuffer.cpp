@@ -384,6 +384,11 @@ void fb::fbconsole::putc_screen(char c) {
         // erasing on the past line is hard because we do not have any text buffer...
         if (pos_x >= psfreader.get_width()) {
             pos_x -= psfreader.get_width();
+            for (size_t y = pos_y; y < pos_y + psfreader.get_height(); y++) {
+                for (size_t x = pos_x; x < pos_x + psfreader.get_width(); x++) {
+                    _framebuffer->write_pixel(x - 1, y, color_background[0], color_background[1], color_background[2]);
+                }
+            }
         }
         return;
     default:
