@@ -189,7 +189,6 @@ void christmas_init() {
     arch::generic::devices::get_current_rtc_time(
         &year, &month, &day, &hour, &minute, &second
     );
-    // FIXME: start_thread should prolly return a PID!
     if (month == 12 && day >= 15 && day <= 29) {
         sched::start_worker(tree_generator);
     }
