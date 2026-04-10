@@ -4,6 +4,7 @@
 #include <vix/framebuffer.h>
 #include <vix/fs/vfs.h>
 #include <vix/panic.h>
+#include <algorithm>
 
 static inline uint8_t bitget(uint32_t num, uint8_t bit) {
     return (num & (0x1 << bit)) >> bit;
@@ -31,6 +32,9 @@ size_t fb::fb::get_height() {
 }
 
 void fb::fb::write_pixel(size_t x, size_t y, uint8_t r, uint8_t g, uint8_t b) {
+#ifdef CONFIG_FB_DOUBLE_BUFFER
+    dirty_write(x, y);
+#endif
     if (_info.monochrome && _info.bpp == 1) {
         uint16_t val = (uint16_t)r + g + b;
         volatile uint8_t *ptr = (volatile uint8_t *)((uintptr_t)draw_buffer_address + (y * _info.pitch) + (x / 8));
@@ -67,12 +71,24 @@ void fb::fb::read_pixel(size_t x, size_t y, uint8_t *r, uint8_t *g, uint8_t *b) 
 
 void fb::fb::flush() {
 #ifdef CONFIG_FB_DOUBLE_BUFFER
-    memcpy(_info.address, draw_buffer_address, _info.pitch * _info.height);
+    if (!dirty) {
+        return;
+    }
+    size_t offset_a = _info.pitch * dirty_a_y + (_info.bpp / 8) * dirty_a_x;
+    size_t offset_b = _info.pitch * dirty_b_y + (_info.bpp / 8) * dirty_b_x;
+    size_t n = offset_b - offset_a;
+    if (n != 0) {
+        memcpy(((uint8_t *)_info.address) + offset_a, ((uint8_t *)draw_buffer_address) + offset_a, n);
+    }
+    dirty = false;
 #endif
 }
 
 void fb::fb::clear() {
     memset(draw_buffer_address, 0, _info.pitch * _info.height);
+#ifdef CONFIG_FB_DOUBLE_BUFFER
+    dirty_all();
+#endif
 }
 
 void fb::fb::scroll_y(size_t pixels) {
@@ -80,7 +96,34 @@ void fb::fb::scroll_y(size_t pixels) {
     size_t all_bytes = _info.pitch * _info.height;
     memmove(draw_buffer_address, ((uint8_t *)draw_buffer_address) + move_bytes, all_bytes - move_bytes);
     memset(((uint8_t *)draw_buffer_address) + (all_bytes - move_bytes), 0, move_bytes);
+#ifdef CONFIG_FB_DOUBLE_BUFFER
+    dirty_all();
+#endif
 }
+
+#ifdef CONFIG_FB_DOUBLE_BUFFER
+void fb::fb::dirty_write(size_t x, size_t y) {
+    if (!dirty) {
+        dirty_a_x = _info.width - 1;
+        dirty_a_y = _info.height - 1;
+        dirty_b_x = 0;
+        dirty_b_y = 0;
+        dirty = true;
+    }
+    dirty_a_x = std::min(dirty_a_x, x);
+    dirty_a_y = std::min(dirty_a_y, y);
+    dirty_b_x = std::max(dirty_b_x, x);
+    dirty_b_y = std::max(dirty_b_y, y);
+}
+
+void fb::fb::dirty_all() {
+    dirty = true;
+    dirty_a_x = 0;
+    dirty_a_y = 0;
+    dirty_b_x = _info.width - 1;
+    dirty_b_y = _info.height - 1;
+}
+#endif
 
 void fb::fbconsole::init(fb *framebuffer) {
     _framebuffer = framebuffer;

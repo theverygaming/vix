@@ -1,4 +1,5 @@
 #pragma once
+#include <vix/config.h>
 #include <vix/drivers/ms_mouse.h>
 #include <vix/psf.h>
 #include <vix/types.h>
@@ -27,6 +28,17 @@ namespace fb {
     private:
         struct fbinfo _info;
         void *draw_buffer_address;
+#ifdef CONFIG_FB_DOUBLE_BUFFER
+        void dirty_write(size_t x, size_t y);
+        void dirty_all();
+        bool dirty = false;
+        // top left
+        size_t dirty_a_x = 0;
+        size_t dirty_a_y = 0;
+        // bottom right
+        size_t dirty_b_x = 0;
+        size_t dirty_b_y = 0;
+#endif
     };
 
     class fbconsole {
