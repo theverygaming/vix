@@ -322,7 +322,7 @@ struct thread_pass {
 
 static void uacpi_worker_thread() {
     DEBUG_PRINTF("uacpi: work running\n");
-    struct thread_pass *tp = (struct thread_pass *)sched::mytask()->data;
+    struct thread_pass *tp = (struct thread_pass *)sched::mytask()->data1;
     tp->worker(tp->ctx);
     delete tp;
 }

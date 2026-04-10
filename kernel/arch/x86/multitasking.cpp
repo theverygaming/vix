@@ -102,7 +102,7 @@ static void user_thread_launch() {
     tss::tss_entry.ss0 = GDT_KERNEL_DATA;
     tss::tss_entry.esp0 = (uintptr_t)sched::mytask()->task_arch.kernel_stack_top;
     arch::vmm::load_pt(sched::mytask()->task_arch.pt);
-    x86_load_cpu_full_ctx((struct arch::full_ctx *)sched::mytask()->data);
+    x86_load_cpu_full_ctx((struct arch::full_ctx *)sched::mytask()->data1);
 }
 
 void multitasking::create_task(void *stackadr, void *codeadr, arch::vmm::pt_t pt, std::vector<std::string> *argv) {

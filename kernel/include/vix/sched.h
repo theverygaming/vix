@@ -31,7 +31,8 @@ namespace sched {
 #endif
 
         // TLS
-        void *data;
+        void *data1;
+        void *data2;
 
         // Interrupt state (see interrupts.h)
         unsigned int pushpop_interrupt_state;
@@ -49,9 +50,9 @@ namespace sched {
     // should only be called with interrupts disabled
     void yield();
 
-    struct task init_thread(void (*func)(), void *data = nullptr);
+    struct task init_thread(void (*func)(), void *data1 = nullptr, void *data2 = nullptr);
 
-    int start_thread(void (*func)(), void *data = nullptr);
+    int start_thread(void (*func)(), void *data1 = nullptr, void *data2 = nullptr);
     int start_thread(struct task);
 
     // Returns pointer to task structure of current running task

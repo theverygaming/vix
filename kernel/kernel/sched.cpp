@@ -61,13 +61,14 @@ void sched::enter() {
     KERNEL_PANIC("unreachable");
 }
 
-struct sched::task sched::init_thread(void (*func)(), void *data) {
+struct sched::task sched::init_thread(void (*func)(), void *data1, void *data2) {
     static int pid_counter = 0;
     struct sched::task t;
     sched::arch_init_thread(&t, func);
     t.state = sched::task::state::RUNNABLE;
     t.pid = pid_counter++;
-    t.data = data;
+    t.data1 = data1;
+    t.data2 = data2;
     //FIXME: everything except IA-32!! arch_init_thread is supposed to set pushpop_interrupt_state and pushpop_interrupt_count!!!
     //t.pushpop_interrupt_state = arch::INTERRUPT_STATE_DISABLED;
     //t.pushpop_interrupt_count = 1; // initially it'll be popped once!
@@ -81,8 +82,8 @@ int sched::start_thread(struct sched::task t) {
     return t.pid;
 }
 
-int sched::start_thread(void (*func)(), void *data) {
-    return start_thread(init_thread(func, data));
+int sched::start_thread(void (*func)(), void *data1, void *data2) {
+    return start_thread(init_thread(func, data1, data2));
 }
 
 struct sched::task *sched::mytask() {
