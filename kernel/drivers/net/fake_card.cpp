@@ -86,11 +86,7 @@ static struct net::ethernet_card_ops fake_card_ops = {
         },
 };
 
-// FIXME: this is ofc bad lmao, but we currently don't really have another way
-// without writing EVEN MORE CODE MOSTLY UNRELAYED TO WHAT I WANNA DO :sob:
-static net::ethernet_card *current_card = nullptr;
-
-static void rx_fake_packets(int n_packets) {
+static void rx_fake_packets(net::ethernet_card *card, int n_packets) {
     struct packet {
         void *ptr;
         size_t size;
@@ -113,17 +109,18 @@ static void rx_fake_packets(int n_packets) {
 
     for (size_t i = 0; i < received.size(); i++) {
         DEBUG_PRINTF("providing packet %u to network stack (0x%p, %u)\n", i, received[i].ptr, received[i].size);
-        netstack_ethernet_rx(current_card, (uint8_t *)received[i].ptr, received[i].size);
+        netstack_ethernet_rx(card, (uint8_t *)received[i].ptr, received[i].size);
         mm::kfree(received[i].ptr);
     }
 }
 
-static void fake_packet_gen(void *) {
+static void fake_packet_gen(void *ctx) {
+    net::ethernet_card *card = (net::ethernet_card *)ctx;
     uint32_t counter_max = 60000;
     uint32_t counter = counter_max / 2;
     while (true) {
         if (counter == 0) {
-            rx_fake_packets(2);
+            rx_fake_packets(card, 2);
         }
         counter++;
         if (counter > counter_max) {
@@ -135,10 +132,10 @@ static void fake_packet_gen(void *) {
 
 static void fake_card_init() {
     kprintf(KP_INFO, "registering fake_card\n");
-    current_card = netstack_ethernet_register_card(&fake_card_ops);
+    net::ethernet_card *card = netstack_ethernet_register_card(&fake_card_ops);
     kprintf(KP_INFO, "fake_card registered!\n");
 
-    sched::start_worker(fake_packet_gen);
+    sched::start_worker(fake_packet_gen, card);
 
     kprintf(KP_INFO, "fake_card done initializing\n");
 }
