@@ -23,7 +23,7 @@ void run_all_tests();
 extern "C" uint32_t rust_test(uint32_t);
 #endif
 
-static void kthread0() {
+static void kthread0(void *) {
     uint64_t t1 = time::ns_since_bootup;
     kprintf(KP_INFO, "kmain: first kernel thread started (PID %d)\n", sched::mytask()->pid);
     arch::startup::kthread0();
@@ -32,7 +32,6 @@ static void kthread0() {
     if (t1 == time::ns_since_bootup) {
         kprintf(KP_ERR, "time::ns_since_bootup does not seem to be running!\n");
     }
-    sched::die();
 }
 
 void kernelstart() {
@@ -83,7 +82,7 @@ void kernelstart() {
     sched::init();
 
     kprintf(KP_INFO, "kmain: starting first scheduler thread\n");
-    sched::start_thread(kthread0);
+    sched::start_worker(kthread0);
 
     kprintf(KP_INFO, "kmain: entering scheduler\n");
     sched::enter();

@@ -315,27 +315,12 @@ uacpi_status uacpi_kernel_uninstall_interrupt_handler(uacpi_interrupt_handler ha
     return UACPI_STATUS_OK;
 }
 
-struct thread_pass {
-    uacpi_work_handler worker;
-    uacpi_handle ctx;
-};
-
-static void uacpi_worker_thread() {
-    DEBUG_PRINTF("uacpi: work running\n");
-    struct thread_pass *tp = (struct thread_pass *)sched::mytask()->data1;
-    tp->worker(tp->ctx);
-    delete tp;
-}
-
 uacpi_status uacpi_kernel_schedule_work(
     uacpi_work_type, uacpi_work_handler worker, uacpi_handle ctx
 ) {
     DEBUG_PRINTF("uacpi: scheduled work\n");
     // TODO: handle uacpi_work_type (not really needed at time of writing since we don't even have SMP)
-    sched::start_thread(uacpi_worker_thread, new thread_pass {
-        .worker = worker,
-        .ctx = ctx,
-    });
+    sched::start_worker(worker, ctx);
     return UACPI_STATUS_OK;
 }
 

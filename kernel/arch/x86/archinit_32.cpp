@@ -154,7 +154,7 @@ void arch::startup::stage4_startup() {
     stdio::set_puts_function(fbputs);
 }
 
-static void kt1() {
+static void kt1(void *) {
     time_t tlast = 0;
     while (true) {
         push_interrupt_disable();
@@ -229,8 +229,8 @@ void arch::startup::kthread0() {
         elf::load_program(elfptr, &args);
     }
 
-    sched::start_thread(kt1);
-    sched::start_thread(kt1);
+    sched::start_worker(kt1);
+    sched::start_worker(kt1);
 
     // a bit of a hack.. we have to call the vector destructor before killing this process
     // args.~vector();

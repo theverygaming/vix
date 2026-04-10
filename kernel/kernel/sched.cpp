@@ -82,8 +82,16 @@ int sched::start_thread(struct sched::task t) {
     return t.pid;
 }
 
-int sched::start_thread(void (*func)(), void *data1, void *data2) {
-    return start_thread(init_thread(func, data1, data2));
+int sched::start_worker(void (*worker)(void *), void *ctx) {
+    return start_thread(init_thread(
+        []() {
+            void (*worker)(void *) = (void (*)(void *))sched::mytask()->data1;
+            worker(sched::mytask()->data2);
+            sched::die();
+        },
+        (void *)worker,
+        ctx
+    ));
 }
 
 struct sched::task *sched::mytask() {

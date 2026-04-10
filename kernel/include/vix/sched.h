@@ -50,10 +50,14 @@ namespace sched {
     // should only be called with interrupts disabled
     void yield();
 
+    // allocates a PID and stuff, ouput needs to be passed to start_thread later
     struct task init_thread(void (*func)(), void *data1 = nullptr, void *data2 = nullptr);
 
-    int start_thread(void (*func)(), void *data1 = nullptr, void *data2 = nullptr);
+    // low-level method to start a thread, returns PID
     int start_thread(struct task);
+
+    // high-level method to start a kernel worker thread, returns a PID, the thread will be killed when the function returns
+    int start_worker(void (*worker)(void *), void *ctx = nullptr);
 
     // Returns pointer to task structure of current running task
     struct sched::task *mytask();

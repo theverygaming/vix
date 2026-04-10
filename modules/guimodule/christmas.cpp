@@ -76,7 +76,7 @@ draw_circle(int mid_x, int mid_y, int radius, uint8_t r, uint8_t g, uint8_t b) {
     }
 }
 
-static void tree_generator() {
+static void tree_generator(void *) {
     size_t top_x = 700;
     size_t top_y = 50;
     size_t width = 100;
@@ -191,7 +191,7 @@ void christmas_init() {
     );
     // FIXME: start_thread should prolly return a PID!
     if (month == 12 && day >= 15 && day <= 29) {
-        sched::start_thread(tree_generator);
+        sched::start_worker(tree_generator);
     }
 }
 

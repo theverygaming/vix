@@ -118,7 +118,7 @@ static void rx_fake_packets(int n_packets) {
     }
 }
 
-static void fake_packet_gen() {
+static void fake_packet_gen(void *) {
     uint32_t counter_max = 60000;
     uint32_t counter = counter_max / 2;
     while (true) {
@@ -138,7 +138,7 @@ static void fake_card_init() {
     current_card = netstack_ethernet_register_card(&fake_card_ops);
     kprintf(KP_INFO, "fake_card registered!\n");
 
-    sched::start_thread(fake_packet_gen);
+    sched::start_worker(fake_packet_gen);
 
     kprintf(KP_INFO, "fake_card done initializing\n");
 }

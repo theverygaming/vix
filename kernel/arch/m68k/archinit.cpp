@@ -161,7 +161,7 @@ void arch::startup::stage4_startup() {
     time::bootupTime = time::getCurrentUnixTime();
 }
 
-static void kt() {
+static void kt(void *) {
     while (true) {
         push_interrupt_disable();
         volatile int test = 5;
@@ -172,6 +172,6 @@ static void kt() {
 }
 
 void arch::startup::kthread0() {
-    sched::start_thread(kt);
-    sched::start_thread(kt);
+    sched::start_worker(kt);
+    sched::start_worker(kt);
 }
