@@ -4,6 +4,8 @@
 #include <vix/panic.h>
 #include <vix/sched.h>
 
+// FIXME: instead of the current task the count should probably be per CPU instead???
+
 inline void push_interrupt_disable() {
     if (unlikely(sched::mytask() == nullptr)) {
         return;
