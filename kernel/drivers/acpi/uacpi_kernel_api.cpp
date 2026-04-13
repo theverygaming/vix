@@ -14,6 +14,7 @@
 #include <vix/debug.h>
 #include <vix/time.h>
 #include <vix/kernel/irq.h>
+#include <vix/sync.h>
 
 
 uacpi_status uacpi_kernel_get_rsdp(uacpi_phys_addr *out_rsdp_address) {
@@ -205,24 +206,20 @@ void uacpi_kernel_release_mutex(uacpi_handle handle) {
 }
 
 uacpi_handle uacpi_kernel_create_spinlock(void) {
-    // FIXME: broken!
-    return mm::kmalloc(1);
+    return spinlock_alloc();
 }
 
 void uacpi_kernel_free_spinlock(uacpi_handle handle) {
-    // FIXME: broken!
-    mm::kfree(handle);
+    spinlock_free((spinlock_t *)handle);
 }
 
 uacpi_cpu_flags uacpi_kernel_lock_spinlock(uacpi_handle handle) {
-    // FIXME: broken!
-    push_interrupt_disable();
+    spinlock_lock_intdisable((spinlock_t *)handle);
     return 0;
 }
 
 void uacpi_kernel_unlock_spinlock(uacpi_handle handle, uacpi_cpu_flags) {
-    // FIXME: broken!
-    pop_interrupt_disable();
+    spinlock_unlock_intdisable((spinlock_t *)handle);
 }
 
 uacpi_handle uacpi_kernel_create_event(void) {
@@ -237,7 +234,7 @@ void uacpi_kernel_free_event(uacpi_handle handle) {
 
 uacpi_bool uacpi_kernel_wait_for_event(uacpi_handle handle, uacpi_u16 timeout_ms) {
     // FIXME: needs a proper implementation!
-    volatile uint8_t *ev = (volatile uint8_t *)handle; 
+    volatile uint8_t *ev = (volatile uint8_t *)handle;
     uint64_t tstart = time::ns_since_bootup;
     while (time::ns_since_bootup - tstart < 1000000 * timeout_ms) {
         if (*ev) {
