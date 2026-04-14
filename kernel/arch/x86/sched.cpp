@@ -47,9 +47,6 @@ void sched::arch_init_thread(struct sched::thread *proc, void (*func)()) {
     ctx->ebx = ctx->esi = ctx->edi = ctx->ebp = 0;
     ctx->eip = (uint32_t)x86_interrupt_return;
     proc->ctx = ctx;
-    // TODO: does setting that to 1 make any sense with count = 0?
-    proc->pushpop_interrupt_state = 1; // interrupts get enabled
-    proc->pushpop_interrupt_count = 0;
     proc->thread_arch.kernel_stack_bottom = stack_bottom;
     proc->thread_arch.kernel_stack_top = stack_top;
     proc->thread_arch.is_ring_3 = false;

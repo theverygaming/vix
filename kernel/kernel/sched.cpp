@@ -53,6 +53,9 @@ void sched::yield() {
 #else
     SCHED_ARCH_CUSTOM_SWITCH(last, current);
 #endif
+    // NOTE: after switch this code won't always be running.
+    // On thread init often arch-specific thread init code will run.
+    // It is responsible for correctly setting the CPU's interrupt state.
     pop_interrupt_disable();
 }
 
@@ -68,9 +71,7 @@ struct sched::thread sched::init_thread(void (*func)(), void *data1, void *data2
     t.tid = -1;
     t.data1 = data1;
     t.data2 = data2;
-    //FIXME: everything except IA-32!! arch_init_thread is supposed to set pushpop_interrupt_state and pushpop_interrupt_count!!!
-    //t.pushpop_interrupt_state = arch::INTERRUPT_STATE_DISABLED;
-    //t.pushpop_interrupt_count = 1; // initially it'll be popped once!
+    t.pushpop_interrupt_count = 0;
     return t;
 }
 
@@ -121,7 +122,9 @@ void sched::die() {
     current = nullptr;
     // FIXME: we kinda need to deallocate stack and stuff (but as we are currently in the affected thread that's hard!)
     cleanup_thread(del);
-    pop_interrupt_disable();
+    // NOTE: there's no pop_interrupt_disable as that wouldn't do anything here.
+    // (the current process is now nullptr, and that means nothing happens on pop_interrupt_disable)
+    // The code running after enter_thread shall ensure the correct interrupt context is restored.
     enter_thread(get_next());
     KERNEL_PANIC("unreachable");
 }
