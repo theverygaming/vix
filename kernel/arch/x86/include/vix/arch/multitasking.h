@@ -10,8 +10,6 @@
 #include <vix/types.h>
 
 namespace multitasking {
-    void list_processes();
-
     void initMultitasking();
     void interruptTrigger();
 #ifdef CONFIG_ARCH_HAS_PAGING
