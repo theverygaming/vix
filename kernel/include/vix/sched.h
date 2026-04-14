@@ -36,6 +36,7 @@ namespace sched {
 
     extern std::forward_list<sched::thread *> sched_readyqueue;
     extern std::forward_list<sched::thread *> sched_waitqueue;
+    extern std::forward_list<sched::thread *> sched_reapqueue;
 
     // must be called once - initializes internal data structures
     void init();

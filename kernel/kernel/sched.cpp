@@ -4,13 +4,17 @@
 #include <vix/mm/kheap.h>
 #include <vix/panic.h>
 #include <vix/sched.h>
+#include <vix/debug.h>
 
 std::forward_list<sched::thread *> sched::sched_readyqueue;
 std::forward_list<sched::thread *> sched::sched_waitqueue;
+std::forward_list<sched::thread *> sched::sched_reapqueue;
 
 static struct sched::thread *current = nullptr;
 
 static volatile bool sched_disabled = true;
+
+static int reaper_tid = -1;
 
 static struct sched::thread *get_next() {
     if (unlikely(sched::sched_readyqueue.size() == 0)) {
@@ -27,7 +31,26 @@ static void enter_thread(struct sched::thread *p) {
     sched_switch(&tmp, current->ctx, nullptr, current);
 }
 
+static void reaper(void *) {
+    while (true) {
+        DEBUG_PRINTF("sched: reaper awoke\n");
+        auto it = sched::sched_reapqueue.begin();
+        while (it != sched::sched_reapqueue.end()) {
+            sched::thread *t = *it;
+            DEBUG_PRINTF("sched: reaping TID %d\n", t->tid);
+            it++;
+            sched::sched_reapqueue.erase_first_eq(t);
+            // FIXME: deallocate stack and stuff
+            delete t;
+        }
+        // now we sleep
+        DEBUG_PRINTF("sched: reaper going to sleep\n");
+        sched::thread_sleep(sched::mythread()->tid);
+    }
+}
+
 void sched::init() {
+    reaper_tid = sched::start_kworker(reaper);
     sched_disabled = false;
 }
 
@@ -108,19 +131,18 @@ static sched::thread *find_by_tid(int tid) {
     return nullptr;
 }
 
-static void cleanup_thread(sched::thread *t) {
+static void thread_reap(sched::thread *t) {
     sched::sched_readyqueue.erase_first_eq(t);
     sched::sched_waitqueue.erase_first_eq(t);
-    // FIXME: deallocate stack and stuff (but as we may currently be in the affected thread that's hard!)
-    delete t;
+    sched::sched_reapqueue.push_front(t);
+    sched::thread_wakeup(reaper_tid);
 }
 
 void sched::die() {
     push_interrupt_disable();
     sched::thread *del = mythread();
     current = nullptr;
-    // FIXME: we kinda need to deallocate stack and stuff (but as we are currently in the affected thread that's hard!)
-    cleanup_thread(del);
+    thread_reap(del);
     // NOTE: there's no pop_interrupt_disable as that wouldn't do anything here.
     // (the current thread is now nullptr, and that means nothing happens on pop_interrupt_disable)
     // The code running after enter_thread shall ensure the correct interrupt context is restored.
@@ -138,7 +160,7 @@ void sched::thread_kill(int tid) {
     if (d == nullptr) {
         KERNEL_PANIC("requested to kill TID %d but we coudln't find it", tid);
     }
-    cleanup_thread(d);
+    thread_reap(d);
     pop_interrupt_disable();
 }
 
