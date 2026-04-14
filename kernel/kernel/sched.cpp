@@ -126,7 +126,7 @@ void sched::die() {
     KERNEL_PANIC("unreachable");
 }
 
-void sched::kill_thread(int tid) {
+void sched::thread_kill(int tid) {
     if (tid == mythread()->tid) {
         die();
         KERNEL_PANIC("unreachable");
