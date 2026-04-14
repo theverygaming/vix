@@ -78,7 +78,7 @@ int sched::start_thread(struct sched::thread t) {
     return nt->tid;
 }
 
-int sched::start_worker(void (*worker)(void *), void *ctx) {
+int sched::start_kworker(void (*worker)(void *), void *ctx) {
     return start_thread(init_thread(
         []() {
             void (*worker)(void *) = (void (*)(void *))sched::mythread()->data1;

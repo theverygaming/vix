@@ -135,7 +135,7 @@ static void fake_card_init() {
     net::ethernet_card *card = netstack_ethernet_register_card(&fake_card_ops);
     kprintf(KP_INFO, "fake_card registered!\n");
 
-    sched::start_worker(fake_packet_gen, card);
+    sched::start_kworker(fake_packet_gen, card);
 
     kprintf(KP_INFO, "fake_card done initializing\n");
 }

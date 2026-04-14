@@ -229,8 +229,8 @@ void arch::startup::kthread0() {
         elf::load_program(elfptr, &args);
     }
 
-    sched::start_worker(kt1);
-    sched::start_worker(kt1);
+    sched::start_kworker(kt1);
+    sched::start_kworker(kt1);
 
     // a bit of a hack.. we have to call the vector destructor before killing this process
     // args.~vector();

@@ -172,6 +172,6 @@ static void kt(void *) {
 }
 
 void arch::startup::kthread0() {
-    sched::start_worker(kt);
-    sched::start_worker(kt);
+    sched::start_kworker(kt);
+    sched::start_kworker(kt);
 }

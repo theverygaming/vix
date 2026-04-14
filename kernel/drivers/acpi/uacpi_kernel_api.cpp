@@ -317,7 +317,7 @@ uacpi_status uacpi_kernel_schedule_work(
 ) {
     DEBUG_PRINTF("uacpi: scheduled work\n");
     // TODO: handle uacpi_work_type (not really needed at time of writing since we don't even have SMP)
-    sched::start_worker(worker, ctx);
+    sched::start_kworker(worker, ctx);
     return UACPI_STATUS_OK;
 }
 

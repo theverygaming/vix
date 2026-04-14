@@ -190,7 +190,7 @@ void christmas_init() {
         &year, &month, &day, &hour, &minute, &second
     );
     if (month == 12 && day >= 15 && day <= 29) {
-        sched::start_worker(tree_generator);
+        sched::start_kworker(tree_generator);
     }
 }
 

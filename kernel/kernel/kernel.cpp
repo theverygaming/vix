@@ -82,7 +82,7 @@ void kernelstart() {
     sched::init();
 
     kprintf(KP_INFO, "kmain: starting first scheduler thread\n");
-    sched::start_worker(kthread0);
+    sched::start_kworker(kthread0);
 
     kprintf(KP_INFO, "kmain: entering scheduler\n");
     sched::enter();
