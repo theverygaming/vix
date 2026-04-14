@@ -77,3 +77,6 @@ namespace sched {
     // arch-specific
     void arch_init_thread(struct sched::thread *proc, void (*func)());
 }
+
+// arch-specific
+extern "C" void sched_switch(struct arch::ctx **old, struct arch::ctx *_new, struct sched::thread *prev, struct sched::thread *next);
