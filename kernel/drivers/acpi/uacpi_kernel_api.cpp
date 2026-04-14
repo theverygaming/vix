@@ -261,7 +261,7 @@ void uacpi_kernel_reset_event(uacpi_handle handle) {
 }
 
 uacpi_thread_id uacpi_kernel_get_thread_id(void) {
-    return (uacpi_thread_id)(uint64_t)sched::mytask()->pid;
+    return (uacpi_thread_id)(uint64_t)sched::mytask()->tid;
 }
 
 uacpi_interrupt_state uacpi_kernel_disable_interrupts(void) {

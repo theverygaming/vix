@@ -4,7 +4,7 @@
 
 __DEF_VIX_SYSCALL(sys_exit) {
     int status = (int)sysarg0;
-    kprintf(KP_INFO, "PID %d dying status: %d\n", sched::mytask()->pid, status);
+    kprintf(KP_INFO, "TID %d dying status: %d\n", sched::mytask()->tid, status);
     sched::die();
     return 0;
 }

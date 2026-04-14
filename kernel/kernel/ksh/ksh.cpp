@@ -99,8 +99,8 @@ static void ksh_exec(int argc, char **argv) {
              it != sched::sched_readyqueue.end();
              it++) {
             KSH_PRINTF(
-                "PID: %d state: %c ABI: %s\n",
-                (*it)->pid,
+                "TID: %d state: %c ABI: %s\n",
+                (*it)->tid,
                 ((*it)->state == sched::task::state::RUNNING) ? 'R' : 'S',
                 ((*it)->abi_type == abi::type::KERNEL_ONLY
                      ? "Kernel"

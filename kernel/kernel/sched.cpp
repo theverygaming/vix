@@ -65,7 +65,7 @@ struct sched::task sched::init_thread(void (*func)(), void *data1, void *data2) 
     struct sched::task t;
     sched::arch_init_thread(&t, func);
     t.state = sched::task::state::RUNNABLE;
-    t.pid = -1;
+    t.tid = -1;
     t.data1 = data1;
     t.data2 = data2;
     //FIXME: everything except IA-32!! arch_init_thread is supposed to set pushpop_interrupt_state and pushpop_interrupt_count!!!
@@ -75,13 +75,13 @@ struct sched::task sched::init_thread(void (*func)(), void *data1, void *data2) 
 }
 
 int sched::start_thread(struct sched::task t) {
-    static int pid_counter = 0;
+    static int tid_counter = 0;
     sched::task *nt = new sched::task(t);
-    nt->pid = pid_counter++;
+    nt->tid = tid_counter++;
     push_interrupt_disable();
     sched_readyqueue.push_front(nt);
     pop_interrupt_disable();
-    return nt->pid;
+    return nt->tid;
 }
 
 int sched::start_worker(void (*worker)(void *), void *ctx) {

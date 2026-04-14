@@ -89,8 +89,8 @@ extern "C" void x86_load_cpu_full_ctx(struct arch::full_ctx *ctx);
 static void user_thread_launch() {
     volatile int test = 5;
     kprintf(KP_INFO,
-            "hi from user thread(PID %d) stack: 0x%p stack top: 0x%p\n",
-            sched::mytask()->pid,
+            "hi from user thread(TID %d) stack: 0x%p stack top: 0x%p\n",
+            sched::mytask()->tid,
             &test,
             sched::mytask()->task_arch.kernel_stack_top);
     tss::tss_entry.ss0 = GDT_KERNEL_DATA;

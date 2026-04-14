@@ -10,7 +10,7 @@
 namespace sched {
 
     struct task {
-        int pid;
+        int tid;
         enum class state { RUNNING, RUNNABLE } state;
 #ifndef SCHED_ARCH_HAS_CUSTOM_SWITCH
         struct arch::ctx *ctx;
@@ -53,10 +53,10 @@ namespace sched {
     // allocates stack and stuff, ouput needs to be passed to start_thread later
     struct task init_thread(void (*func)(), void *data1 = nullptr, void *data2 = nullptr);
 
-    // low-level method to start a thread, allocates and returns PID
+    // low-level method to start a thread, allocates and returns TID
     int start_thread(struct task);
 
-    // high-level method to start a kernel worker thread, returns a PID, the thread will be killed when the function returns
+    // high-level method to start a kernel worker thread, returns a TID, the thread will be killed when the function returns
     int start_worker(void (*worker)(void *), void *ctx = nullptr);
 
     // Returns pointer to task structure of current running task
