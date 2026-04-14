@@ -23,12 +23,8 @@ static struct sched::thread *get_next() {
 static void enter_thread(struct sched::thread *p) {
     current = p;
     p->running = true;
-#ifndef SCHED_ARCH_HAS_CUSTOM_SWITCH
     struct arch::ctx *tmp;
     sched_switch(&tmp, current->ctx, nullptr, current);
-#else
-    SCHED_ARCH_CUSTOM_SWITCH_ENTRY(tmp, current);
-#endif
 }
 
 void sched::init() {
@@ -49,11 +45,7 @@ void sched::yield() {
     }
     last->running = false;
     current->running = true;
-#ifndef SCHED_ARCH_HAS_CUSTOM_SWITCH
     sched_switch(&last->ctx, current->ctx, last, current);
-#else
-    SCHED_ARCH_CUSTOM_SWITCH(last, current);
-#endif
     // NOTE: after switch this code won't always be running.
     // On thread init often arch-specific thread init code will run.
     // It is responsible for correctly setting the CPU's interrupt state.

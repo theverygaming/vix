@@ -11,11 +11,7 @@ namespace sched {
     struct thread {
         int tid;
         bool running;
-#ifndef SCHED_ARCH_HAS_CUSTOM_SWITCH
         struct arch::ctx *ctx;
-#else
-        SCHED_ARCH_CUSTOM_SWITCH_STRUCT_THREAD_CTX_DEF;
-#endif
 
         struct arch_thread thread_arch;
 
@@ -81,8 +77,3 @@ namespace sched {
     // arch-specific
     void arch_init_thread(struct sched::thread *proc, void (*func)());
 }
-
-#ifndef SCHED_ARCH_HAS_CUSTOM_SWITCH
-// arch-specific
-extern "C" void sched_switch(struct arch::ctx **old, struct arch::ctx *_new, struct sched::thread *prev, struct sched::thread *next);
-#endif
