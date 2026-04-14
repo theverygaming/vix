@@ -100,6 +100,7 @@ struct sched::task *sched::mytask() {
 
 void sched::die() {
     push_interrupt_disable();
+    // FIXME: we kinda need to deallocate stack and stuff (but as we are currently in the affected thread that's hard!)
     sched_readyqueue.erase_first_if([](const struct sched::task &e) -> bool { return e.pid == mytask()->pid; });
     pop_interrupt_disable();
     enter_thread(get_next());
