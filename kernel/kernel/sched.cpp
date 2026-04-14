@@ -5,7 +5,7 @@
 #include <vix/panic.h>
 #include <vix/sched.h>
 
-std::forward_list<sched::task> sched::sched_readyqueue;
+std::forward_list<sched::task *> sched::sched_readyqueue;
 
 static struct sched::task *current = nullptr;
 
@@ -16,7 +16,7 @@ static struct sched::task *get_next() {
         KERNEL_PANIC("no processes to run");
     }
 
-    return &sched::sched_readyqueue.swap_first_last();
+    return sched::sched_readyqueue.swap_first_last();
 }
 
 static void enter_thread(struct sched::task *p) {
@@ -62,11 +62,10 @@ void sched::enter() {
 }
 
 struct sched::task sched::init_thread(void (*func)(), void *data1, void *data2) {
-    static int pid_counter = 0;
     struct sched::task t;
     sched::arch_init_thread(&t, func);
     t.state = sched::task::state::RUNNABLE;
-    t.pid = pid_counter++;
+    t.pid = -1;
     t.data1 = data1;
     t.data2 = data2;
     //FIXME: everything except IA-32!! arch_init_thread is supposed to set pushpop_interrupt_state and pushpop_interrupt_count!!!
@@ -76,10 +75,13 @@ struct sched::task sched::init_thread(void (*func)(), void *data1, void *data2) 
 }
 
 int sched::start_thread(struct sched::task t) {
+    static int pid_counter = 0;
+    sched::task *nt = new sched::task(t);
+    nt->pid = pid_counter++;
     push_interrupt_disable();
-    sched_readyqueue.push_front(t);
+    sched_readyqueue.push_front(nt);
     pop_interrupt_disable();
-    return t.pid;
+    return nt->pid;
 }
 
 int sched::start_worker(void (*worker)(void *), void *ctx) {
@@ -100,8 +102,11 @@ struct sched::task *sched::mytask() {
 
 void sched::die() {
     push_interrupt_disable();
+    sched::task *del = mytask();
+    sched_readyqueue.erase_first_eq(del);
+    current = nullptr;
     // FIXME: we kinda need to deallocate stack and stuff (but as we are currently in the affected thread that's hard!)
-    sched_readyqueue.erase_first_if([](const struct sched::task &e) -> bool { return e.pid == mytask()->pid; });
+    delete del;
     pop_interrupt_disable();
     enter_thread(get_next());
     KERNEL_PANIC("unreachable");

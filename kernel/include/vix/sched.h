@@ -39,7 +39,7 @@ namespace sched {
         unsigned int pushpop_interrupt_count;
     };
 
-    extern std::forward_list<sched::task> sched_readyqueue;
+    extern std::forward_list<sched::task *> sched_readyqueue;
 
     // must be called once - initializes internal data structures
     void init();
@@ -50,10 +50,10 @@ namespace sched {
     // should only be called with interrupts disabled
     void yield();
 
-    // allocates a PID and stuff, ouput needs to be passed to start_thread later
+    // allocates stack and stuff, ouput needs to be passed to start_thread later
     struct task init_thread(void (*func)(), void *data1 = nullptr, void *data2 = nullptr);
 
-    // low-level method to start a thread, returns PID
+    // low-level method to start a thread, allocates and returns PID
     int start_thread(struct task);
 
     // high-level method to start a kernel worker thread, returns a PID, the thread will be killed when the function returns

@@ -100,11 +100,11 @@ static void ksh_exec(int argc, char **argv) {
              it++) {
             KSH_PRINTF(
                 "PID: %d state: %c ABI: %s\n",
-                it->pid,
-                (it->state == sched::task::state::RUNNING) ? 'R' : 'S',
-                (it->abi_type == abi::type::KERNEL_ONLY
+                (*it)->pid,
+                ((*it)->state == sched::task::state::RUNNING) ? 'R' : 'S',
+                ((*it)->abi_type == abi::type::KERNEL_ONLY
                      ? "Kernel"
-                     : ((it->abi_type == abi::type::LINUX) ? "Linux" : "vix"))
+                     : (((*it)->abi_type == abi::type::LINUX) ? "Linux" : "vix"))
             );
         }
         return;
