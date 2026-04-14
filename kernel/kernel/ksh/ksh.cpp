@@ -109,6 +109,9 @@ static void ksh_exec(int argc, char **argv) {
         for (auto it = sched::sched_readyqueue.begin(); it != sched::sched_readyqueue.end(); it++) {
             print_thread(*it, false);
         }
+        for (auto it = sched::sched_waitqueue.begin(); it != sched::sched_waitqueue.end(); it++) {
+            print_thread(*it, true);
+        }
         return;
     }
     if (strcmp(argv[0], "tree") == 0) {

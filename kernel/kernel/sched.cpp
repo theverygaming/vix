@@ -6,6 +6,7 @@
 #include <vix/sched.h>
 
 std::forward_list<sched::thread *> sched::sched_readyqueue;
+std::forward_list<sched::thread *> sched::sched_waitqueue;
 
 static struct sched::thread *current = nullptr;
 
@@ -107,11 +108,17 @@ static sched::thread *find_by_tid(int tid) {
             return *it;
         }
     }
+    for (auto it = sched::sched_waitqueue.begin(); it != sched::sched_waitqueue.end(); it++) {
+        if ((*it)->tid == tid) {
+            return *it;
+        }
+    }
     return nullptr;
 }
 
 static void cleanup_thread(sched::thread *t) {
     sched::sched_readyqueue.erase_first_eq(t);
+    sched::sched_waitqueue.erase_first_eq(t);
     // FIXME: deallocate stack and stuff (but as we may currently be in the affected thread that's hard!)
     delete t;
 }
@@ -140,6 +147,31 @@ void sched::thread_kill(int tid) {
         KERNEL_PANIC("requested to kill TID %d but we coudln't find it", tid);
     }
     cleanup_thread(d);
+    pop_interrupt_disable();
+}
+
+void sched::thread_sleep(int tid) {
+    push_interrupt_disable();
+    sched::thread *t = find_by_tid(tid);
+    if (t == nullptr) {
+        KERNEL_PANIC("requested to make TID %d sleep but we coudln't find it", tid);
+    }
+    sched::sched_readyqueue.erase_first_eq(t);
+    sched::sched_waitqueue.push_front(t);
+    pop_interrupt_disable();
+    if (t == current) {
+        yield();
+    }
+}
+
+void sched::thread_wakeup(int tid) {
+    push_interrupt_disable();
+    sched::thread *t = find_by_tid(tid);
+    if (t == nullptr) {
+        KERNEL_PANIC("requested to wake up TID %d but we coudln't find it", tid);
+    }
+    sched::sched_waitqueue.erase_first_eq(t);
+    sched::sched_readyqueue.push_front(t);
     pop_interrupt_disable();
 }
 

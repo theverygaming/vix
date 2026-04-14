@@ -39,6 +39,7 @@ namespace sched {
     };
 
     extern std::forward_list<sched::thread *> sched_readyqueue;
+    extern std::forward_list<sched::thread *> sched_waitqueue;
 
     // must be called once - initializes internal data structures
     void init();
@@ -65,6 +66,9 @@ namespace sched {
     void __attribute__((noreturn)) die();
 
     void thread_kill(int tid);
+
+    void thread_sleep(int tid);
+    void thread_wakeup(int tid);
 
     // FIXME: we need a proper critical section thingy
     // disables scheduling
