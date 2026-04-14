@@ -64,6 +64,8 @@ namespace sched {
     // Called from inside a thread to kill it
     void __attribute__((noreturn)) die();
 
+    void kill_thread(int tid);
+
     // FIXME: we need a proper critical section thingy
     // disables scheduling
     void disable();

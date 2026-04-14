@@ -100,16 +100,44 @@ struct sched::thread *sched::mythread() {
     return current;
 }
 
+static sched::thread *find_by_tid(int tid) {
+    for (auto it = sched::sched_readyqueue.begin(); it != sched::sched_readyqueue.end(); it++) {
+        if ((*it)->tid == tid) {
+            return *it;
+        }
+    }
+    return nullptr;
+}
+
+static void cleanup_thread(sched::thread *t) {
+    sched::sched_readyqueue.erase_first_eq(t);
+    // FIXME: deallocate stack and stuff (but as we may currently be in the affected thread that's hard!)
+    delete t;
+}
+
 void sched::die() {
     push_interrupt_disable();
     sched::thread *del = mythread();
-    sched_readyqueue.erase_first_eq(del);
     current = nullptr;
     // FIXME: we kinda need to deallocate stack and stuff (but as we are currently in the affected thread that's hard!)
-    delete del;
+    cleanup_thread(del);
     pop_interrupt_disable();
     enter_thread(get_next());
     KERNEL_PANIC("unreachable");
+}
+
+void sched::kill_thread(int tid) {
+    if (tid == mythread()->tid) {
+        die();
+        KERNEL_PANIC("unreachable");
+    }
+    push_interrupt_disable();
+    sched::thread *d = find_by_tid(tid);
+    if (d == nullptr) {
+        KERNEL_PANIC("requested to kill TID %d but we coudln't find it", tid);
+    }
+    cleanup_thread(d);
+    pop_interrupt_disable();
 }
 
 void sched::disable() {
