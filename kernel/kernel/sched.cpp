@@ -14,7 +14,7 @@ static volatile bool sched_disabled = true;
 
 static struct sched::thread *get_next() {
     if (unlikely(sched::sched_readyqueue.size() == 0)) {
-        KERNEL_PANIC("no processes to run");
+        KERNEL_PANIC("no threads to run");
     }
 
     return sched::sched_readyqueue.swap_first_last();
@@ -122,7 +122,7 @@ void sched::die() {
     // FIXME: we kinda need to deallocate stack and stuff (but as we are currently in the affected thread that's hard!)
     cleanup_thread(del);
     // NOTE: there's no pop_interrupt_disable as that wouldn't do anything here.
-    // (the current process is now nullptr, and that means nothing happens on pop_interrupt_disable)
+    // (the current thread is now nullptr, and that means nothing happens on pop_interrupt_disable)
     // The code running after enter_thread shall ensure the correct interrupt context is restored.
     enter_thread(get_next());
     KERNEL_PANIC("unreachable");
