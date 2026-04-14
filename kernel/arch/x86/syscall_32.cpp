@@ -6,6 +6,7 @@
 #include <vix/arch/syscall_32.h>
 #include <vix/config.h>
 #include <vix/debug.h>
+#include <vix/arch/common/interrupts.h>
 
 abi::linux::syscall_arg_t (*syscall_table[440])(abi::linux::syscall_arg_t sysarg0,
                                                 abi::linux::syscall_arg_t sysarg1,
@@ -456,6 +457,9 @@ abi::linux::syscall_arg_t (*syscall_table[440])(abi::linux::syscall_arg_t sysarg
 };
 
 extern "C" void syscallHandler(struct arch::full_ctx *regs) {
+    if (arch::get_interrupt_state() == arch::INTERRUPT_STATE_DISABLED) {
+        KERNEL_PANIC("interrupts off in syscall handler");
+    }
     if (regs->eax <= (sizeof(syscall_table) / sizeof(syscall_table[0]))) {
         DEBUG_PRINTF("calling syscall %u\n", regs->eax);
         abi::linux::syscall_arg_t retval;
