@@ -21,7 +21,7 @@ static struct sched::thread *get_next() {
 
 static void enter_thread(struct sched::thread *p) {
     current = p;
-    p->state = sched::thread::state::RUNNING;
+    p->running = true;
 #ifndef SCHED_ARCH_HAS_CUSTOM_SWITCH
     struct arch::ctx *tmp;
     sched_switch(&tmp, current->ctx, nullptr, current);
@@ -46,8 +46,8 @@ void sched::yield() {
         pop_interrupt_disable();
         return;
     }
-    last->state = sched::thread::state::RUNNABLE;
-    current->state = sched::thread::state::RUNNING;
+    last->running = false;
+    current->running = true;
 #ifndef SCHED_ARCH_HAS_CUSTOM_SWITCH
     sched_switch(&last->ctx, current->ctx, last, current);
 #else
@@ -64,7 +64,7 @@ void sched::enter() {
 struct sched::thread sched::init_thread(void (*func)(), void *data1, void *data2) {
     struct sched::thread t;
     sched::arch_init_thread(&t, func);
-    t.state = sched::thread::state::RUNNABLE;
+    t.running = false;
     t.tid = -1;
     t.data1 = data1;
     t.data2 = data2;

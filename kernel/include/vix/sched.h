@@ -10,7 +10,7 @@
 namespace sched {
     struct thread {
         int tid;
-        enum class state { RUNNING, RUNNABLE } state;
+        bool running;
 #ifndef SCHED_ARCH_HAS_CUSTOM_SWITCH
         struct arch::ctx *ctx;
 #else

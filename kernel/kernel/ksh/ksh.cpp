@@ -70,6 +70,17 @@ static void ksh_tree(const char *begin) {
     ksh_tree(begin, res.value());
 }
 
+static void print_thread(sched::thread *t, bool waiting) {
+    KSH_PRINTF(
+        "TID: %d state: %c ABI: %s\n",
+        t->tid,
+        waiting ? 'W' : ((t->running) ? 'R' : 'I'),
+        (t->abi_type == abi::type::KERNEL_ONLY
+                ? "Kernel"
+                : ((t->abi_type == abi::type::LINUX) ? "Linux" : "vix"))
+    );
+}
+
 static void ksh_exec(int argc, char **argv) {
     if (argc == 0) {
         return;
@@ -95,17 +106,8 @@ static void ksh_exec(int argc, char **argv) {
     }
     if (strcmp(argv[0], "threads") == 0) {
         KSH_PRINTF("-- list of threads --\n");
-        for (auto it = sched::sched_readyqueue.begin();
-             it != sched::sched_readyqueue.end();
-             it++) {
-            KSH_PRINTF(
-                "TID: %d state: %c ABI: %s\n",
-                (*it)->tid,
-                ((*it)->state == sched::thread::state::RUNNING) ? 'R' : 'S',
-                ((*it)->abi_type == abi::type::KERNEL_ONLY
-                     ? "Kernel"
-                     : (((*it)->abi_type == abi::type::LINUX) ? "Linux" : "vix"))
-            );
+        for (auto it = sched::sched_readyqueue.begin(); it != sched::sched_readyqueue.end(); it++) {
+            print_thread(*it, false);
         }
         return;
     }
