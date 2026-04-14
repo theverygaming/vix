@@ -1,5 +1,5 @@
 #pragma once
 
 namespace sched {
-    struct arch_task {};
+    struct arch_thread {};
 }

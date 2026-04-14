@@ -3,7 +3,7 @@
 #include <vix/sched.h>
 #include <vix/types.h>
 
-void sched::arch_init_thread(struct sched::task *proc, void (*func)()) {
+void sched::arch_init_thread(struct sched::thread *proc, void (*func)()) {
     uint64_t *stack = (uint64_t *)((uint8_t *)mm::kmalloc(1024) + 1024);
     stack -= sizeof(struct arch::ctx) / sizeof(uint64_t);
     struct arch::ctx *ctx = (struct arch::ctx *)stack;

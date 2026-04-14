@@ -3,7 +3,7 @@
 #include <vix/arch/multitasking.h>
 
 namespace sched {
-    struct arch_task {
+    struct arch_thread {
 #ifdef CONFIG_ARCH_HAS_PAGING
         arch::vmm::pt_t pt;
 #endif

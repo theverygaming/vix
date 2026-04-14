@@ -4,7 +4,7 @@
 
 __DEF_LINUX_SYSCALL(sys_exit) {
     int status = (int)sysarg0;
-    kprintf(KP_INFO, "TID %d dying status: %d\n", sched::mytask()->tid, status);
+    kprintf(KP_INFO, "TID %d dying status: %d\n", sched::mythread()->tid, status);
     sched::die();
     return 0;
 }

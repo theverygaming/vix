@@ -8,26 +8,25 @@
 #include <vix/config.h>
 
 namespace sched {
-
-    struct task {
+    struct thread {
         int tid;
         enum class state { RUNNING, RUNNABLE } state;
 #ifndef SCHED_ARCH_HAS_CUSTOM_SWITCH
         struct arch::ctx *ctx;
 #else
-        SCHED_ARCH_CUSTOM_SWITCH_STRUCT_TASK_CTX_DEF;
+        SCHED_ARCH_CUSTOM_SWITCH_STRUCT_THREAD_CTX_DEF;
 #endif
 
-        struct arch_task task_arch;
+        struct arch_thread thread_arch;
 
         enum abi::type abi_type = abi::type::KERNEL_ONLY;
 
 #ifdef CONFIG_ENABLE_ABI_LINUX
-        struct abi::linux::task task_linux;
+        struct abi::linux::thread thread_linux;
 #endif
 
 #ifdef CONFIG_ENABLE_ABI_VIX
-        struct abi::vix::task task_vix;
+        struct abi::vix::thread thread_vix;
 #endif
 
         // TLS
@@ -39,7 +38,7 @@ namespace sched {
         unsigned int pushpop_interrupt_count;
     };
 
-    extern std::forward_list<sched::task *> sched_readyqueue;
+    extern std::forward_list<sched::thread *> sched_readyqueue;
 
     // must be called once - initializes internal data structures
     void init();
@@ -51,16 +50,16 @@ namespace sched {
     void yield();
 
     // allocates stack and stuff, ouput needs to be passed to start_thread later
-    struct task init_thread(void (*func)(), void *data1 = nullptr, void *data2 = nullptr);
+    struct thread init_thread(void (*func)(), void *data1 = nullptr, void *data2 = nullptr);
 
     // low-level method to start a thread, allocates and returns TID
-    int start_thread(struct task);
+    int start_thread(struct thread);
 
     // high-level method to start a kernel worker thread, returns a TID, the thread will be killed when the function returns
     int start_worker(void (*worker)(void *), void *ctx = nullptr);
 
-    // Returns pointer to task structure of current running task
-    struct sched::task *mytask();
+    // Returns pointer to thread structure of current running thread
+    struct sched::thread *mythread();
 
     // Called from inside a thread to kill it
     void __attribute__((noreturn)) die();
@@ -74,10 +73,10 @@ namespace sched {
     bool is_disabled();
 
     // arch-specific
-    void arch_init_thread(struct sched::task *proc, void (*func)());
+    void arch_init_thread(struct sched::thread *proc, void (*func)());
 }
 
 #ifndef SCHED_ARCH_HAS_CUSTOM_SWITCH
 // arch-specific
-extern "C" void sched_switch(struct arch::ctx **old, struct arch::ctx *_new, struct sched::task *prev, struct sched::task *next);
+extern "C" void sched_switch(struct arch::ctx **old, struct arch::ctx *_new, struct sched::thread *prev, struct sched::thread *next);
 #endif

@@ -4,22 +4,22 @@
 #include <vix/panic.h>
 #include <vix/sched.h>
 
-// FIXME: instead of the current task the count should probably be per CPU instead???
+// FIXME: instead of per currently running thread the count should probably be per CPU instead???
 
 inline void push_interrupt_disable() {
-    if (unlikely(sched::mytask() == nullptr)) {
+    if (unlikely(sched::mythread() == nullptr)) {
         return;
     }
     unsigned int state = arch::get_interrupt_state();
     arch::set_interrupt_state(arch::INTERRUPT_STATE_DISABLED);
-    if (sched::mytask()->pushpop_interrupt_count == 0) {
-        sched::mytask()->pushpop_interrupt_state = state;
+    if (sched::mythread()->pushpop_interrupt_count == 0) {
+        sched::mythread()->pushpop_interrupt_state = state;
     }
-    sched::mytask()->pushpop_interrupt_count++;
+    sched::mythread()->pushpop_interrupt_count++;
 }
 
 inline void pop_interrupt_disable() {
-    if (unlikely(sched::mytask() == nullptr)) {
+    if (unlikely(sched::mythread() == nullptr)) {
         return;
     }
     // TODO: maybe use assert here?
@@ -29,11 +29,11 @@ inline void pop_interrupt_disable() {
         KERNEL_PANIC("interrupts were not disabled on popcli");
     }
     // TODO: maybe use assert here?
-    if (sched::mytask()->pushpop_interrupt_count == 0) {
+    if (sched::mythread()->pushpop_interrupt_count == 0) {
         KERNEL_PANIC("popcli: popped too often!");
     }
-    sched::mytask()->pushpop_interrupt_count--;
-    if (sched::mytask()->pushpop_interrupt_count == 0) {
-        arch::set_interrupt_state(sched::mytask()->pushpop_interrupt_state);
+    sched::mythread()->pushpop_interrupt_count--;
+    if (sched::mythread()->pushpop_interrupt_count == 0) {
+        arch::set_interrupt_state(sched::mythread()->pushpop_interrupt_state);
     }
 }

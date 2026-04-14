@@ -83,7 +83,7 @@ static void ksh_exec(int argc, char **argv) {
         KSH_PRINTF("-- list of commands --\n");
         KSH_PRINTF("help - displays this help menu\n");
         KSH_PRINTF(
-            "tasks - displays a compact list of tasks and their respective "
+            "threads - displays a compact list of threads and their respective "
             "states\n"
         );
         KSH_PRINTF("tree [optional: starting path] - VFS tree\n");
@@ -93,15 +93,15 @@ static void ksh_exec(int argc, char **argv) {
 #endif
         return;
     }
-    if (strcmp(argv[0], "tasks") == 0) {
-        KSH_PRINTF("-- list of tasks --\n");
+    if (strcmp(argv[0], "threads") == 0) {
+        KSH_PRINTF("-- list of threads --\n");
         for (auto it = sched::sched_readyqueue.begin();
              it != sched::sched_readyqueue.end();
              it++) {
             KSH_PRINTF(
                 "TID: %d state: %c ABI: %s\n",
                 (*it)->tid,
-                ((*it)->state == sched::task::state::RUNNING) ? 'R' : 'S',
+                ((*it)->state == sched::thread::state::RUNNING) ? 'R' : 'S',
                 ((*it)->abi_type == abi::type::KERNEL_ONLY
                      ? "Kernel"
                      : (((*it)->abi_type == abi::type::LINUX) ? "Linux" : "vix"))

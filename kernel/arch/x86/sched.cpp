@@ -22,7 +22,7 @@ extern "C" void x86_interrupt_return();
 
 // FIXME: lmao we don't deallocate anything ever
 
-void sched::arch_init_thread(struct sched::task *proc, void (*func)()) {
+void sched::arch_init_thread(struct sched::thread *proc, void (*func)()) {
 #ifdef CONFIG_ENABLE_KERNEL_32
     // TODO: stack guard page! Also just use a block allocator instead of the heap
     void *stack_bottom = mm::kmalloc_aligned(THREAD_KERNEL_STACK_SIZE, 4);
@@ -50,9 +50,9 @@ void sched::arch_init_thread(struct sched::task *proc, void (*func)()) {
     // TODO: does setting that to 1 make any sense with count = 0?
     proc->pushpop_interrupt_state = 1; // interrupts get enabled
     proc->pushpop_interrupt_count = 0;
-    proc->task_arch.kernel_stack_bottom = stack_bottom;
-    proc->task_arch.kernel_stack_top = stack_top;
-    proc->task_arch.is_ring_3 = false;
+    proc->thread_arch.kernel_stack_bottom = stack_bottom;
+    proc->thread_arch.kernel_stack_top = stack_top;
+    proc->thread_arch.is_ring_3 = false;
 #endif
 #ifdef CONFIG_ENABLE_KERNEL_64
     uint64_t *stack = (uint64_t *)((uint8_t *)mm::kmalloc(1024) + 1024);
@@ -66,14 +66,14 @@ void sched::arch_init_thread(struct sched::task *proc, void (*func)()) {
 #endif
 }
 
-extern "C" void x86_sched_switch(struct arch::ctx **old, struct arch::ctx *_new, struct sched::task *prev, struct sched::task *next);
+extern "C" void x86_sched_switch(struct arch::ctx **old, struct arch::ctx *_new, struct sched::thread *prev, struct sched::thread *next);
 
-extern "C" void sched_switch(struct arch::ctx **old, struct arch::ctx *_new, struct sched::task *prev, struct sched::task *next) {
+extern "C" void sched_switch(struct arch::ctx **old, struct arch::ctx *_new, struct sched::thread *prev, struct sched::thread *next) {
 #ifdef CONFIG_ENABLE_KERNEL_32
-    if (prev != nullptr && prev->task_arch.is_ring_3) {
+    if (prev != nullptr && prev->thread_arch.is_ring_3) {
         // check if the TSS ESP0 is correct (this check can be removed later, just for debugging purposes -- maybe make it an assertion?)
-        if (tss::tss_entry.esp0 != 0 && (tss::tss_entry.esp0 != (uintptr_t)prev->task_arch.kernel_stack_top)) {
-            KERNEL_PANIC("invalid TSS ESP0 - got 0x%p expected 0x%p", tss::tss_entry.esp0, prev->task_arch.kernel_stack_top);
+        if (tss::tss_entry.esp0 != 0 && (tss::tss_entry.esp0 != (uintptr_t)prev->thread_arch.kernel_stack_top)) {
+            KERNEL_PANIC("invalid TSS ESP0 - got 0x%p expected 0x%p", tss::tss_entry.esp0, prev->thread_arch.kernel_stack_top);
         }
 #ifdef CONFIG_ARCH_HAS_PAGING
         arch::vmm::load_pt(arch::vmm::kernel_pt); // I think this is nonsense lol, useless
@@ -81,10 +81,10 @@ extern "C" void sched_switch(struct arch::ctx **old, struct arch::ctx *_new, str
     }
 #endif
 #ifdef CONFIG_ENABLE_KERNEL_32
-    if (next->task_arch.is_ring_3) {
-        tss::tss_entry.esp0 = (uintptr_t)next->task_arch.kernel_stack_top;
+    if (next->thread_arch.is_ring_3) {
+        tss::tss_entry.esp0 = (uintptr_t)next->thread_arch.kernel_stack_top;
 #ifdef CONFIG_ARCH_HAS_PAGING
-        arch::vmm::load_pt(next->task_arch.pt);
+        arch::vmm::load_pt(next->thread_arch.pt);
     }
 #endif
 #endif

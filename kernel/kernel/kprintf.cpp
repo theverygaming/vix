@@ -52,8 +52,8 @@ static void print_kbuf(struct kp_buf_info *info, size_t idx, const char *buf) {
         return;
     }
     int tid = -1;
-    if (sched::mytask() != nullptr) {
-        tid = sched::mytask()->tid;
+    if (sched::mythread() != nullptr) {
+        tid = sched::mythread()->tid;
     }
 
     // shift results in precision loss but it's fast

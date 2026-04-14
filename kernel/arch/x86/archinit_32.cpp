@@ -160,7 +160,7 @@ static void kt1(void *) {
         push_interrupt_disable();
         volatile int test = 5;
         if (time::getCurrentUnixTime() - tlast > 30) {
-            kprintf(KP_INFO, "hi from kernel thread(TID %d) stack: 0x%p\n", sched::mytask()->tid, &test);
+            kprintf(KP_INFO, "hi from kernel thread(TID %d) stack: 0x%p\n", sched::mythread()->tid, &test);
             tlast = time::getCurrentUnixTime();
         }
         pop_interrupt_disable();

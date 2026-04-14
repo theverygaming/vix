@@ -90,13 +90,13 @@ static void user_thread_launch() {
     volatile int test = 5;
     kprintf(KP_INFO,
             "hi from user thread(TID %d) stack: 0x%p stack top: 0x%p\n",
-            sched::mytask()->tid,
+            sched::mythread()->tid,
             &test,
-            sched::mytask()->task_arch.kernel_stack_top);
+            sched::mythread()->thread_arch.kernel_stack_top);
     tss::tss_entry.ss0 = GDT_KERNEL_DATA;
-    tss::tss_entry.esp0 = (uintptr_t)sched::mytask()->task_arch.kernel_stack_top;
-    arch::vmm::load_pt(sched::mytask()->task_arch.pt);
-    x86_load_cpu_full_ctx((struct arch::full_ctx *)sched::mytask()->data1);
+    tss::tss_entry.esp0 = (uintptr_t)sched::mythread()->thread_arch.kernel_stack_top;
+    arch::vmm::load_pt(sched::mythread()->thread_arch.pt);
+    x86_load_cpu_full_ctx((struct arch::full_ctx *)sched::mythread()->data1);
 }
 
 void multitasking::create_task(void *stackadr, void *codeadr, arch::vmm::pt_t pt, std::vector<std::string> *argv) {
@@ -122,9 +122,9 @@ void multitasking::create_task(void *stackadr, void *codeadr, arch::vmm::pt_t pt
     ctx->eflags = 1 << 9;
 
     arch::vmm::load_pt(prev_pt);
-    struct sched::task t = sched::init_thread(user_thread_launch, ctx);
-    t.task_arch.pt = pt;
-    t.task_arch.is_ring_3 = true;
+    struct sched::thread t = sched::init_thread(user_thread_launch, ctx);
+    t.thread_arch.pt = pt;
+    t.thread_arch.is_ring_3 = true;
     sched::start_thread(t);
 }
 
@@ -140,17 +140,17 @@ void multitasking::interruptTrigger() {
         arch::set_interrupt_state(arch::INTERRUPT_STATE_DISABLED);
         KERNEL_PANIC("interrupts on in isr");
     }
-    if (sched::mytask()->task_arch.is_ring_3) {
+    if (sched::mythread()->thread_arch.is_ring_3) {
         // check if the TSS ESP0 is correct (this check can be removed later, just for debugging purposes -- maybe make it an assertion)
-        if (tss::tss_entry.esp0 != 0 && (tss::tss_entry.esp0 != (uintptr_t)sched::mytask()->task_arch.kernel_stack_top)) {
-            KERNEL_PANIC("invalid TSS ESP0  - got 0x%p expected 0x%p", tss::tss_entry.esp0, sched::mytask()->task_arch.kernel_stack_top);
+        if (tss::tss_entry.esp0 != 0 && (tss::tss_entry.esp0 != (uintptr_t)sched::mythread()->thread_arch.kernel_stack_top)) {
+            KERNEL_PANIC("invalid TSS ESP0  - got 0x%p expected 0x%p", tss::tss_entry.esp0, sched::mythread()->thread_arch.kernel_stack_top);
         }
     }
     sched::yield();
-    if (sched::mytask()->task_arch.is_ring_3) {
+    if (sched::mythread()->thread_arch.is_ring_3) {
         // check if the TSS ESP0 is correct (this check can be removed later, just for debugging purposes -- maybe make it an assertion?)
-        if (tss::tss_entry.esp0 != 0 && (tss::tss_entry.esp0 != (uintptr_t)sched::mytask()->task_arch.kernel_stack_top)) {
-            KERNEL_PANIC("invalid TSS ESP0  - got 0x%p expected 0x%p", tss::tss_entry.esp0, sched::mytask()->task_arch.kernel_stack_top);
+        if (tss::tss_entry.esp0 != 0 && (tss::tss_entry.esp0 != (uintptr_t)sched::mythread()->thread_arch.kernel_stack_top)) {
+            KERNEL_PANIC("invalid TSS ESP0  - got 0x%p expected 0x%p", tss::tss_entry.esp0, sched::mythread()->thread_arch.kernel_stack_top);
         }
     }
     if (arch::get_interrupt_state() != arch::INTERRUPT_STATE_DISABLED) {

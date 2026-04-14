@@ -25,10 +25,10 @@ extern "C" uint32_t rust_test(uint32_t);
 
 static void kthread0(void *) {
     uint64_t t1 = time::ns_since_bootup;
-    kprintf(KP_INFO, "kmain: first kernel thread started (TID %d)\n", sched::mytask()->tid);
+    kprintf(KP_INFO, "kmain: first kernel thread started (TID %d)\n", sched::mythread()->tid);
     arch::startup::kthread0();
     initfn_call_level(INITFN_DRIVER_INIT);
-    kprintf(KP_INFO, "kmain: first kernel thread dying (TID %d)\n", sched::mytask()->tid);
+    kprintf(KP_INFO, "kmain: first kernel thread dying (TID %d)\n", sched::mythread()->tid);
     if (t1 == time::ns_since_bootup) {
         kprintf(KP_ERR, "time::ns_since_bootup does not seem to be running!\n");
     }

@@ -165,7 +165,7 @@ static void kt(void *) {
     while (true) {
         push_interrupt_disable();
         volatile int test = 5;
-        kprintf(KP_INFO, "hi from kernel thread(TID %d) stack: 0x%p\n", sched::mytask()->tid, &test);
+        kprintf(KP_INFO, "hi from kernel thread(TID %d) stack: 0x%p\n", sched::mythread()->tid, &test);
         pop_interrupt_disable();
         sched::yield();
     }

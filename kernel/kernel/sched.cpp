@@ -5,13 +5,13 @@
 #include <vix/panic.h>
 #include <vix/sched.h>
 
-std::forward_list<sched::task *> sched::sched_readyqueue;
+std::forward_list<sched::thread *> sched::sched_readyqueue;
 
-static struct sched::task *current = nullptr;
+static struct sched::thread *current = nullptr;
 
 static volatile bool sched_disabled = true;
 
-static struct sched::task *get_next() {
+static struct sched::thread *get_next() {
     if (unlikely(sched::sched_readyqueue.size() == 0)) {
         KERNEL_PANIC("no processes to run");
     }
@@ -19,9 +19,9 @@ static struct sched::task *get_next() {
     return sched::sched_readyqueue.swap_first_last();
 }
 
-static void enter_thread(struct sched::task *p) {
+static void enter_thread(struct sched::thread *p) {
     current = p;
-    p->state = sched::task::state::RUNNING;
+    p->state = sched::thread::state::RUNNING;
 #ifndef SCHED_ARCH_HAS_CUSTOM_SWITCH
     struct arch::ctx *tmp;
     sched_switch(&tmp, current->ctx, nullptr, current);
@@ -38,16 +38,16 @@ void sched::yield() {
     if (unlikely(sched_disabled)) {
         return;
     }
-    push_interrupt_disable(); // the task switch is a rather major critical section so we disable interrupts
-    struct sched::task *last = current;
+    push_interrupt_disable(); // the thread switch is a rather major critical section so we disable interrupts
+    struct sched::thread *last = current;
     current = get_next();
-    // switching to the same task would break shit
+    // switching to the same thread would break shit
     if (last == current) {
         pop_interrupt_disable();
         return;
     }
-    last->state = sched::task::state::RUNNABLE;
-    current->state = sched::task::state::RUNNING;
+    last->state = sched::thread::state::RUNNABLE;
+    current->state = sched::thread::state::RUNNING;
 #ifndef SCHED_ARCH_HAS_CUSTOM_SWITCH
     sched_switch(&last->ctx, current->ctx, last, current);
 #else
@@ -61,10 +61,10 @@ void sched::enter() {
     KERNEL_PANIC("unreachable");
 }
 
-struct sched::task sched::init_thread(void (*func)(), void *data1, void *data2) {
-    struct sched::task t;
+struct sched::thread sched::init_thread(void (*func)(), void *data1, void *data2) {
+    struct sched::thread t;
     sched::arch_init_thread(&t, func);
-    t.state = sched::task::state::RUNNABLE;
+    t.state = sched::thread::state::RUNNABLE;
     t.tid = -1;
     t.data1 = data1;
     t.data2 = data2;
@@ -74,9 +74,9 @@ struct sched::task sched::init_thread(void (*func)(), void *data1, void *data2) 
     return t;
 }
 
-int sched::start_thread(struct sched::task t) {
+int sched::start_thread(struct sched::thread t) {
     static int tid_counter = 0;
-    sched::task *nt = new sched::task(t);
+    sched::thread *nt = new sched::thread(t);
     nt->tid = tid_counter++;
     push_interrupt_disable();
     sched_readyqueue.push_front(nt);
@@ -87,8 +87,8 @@ int sched::start_thread(struct sched::task t) {
 int sched::start_worker(void (*worker)(void *), void *ctx) {
     return start_thread(init_thread(
         []() {
-            void (*worker)(void *) = (void (*)(void *))sched::mytask()->data1;
-            worker(sched::mytask()->data2);
+            void (*worker)(void *) = (void (*)(void *))sched::mythread()->data1;
+            worker(sched::mythread()->data2);
             sched::die();
         },
         (void *)worker,
@@ -96,13 +96,13 @@ int sched::start_worker(void (*worker)(void *), void *ctx) {
     ));
 }
 
-struct sched::task *sched::mytask() {
+struct sched::thread *sched::mythread() {
     return current;
 }
 
 void sched::die() {
     push_interrupt_disable();
-    sched::task *del = mytask();
+    sched::thread *del = mythread();
     sched_readyqueue.erase_first_eq(del);
     current = nullptr;
     // FIXME: we kinda need to deallocate stack and stuff (but as we are currently in the affected thread that's hard!)
