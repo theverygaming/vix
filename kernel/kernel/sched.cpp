@@ -5,6 +5,7 @@
 #include <vix/panic.h>
 #include <vix/sched.h>
 #include <vix/debug.h>
+#include <vix/abi/abi.h>
 
 std::forward_list<sched::thread *> sched::sched_readyqueue;
 std::forward_list<sched::thread *> sched::sched_waitqueue;
@@ -41,6 +42,10 @@ static void reaper(void *) {
             it++;
             sched::sched_reapqueue.erase_first_eq(t);
             // FIXME: deallocate stack and stuff
+
+            if (t->abi_thread.hooks != nullptr && t->abi_thread.hooks->dealloc_thread != nullptr) {
+                t->abi_thread.hooks->dealloc_thread(t);
+            }
             delete t;
         }
         // now we sleep
@@ -80,14 +85,18 @@ void sched::enter() {
     KERNEL_PANIC("unreachable");
 }
 
-struct sched::thread sched::init_thread(void (*func)(), void *data1, void *data2) {
+struct sched::thread sched::init_thread(void (*func)(), struct abi::thread abi_thread, void *data1, void *data2) {
     struct sched::thread t;
+    t.abi_thread = abi_thread;
     sched::arch_init_thread(&t, func);
     t.running = false;
     t.tid = -1;
     t.data1 = data1;
     t.data2 = data2;
     t.pushpop_interrupt_count = 0;
+    if (t.abi_thread.hooks != nullptr && t.abi_thread.hooks->init_thread != nullptr) {
+        t.abi_thread.hooks->init_thread(&t);
+    }
     return t;
 }
 
@@ -95,6 +104,9 @@ int sched::start_thread(struct sched::thread t) {
     static int tid_counter = 0;
     sched::thread *nt = new sched::thread(t);
     nt->tid = tid_counter++;
+    if (nt->abi_thread.hooks != nullptr && nt->abi_thread.hooks->start_thread != nullptr) {
+        nt->abi_thread.hooks->start_thread(nt);
+    }
     push_interrupt_disable();
     sched_readyqueue.push_front(nt);
     pop_interrupt_disable();
@@ -107,6 +119,11 @@ int sched::start_kworker(void (*worker)(void *), void *ctx) {
             void (*worker)(void *) = (void (*)(void *))sched::mythread()->data1;
             worker(sched::mythread()->data2);
             sched::die();
+        },
+        {
+            .type = abi::type::KTHREAD,
+            .hooks = nullptr,
+            .ctx = nullptr,
         },
         (void *)worker,
         ctx

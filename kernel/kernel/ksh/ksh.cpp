@@ -75,9 +75,9 @@ static void print_thread(sched::thread *t, bool waiting) {
         "TID: %d state: %c ABI: %s\n",
         t->tid,
         waiting ? 'W' : ((t->running) ? 'R' : 'I'),
-        (t->abi_type == abi::type::KERNEL_ONLY
+        (t->abi_thread.type == abi::type::KTHREAD
                 ? "Kernel"
-                : ((t->abi_type == abi::type::LINUX) ? "Linux" : "vix"))
+                : ((t->abi_thread.type == abi::type::LINUX) ? "Linux" : "vix"))
     );
 }
 

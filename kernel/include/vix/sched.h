@@ -1,8 +1,6 @@
 #pragma once
 #include <forward_list>
 #include <vix/abi/abi.h>
-#include <vix/abi/linux/linux.h>
-#include <vix/abi/vix/vix.h>
 #include <vix/arch/common/cpu.h>
 #include <vix/arch/common/sched.h>
 #include <vix/config.h>
@@ -13,17 +11,11 @@ namespace sched {
         bool running;
         struct arch::ctx *ctx;
 
+        // architecture specific
         struct arch_thread thread_arch;
 
-        enum abi::type abi_type = abi::type::KERNEL_ONLY;
-
-#ifdef CONFIG_ENABLE_ABI_LINUX
-        struct abi::linux::thread thread_linux;
-#endif
-
-#ifdef CONFIG_ENABLE_ABI_VIX
-        struct abi::vix::thread thread_vix;
-#endif
+        // ABI stuff
+        struct abi::thread abi_thread;
 
         // TLS
         void *data1;
@@ -48,7 +40,7 @@ namespace sched {
     void yield();
 
     // allocates stack and stuff, ouput needs to be passed to start_thread later
-    struct thread init_thread(void (*func)(), void *data1 = nullptr, void *data2 = nullptr);
+    struct thread init_thread(void (*func)(), struct abi::thread abi_thread, void *data1 = nullptr, void *data2 = nullptr);
 
     // low-level method to start a thread, allocates and returns TID
     int start_thread(struct thread);

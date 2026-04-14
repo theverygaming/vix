@@ -19,6 +19,7 @@
 #include <vix/sched.h>
 #include <vix/stdio.h>
 #include <vix/time.h>
+#include <vix/abi/abi.h>
 
 static volatile bool uninitialized = true;
 
@@ -122,7 +123,11 @@ void multitasking::create_task(void *stackadr, void *codeadr, arch::vmm::pt_t pt
     ctx->eflags = 1 << 9;
 
     arch::vmm::load_pt(prev_pt);
-    struct sched::thread t = sched::init_thread(user_thread_launch, ctx);
+    struct sched::thread t = sched::init_thread(user_thread_launch, {
+        .type = abi::type::LINUX,
+        .hooks = nullptr,
+        .ctx = nullptr,
+    }, ctx);
     t.thread_arch.pt = pt;
     t.thread_arch.is_ring_3 = true;
     sched::start_thread(t);
