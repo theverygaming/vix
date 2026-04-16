@@ -1,4 +1,4 @@
-obj-d := acpi pci net
+obj-d := acpi pci net snd
 
 obj-y := ms_mouse.o keyboard.o
 
