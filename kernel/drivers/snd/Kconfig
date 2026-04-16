@@ -1,4 +1,4 @@
 config ENABLE_AC97
     depends on ENABLE_PCI
-    default y
+    default n
     tristate "AC'97 support"
