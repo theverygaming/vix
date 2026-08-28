@@ -1,4 +1,8 @@
-{ pkgs, target, libgccExtraFlags ? "" }:
+{
+  pkgs,
+  target,
+  libgccExtraFlags ? "",
+}:
 let
   binutils = pkgs.stdenv.mkDerivation rec {
     name = "binutils-${target}-embedded";
