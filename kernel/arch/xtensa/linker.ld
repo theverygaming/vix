@@ -11,7 +11,7 @@ MEMORY
 {
     /* TODO: use full memmap */
     iram ( RX )       : ORIGIN = 0x40080400, len = 0xC1FFF
-    dram ( RW )       : ORIGIN = 0x3FFF0000, len = 0x70001
+    dram ( RW )       : ORIGIN = 0x3FFF0000, len = 0xFFFF
 }
 
 SECTIONS

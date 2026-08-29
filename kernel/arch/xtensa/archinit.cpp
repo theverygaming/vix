@@ -32,7 +32,7 @@ static void kernelinit() {
             struct mm::mem_map_entry r;
 
             r.base = (uintptr_t)&__bss_end;
-            r.size = (0x3FFF0000 + 0x70001) - (uintptr_t)&__bss_end;
+            r.size = (0x3FFF0000 + 0xFFFF) - (uintptr_t)&__bss_end;
             r.type = mm::mem_map_entry::type_t::RAM;
 
             return r;
