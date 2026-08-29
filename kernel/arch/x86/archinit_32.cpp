@@ -101,17 +101,11 @@ static void kernelinit(void *multiboot2_info_ptr) {
     kernelstart();
 }
 
-extern "C" uint8_t _bss_start;
-extern "C" uint8_t _bss_end;
-
 extern "C" void __attribute__((section(".entry"))) _kentry(uint32_t multiboot2_info_ptr) {
     size_t sp;
     asm volatile("mov %%esp, %0" : "=a"(sp) :);
     if (sp < CONFIG_KERNEL_HIGHER_HALF) {
         return;
-    }
-    for (uint8_t *addr = &_bss_start; addr < &_bss_end; addr++) {
-        *addr = 0;
     }
     kernelinit((void *)multiboot2_info_ptr);
     while (true) {}
