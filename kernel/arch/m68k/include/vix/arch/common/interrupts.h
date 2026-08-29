@@ -6,14 +6,14 @@ namespace arch {
 
     static inline unsigned int get_interrupt_state() {
         uint32_t sr;
-        asm volatile("move.w %%sr, %0" : "=r"(sr));
+        asm volatile("move.w %%sr, %0" : "=d"(sr));
         return (sr >> 8) & 0b111;
     }
 
     static inline void set_interrupt_state(unsigned int state) {
         uint32_t sr;
-        asm volatile("move.w %%sr, %0" : "=r"(sr));
+        asm volatile("move.w %%sr, %0" : "=d"(sr));
         sr = (sr & ~(0b111 << 8)) | ((state & 0b111) << 8);
-        asm volatile("move.w %0, %%sr" : : "r"(sr));
+        asm volatile("move.w %0, %%sr" : : "d"(sr));
     }
 }
