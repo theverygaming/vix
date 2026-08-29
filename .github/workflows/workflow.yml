@@ -35,6 +35,13 @@ jobs:
             nm: m68k-elf-nm
             runcmd: "true"
             ignore_test_failure: true
+          - flake: esp32
+            step_config: make alldefconfig MAKE_ARCH=xtensa && make tests MAKE_ARCH=xtensa
+            step_build: make MAKE_ARCH=xtensa CROSS_COMPILE=xtensa-elf-
+            step_bootimg: "true"
+            nm: xtensa-elf-nm
+            runcmd: "true"
+            ignore_test_failure: true
     steps:
       - uses: actions/checkout@v5
         with:
