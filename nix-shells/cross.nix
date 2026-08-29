@@ -2,6 +2,8 @@
   pkgs,
   target,
   libgccExtraFlags ? "",
+  binutilsPostPatch ? null,
+  gccPostPatch ? null,
 }:
 let
   binutils = pkgs.stdenv.mkDerivation rec {
@@ -12,6 +14,8 @@ let
       sha256 = "sha256-FUqyO2AHDo8nATwil38RKUJdZ9HorNbhMBDmF4EeTP8=";
     };
     buildInputs = [ ];
+
+    postPatch = binutilsPostPatch;
 
     hardeningDisable = [ "format" ];
 
@@ -44,6 +48,8 @@ in
       pkgs.libmpc
       binutils
     ];
+
+    postPatch = gccPostPatch;
 
     hardeningDisable = [ "format" ];
 
