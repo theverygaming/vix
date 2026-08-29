@@ -33,6 +33,7 @@
           aarch64 = import ./nix-shells/aarch64.nix { inherit pkgs; };
           m68k = import ./nix-shells/m68k.nix { inherit pkgs; };
           esp32 = import ./nix-shells/esp32.nix { inherit pkgs; };
+          esp8266 = import ./nix-shells/esp8266.nix { inherit pkgs; };
         };
       }
     );
