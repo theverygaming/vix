@@ -1,5 +1,6 @@
 #include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
 
 char *itoa(size_t value, char *str, size_t base) {
     char *ptr = str;
