@@ -1,8 +1,8 @@
 { pkgs }:
 let
-  common = import ./common.nix { pkgs = pkgs; };
+  common = import ./common.nix { inherit pkgs; };
   cross = import ./cross.nix {
-    pkgs = pkgs;
+    inherit pkgs;
     target = "x86_64-elf";
     libgccExtraFlags = "-mcmodel=large -mno-red-zone";
   };

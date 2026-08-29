@@ -1,6 +1,6 @@
 { pkgs }:
 let
-  common = import ./common.nix { pkgs = pkgs; };
+  common = import ./common.nix { inherit pkgs; };
   common-xtensa = import ./common-xtensa.nix {
     inherit pkgs;
     binutilsPostPatch = common-xtensa.applyOverlay (

@@ -1,8 +1,8 @@
 { pkgs }:
 let
-  common = import ./common.nix { pkgs = pkgs; };
+  common = import ./common.nix { inherit pkgs; };
   cross = import ./cross.nix {
-    pkgs = pkgs;
+    inherit pkgs;
     target = "i686-elf";
     libgccExtraFlags = "-mno-red-zone";
   };
