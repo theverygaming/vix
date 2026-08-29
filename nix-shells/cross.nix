@@ -8,8 +8,8 @@ let
     name = "binutils-${target}-embedded";
 
     src = pkgs.fetchurl {
-      url = "https://ftp.gnu.org/gnu/binutils/binutils-2.42.tar.xz";
-      sha256 = "sha256-9uTUH9X8d4sGt4kUV7NiDaXs6hAGxqSkGumYEJ+FqAA=";
+      url = "https://ftp.gnu.org/gnu/binutils/binutils-2.47.tar.xz";
+      sha256 = "sha256-FUqyO2AHDo8nATwil38RKUJdZ9HorNbhMBDmF4EeTP8=";
     };
     buildInputs = [ ];
 
@@ -35,8 +35,8 @@ in
     name = "gcc-${target}-embedded";
 
     src = pkgs.fetchurl {
-      url = "https://ftp.gnu.org/gnu/gcc/gcc-13.2.0/gcc-13.2.0.tar.xz";
-      sha256 = "sha256-4nXnZEKmBnNBon8Exca4PYYTFEAEwEE1KIY9xrXHQ9o=";
+      url = "https://ftp.gnu.org/gnu/gcc/gcc-16.2.0/gcc-16.2.0.tar.xz";
+      sha256 = "sha256-5nOOKVl/czJwcxqpBgDzf/3ARQed/CfsfoGSzIEIXD4=";
     };
     buildInputs = [
       pkgs.gmp
