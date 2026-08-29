@@ -32,6 +32,7 @@
           x86-64 = import ./nix-shells/x86-64.nix { inherit pkgs; };
           aarch64 = import ./nix-shells/aarch64.nix { inherit pkgs; };
           m68k = import ./nix-shells/m68k.nix { inherit pkgs; };
+          esp32 = import ./nix-shells/esp32.nix { inherit pkgs; };
         };
       }
     );

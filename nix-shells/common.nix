@@ -55,5 +55,6 @@
     unset SOURCE_DATE_EPOCH
     echo "you can use 'vix-build' and 'vix-run' to compile & run vix"
     echo "you may also get 'vix-debug' (emulator with debugger support) and 'vix-debugger'"
+    echo "some targets may even offer 'vix-flash'"
   '';
 }
