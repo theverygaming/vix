@@ -32,19 +32,8 @@ SECTIONS
     . += CONSTANT(MAXPAGESIZE);
 
     .data ALIGN(PAGE) : {
-        START_CONSTRUCTORS_INITARR = .;
-        KEEP(*(.init_array));
-        KEEP(*(SORT_BY_INIT_PRIORITY(.init_array.*)));
-        END_CONSTRUCTORS_INITARR = .;
-        START_CONSTRUCTORS_CTORS = .;
-        KEEP(*(.ctors));
-        KEEP(*(SORT_BY_INIT_PRIORITY(.ctors.*)));
-        END_CONSTRUCTORS_CTORS = .;
-        INCLUDE arch/common_initfn.ld
         KEEP(*(.data))
-        KEEP(*(.sym_table))
-        PROVIDE(symtab_start = .);
-        PROVIDE(symtab_end = .);
+        INCLUDE arch/common_data.ld
     }>ram :data
 
     .bss ALIGN(PAGE) : {
