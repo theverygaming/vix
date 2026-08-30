@@ -23,4 +23,6 @@ choice
   default XTENSA_TARGET_ESP32
 	config XTENSA_TARGET_ESP32
 		bool "ESP32"
+	config XTENSA_TARGET_ESP8266
+		bool "ESP8266"
 endchoice

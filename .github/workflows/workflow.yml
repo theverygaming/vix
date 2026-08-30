@@ -42,6 +42,13 @@ jobs:
             nm: xtensa-elf-nm
             runcmd: "true"
             ignore_test_failure: true
+          - flake: esp8266
+            step_config: make alldefconfig MAKE_ARCH=xtensa && make tests MAKE_ARCH=xtensa && sed -i "s/CONFIG_XTENSA_TARGET_ESP32=y/# CONFIG_XTENSA_TARGET_ESP32 is not set/g;s/# CONFIG_XTENSA_TARGET_ESP8266 is not set/CONFIG_XTENSA_TARGET_ESP8266=y/g" kernel/.config && make syncconfig MAKE_ARCH=xtensa
+            step_build: make MAKE_ARCH=xtensa CROSS_COMPILE=xtensa-elf-
+            step_bootimg: "true"
+            nm: xtensa-elf-nm
+            runcmd: "true"
+            ignore_test_failure: true
     steps:
       - uses: actions/checkout@v5
         with:

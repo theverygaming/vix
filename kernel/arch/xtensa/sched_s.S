@@ -1,8 +1,11 @@
+#include <vix/config.h>
+
 // extern "C" void xtensa_sched_switch(struct sched::xtensa_sched_ctx *old, struct sched::xtensa_sched_ctx *_new);
 // FIXME: signature CHANGED to extern "C" void sched_switch(struct arch::ctx **old, struct arch::ctx *_new, struct sched::thread *prev, struct sched::thread *next);
 .section .text
 .global xtensa_sched_switch
 xtensa_sched_switch:
+#ifdef CONFIG_XTENSA_TARGET_ESP32
 #ifndef __XTENSA_WINDOWED_ABI__
 #error unknown xtensa ABI
 #endif
@@ -20,3 +23,4 @@ xtensa_sched_switch:
     l32i a1, a3, 4
 
     retw.n
+#endif
