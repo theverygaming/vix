@@ -7,7 +7,7 @@ extern "C" struct init_function *START_INITFN_FUNCTIONS;
 extern "C" struct init_function *END_INITFN_FUNCTIONS;
 
 void initfn_call(struct init_function *fn, unsigned int level) {
-    DEBUG_PRINTF("initfn_call: ptr: 0x%p name: %s\n", fn, fn->name);
+    DEBUG_PRINTF("initfn_call: ptr: 0x%p name: %s fnptr: 0x%p\n", fn, fn->name, fn->function);
 
     if (fn->flags & INIT_FUNCTION_FLAG_EXECUTED) {
         return;
