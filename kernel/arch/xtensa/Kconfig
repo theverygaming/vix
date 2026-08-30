@@ -17,3 +17,10 @@ config ENABLE_STACKPROTECTOR
   bool "Enable Stack Smashing Protector"
 
 endmenu
+
+choice
+	prompt "target hardware"
+  default XTENSA_TARGET_ESP32
+	config XTENSA_TARGET_ESP32
+		bool "ESP32"
+endchoice
