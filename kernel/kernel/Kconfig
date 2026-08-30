@@ -18,7 +18,7 @@ choice
 endchoice
 
 config KPRINTF_ENABLE_BUF
-  	default y
+  	default n
   	bool "enable kprintf buffer"
 
 config KPRINTF_BUFSIZE
