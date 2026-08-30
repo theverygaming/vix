@@ -290,8 +290,20 @@ static void init_map() {
             total += memory_map[i].size;
         }
     }
-    total /= 1048576;
-    kprintf(KP_INFO, "total usable memory: %uMiB\n", (uintptr_t)total);
+
+    uint64_t mib = 1 << 20;
+    uint64_t kib = 1 << 10;
+    const char *unit;
+    if (total >= 10 * mib) {
+        unit = "MiB";
+        total /= mib;
+    } else if (total >= 10 * kib) {
+        unit = "KiB";
+        total /= kib;
+    } else {
+        unit = "B";
+    }
+    kprintf(KP_INFO, "total usable memory: %u%s\n", (uintptr_t)total, unit);
 }
 
 void mm::set_mem_map(const struct mem_map_entry *in, size_t len) {
