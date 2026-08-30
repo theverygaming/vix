@@ -70,14 +70,29 @@ static void ksh_tree(const char *begin) {
     ksh_tree(begin, res.value());
 }
 
+static const char *get_thread_abi(sched::thread *t) {
+    switch (t->abi_thread.type) {
+    case abi::type::KTHREAD:
+        return "Kernel";
+#ifdef CONFIG_ENABLE_ABI_LINUX
+    case abi::type::LINUX:
+        return "Linux";
+#endif
+#ifdef CONFIG_ENABLE_ABI_VIX
+    case abi::type::VIX:
+        return "vix";
+#endif
+    default:
+        return "?";
+    }
+}
+
 static void print_thread(sched::thread *t, bool waiting) {
     KSH_PRINTF(
         "TID: %d state: %c ABI: %s\n",
         t->tid,
         waiting ? 'W' : ((t->running) ? 'R' : 'I'),
-        (t->abi_thread.type == abi::type::KTHREAD
-                ? "Kernel"
-                : ((t->abi_thread.type == abi::type::LINUX) ? "Linux" : "vix"))
+        get_thread_abi(t)
     );
 }
 
