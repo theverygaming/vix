@@ -589,7 +589,7 @@ static size_t last_size_full = 0;
 
 void *mm::kmalloc(size_t size) {
     DEBUG_PRINTF_INSANE_KHEAP_INSANE("kmalloc(%u)\n", size);
-    return mm::kmalloc_aligned(size, 2);
+    return mm::kmalloc_aligned(size, ARCH_ALIGNMENT_REQUIRED);
 }
 
 void mm::kfree(void *ptr) {
