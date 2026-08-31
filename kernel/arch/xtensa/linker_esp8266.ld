@@ -4,18 +4,21 @@ MEMORY
 {
     /* TODO: use full memmap */
     iram ( RX )       : ORIGIN = 0x40100000, len = 0x8000
+    flash ( RX )      : ORIGIN = 0x40208000, len = 0xF8000
     dram ( RW )       : ORIGIN = 0x3FFE8000, len = 0x14000
 }
 
 SECTIONS
 {
-    . = 0x40100000;
+    .iram.text : ALIGN(16) {
+        *(.entry)
+        *(.iram*)
+	}>iram
 
     .text : ALIGN(16) {
-        *(.entry)
-		*(.text)
+		*(.text*)
         KEEP(*(.tests))
-	}>iram
+	}>flash
 
     .rodata : ALIGN(16) {
         *(.rodata)

@@ -25,6 +25,6 @@ pkgs.stdenv.mkDerivation {
   shellHook = common.shellHook + ''
 
     alias vix-build='make MAKE_ARCH=xtensa CROSS_COMPILE=xtensa-elf- -j$NIX_BUILD_CORES'
-    alias vix-flash='esptool --chip esp8266 elf2image --flash-mode="dio" --flash-freq "40m" --flash-size "4MB" -o kernel- kernel/kernel.o && esptool --chip esp8266 --baud 115200 --before default-reset --after hard-reset write-flash -z --flash-mode dio --flash-freq 40m --flash-size detect 0x00000 kernel-0x00000.bin'
+    alias vix-flash='esptool --chip esp8266 elf2image --flash-mode="dio" --flash-freq "40m" --flash-size "4MB" -o kernel- kernel/kernel.o && esptool --chip esp8266 --baud 115200 --before default-reset --after hard-reset write-flash -z --flash-mode dio --flash-freq 40m --flash-size detect 0x00000 kernel-0x00000.bin 0x8000 kernel-0x08000.bin'
   '';
 }

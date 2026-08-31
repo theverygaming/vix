@@ -23,7 +23,8 @@ void (*ets_write_char_uart)(char c) = (void (*)(char))0x40007cf8;
 #ifdef CONFIG_XTENSA_TARGET_ESP8266
 // ESP8266 ROM
 void (*ets_putc)(char c) = (void (*)(char))0x40002be8;
-void (*ets_uart_printf)(const char *s) = (void (*)(const char *))0x40002544;
+void (*ets_uart_printf)(const char *fmt, ...) = (void (*)(const char *, ...))0x40002544;
+void (*Cache_Read_Enable)(uint8_t, uint8_t, uint8_t) = (void (*)(uint8_t, uint8_t, uint8_t))0x40004678;
 #endif
 
 static void romputs(const char *str, size_t n) {
@@ -76,10 +77,15 @@ inline void write_addr_32(uint32_t *addr, uint32_t value) {
     *ptr = value;
 }
 
-extern "C" void _kentry() {
+extern "C" void __attribute__((section(".entry"))) _kentry() {
     for (uint8_t *addr = &__bss_start; addr < &__bss_end; addr++) {
         *addr = 0;
     }
+
+#ifdef CONFIG_XTENSA_TARGET_ESP8266
+    // huge thanks to https://richard.burtons.org/2015/06/12/esp8266-cache_read_enable/
+    Cache_Read_Enable(0, 0, 1); // map first 1MiB of flash
+#endif
 
 #ifdef CONFIG_XTENSA_TARGET_ESP32
     // HACK: disable the WDT's

@@ -1,4 +1,4 @@
-.section .text
+.section .iram
 
 .align 128 // ESP8266 hardwires the bottom 7 bits of VECBASE to 0
 xtensa_vectors:
@@ -18,16 +18,6 @@ xtensa_vectors:
     // DoubleExceptionVector
     .org xtensa_vectors + 0x70
     j .vector_double_exception
-
-.literal_position
-.literal .Lxtensa_vectors, xtensa_vectors
-// extern "C" void xtensa_setup_vectors();
-.global xtensa_setup_vectors
-.align 4
-xtensa_setup_vectors:
-    l32r a2, .Lxtensa_vectors
-    wsr.vecbase a2
-    ret.n
 
 .align 4
 .vector_debug:
@@ -87,3 +77,16 @@ xtensa_setup_vectors:
 .align 4
 .loop:
     j .loop
+
+
+.section .text
+
+.literal_position
+.literal .Lxtensa_vectors, xtensa_vectors
+// extern "C" void xtensa_setup_vectors();
+.global xtensa_setup_vectors
+.align 4
+xtensa_setup_vectors:
+    l32r a2, .Lxtensa_vectors
+    wsr.vecbase a2
+    ret.n
