@@ -11,6 +11,8 @@
 #include <vix/panic.h>
 #include <vix/stdio.h>
 #include <vix/time.h>
+#include <vix/sched.h>
+#include <vix/interrupts.h>
 #ifdef CONFIG_XTENSA_TARGET_ESP8266
 #include <vix/arch/vectors.h>
 #endif
@@ -113,4 +115,17 @@ void arch::startup::stage4_startup() {
     time::bootupTime = time::getCurrentUnixTime();
 }
 
-void arch::startup::kthread0() {}
+static void kt(void *) {
+    while (true) {
+        push_interrupt_disable();
+        volatile int test = 5;
+        kprintf(KP_INFO, "hi from kernel thread(TID %d) stack: 0x%p\n", sched::mythread()->tid, &test);
+        pop_interrupt_disable();
+        sched::yield();
+    }
+}
+
+void arch::startup::kthread0() {
+    sched::start_kworker(kt);
+    sched::start_kworker(kt);
+}
