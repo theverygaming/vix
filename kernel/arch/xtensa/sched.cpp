@@ -5,10 +5,6 @@
 #include <vix/sched.h>
 #include <vix/config.h>
 
-static void procret() {
-    KERNEL_PANIC("returned from process");
-}
-
 void sched::arch_init_thread(struct sched::thread *proc, void (*func)()) {
 #ifdef CONFIG_XTENSA_TARGET_ESP8266
     uint32_t *stack_bottom = (uint32_t *)mm::kmalloc_aligned(1024, 16);
