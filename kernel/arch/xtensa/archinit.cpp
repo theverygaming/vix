@@ -49,6 +49,13 @@ extern "C" uint8_t __bss_start;
 extern "C" uint8_t __bss_end;
 
 static void kernelinit() {
+#ifdef CONFIG_XTENSA_TARGET_ESP8266
+    uint32_t ps;
+    asm volatile("rsr.ps %0" : "=a"(ps));
+    ps |= 0xF; // set interrupt level to 15
+    ps &= ~(1 << 5); // unset user mode bit
+    asm volatile("wsr.ps %0" : : "a"(ps));
+#endif
     stdio::set_puts_function(romputs, true);
     mm::set_mem_map(
         [](void *, size_t n) -> struct mm::mem_map_entry {
