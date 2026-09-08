@@ -34,10 +34,10 @@ config XTENSA_PLATFORM_NAME
 
 choice
 	prompt "CPU variant"
-  default XTENSA_VARIANT_ESP32 if XTENSA_PLATFORM_ESP32
+  default XTENSA_VARIANT_LX6_ESP32 if XTENSA_PLATFORM_ESP32
   default XTENSA_VARIANT_D106M if XTENSA_PLATFORM_ESP8266
-	config XTENSA_VARIANT_ESP32
-		bool "ESP32"
+	config XTENSA_VARIANT_LX6_ESP32
+		bool "Xtensa LX6 (ESP32)"
     depends on XTENSA_PLATFORM_ESP32
 	config XTENSA_VARIANT_D106M
 		bool "Tensilica Diamond Standard 106Micro"
@@ -46,5 +46,5 @@ endchoice
 
 config XTENSA_VARIANT_NAME
 	string
-  default "esp32" if XTENSA_VARIANT_ESP32
+  default "lx6-esp32" if XTENSA_VARIANT_LX6_ESP32
   default "d106m" if XTENSA_VARIANT_D106M
