@@ -7,7 +7,7 @@ include Makefile.version
 
 BUILD_SUBDIRS := kernel drivers fs net tests mm stdlibs abi rust
 
--include .config
+-include include/config/auto.conf
 ifneq ($(CONFIG_ARCH),)
 BUILD_ARCH := $(patsubst "%",%,$(CONFIG_ARCH))
 else
