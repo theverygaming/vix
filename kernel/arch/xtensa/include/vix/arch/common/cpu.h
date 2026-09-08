@@ -4,7 +4,7 @@
 
 namespace arch {
     struct __attribute__((packed)) full_ctx {
-#ifdef CONFIG_XTENSA_TARGET_ESP8266
+#ifdef CONFIG_XTENSA_PLATFORM_ESP8266
         uint32_t aregs[16];
         uint32_t pc;
         uint32_t sar;
@@ -20,7 +20,7 @@ namespace arch {
     };
 
     struct __attribute__((packed)) ctx {
-#ifdef CONFIG_XTENSA_TARGET_ESP8266
+#ifdef CONFIG_XTENSA_PLATFORM_ESP8266
         uint32_t a0;
         uint32_t a12;
         uint32_t a13;

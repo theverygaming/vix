@@ -3,10 +3,10 @@ set -eu
 
 source .config
 
-if [ "${CONFIG_XTENSA_TARGET_ESP32:-}" == "y" ]; then
+if [ "${CONFIG_XTENSA_PLATFORM_ESP32:-}" == "y" ]; then
     ldscript="arch/xtensa/linker_esp32.ld"
 fi
-if [ "${CONFIG_XTENSA_TARGET_ESP8266:-}" == "y" ]; then
+if [ "${CONFIG_XTENSA_PLATFORM_ESP8266:-}" == "y" ]; then
     ldscript="arch/xtensa/linker_esp8266.ld"
 fi
 

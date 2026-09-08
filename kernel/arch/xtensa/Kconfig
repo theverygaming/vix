@@ -19,10 +19,32 @@ config ENABLE_STACKPROTECTOR
 endmenu
 
 choice
-	prompt "target hardware"
-  default XTENSA_TARGET_ESP32
-	config XTENSA_TARGET_ESP32
+	prompt "platform"
+  default XTENSA_PLATFORM_ESP32
+	config XTENSA_PLATFORM_ESP32
 		bool "ESP32"
-	config XTENSA_TARGET_ESP8266
+	config XTENSA_PLATFORM_ESP8266
 		bool "ESP8266"
 endchoice
+
+config XTENSA_PLATFORM_NAME
+  string
+  default "esp32" if XTENSA_PLATFORM_ESP32
+  default "esp8266" if XTENSA_PLATFORM_ESP8266
+
+choice
+	prompt "CPU variant"
+  default XTENSA_VARIANT_ESP32 if XTENSA_PLATFORM_ESP32
+  default XTENSA_VARIANT_D106M if XTENSA_PLATFORM_ESP8266
+	config XTENSA_VARIANT_ESP32
+		bool "ESP32"
+    depends on XTENSA_PLATFORM_ESP32
+	config XTENSA_VARIANT_D106M
+		bool "Tensilica Diamond Standard 106Micro"
+    depends on XTENSA_PLATFORM_ESP8266
+endchoice
+
+config XTENSA_VARIANT_NAME
+	string
+  default "esp32" if XTENSA_VARIANT_ESP32
+  default "d106m" if XTENSA_VARIANT_D106M

@@ -12,7 +12,7 @@ static void procret() {
 extern "C" void xtensa_restore_full_ctx();
 
 void sched::arch_init_thread(struct sched::thread *proc, void (*func)()) {
-#ifdef CONFIG_XTENSA_TARGET_ESP8266
+#ifdef CONFIG_XTENSA_PLATFORM_ESP8266
     uint32_t *stack_bottom = (uint32_t *)mm::kmalloc_aligned(1024, 16);
     uint32_t *stack_top = (uint32_t *)((uint8_t *)stack_bottom + 1024);
     uint32_t *stack_top_real = (uint32_t *)((uint8_t *)stack_bottom + 1024);

@@ -5,7 +5,7 @@
 .global sched_switch
 sched_switch:
 
-#ifdef CONFIG_XTENSA_TARGET_ESP32
+#ifdef CONFIG_XTENSA_PLATFORM_ESP32
 #ifndef __XTENSA_WINDOWED_ABI__
 #error unknown xtensa ABI
 #endif
@@ -26,7 +26,7 @@ sched_switch:
     retw.n
 #endif
 
-#ifdef CONFIG_XTENSA_TARGET_ESP8266
+#ifdef CONFIG_XTENSA_PLATFORM_ESP8266
     addi a1, a1, -32 // xtensa docs say the stack pointer must be aligned to 16-byte boundaries
 
     // save all callee-saved registers
