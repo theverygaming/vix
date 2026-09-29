@@ -1,7 +1,9 @@
+. = ALIGN(16); /* should do the job for most architectures */
 START_CONSTRUCTORS_INITARR = .;
 KEEP(*(.init_array));
 KEEP(*(SORT_BY_INIT_PRIORITY(.init_array.*)));
 END_CONSTRUCTORS_INITARR = .;
+. = ALIGN(16); /* should do the job for most architectures */
 START_CONSTRUCTORS_CTORS = .;
 KEEP(*(.ctors));
 KEEP(*(SORT_BY_INIT_PRIORITY(.ctors.*)));
