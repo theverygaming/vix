@@ -27,16 +27,23 @@ extern "C" constructor START_CONSTRUCTORS_CTORS;
 extern "C" constructor END_CONSTRUCTORS_CTORS;
 
 void cpp_init() {
+    unsigned int n_constructors_called = 0;
     if (&START_CONSTRUCTORS_INITARR == &END_CONSTRUCTORS_INITARR) {
         for (constructor *i = &START_CONSTRUCTORS_CTORS; i < &END_CONSTRUCTORS_CTORS; i++) {
             DEBUG_PRINTF("calling ctor constructor - ptr: 0x%p *ptr: 0x%p\n", i, *i);
             (*i)();
+            n_constructors_called++;
         }
     } else {
         for (constructor *i = &START_CONSTRUCTORS_INITARR; i < &END_CONSTRUCTORS_INITARR; i++) {
             DEBUG_PRINTF("calling initarr constructor ptr: 0x%p *ptr: 0x%p\n", i, *i);
             (*i)();
+            n_constructors_called++;
         }
+    }
+    DEBUG_PRINTF("called %u C++ constructors\n", n_constructors_called);
+    if (n_constructors_called == 0) {
+        kprintf(KP_WARNING, "no C++ constructors called. This is probably terrible!\n");
     }
 }
 
