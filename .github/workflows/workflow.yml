@@ -62,7 +62,7 @@ jobs:
             nm: nm
             runcmd: ./kernel/kernel.o
             ignore_test_failure: false
-            run_timeout_secs: 180
+            run_timeout_secs: 30
     steps:
       - uses: actions/checkout@v5
         with:
