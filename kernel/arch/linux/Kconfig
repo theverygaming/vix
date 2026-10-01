@@ -1,0 +1,31 @@
+config ARCH_LINUX
+  bool
+  default y
+
+# stuff from arch/Kconfig
+
+config ARCH_HAS_PAGING
+  bool
+  default y
+
+config ARCH_PAGE_SIZE
+  int
+  default 4096
+
+config KERNEL_HIGHER_HALF
+  hex
+  default 0x80000000
+
+config HHDM_SIZE
+  hex
+  default 0x10000000 # 256MiB
+
+# END stuff from arch/Kconfig
+
+menu "Security"
+
+config ENABLE_STACKPROTECTOR
+  default y
+  bool "Enable Stack Smashing Protector"
+
+endmenu
