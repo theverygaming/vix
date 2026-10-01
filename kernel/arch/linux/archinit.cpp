@@ -104,8 +104,6 @@ static void kernelinit() {
 
     size_t kernel_code_size = remap_code(memfd, memfd_bytes);
 
-    launch_monitor(memfd, memfd_bytes);
-
     // map HHDM
     void *hhdm_base = (void *)(CONFIG_HHDM_VIRT_BASE + kernel_code_size);
     size_t hhdm_size = (memfd_bytes <= CONFIG_HHDM_SIZE ? memfd_bytes : CONFIG_HHDM_SIZE) - kernel_code_size;
@@ -114,7 +112,7 @@ static void kernelinit() {
         KERNEL_PANIC("failed to map HHDM");
     }
 
-    paging_init();
+    launch_monitor(memfd, memfd_bytes);
 
     struct mm::mem_map_entry r[] = {
         {
@@ -167,7 +165,9 @@ extern "C" void _kentry_c(int argc, char **argv, char **envp) {
     while (true) {}
 }
 
-void arch::startup::stage2_startup() {}
+void arch::startup::stage2_startup() {
+    paging_init();
+}
 
 void arch::startup::stage3_startup() {}
 
