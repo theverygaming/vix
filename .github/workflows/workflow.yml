@@ -55,6 +55,14 @@ jobs:
             runcmd: "true"
             ignore_test_failure: true
             run_timeout_secs: 30
+          - flake: linux
+            step_config: make alldefconfig MAKE_ARCH=linux && make tests MAKE_ARCH=linux
+            step_build: make MAKE_ARCH=linux
+            step_bootimg: make bootimg-linux MAKE_ARCH=linux
+            nm: nm
+            runcmd: ./kernel/kernel.o
+            ignore_test_failure: false
+            run_timeout_secs: 180
     steps:
       - uses: actions/checkout@v5
         with:
