@@ -14,6 +14,7 @@ jobs:
             nm: i686-elf-nm
             runcmd: qemu-system-x86_64 -cdrom vix.iso -nographic
             ignore_test_failure: false
+            run_timeout_secs: 30
           - flake: x86-64
             step_config: make defconfig MAKE_ARCH=x86 && make tests MAKE_ARCH=x86 && sed -i "s/CONFIG_ENABLE_KERNEL_32=y/# CONFIG_ENABLE_KERNEL_32=y\nCONFIG_ENABLE_KERNEL_64=y/g" kernel/.config && make syncconfig
             step_build: make MAKE_ARCH=x86 CROSS_COMPILE=x86_64-elf-
@@ -21,6 +22,7 @@ jobs:
             nm: x86_64-elf-nm
             runcmd: qemu-system-x86_64 -nographic -serial mon:stdio -hda vix_uefi.img
             ignore_test_failure: false
+            run_timeout_secs: 30
           - flake: aarch64
             step_config: make alldefconfig MAKE_ARCH=aarch64 && make tests MAKE_ARCH=aarch64
             step_build: make MAKE_ARCH=aarch64 CROSS_COMPILE=aarch64-none-elf-
@@ -28,6 +30,7 @@ jobs:
             nm: aarch64-none-elf-nm
             runcmd: qemu-system-aarch64 -m 1024m -bios "$VIX_QEMU_UEFI_BIOS_PATH" -cpu cortex-a53 -smp 4 -machine virt -device ramfb -device qemu-xhci -device usb-kbd -nographic -serial mon:stdio -hda vix_uefi.img
             ignore_test_failure: true
+            run_timeout_secs: 30
           - flake: m68k
             step_config: make alldefconfig MAKE_ARCH=m68k && make tests MAKE_ARCH=m68k
             step_build: make MAKE_ARCH=m68k CROSS_COMPILE=m68k-elf-
@@ -35,6 +38,7 @@ jobs:
             nm: m68k-elf-nm
             runcmd: "true"
             ignore_test_failure: true
+            run_timeout_secs: 30
           - flake: esp32
             step_config: make alldefconfig MAKE_ARCH=xtensa && make tests MAKE_ARCH=xtensa
             step_build: make MAKE_ARCH=xtensa CROSS_COMPILE=xtensa-elf-
@@ -42,6 +46,7 @@ jobs:
             nm: xtensa-elf-nm
             runcmd: "true"
             ignore_test_failure: true
+            run_timeout_secs: 30
           - flake: esp8266
             step_config: make alldefconfig MAKE_ARCH=xtensa && make tests MAKE_ARCH=xtensa && sed -i "s/CONFIG_XTENSA_PLATFORM_ESP32=y/# CONFIG_XTENSA_PLATFORM_ESP32 is not set/g;s/# CONFIG_XTENSA_PLATFORM_ESP8266 is not set/CONFIG_XTENSA_PLATFORM_ESP8266=y/g" kernel/.config && make syncconfig MAKE_ARCH=xtensa
             step_build: make MAKE_ARCH=xtensa CROSS_COMPILE=xtensa-elf-
@@ -49,6 +54,7 @@ jobs:
             nm: xtensa-elf-nm
             runcmd: "true"
             ignore_test_failure: true
+            run_timeout_secs: 30
     steps:
       - uses: actions/checkout@v5
         with:
@@ -73,7 +79,7 @@ jobs:
         run: |
           nix develop .#${{ matrix.stuff.flake }} --command bash -c '${{ matrix.stuff.step_bootimg }}'
       - name: Run in emulator
-        run: nix develop .#${{ matrix.stuff.flake }} --command bash -c 'timeout 30 ${{ matrix.stuff.runcmd }} | ansifilter | tee log.txt || true'
+        run: nix develop .#${{ matrix.stuff.flake }} --command bash -c 'timeout ${{ matrix.stuff.run_timeout_secs }} ${{ matrix.stuff.runcmd }} | ansifilter | tee log.txt || true'
       - name: Check Tests
         continue-on-error: ${{ matrix.stuff.ignore_test_failure }}
         run: |
