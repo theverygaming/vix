@@ -22,12 +22,15 @@ struct info {
     size_t size;
 };
 
-#ifndef CONFIG_ARCH_M68K
+#if defined(CONFIG_ARCH_X86)
 #define ALLOC_COUNT    3000
 #define ALLOC_MAX_SIZE 6000
-#else
+#elif defined(CONFIG_ARCH_M68K)
 #define ALLOC_COUNT    3000
 #define ALLOC_MAX_SIZE 1000
+#else
+#define ALLOC_COUNT    3000
+#define ALLOC_MAX_SIZE 6000
 #endif
 
 TEST(malloc_test) {
