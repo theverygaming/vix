@@ -188,6 +188,8 @@ static void kernelinit() {
 
     size_t kernel_code_size = remap_code(memfd, memfd_bytes);
 
+    launch_monitor(memfd, memfd_bytes);
+
     // map HHDM
     void *hhdm_base = (void *)(CONFIG_HHDM_VIRT_BASE + kernel_code_size);
     size_t hhdm_size = (memfd_bytes <= CONFIG_HHDM_SIZE ? memfd_bytes : CONFIG_HHDM_SIZE) - kernel_code_size;
@@ -195,8 +197,6 @@ static void kernelinit() {
     if (linux_mmap(hhdm_base, hhdm_size, LINUX_PROT_READ | LINUX_PROT_WRITE, LINUX_MAP_SHARED | LINUX_MAP_FIXED, memfd, kernel_code_size) != hhdm_base) {
         KERNEL_PANIC("failed to map HHDM");
     }
-
-    launch_monitor(memfd, memfd_bytes);
 
     // remap the stack _after_ branching off the monitor, because otherwise the stacks would collide :P
     size_t init_stack_size = remap_stack(memfd, memfd_bytes, kernel_code_size);
@@ -273,7 +273,6 @@ void arch::startup::stage4_startup() {
         if ((i % 10000) == 0) {
             long ts = ((long (*)())0xffffffffff600400)();
             printf("vsyscall: %d\n", ts);
-            kprintf(KP_INFO, "did monitor call res: %d\n", monitor_call());
         }
         break;
     }
