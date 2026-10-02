@@ -71,6 +71,90 @@ static size_t remap_code(int memfd, size_t memfd_bytes) {
     return raw_offs;
 }
 
+static size_t remap_stack(int memfd, size_t memfd_bytes, size_t kernel_code_size) {
+    int proc_maps_fd = linux_open("/proc/self/maps", LINUX_O_RDONLY, 0);
+    if (proc_maps_fd < 0) {
+        KERNEL_PANIC("got error %d", proc_maps_fd);
+    }
+
+    uint64_t sp;
+    asm volatile("mov %%rsp, %0" : "=r"(sp));
+    DEBUG_PRINTF("old SP: 0x%p\n", sp);
+
+    struct linux_procmap_query query = {
+        .size = sizeof(struct linux_procmap_query),
+        .query_flags = 0, // in
+        .query_addr = sp, // in
+        .vma_start = 0,
+        .vma_end = 0,
+        .vma_flags = 0,
+        .vma_page_size = 0,
+        .vma_offset = 0,
+        .inode = 0,
+        .dev_major = 0,
+        .dev_minor = 0,
+        .vma_name_size = 0, // in/out
+        .build_id_size = 0, // in/out
+        .vma_name_addr = 0, // in
+        .build_id_addr = 0, // in
+    };
+    if (linux_ioctl(proc_maps_fd, LINUX_PROCMAP_QUERY, (unsigned long)&query) < 0) {
+        KERNEL_PANIC("could not find stack map addr");
+    }
+    int err = linux_close(proc_maps_fd);
+    if (err != 0) {
+        KERNEL_PANIC("got error %d", err);
+    }
+    DEBUG_PRINTF("stack map: 0x%p-0x%p\n", query.vma_start, query.vma_end);
+
+    uint64_t new_base = CONFIG_HHDM_VIRT_BASE + kernel_code_size;
+    uint64_t new_size = CONFIG_ARCH_PAGE_SIZE * 8;
+    uint64_t new_bottom = new_base + new_size;
+    uint64_t old_top = query.vma_end;
+
+    DEBUG_PRINTF("new_base: 0x%p new_size: 0x%p old_top: 0x%p new_bottom: 0x%p\n", new_base, new_size, old_top, new_bottom);
+
+    asm volatile(
+        // rcx: count
+        // rcx: how many bytes of the old stack we want to copy at most
+        "mov $" STRINGIFY(CONFIG_ARCH_PAGE_SIZE) ", %%rcx\n\t"
+        // compute bytes from current sp to old stack top (actually bottom because it grows down) in rsi
+        "mov %%rsp, %%rdi\n\t"
+        "mov %[old_top], %%rsi\n\t"
+        "sub %%rdi, %%rsi\n\t"
+        // if rsi is smaller than rcx, move it to rcx
+        "cmp %%rcx, %%rsi\n\t"
+        "cmovb %%rsi, %%rcx\n\t"
+        // rsi: src
+        "mov %%rsp, %%rsi\n\t"
+        // rdi: dst
+        "mov %[new_bottom], %%rdi\n\t"
+        "sub $" STRINGIFY(CONFIG_ARCH_PAGE_SIZE) ", %%rdi\n\t"
+        // copy data from old to new stack
+        "rep movsb\n\t"
+        // correct rsp and rbp to the new stack (new rbp is computed via offset from old rsp)
+        "mov %[new_bottom], %%rdi\n\t"
+        "sub $" STRINGIFY(CONFIG_ARCH_PAGE_SIZE) ", %%rdi\n\t"
+        "mov %%rsp, %%rsi\n\t"
+        "mov %%rdi, %%rsp\n\t"
+        "sub %%rdi, %%rsi\n\t"
+        "sub %%rsi, %%rbp\n\t"
+        :
+        : [new_bottom] "r"(new_bottom), [old_top] "r"(old_top)
+        : "rcx", "rsi", "rdi", "memory"
+    );
+
+    asm volatile("mov %%rsp, %0" : "=r"(sp));
+    DEBUG_PRINTF("new SP: 0x%p\n", sp);
+
+    err = linux_munmap((void *)query.vma_start, query.vma_end - query.vma_start);
+    if (err != 0) {
+        KERNEL_PANIC("munmap failed %d", err);
+    }
+
+    return new_size;
+}
+
 static void launch_monitor(int memfd, size_t memfd_bytes) {
     // create the monitor process
     linux_pid_t childpid = linux_fork();
@@ -114,6 +198,9 @@ static void kernelinit() {
 
     launch_monitor(memfd, memfd_bytes);
 
+    // remap the stack _after_ branching off the monitor, because otherwise the stacks would collide :P
+    size_t init_stack_size = remap_stack(memfd, memfd_bytes, kernel_code_size);
+
     struct mm::mem_map_entry r[] = {
         {
             .base = 0,
@@ -122,7 +209,12 @@ static void kernelinit() {
         },
         {
             .base = kernel_code_size,
-            .size = memfd_bytes - kernel_code_size,
+            .size = init_stack_size,
+            .type = mm::mem_map_entry::type_t::RECLAIMABLE,
+        },
+        {
+            .base = (kernel_code_size + init_stack_size),
+            .size = memfd_bytes - (kernel_code_size + init_stack_size),
             .type = mm::mem_map_entry::type_t::RAM,
         },
     };
