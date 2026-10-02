@@ -13,6 +13,10 @@ int linux_open(const char *filename, int flags, linux_umode_t mode) {
     return linux_syscall3(2, (uint64_t)filename, flags, mode);
 }
 
+int linux_close(int fd) {
+    return linux_syscall1(3, fd);
+}
+
 int linux_poll(struct linux_pollfd *fds, unsigned int nfds, int timeout) {
     return linux_syscall3(7, (uint64_t)fds, nfds, timeout);
 }

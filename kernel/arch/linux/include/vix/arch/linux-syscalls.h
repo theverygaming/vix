@@ -214,6 +214,7 @@ extern "C" void linux_signal_restorer(void);
 ssize_t linux_read(unsigned int fd, void *buf, size_t count);
 ssize_t linux_write(unsigned int fd, const void *buf, size_t count);
 int linux_open(const char *filename, int flags, linux_umode_t mode);
+int linux_close(int fd);
 int linux_poll(struct linux_pollfd *fds, unsigned int nfds, int timeout);
 void *linux_mmap(void *addr, size_t length, int prot, int flags, int fd, ssize_t offset);
 int linux_mprotect(void *start, size_t length, int prot);
