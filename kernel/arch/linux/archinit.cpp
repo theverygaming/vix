@@ -186,9 +186,10 @@ static void kernelinit() {
     memfd_bytes = 1 << 26 /* 64MiB */;
     linux_ftruncate(memfd, memfd_bytes);
 
-    size_t kernel_code_size = remap_code(memfd, memfd_bytes);
-
     launch_monitor(memfd, memfd_bytes);
+
+    // remap the stack and code _after_ branching off the monitor, because otherwise the stack and data would collide :P
+    size_t kernel_code_size = remap_code(memfd, memfd_bytes);
 
     // map HHDM
     void *hhdm_base = (void *)(CONFIG_HHDM_VIRT_BASE + kernel_code_size);
@@ -198,7 +199,6 @@ static void kernelinit() {
         KERNEL_PANIC("failed to map HHDM");
     }
 
-    // remap the stack _after_ branching off the monitor, because otherwise the stacks would collide :P
     size_t init_stack_size = remap_stack(memfd, memfd_bytes, kernel_code_size);
 
     struct mm::mem_map_entry r[] = {
