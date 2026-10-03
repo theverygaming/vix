@@ -1,13 +1,16 @@
+#include <vix/debug.h>
 #include <vix/abi/linux/errno.h>
 #include <vix/kprintf.h>
 #include <vix/arch/monitor.h>
 #include <vix/arch/linux-syscalls.h>
 #include <vix/panic.h>
 
-static bool usermode = false;
+static unsigned long monitor_flags = 0;
+static uintptr_t trap_handler = 0;
 static linux_pid_t childpid;
-static volatile bool run_timer = true;
-#define SYS_MONITOR_CALL 0xABCD
+#define MONITOR_CALL_SET_TRAP_HANDLER 1
+#define MONITOR_CALL_SET_FLAGS 2
+#define MONITOR_CALL_UNSET_FLAGS 3
 static uint8_t *kpmem;
 static size_t kpmem_size;
 
@@ -20,7 +23,7 @@ static size_t kpmem_size;
 } while(0)
 
 static void signal_handler(int sig) {
-    if (run_timer) {
+    if ((monitor_flags & MONITOR_FLAG_TIMER) != 0) {
         linux_kill(childpid, LINUX_SIGSTOP);
     }
 }
@@ -104,7 +107,7 @@ void monitor_entry(linux_pid_t _childpid, int memfd, size_t memfd_bytes) {
     CHK_ERR(linux_wait4(childpid, &status, 0, nullptr));
     setup_timer();
     while(true) {
-        CHK_ERR(linux_ptrace(usermode ? LINUX_PTRACE_SYSEMU : LINUX_PTRACE_SYSCALL, childpid, nullptr, nullptr));
+        CHK_ERR(linux_ptrace((monitor_flags & MONITOR_FLAG_USERMODE) != 0 ? LINUX_PTRACE_SYSEMU : LINUX_PTRACE_SYSCALL, childpid, nullptr, nullptr));
         CHK_ERR(linux_wait4(childpid, &status, 0, nullptr));
 
         if (LINUX_WIFSTOPPED(status)) {
@@ -140,70 +143,201 @@ void monitor_entry(linux_pid_t _childpid, int memfd, size_t memfd_bytes) {
                 };
                 CHK_ERR(linux_ptrace(LINUX_PTRACE_GETREGSET, childpid, (void *)LINUX_NT_PRSTATUS, &iov));
 
-                // kprintf(KP_INFO, "monitor got syscall %u\n", regs.orig_ax);
+                bool syscall_emulate = false;
 
-                if (!usermode) {
-                    // catch and intercept monitor calls (magic syscall number)
-                    bool syscall_emulate = false;
-                    unsigned long syscall_emulate_ret = 0;
-
-                    if (regs.orig_ax == SYS_MONITOR_CALL) {
-                        kprintf(KP_INFO, "monitor: got monitor call\n");
-                        syscall_emulate = true;
-                        syscall_emulate_ret = 69;
-                    }
-
-                    if (syscall_emulate) {
-                        regs.orig_ax = -1; // execute a bogus syscall (will return ENOSYS), we will overwrite the return value later
-                        CHK_ERR(linux_ptrace(LINUX_PTRACE_SETREGSET, childpid, (void *)LINUX_NT_PRSTATUS, &iov));
-                    }
-
-                    // continue and catch syscall exit
-                    CHK_ERR(linux_ptrace(LINUX_PTRACE_SYSCALL, childpid, nullptr, nullptr));
-                    CHK_ERR(linux_wait4(childpid, &status, 0, nullptr));
-                    if (!(LINUX_WIFSTOPPED(status) && LINUX_WSTOPSIG(status) == LINUX_SIGTRAP)) {
-                        if (LINUX_WIFEXITED(status)) {
-                            break;
-                        }
-                        kprintf(KP_ALERT, "WTF?\n");
-                        break;
-                    }
-
-                    if (syscall_emulate) {
-                        regs.ax = syscall_emulate_ret;
-                        CHK_ERR(linux_ptrace(LINUX_PTRACE_SETREGSET, childpid, (void *)LINUX_NT_PRSTATUS, &iov));
-                    }
-                } else {
+                if ((monitor_flags & MONITOR_FLAG_USERMODE) != 0) {
                     kprintf(KP_ALERT, "UNIMPLEMENTED: usermode syscall %u\n", regs.orig_ax);
                     break;
                 }
+
+                // catch and intercept monitor calls (magic syscall number)
+                if (regs.orig_ax == MONITOR_CALL) {
+                    kprintf(KP_INFO, "monitor: got monitor call\n");
+                    syscall_emulate = true;
+                    switch(regs.di) {
+                        case MONITOR_CALL_TRAPRET: {
+                            // pop monitor flags
+                            unsigned long flags;
+                            CHK_ERR(linux_ptrace(LINUX_PTRACE_PEEKDATA, childpid, (void *)regs.sp, &flags));
+                            regs.sp += 8;
+                            monitor_flags = (flags & (MONITOR_FLAG_USERMODE | MONITOR_FLAG_TIMER));
+
+                            // pop rdi
+                            CHK_ERR(linux_ptrace(LINUX_PTRACE_PEEKDATA, childpid, (void *)regs.sp, &regs.di));
+                            regs.sp += 8;
+
+                            // pop rax
+                            CHK_ERR(linux_ptrace(LINUX_PTRACE_PEEKDATA, childpid, (void *)regs.sp, &regs.ax));
+                            regs.sp += 8;
+
+                            // pop r11
+                            CHK_ERR(linux_ptrace(LINUX_PTRACE_PEEKDATA, childpid, (void *)regs.sp, &regs.r11));
+                            regs.sp += 8;
+
+                            // pop rcx
+                            CHK_ERR(linux_ptrace(LINUX_PTRACE_PEEKDATA, childpid, (void *)regs.sp, &regs.cx));
+                            regs.sp += 8;
+
+                            // pop rflags
+                            CHK_ERR(linux_ptrace(LINUX_PTRACE_PEEKDATA, childpid, (void *)regs.sp, &regs.flags));
+                            regs.sp += 8;
+
+                            // pop rip
+                            CHK_ERR(linux_ptrace(LINUX_PTRACE_PEEKDATA, childpid, (void *)regs.sp, &regs.ip));
+                            regs.sp += 8;
+
+                            // pop rsp
+                            CHK_ERR(linux_ptrace(LINUX_PTRACE_PEEKDATA, childpid, (void *)regs.sp, &regs.sp));
+                            // no need to change rsp after this :)
+
+                            break;
+                        }
+                        case MONITOR_CALL_SET_FLAGS: {
+                            unsigned long flags = regs.si;
+                            monitor_flags |= (flags & (MONITOR_FLAG_TIMER));
+                            break;
+                        }
+                        case MONITOR_CALL_UNSET_FLAGS: {
+                            unsigned long flags = regs.si;
+                            monitor_flags &= ~(flags & (MONITOR_FLAG_TIMER));
+                            break;
+                        }
+                        case MONITOR_CALL_SET_TRAP_HANDLER: {
+                            trap_handler = regs.si;
+                            break;
+                        }
+                        default: {
+                            regs.ax = -1;
+                            break;
+                        }
+                    }
+                }
+
+                if (syscall_emulate) {
+                    regs.orig_ax = -1; // execute a bogus syscall (will return ENOSYS), we will overwrite the return value later
+                    CHK_ERR(linux_ptrace(LINUX_PTRACE_SETREGSET, childpid, (void *)LINUX_NT_PRSTATUS, &iov));
+                }
+
+                // continue and catch syscall exit
+                CHK_ERR(linux_ptrace(LINUX_PTRACE_SYSCALL, childpid, nullptr, nullptr));
+                CHK_ERR(linux_wait4(childpid, &status, 0, nullptr));
+                if (!(LINUX_WIFSTOPPED(status) && LINUX_WSTOPSIG(status) == LINUX_SIGTRAP)) {
+                    if (LINUX_WIFEXITED(status)) {
+                        kprintf(KP_ALERT, "WTF? " __FILE__ ":" STRINGIFY(__LINE__) " status: 0x%p\n", status);
+                        break;
+                    }
+                    kprintf(KP_ALERT, "WTF? " __FILE__ ":" STRINGIFY(__LINE__) " status: 0x%p\n", status);
+                    break;
+                }
+
+                if (syscall_emulate) {
+                    CHK_ERR(linux_ptrace(LINUX_PTRACE_SETREGSET, childpid, (void *)LINUX_NT_PRSTATUS, &iov));
+                } else {
+                    CHK_ERR(linux_ptrace(LINUX_PTRACE_GETREGSET, childpid, (void *)LINUX_NT_PRSTATUS, &iov));
+                    // detect the kernel trying to restart a syscall, and prevent it from doing so. We restart syscalls ourselves in this household!!!
+                    // this must be done because otherwise we'd explode the linux syscall restart process
+                    // by jumping somewhere else when we restore registers in the timer interrupt
+                    if ((int64_t)regs.ax == -LINUX_ERESTARTSYS || (int64_t)regs.ax == -LINUX_ERESTARTNOINTR) {
+                        // gaslight the linux kernel so it doesn't explode everything
+                        // https://github.com/torvalds/linux/blob/a74306e2e676f9775457366fc047a660fbf02f26/arch/x86/kernel/signal.c#L266-L282
+                        regs.ax = regs.orig_ax;
+                        regs.ip -= 2; // go back to syscall instruction
+                        DEBUG_PRINTF("detected syscall restart attmept, manually restarting instead!\n");
+                        CHK_ERR(linux_ptrace(LINUX_PTRACE_SETREGSET, childpid, (void *)LINUX_NT_PRSTATUS, &iov));
+                    }
+                }
             } else if (sig == LINUX_SIGSTOP) {
-                kprintf(KP_INFO, "timer interrupt?\n");
+                DEBUG_PRINTF("timer interrupt?\n");
+                if ((monitor_flags & MONITOR_FLAG_USERMODE) != 0) {
+                    kprintf(KP_ALERT, "UNIMPLEMENTED: usermode timer interrupt\n");
+                    break;
+                }
                 struct linux_user_regs_struct regs;
                 struct linux_iovec iov = {
                     .iov_base = &regs,
                     .iov_len = sizeof(regs)
                 };
                 CHK_ERR(linux_ptrace(LINUX_PTRACE_GETREGSET, childpid, (void *)LINUX_NT_PRSTATUS, &iov));
-                //regs.ip = (unsigned long)kernel_panic;
+
+                uint64_t orig_sp = regs.sp;
+                regs.sp = ALIGN_DOWN(regs.sp, 16); // the stack shall be 16-byte aligned as x86_64 commands!
+                // push rsp
+                regs.sp -= 8;
+                CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs.sp, (void *)orig_sp));
+
+                // push rip
+                regs.sp -= 8;
+                CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs.sp, (void *)regs.ip));
+
+                // push rflags
+                regs.sp -= 8;
+                CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs.sp, (void *)regs.flags));
+
+                // push rcx (clobbered by syscall instruction)
+                regs.sp -= 8;
+                CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs.sp, (void *)regs.cx));
+
+                // push r11 (clobbered by syscall instruction)
+                regs.sp -= 8;
+                CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs.sp, (void *)regs.r11));
+
+                // push rax (clobbered by syscall args)
+                regs.sp -= 8;
+                CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs.sp, (void *)regs.ax));
+
+                // push rdi (clobbered by syscall args)
+                regs.sp -= 8;
+                CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs.sp, (void *)regs.di));
+
+                // push monitor flags
+                regs.sp -= 8;
+                CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs.sp, (void *)monitor_flags));
+
+                // starting from here these won't be restored by MONITOR_CALL_TRAPRET
+
+                // push interrupt code
+                regs.sp -= 8;
+                CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs.sp, (void *)0));
+
+                // push interrupt metadata 1
+                regs.sp -= 8;
+                CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs.sp, (void *)0));
+
+                // push interrupt metadata 2
+                regs.sp -= 8;
+                CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs.sp, (void *)0));
+
+                // push interrupt metadata 3
+                regs.sp -= 8;
+                CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs.sp, (void *)0));
+
+                regs.ip = trap_handler;
+
                 CHK_ERR(linux_ptrace(LINUX_PTRACE_SETREGSET, childpid, (void *)LINUX_NT_PRSTATUS, &iov));
-                run_timer = false;
             } else {
-                kprintf(KP_ALERT, "WTF?\n");
+                kprintf(KP_WARNING, "unknown stopped signal %d (status: 0x%p)\n", sig, status);
                 dumpchildregs();
-                break;
+                //break;
             }
         } else if (LINUX_WIFEXITED(status)) {
             // normal exit
             break;
         } else {
-            kprintf(KP_ALERT, "WTF?\n");
+            kprintf(KP_ALERT, "WTF? " __FILE__ ":" STRINGIFY(__LINE__) " status: 0x%p\n", status);
             dumpchildregs();
             break;
         }
     }
 }
 
-int monitor_call() {
-    return linux_syscall0(SYS_MONITOR_CALL);
+void monitor_set_trap_handler(uintptr_t addr) {
+    linux_syscall2(MONITOR_CALL, MONITOR_CALL_SET_TRAP_HANDLER, addr);
+}
+
+void monitor_set_flags(unsigned long flags) {
+    linux_syscall2(MONITOR_CALL, MONITOR_CALL_SET_FLAGS, flags);
+}
+
+void monitor_unset_flags(unsigned long flags) {
+    linux_syscall2(MONITOR_CALL, MONITOR_CALL_UNSET_FLAGS, flags);
 }

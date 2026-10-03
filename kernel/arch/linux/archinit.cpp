@@ -178,6 +178,8 @@ static void launch_monitor(int memfd, size_t memfd_bytes) {
 int memfd;
 size_t memfd_bytes;
 
+extern "C" void trap_handler();
+
 static void kernelinit() {
     stdio::set_puts_function(writeputs, true);
 
@@ -187,6 +189,8 @@ static void kernelinit() {
     linux_ftruncate(memfd, memfd_bytes);
 
     launch_monitor(memfd, memfd_bytes);
+
+    monitor_set_trap_handler((uintptr_t)&trap_handler);
 
     // remap the stack and code _after_ branching off the monitor, because otherwise the stack and data would collide :P
     size_t kernel_code_size = remap_code(memfd, memfd_bytes);
@@ -259,6 +263,7 @@ extern "C" void _kentry_c(int argc, char **argv, char **envp) {
 
 void arch::startup::stage2_startup() {
     paging_init();
+    monitor_set_flags(MONITOR_FLAG_TIMER);
 }
 
 void arch::startup::stage3_startup() {}

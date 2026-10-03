@@ -172,6 +172,8 @@ typedef struct {
 #define LINUX_PR_SET_PDEATHSIG 1
 
 #define LINUX_PTRACE_TRACEME 0
+#define LINUX_PTRACE_PEEKDATA 2
+#define LINUX_PTRACE_POKEDATA 5
 #define LINUX_PTRACE_CONT 7
 #define LINUX_PTRACE_SYSCALL 24
 #define LINUX_PTRACE_SYSEMU 31 // I think this is x86_64-specific?
@@ -208,6 +210,9 @@ typedef struct {
 #define LINUX_O_RDONLY 0
 
 #define LINUX_PROCMAP_QUERY 0xc0686611
+
+#define LINUX_ERESTARTSYS 512
+#define LINUX_ERESTARTNOINTR 513
 
 extern "C" void linux_signal_restorer(void);
 
