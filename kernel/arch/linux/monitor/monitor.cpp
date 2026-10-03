@@ -54,6 +54,36 @@ static void setup_timer() {
     CHK_ERR(linux_timer_settime(timer_id, 0, &itimerspec, nullptr));
 }
 
+static void dumpchildregs(struct linux_user_regs_struct *regs) {
+    kprintf(KP_ALERT, "dumpchildregs: r15 0x%p\n", regs->r15);
+    kprintf(KP_ALERT, "dumpchildregs: r14 0x%p\n", regs->r14);
+    kprintf(KP_ALERT, "dumpchildregs: r13 0x%p\n", regs->r13);
+    kprintf(KP_ALERT, "dumpchildregs: r12 0x%p\n", regs->r12);
+    kprintf(KP_ALERT, "dumpchildregs: bp 0x%p\n", regs->bp);
+    kprintf(KP_ALERT, "dumpchildregs: bx 0x%p\n", regs->bx);
+    kprintf(KP_ALERT, "dumpchildregs: r11 0x%p\n", regs->r11);
+    kprintf(KP_ALERT, "dumpchildregs: r10 0x%p\n", regs->r10);
+    kprintf(KP_ALERT, "dumpchildregs: r9 0x%p\n", regs->r9);
+    kprintf(KP_ALERT, "dumpchildregs: r8 0x%p\n", regs->r8);
+    kprintf(KP_ALERT, "dumpchildregs: ax 0x%p\n", regs->ax);
+    kprintf(KP_ALERT, "dumpchildregs: cx 0x%p\n", regs->cx);
+    kprintf(KP_ALERT, "dumpchildregs: dx 0x%p\n", regs->dx);
+    kprintf(KP_ALERT, "dumpchildregs: si 0x%p\n", regs->si);
+    kprintf(KP_ALERT, "dumpchildregs: di 0x%p\n", regs->di);
+    kprintf(KP_ALERT, "dumpchildregs: orig_ax 0x%p\n", regs->orig_ax);
+    kprintf(KP_ALERT, "dumpchildregs: ip 0x%p\n", regs->ip);
+    kprintf(KP_ALERT, "dumpchildregs: cs 0x%p\n", regs->cs);
+    kprintf(KP_ALERT, "dumpchildregs: flags 0x%p\n", regs->flags);
+    kprintf(KP_ALERT, "dumpchildregs: sp 0x%p\n", regs->sp);
+    kprintf(KP_ALERT, "dumpchildregs: ss 0x%p\n", regs->ss);
+    kprintf(KP_ALERT, "dumpchildregs: fs_base 0x%p\n", regs->fs_base);
+    kprintf(KP_ALERT, "dumpchildregs: gs_base 0x%p\n", regs->gs_base);
+    kprintf(KP_ALERT, "dumpchildregs: ds 0x%p\n", regs->ds);
+    kprintf(KP_ALERT, "dumpchildregs: es 0x%p\n", regs->es);
+    kprintf(KP_ALERT, "dumpchildregs: fs 0x%p\n", regs->fs);
+    kprintf(KP_ALERT, "dumpchildregs: gs 0x%p\n", regs->gs);
+}
+
 static void dumpchildregs() {
     struct linux_user_regs_struct regs;
     struct linux_iovec iov = {
@@ -61,33 +91,7 @@ static void dumpchildregs() {
         .iov_len = sizeof(regs)
     };
     CHK_ERR(linux_ptrace(LINUX_PTRACE_GETREGSET, childpid, (void *)LINUX_NT_PRSTATUS, &iov));
-    kprintf(KP_ALERT, "dumpchildregs: r15 0x%p\n", regs.r15);
-    kprintf(KP_ALERT, "dumpchildregs: r14 0x%p\n", regs.r14);
-    kprintf(KP_ALERT, "dumpchildregs: r13 0x%p\n", regs.r13);
-    kprintf(KP_ALERT, "dumpchildregs: r12 0x%p\n", regs.r12);
-    kprintf(KP_ALERT, "dumpchildregs: bp 0x%p\n", regs.bp);
-    kprintf(KP_ALERT, "dumpchildregs: bx 0x%p\n", regs.bx);
-    kprintf(KP_ALERT, "dumpchildregs: r11 0x%p\n", regs.r11);
-    kprintf(KP_ALERT, "dumpchildregs: r10 0x%p\n", regs.r10);
-    kprintf(KP_ALERT, "dumpchildregs: r9 0x%p\n", regs.r9);
-    kprintf(KP_ALERT, "dumpchildregs: r8 0x%p\n", regs.r8);
-    kprintf(KP_ALERT, "dumpchildregs: ax 0x%p\n", regs.ax);
-    kprintf(KP_ALERT, "dumpchildregs: cx 0x%p\n", regs.cx);
-    kprintf(KP_ALERT, "dumpchildregs: dx 0x%p\n", regs.dx);
-    kprintf(KP_ALERT, "dumpchildregs: si 0x%p\n", regs.si);
-    kprintf(KP_ALERT, "dumpchildregs: di 0x%p\n", regs.di);
-    kprintf(KP_ALERT, "dumpchildregs: orig_ax 0x%p\n", regs.orig_ax);
-    kprintf(KP_ALERT, "dumpchildregs: ip 0x%p\n", regs.ip);
-    kprintf(KP_ALERT, "dumpchildregs: cs 0x%p\n", regs.cs);
-    kprintf(KP_ALERT, "dumpchildregs: flags 0x%p\n", regs.flags);
-    kprintf(KP_ALERT, "dumpchildregs: sp 0x%p\n", regs.sp);
-    kprintf(KP_ALERT, "dumpchildregs: ss 0x%p\n", regs.ss);
-    kprintf(KP_ALERT, "dumpchildregs: fs_base 0x%p\n", regs.fs_base);
-    kprintf(KP_ALERT, "dumpchildregs: gs_base 0x%p\n", regs.gs_base);
-    kprintf(KP_ALERT, "dumpchildregs: ds 0x%p\n", regs.ds);
-    kprintf(KP_ALERT, "dumpchildregs: es 0x%p\n", regs.es);
-    kprintf(KP_ALERT, "dumpchildregs: fs 0x%p\n", regs.fs);
-    kprintf(KP_ALERT, "dumpchildregs: gs 0x%p\n", regs.gs);
+    dumpchildregs(&regs);
 }
 
 void monitor_entry(linux_pid_t _childpid, int memfd, size_t memfd_bytes) {
