@@ -18,6 +18,8 @@ trap_entry:
     pushq %rdx
     pushq %rbx
 
+    mov %rsp, %rdi
+    call trap_handler
     jmp .trap_return_stack
 
 .global trap_return
