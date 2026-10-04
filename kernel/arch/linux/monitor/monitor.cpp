@@ -227,7 +227,7 @@ void monitor_entry(linux_pid_t _childpid, int memfd, size_t memfd_bytes) {
                 CHK_ERR(linux_wait4(childpid, &status, 0, nullptr));
                 if (!(LINUX_WIFSTOPPED(status) && LINUX_WSTOPSIG(status) == LINUX_SIGTRAP)) {
                     if (LINUX_WIFEXITED(status)) {
-                        kprintf(KP_ALERT, "WTF? " __FILE__ ":" STRINGIFY(__LINE__) " status: 0x%p\n", status);
+                        // normal exit
                         break;
                     }
                     kprintf(KP_ALERT, "WTF? " __FILE__ ":" STRINGIFY(__LINE__) " status: 0x%p\n", status);
