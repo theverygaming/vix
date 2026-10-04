@@ -182,6 +182,10 @@ void monitor_entry(linux_pid_t _childpid, int memfd, size_t memfd_bytes) {
                             CHK_ERR(linux_ptrace(LINUX_PTRACE_PEEKDATA, childpid, (void *)regs.sp, &regs.flags));
                             regs.sp += 8;
 
+                            // pop cs
+                            CHK_ERR(linux_ptrace(LINUX_PTRACE_PEEKDATA, childpid, (void *)regs.sp, &regs.cs));
+                            regs.sp += 8;
+
                             // pop rip
                             CHK_ERR(linux_ptrace(LINUX_PTRACE_PEEKDATA, childpid, (void *)regs.sp, &regs.ip));
                             regs.sp += 8;
@@ -269,6 +273,10 @@ void monitor_entry(linux_pid_t _childpid, int memfd, size_t memfd_bytes) {
                 regs.sp -= 8;
                 CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs.sp, (void *)regs.ip));
 
+                // push cs
+                regs.sp -= 8;
+                CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs.sp, (void *)regs.cs));
+
                 // push rflags
                 regs.sp -= 8;
                 CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs.sp, (void *)regs.flags));
@@ -310,6 +318,13 @@ void monitor_entry(linux_pid_t _childpid, int memfd, size_t memfd_bytes) {
                 // push interrupt metadata 3
                 regs.sp -= 8;
                 CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs.sp, (void *)0));
+
+                // push interrupt metadata 4
+                regs.sp -= 8;
+                CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs.sp, (void *)0));
+
+                // unset the timer flag, to avoid nested interrupts - exceptions are an.. exception :)
+                monitor_flags &= ~(MONITOR_FLAG_TIMER);
 
                 regs.ip = trap_handler;
 
