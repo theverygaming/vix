@@ -87,6 +87,73 @@ static void dumpchildregs(struct linux_user_regs_struct *regs) {
     kprintf(KP_ALERT, "dumpchildregs: gs 0x%p\n", regs->gs);
 }
 
+static void trapchild(struct linux_user_regs_struct *regs, uint64_t icode, uint64_t imeta1, uint64_t imeta2, uint64_t imeta3, uint64_t imeta4) {
+    uint64_t orig_sp = regs->sp;
+    regs->sp = ALIGN_DOWN(regs->sp, 16); // the stack shall be 16-byte aligned as x86_64 commands!
+    // push rsp
+    regs->sp -= 8;
+    CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs->sp, (void *)orig_sp));
+
+    // push rip
+    regs->sp -= 8;
+    CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs->sp, (void *)regs->ip));
+
+    // push cs
+    regs->sp -= 8;
+    CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs->sp, (void *)regs->cs));
+
+    // push rflags
+    regs->sp -= 8;
+    CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs->sp, (void *)regs->flags));
+
+    // push rcx (clobbered by syscall instruction)
+    regs->sp -= 8;
+    CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs->sp, (void *)regs->cx));
+
+    // push r11 (clobbered by syscall instruction)
+    regs->sp -= 8;
+    CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs->sp, (void *)regs->r11));
+
+    // push rax (clobbered by syscall args)
+    regs->sp -= 8;
+    CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs->sp, (void *)regs->ax));
+
+    // push rdi (clobbered by syscall args)
+    regs->sp -= 8;
+    CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs->sp, (void *)regs->di));
+
+    // push monitor flags
+    regs->sp -= 8;
+    CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs->sp, (void *)monitor_flags));
+
+    // starting from here these won't be restored by MONITOR_CALL_TRAPRET
+
+    // push interrupt code
+    regs->sp -= 8;
+    CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs->sp, (void *)icode));
+
+    // push interrupt metadata 1
+    regs->sp -= 8;
+    CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs->sp, (void *)imeta1));
+
+    // push interrupt metadata 2
+    regs->sp -= 8;
+    CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs->sp, (void *)imeta2));
+
+    // push interrupt metadata 3
+    regs->sp -= 8;
+    CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs->sp, (void *)imeta3));
+
+    // push interrupt metadata 4
+    regs->sp -= 8;
+    CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs->sp, (void *)imeta4));
+
+    regs->ip = trap_handler;
+
+    // unset the timer flag, to avoid nested interrupts - exceptions are an.. exception :)
+    monitor_flags &= ~(MONITOR_FLAG_TIMER);
+}
+
 static void dumpchildregs() {
     struct linux_user_regs_struct regs;
     struct linux_iovec iov = {
@@ -122,9 +189,9 @@ void monitor_entry(linux_pid_t _childpid, int memfd, size_t memfd_bytes) {
                 CHK_ERR(linux_ptrace(LINUX_PTRACE_GETREGSET, childpid, (void *)LINUX_NT_PRSTATUS, &iov));
                 linux_siginfo_t siginfo;
                 CHK_ERR(linux_ptrace(LINUX_PTRACE_GETSIGINFO, childpid, nullptr, &siginfo));
-                kprintf(KP_ALERT, "monitor: child SIGSEGV IP: 0x%p fault addr: 0x%p\n", regs.ip, siginfo.si_addr);
-                dumpchildregs();
-                break;
+                trapchild(&regs, MONITOR_TRAPCODE_SEGV, (uint64_t)siginfo.si_addr, 0, 0, 0);
+                DEBUG_PRINTF("monitor: child SIGSEGV IP: 0x%p fault addr: 0x%p\n", regs.ip, siginfo.si_addr);
+                CHK_ERR(linux_ptrace(LINUX_PTRACE_SETREGSET, childpid, (void *)LINUX_NT_PRSTATUS, &iov));
             } else if (sig == LINUX_SIGFPE) { // div by zero n shit
                 struct linux_user_regs_struct regs;
                 struct linux_iovec iov = {
@@ -132,9 +199,9 @@ void monitor_entry(linux_pid_t _childpid, int memfd, size_t memfd_bytes) {
                     .iov_len = sizeof(regs)
                 };
                 CHK_ERR(linux_ptrace(LINUX_PTRACE_GETREGSET, childpid, (void *)LINUX_NT_PRSTATUS, &iov));
-                kprintf(KP_ALERT, "monitor: child SIGFPE IP: 0x%p\n", regs.ip);
-                dumpchildregs();
-                break;
+                trapchild(&regs, MONITOR_TRAPCODE_ME, 0, 0, 0, 0);
+                DEBUG_PRINTF("monitor: child SIGFPE IP: 0x%p\n", regs.ip);
+                CHK_ERR(linux_ptrace(LINUX_PTRACE_SETREGSET, childpid, (void *)LINUX_NT_PRSTATUS, &iov));
             } else if (sig == LINUX_SIGTRAP) {
                 struct linux_user_regs_struct regs;
                 struct linux_iovec iov = {
@@ -263,70 +330,7 @@ void monitor_entry(linux_pid_t _childpid, int memfd, size_t memfd_bytes) {
                 };
                 CHK_ERR(linux_ptrace(LINUX_PTRACE_GETREGSET, childpid, (void *)LINUX_NT_PRSTATUS, &iov));
 
-                uint64_t orig_sp = regs.sp;
-                regs.sp = ALIGN_DOWN(regs.sp, 16); // the stack shall be 16-byte aligned as x86_64 commands!
-                // push rsp
-                regs.sp -= 8;
-                CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs.sp, (void *)orig_sp));
-
-                // push rip
-                regs.sp -= 8;
-                CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs.sp, (void *)regs.ip));
-
-                // push cs
-                regs.sp -= 8;
-                CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs.sp, (void *)regs.cs));
-
-                // push rflags
-                regs.sp -= 8;
-                CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs.sp, (void *)regs.flags));
-
-                // push rcx (clobbered by syscall instruction)
-                regs.sp -= 8;
-                CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs.sp, (void *)regs.cx));
-
-                // push r11 (clobbered by syscall instruction)
-                regs.sp -= 8;
-                CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs.sp, (void *)regs.r11));
-
-                // push rax (clobbered by syscall args)
-                regs.sp -= 8;
-                CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs.sp, (void *)regs.ax));
-
-                // push rdi (clobbered by syscall args)
-                regs.sp -= 8;
-                CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs.sp, (void *)regs.di));
-
-                // push monitor flags
-                regs.sp -= 8;
-                CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs.sp, (void *)monitor_flags));
-
-                // starting from here these won't be restored by MONITOR_CALL_TRAPRET
-
-                // push interrupt code
-                regs.sp -= 8;
-                CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs.sp, (void *)0));
-
-                // push interrupt metadata 1
-                regs.sp -= 8;
-                CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs.sp, (void *)0));
-
-                // push interrupt metadata 2
-                regs.sp -= 8;
-                CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs.sp, (void *)0));
-
-                // push interrupt metadata 3
-                regs.sp -= 8;
-                CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs.sp, (void *)0));
-
-                // push interrupt metadata 4
-                regs.sp -= 8;
-                CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs.sp, (void *)0));
-
-                // unset the timer flag, to avoid nested interrupts - exceptions are an.. exception :)
-                monitor_flags &= ~(MONITOR_FLAG_TIMER);
-
-                regs.ip = trap_handler;
+                trapchild(&regs, MONITOR_TRAPCODE_TIMER, 0, 0, 0, 0);
 
                 CHK_ERR(linux_ptrace(LINUX_PTRACE_SETREGSET, childpid, (void *)LINUX_NT_PRSTATUS, &iov));
             } else {

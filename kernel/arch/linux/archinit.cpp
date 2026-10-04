@@ -270,11 +270,10 @@ void arch::startup::stage3_startup() {}
 
 void arch::startup::stage4_startup() {
     printf("Hello linux!\n");
-    //*(volatile int*)1000 = 5; // cause segfault
     long ts = ((long (*)())0xffffffffff600400)();
     printf("vsyscall: %d\n", ts);
     for (volatile unsigned int i = 0; i < -1; i++) {
-        volatile int x = linux_getpid(); 
+        volatile int x = linux_getpid();
         if ((i % 10000) == 0) {
             long ts = ((long (*)())0xffffffffff600400)();
             printf("vsyscall: %d\n", ts);
