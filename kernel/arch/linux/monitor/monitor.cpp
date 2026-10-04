@@ -156,6 +156,22 @@ void monitor_entry(linux_pid_t _childpid, int memfd, size_t memfd_bytes) {
                     syscall_emulate = true;
                     switch(regs.di) {
                         case MONITOR_CALL_TRAPRET: {
+                            // pop rsi
+                            CHK_ERR(linux_ptrace(LINUX_PTRACE_PEEKDATA, childpid, (void *)regs.sp, &regs.si));
+                            regs.sp += 8;
+
+                            // pop rdx
+                            CHK_ERR(linux_ptrace(LINUX_PTRACE_PEEKDATA, childpid, (void *)regs.sp, &regs.dx));
+                            regs.sp += 8;
+
+                            // pop rcx
+                            CHK_ERR(linux_ptrace(LINUX_PTRACE_PEEKDATA, childpid, (void *)regs.sp, &regs.cx));
+                            regs.sp += 8;
+
+                            // pop rbx
+                            CHK_ERR(linux_ptrace(LINUX_PTRACE_PEEKDATA, childpid, (void *)regs.sp, &regs.bx));
+                            regs.sp += 8;
+
                             // pop monitor flags
                             unsigned long flags;
                             CHK_ERR(linux_ptrace(LINUX_PTRACE_PEEKDATA, childpid, (void *)regs.sp, &flags));
@@ -293,23 +309,26 @@ void monitor_entry(linux_pid_t _childpid, int memfd, size_t memfd_bytes) {
                 regs.sp -= 8;
                 CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs.sp, (void *)monitor_flags));
 
-                // starting from here these won't be restored by MONITOR_CALL_TRAPRET
-
-                // push interrupt code
+                // push rbx
                 regs.sp -= 8;
-                CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs.sp, (void *)0));
+                CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs.sp, (void *)regs.bx));
 
-                // push interrupt metadata 1
+                // push rcx
                 regs.sp -= 8;
-                CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs.sp, (void *)0));
+                CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs.sp, (void *)regs.cx));
 
-                // push interrupt metadata 2
+                // push rdx
                 regs.sp -= 8;
-                CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs.sp, (void *)0));
+                CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs.sp, (void *)regs.dx));
 
-                // push interrupt metadata 3
+                // push rsi
                 regs.sp -= 8;
-                CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs.sp, (void *)0));
+                CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs.sp, (void *)regs.si));
+
+                regs.bx = 0; // interrupt code
+                regs.cx = 0; // interrupt metadata 1
+                regs.dx = 0; // interrupt metadata 2
+                regs.si = 0; // interrupt metadata 3
 
                 regs.ip = trap_handler;
 
