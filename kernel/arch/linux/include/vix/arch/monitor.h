@@ -6,6 +6,10 @@
 #define MONITOR_FLAG_USERMODE (1 << 0)
 #define MONITOR_FLAG_TIMER (1 << 1)
 
+#define MONITOR_TRAPCODE_TIMER 0
+#define MONITOR_TRAPCODE_SEGV 1
+#define MONITOR_TRAPCODE_ME 2
+
 #ifndef __ASSEMBLER__
 
 #include <vix/arch/linux-syscalls.h>
