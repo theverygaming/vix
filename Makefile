@@ -63,6 +63,12 @@ bootimg-aarch64:
 	@find sysroot/ -printf "%P\n" | tar --format=ustar -cf roramfs.fs --no-recursion -C sysroot/ -T -
 	@boot/createimg-aarch64.sh
 
+bootimg-linux:
+	@$(MAKE) --no-print-directory -C shitshell
+	@mkdir -p sysroot/bin/
+	@cp shitshell/shitshell sysroot/bin/sh
+	@find sysroot/ -printf "%P\n" | tar --format=ustar -cf roramfs.fs --no-recursion -C sysroot/ -T -
+
 kernel-x86:
 	@$(MAKE) --no-print-directory -C kernel
 

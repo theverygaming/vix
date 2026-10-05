@@ -58,9 +58,9 @@ jobs:
           - flake: linux
             step_config: make alldefconfig MAKE_ARCH=linux && make tests MAKE_ARCH=linux
             step_build: make MAKE_ARCH=linux
-            step_bootimg: "true"
+            step_bootimg: make bootimg-linux MAKE_ARCH=linux
             nm: nm
-            runcmd: ./kernel/kernel.o
+            runcmd: ./kernel/kernel.o roramfs.fs
             ignore_test_failure: false
             run_timeout_secs: 30
     steps:

@@ -1,3 +1,4 @@
+#include <vix/macros.h>
 #include <vix/debug.h>
 #include <vix/kprintf.h>
 #include <vix/arch/common/bootup.h>
@@ -178,9 +179,11 @@ static void launch_monitor(int memfd, size_t memfd_bytes) {
 int memfd;
 size_t memfd_bytes;
 
+static void *tarfs_base;
+
 extern "C" void trap_entry();
 
-static void kernelinit() {
+static void kernelinit(int argc, char **argv) {
     stdio::set_puts_function(writeputs, true);
 
     // allocate main memory
@@ -191,6 +194,14 @@ static void kernelinit() {
     launch_monitor(memfd, memfd_bytes);
 
     monitor_set_trap_handler((uintptr_t)&trap_entry);
+
+    if (argc != 2) {
+        KERNEL_PANIC("invalid arguments. Usage: %s <tarfs image>", argv[0]);
+    }
+    int tarfs_fd = linux_open(argv[1], LINUX_O_RDONLY, 0);
+    if (tarfs_fd < 0) {
+        KERNEL_PANIC("got error %d opening %s", tarfs_fd, argv[1]);
+    }
 
     // remap the stack and code _after_ branching off the monitor, because otherwise the stack and data would collide :P
     size_t kernel_code_size = remap_code(memfd, memfd_bytes);
@@ -205,6 +216,18 @@ static void kernelinit() {
 
     size_t init_stack_size = remap_stack(memfd, memfd_bytes, kernel_code_size);
 
+    tarfs_base = (void *)(CONFIG_HHDM_VIRT_BASE + kernel_code_size + init_stack_size);
+    int err = linux_read(tarfs_fd, tarfs_base, CONFIG_HHDM_SIZE - (kernel_code_size - init_stack_size));
+    if (err <= 0) {
+        KERNEL_PANIC("got error %d reading tarfs", err);
+    }
+    size_t tarfs_size = err;
+    tarfs_size = ALIGN_UP(tarfs_size, CONFIG_ARCH_PAGE_SIZE);
+    err = linux_close(tarfs_fd);
+    if (err != 0) {
+        KERNEL_PANIC("got error %d", err);
+    }
+
     struct mm::mem_map_entry r[] = {
         {
             .base = 0,
@@ -217,8 +240,13 @@ static void kernelinit() {
             .type = mm::mem_map_entry::type_t::RECLAIMABLE,
         },
         {
-            .base = (kernel_code_size + init_stack_size),
-            .size = memfd_bytes - (kernel_code_size + init_stack_size),
+            .base = kernel_code_size + init_stack_size,
+            .size = tarfs_size,
+            .type = mm::mem_map_entry::type_t::RECLAIMABLE,
+        },
+        {
+            .base = kernel_code_size + init_stack_size + tarfs_size,
+            .size = memfd_bytes - (kernel_code_size + init_stack_size + tarfs_size),
             .type = mm::mem_map_entry::type_t::RAM,
         },
     };
@@ -257,8 +285,8 @@ extern "C" void _kentry_c(int argc, char **argv, char **envp) {
 
     unmap_bullshit(auxv);
 
-    kernelinit();
-    while (true) {}
+    kernelinit(argc, argv);
+    linux_exit(1);
 }
 
 void arch::startup::stage2_startup() {
@@ -281,6 +309,9 @@ void arch::startup::stage4_startup() {
         break;
     }
     time::bootupTime = time::getCurrentUnixTime();
+    if (fs::filesystems::tarfs::init(tarfs_base)) {
+        fs::filesystems::tarfs::mountInVFS();
+    }
 }
 
 void arch::startup::kthread0() {}
