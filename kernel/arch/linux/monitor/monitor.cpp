@@ -17,7 +17,7 @@ static size_t kpmem_size;
 #define CHK_ERR(expr) do { \
     int val = (expr); \
     if (val < 0) { \
-        kprintf(KP_ALERT, "ecountered error %d\n", val); \
+        kprintf(KP_ALERT, "encountered error %d " __FILE__ ":" STRINGIFY(__LINE__) "\n", val); \
         linux_exit(1); \
     } \
 } while(0)
@@ -219,7 +219,6 @@ void monitor_entry(linux_pid_t _childpid, int memfd, size_t memfd_bytes) {
 
                 // catch and intercept monitor calls (magic syscall number)
                 if (regs.orig_ax == MONITOR_CALL) {
-                    kprintf(KP_INFO, "monitor: got monitor call\n");
                     syscall_emulate = true;
                     switch(regs.di) {
                         case MONITOR_CALL_TRAPRET: {
