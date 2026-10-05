@@ -16,6 +16,9 @@
 #include <vix/arch/monitor.h>
 #include <string.h>
 #include <vix/arch/paging.h>
+#include <vix/interrupts.h>
+#include <vix/sched.h>
+
 
 static void writeputs(const char *s, size_t n) {
     linux_write(1, s, n);
@@ -314,4 +317,17 @@ void arch::startup::stage4_startup() {
     }
 }
 
-void arch::startup::kthread0() {}
+static void kt(void *) {
+    while (true) {
+        push_interrupt_disable();
+        volatile int test = 5;
+        kprintf(KP_INFO, "hi from kernel thread(TID %d) stack: 0x%p\n", sched::mythread()->tid, &test);
+        pop_interrupt_disable();
+        sched::yield();
+    }
+}
+
+void arch::startup::kthread0() {
+    sched::start_kworker(kt);
+    sched::start_kworker(kt);
+}
