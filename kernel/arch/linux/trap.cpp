@@ -3,6 +3,7 @@
 #include <vix/debug.h>
 #include <vix/kprintf.h>
 #include <vix/arch/common/cpu.h>
+#include <vix/sched.h>
 
 static void dumpregs(struct arch::full_ctx *ctx) {
     kprintf(
@@ -26,6 +27,7 @@ extern "C" void trap_handler(struct arch::full_ctx *ctx) {
     switch (ctx->interrupt_code) {
         case MONITOR_TRAPCODE_TIMER: {
             DEBUG_PRINTF("timer tick!\n");
+            sched::yield();
             break;
         }
         case MONITOR_TRAPCODE_SEGV: {

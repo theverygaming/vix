@@ -20,12 +20,13 @@ trap_entry:
 
     mov %rsp, %rdi
     call trap_handler
-    jmp .trap_return_stack
+    jmp trap_return_stack
 
 .global trap_return
 trap_return:
     mov %rdi, %rsp
-.trap_return_stack:
+.global trap_return_stack
+trap_return_stack:
     popq %rbx
     popq %rdx
     popq %rsi
