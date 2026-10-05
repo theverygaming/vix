@@ -291,7 +291,7 @@ extern "C" void _kentry_c(int argc, char **argv, char **envp) {
 
 void arch::startup::stage2_startup() {
     paging_init();
-    monitor_set_flags(MONITOR_FLAG_TIMER);
+    monitor_set_flags(monitor_get_flags() | MONITOR_FLAG_TIMER);
 }
 
 void arch::startup::stage3_startup() {}

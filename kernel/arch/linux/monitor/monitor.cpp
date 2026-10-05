@@ -10,7 +10,7 @@ static uintptr_t trap_handler = 0;
 static linux_pid_t childpid;
 #define MONITOR_CALL_SET_TRAP_HANDLER 1
 #define MONITOR_CALL_SET_FLAGS 2
-#define MONITOR_CALL_UNSET_FLAGS 3
+#define MONITOR_CALL_GET_FLAGS 3
 static uint8_t *kpmem;
 static size_t kpmem_size;
 
@@ -264,17 +264,20 @@ void monitor_entry(linux_pid_t _childpid, int memfd, size_t memfd_bytes) {
                             break;
                         }
                         case MONITOR_CALL_SET_FLAGS: {
-                            unsigned long flags = regs.si;
-                            monitor_flags |= (flags & (MONITOR_FLAG_TIMER));
-                            break;
-                        }
-                        case MONITOR_CALL_UNSET_FLAGS: {
-                            unsigned long flags = regs.si;
-                            monitor_flags &= ~(flags & (MONITOR_FLAG_TIMER));
+                            unsigned long untouchable_flags = MONITOR_FLAG_USERMODE;
+                            unsigned long newflags = regs.si;
+                            newflags &= ~untouchable_flags;
+                            newflags |= monitor_flags & untouchable_flags;
+                            regs.ax = monitor_flags;
+                            monitor_flags = newflags;
                             break;
                         }
                         case MONITOR_CALL_SET_TRAP_HANDLER: {
                             trap_handler = regs.si;
+                            break;
+                        }
+                        case MONITOR_CALL_GET_FLAGS: {
+                            regs.ax = monitor_flags;
                             break;
                         }
                         default: {
@@ -353,10 +356,10 @@ void monitor_set_trap_handler(uintptr_t addr) {
     linux_syscall2(MONITOR_CALL, MONITOR_CALL_SET_TRAP_HANDLER, addr);
 }
 
-void monitor_set_flags(unsigned long flags) {
-    linux_syscall2(MONITOR_CALL, MONITOR_CALL_SET_FLAGS, flags);
+unsigned long monitor_set_flags(unsigned long flags) {
+    return linux_syscall2(MONITOR_CALL, MONITOR_CALL_SET_FLAGS, flags);
 }
 
-void monitor_unset_flags(unsigned long flags) {
-    linux_syscall2(MONITOR_CALL, MONITOR_CALL_UNSET_FLAGS, flags);
+unsigned long monitor_get_flags() {
+    return linux_syscall1(MONITOR_CALL, MONITOR_CALL_GET_FLAGS);
 }
