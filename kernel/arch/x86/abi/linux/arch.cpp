@@ -7,8 +7,9 @@
 #include <string.h>
 #include <vix/debug.h>
 
-status::StatusOr<sched::tid_t> abi::linux::arch::start_process(::arch::vmm::pt_t pt, void *entrypoint, std::vector<std::string> *args) {
 #ifdef CONFIG_ARCH_HAS_PAGING
+
+status::StatusOr<sched::tid_t> abi::linux::arch::start_process(::arch::vmm::pt_t pt, void *entrypoint, std::vector<std::string> *args) {
     void *stack_bottom;
 
     ::arch::vmm::pt_t prev_pt = ::arch::vmm::get_active_pt();
@@ -35,7 +36,6 @@ status::StatusOr<sched::tid_t> abi::linux::arch::start_process(::arch::vmm::pt_t
     void *stack_top = (((uint8_t *)stack_bottom) + stack_size);
 
     return multitasking::create_task(stack_top, entrypoint, pt, args);
-#else
-    return status::StatusCode::EGENERIC;
-#endif
 }
+
+#endif // CONFIG_ARCH_HAS_PAGING

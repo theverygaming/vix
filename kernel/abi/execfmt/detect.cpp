@@ -1,3 +1,6 @@
+#include <vix/config.h>
+
+#ifdef CONFIG_ARCH_HAS_PAGING
 #include <vix/debug.h>
 #include <vix/abi/execfmt/elf.h>
 #include <vix/fs/vfs.h>
@@ -72,3 +75,5 @@ status::StatusOr<std::pair<arch::vmm::pt_t, void *>> execfmt::load_any(std::shar
         return execfmt_ret.status().code();
     }
 }
+
+#endif // CONFIG_ARCH_HAS_PAGING

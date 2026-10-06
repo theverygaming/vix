@@ -2,8 +2,10 @@
 #include <vix/abi/execfmt/detect.h>
 #include <vix/status.h>
 #include <vix/abi/linux/arch.h>
+#include <vix/config.h>
 
 status::StatusOr<sched::tid_t> abi::linux::exec(const char *path, std::vector<std::string> *args) {
+#ifdef CONFIG_ARCH_HAS_PAGING
     std::pair<::arch::vmm::pt_t, void *> exec;
     ASSIGN_OR_RETURN(exec, execfmt::load_any(path));
 
@@ -14,4 +16,7 @@ status::StatusOr<sched::tid_t> abi::linux::exec(const char *path, std::vector<st
     } else {
         return status.value();
     }
+#else
+    return status::StatusCode::EGENERIC;
+#endif
 }
