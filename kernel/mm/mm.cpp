@@ -43,7 +43,6 @@ status::StatusOr<void *> mm::map_arbitrary_phys(
     paddr_t phys,
     size_t bytes,
     alloc_attrs attrs,
-    // FIXME: this should not be ignored!!! (NOTE: when done update comments in mm.h)
     vaddr_range vrange
 ) {
 #ifdef CONFIG_ARCH_HAS_PAGING
@@ -60,8 +59,7 @@ status::StatusOr<void *> mm::map_arbitrary_phys(
     unsigned int vm_flags =
         arch::vmm::FLAGS_PRESENT | get_vm_extra_flags(attrs);
 
-    // TODO: this does NOT do user memory at all
-    vaddr_t area = mm::vmm::kalloc(pages);
+    vaddr_t area = mm::vmm::find_free(vrange, pages);
     for (size_t i = 0; i < pages; i++) {
         uintptr_t virt = area + (i * CONFIG_ARCH_PAGE_SIZE);
         arch::vmm::set_page(virt, phys + (i * CONFIG_ARCH_PAGE_SIZE), vm_flags);
@@ -100,7 +98,6 @@ status::StatusOr<void *> mm::allocate_non_contiguous(
     alloc_attrs attrs,
     // FIXME: this should not be ignored!!! (NOTE: when done update comments in mm.h)
     paddr_range prange,
-    // FIXME: this should not be ignored!!! (NOTE: when done update comments in mm.h)
     vaddr_range vrange
 ) {
     size_t pages =
@@ -109,8 +106,7 @@ status::StatusOr<void *> mm::allocate_non_contiguous(
     unsigned int vm_flags =
         arch::vmm::FLAGS_PRESENT | get_vm_extra_flags(attrs);
 
-    // TODO: this does NOT do user memory at all
-    vaddr_t area = mm::vmm::kalloc(pages);
+    vaddr_t area = mm::vmm::find_free(vrange, pages);
     for (size_t i = 0; i < pages; i++) {
         auto phys_alloc = mm::pmm::alloc_contiguous(1);
         if (!phys_alloc.status().ok()) {
@@ -173,7 +169,6 @@ status::StatusOr<void *> mm::allocate_contiguous(
     alloc_attrs attrs,
     // FIXME: this should not be ignored!!! (NOTE: when done update comments in mm.h)
     paddr_range prange,
-    // FIXME: this should not be ignored!!! (NOTE: when done update comments in mm.h)
     vaddr_range vrange
 ) {
     size_t pages =
@@ -181,7 +176,7 @@ status::StatusOr<void *> mm::allocate_contiguous(
 #ifdef CONFIG_ARCH_HAS_PAGING
     paddr_t phys;
     ASSIGN_OR_RETURN(phys, mm::pmm::alloc_contiguous(pages));
-    vaddr_t area = mm::vmm::kalloc(pages);
+    vaddr_t area = mm::vmm::find_free(vrange, pages);
     for (size_t i = 0; i < pages; i++) {
         uintptr_t virt = ((uintptr_t)area) + (i * CONFIG_ARCH_PAGE_SIZE);
         arch::vmm::set_page(

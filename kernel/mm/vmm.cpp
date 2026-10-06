@@ -37,17 +37,7 @@ static mm::vaddr_t find_free_pages(mm::vaddr_range range, size_t pages) {
     return start_found;
 }
 
-mm::vaddr_t mm::vmm::alloc(mm::vaddr_range range, size_t pages) {
+mm::vaddr_t mm::vmm::find_free(mm::vaddr_range range, size_t pages) {
     vaddr_t addr = find_free_pages(range, pages);
     return addr;
-}
-
-mm::vaddr_t mm::vmm::kalloc(size_t pages) {
-    return mm::vmm::alloc(
-        {.start = ARCH_KERNEL_HEAP_START, .end = ARCH_KERNEL_HEAP_END}, pages
-    );
-}
-
-void mm::vmm::dealloc(vaddr_t start, size_t n) {
-    KERNEL_PANIC("not implemented");
 }
