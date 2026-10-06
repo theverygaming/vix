@@ -173,6 +173,7 @@ void monitor_entry(linux_pid_t _childpid, int memfd, size_t memfd_bytes) {
     int status;
     CHK_ERR(linux_wait4(childpid, &status, 0, nullptr));
     setup_timer();
+    CHK_ERR(linux_ptrace(LINUX_PTRACE_SETOPTIONS, childpid, 0, (void *)LINUX_PTRACE_O_TRACESYSGOOD));
     while(true) {
         CHK_ERR(linux_ptrace((monitor_flags & MONITOR_FLAG_USERMODE) != 0 ? LINUX_PTRACE_SYSEMU : LINUX_PTRACE_SYSCALL, childpid, nullptr, nullptr));
         CHK_ERR(linux_wait4(childpid, &status, 0, nullptr));
@@ -202,7 +203,7 @@ void monitor_entry(linux_pid_t _childpid, int memfd, size_t memfd_bytes) {
                 trapchild(&regs, MONITOR_TRAPCODE_ME, 0, 0, 0, 0);
                 DEBUG_PRINTF("monitor: child SIGFPE IP: 0x%p\n", regs.ip);
                 CHK_ERR(linux_ptrace(LINUX_PTRACE_SETREGSET, childpid, (void *)LINUX_NT_PRSTATUS, &iov));
-            } else if (sig == LINUX_SIGTRAP) {
+            } else if (sig == (LINUX_SIGTRAP | 0x80)) {
                 struct linux_user_regs_struct regs;
                 struct linux_iovec iov = {
                     .iov_base = &regs,
@@ -294,7 +295,7 @@ void monitor_entry(linux_pid_t _childpid, int memfd, size_t memfd_bytes) {
                 // continue and catch syscall exit
                 CHK_ERR(linux_ptrace(LINUX_PTRACE_SYSCALL, childpid, nullptr, nullptr));
                 CHK_ERR(linux_wait4(childpid, &status, 0, nullptr));
-                if (!(LINUX_WIFSTOPPED(status) && LINUX_WSTOPSIG(status) == LINUX_SIGTRAP)) {
+                if (!(LINUX_WIFSTOPPED(status) && LINUX_WSTOPSIG(status) == (LINUX_SIGTRAP | 0x80))) {
                     if (LINUX_WIFEXITED(status)) {
                         // normal exit
                         break;
