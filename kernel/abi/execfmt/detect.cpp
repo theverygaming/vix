@@ -7,6 +7,8 @@
 #include <vix/status.h>
 #include <vix/abi/execfmt/detect.h>
 #include <string.h>
+#include <utility>
+#include <vix/macros.h>
 
 status::StatusOr<std::pair<arch::vmm::pt_t, void *>> execfmt::load_any(const char *path) {
     RUN_OR_RETURN(
@@ -31,18 +33,30 @@ status::StatusOr<std::pair<arch::vmm::pt_t, void *>> execfmt::load_any(const cha
 status::StatusOr<std::pair<arch::vmm::pt_t, void *>> execfmt::load_any(std::shared_ptr<struct vfs::vnode> exec_file) {
     status::StatusOr<void *> (*execfmt_loader)(arch::vmm::pt_t pt, std::shared_ptr<struct vfs::vnode> exec_file) = nullptr;
 
-#ifdef CONFIG_ENABLE_EXECFMT_ELF32
+#if defined(CONFIG_ENABLE_EXECFMT_ELF32) || defined(CONFIG_ENABLE_EXECFMT_ELF64)
     uint8_t buf[5];
-    uint8_t buf_expect[sizeof(buf)] = {
+    uint8_t elfmagic[4] = {
         0x7f, 'E', 'L', 'F', // ELF magic
-        elf::ELFCLASS32
+    };
+    std::pair<uint8_t, status::StatusOr<void *> (*)(arch::vmm::pt_t pt, std::shared_ptr<struct vfs::vnode> exec_file)> elf_dispatch[] = {
+#ifdef CONFIG_ENABLE_EXECFMT_ELF32
+        {elf::ELFCLASS32, &elf::load_elf32},
+#endif
+#ifdef CONFIG_ENABLE_EXECFMT_ELF64
+        {elf::ELFCLASS64, &elf::load_elf64},
+#endif
     };
     CHKSTATUS(
         vfs::read(exec_file, 0, &buf, sizeof(buf)),
         {
-            if (value == sizeof(buf) && memcmp(buf, buf_expect, sizeof(buf)) == 0) {
-                DEBUG_PRINTF("execfmt::load_any detected ELF32\n");
-                execfmt_loader = &elf::load_elf32;
+            if (value == sizeof(buf) && memcmp(buf, elfmagic, sizeof(elfmagic)) == 0) {
+                for (size_t i = 0; i < ARRAY_SIZE(elf_dispatch); i++) {
+                    uint8_t elfclass = buf[4];
+                    if (elfclass == elf_dispatch[i].first) {
+                        DEBUG_PRINTF("execfmt::load_any detected ELF class %u\n", (unsigned int)elfclass);
+                        execfmt_loader = elf_dispatch[i].second;   
+                    }
+                }
             }
         },
         {}

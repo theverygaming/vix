@@ -1,7 +1,15 @@
 menu "Executable formats"
+
 config ENABLE_EXECFMT_ELF32
     bool "ELF32 Support"
     depends on ARCH_HAS_PAGING
     default y if ENABLE_ABI_LINUX || ENABLE_ABI_VIX
     default n
+
+config ENABLE_EXECFMT_ELF64
+    bool "ELF64 Support"
+    depends on ARCH_HAS_PAGING
+    default y if ENABLE_ABI_LINUX || ENABLE_ABI_VIX
+    default n
+
 endmenu

@@ -1,3 +1,4 @@
+#pragma once
 #include <vix/arch/common/paging.h>
 #include <vix/fs/vfs.h>
 #include <vix/status.h>
@@ -8,10 +9,11 @@
 #include <vix/mm/vmm.h>
 #include <vix/macros.h>
 
-status::StatusOr<void *> execfmt::elf::load_elf32(arch::vmm::pt_t pt, std::shared_ptr<struct vfs::vnode> elf_file) {
+template<typename elf_header, typename elf_program_header> status::StatusOr<void *>
+static load_elf(arch::vmm::pt_t pt, std::shared_ptr<struct vfs::vnode> elf_file) {
     // FIXME: BUG: I think one could load an ELF that loads in kernel space with this and REALLY fuck around!!
-    struct elf_header header;
-    struct elf_program_header pHeader;
+    elf_header header;
+    elf_program_header pHeader;
 
     RUN_OR_RETURN(
         vfs::read(elf_file, 0, &header, sizeof(header)),
@@ -23,8 +25,8 @@ status::StatusOr<void *> execfmt::elf::load_elf32(arch::vmm::pt_t pt, std::share
         {}
     );
 
-    uint32_t max = 0;
-    uint32_t min = 0xFFFFFFFF;
+    uintptr_t max = 0;
+    uintptr_t min = UINTPTR_MAX;
     if (header.e_phnum == 0) {
         DEBUG_PRINTF("Issue: no ELF headers\n");
         return status::StatusCode::EGENERIC;
@@ -50,13 +52,19 @@ status::StatusOr<void *> execfmt::elf::load_elf32(arch::vmm::pt_t pt, std::share
         }
     }
 
-    uint32_t max_v = ALIGN_UP(max, CONFIG_ARCH_PAGE_SIZE);
-    uint32_t min_v = ALIGN_DOWN(min, CONFIG_ARCH_PAGE_SIZE);
+    uintptr_t max_v = ALIGN_UP(max, CONFIG_ARCH_PAGE_SIZE);
+    uintptr_t min_v = ALIGN_DOWN(min, CONFIG_ARCH_PAGE_SIZE);
 
-    uint32_t pagecount = ((max_v - min_v) / CONFIG_ARCH_PAGE_SIZE);
+    if (max > CONFIG_KERNEL_HIGHER_HALF) {
+        DEBUG_PRINTF("ELF: max load address (0x%p) > higher half (0x%p)!\n", max, CONFIG_KERNEL_HIGHER_HALF);
+        return status::StatusCode::EGENERIC;
+    }
 
-    for (uint32_t i = 0; i < pagecount; i++) {
+    size_t pagecount = ((max_v - min_v) / CONFIG_ARCH_PAGE_SIZE);
+
+    for (size_t i = 0; i < pagecount; i++) {
         mm::paddr_t allocated_phys;
+        // TODO: could do ASSIGN_OR_RETURN but we'd have to dealloc the failed stuff
         ASSIGN_OR_PANIC(allocated_phys, mm::pmm::alloc_contiguous(pagecount));
         arch::vmm::set_page_pt(
             pt,
@@ -65,6 +73,8 @@ status::StatusOr<void *> execfmt::elf::load_elf32(arch::vmm::pt_t pt, std::share
             arch::vmm::FLAGS_PRESENT | arch::vmm::FLAGS_USER
         );
     }
+
+    // BUG: memory leak if things fail after this point
 
     // zero allocated memory
     memset((void *)min_v, 0, pagecount * CONFIG_ARCH_PAGE_SIZE);
@@ -80,7 +90,7 @@ status::StatusOr<void *> execfmt::elf::load_elf32(arch::vmm::pt_t pt, std::share
             {}
         );
 
-        if (!(pHeader.p_type == PT_LOAD)) {
+        if (!(pHeader.p_type == execfmt::elf::PT_LOAD)) {
             DEBUG_PRINTF("ignoring section of type: 0x%p\n", pHeader.p_type);
             continue;
         }
