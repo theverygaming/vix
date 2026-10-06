@@ -115,6 +115,14 @@ namespace arch::vmm {
     mm::paddr_t get_page(mm::vaddr_t virt, unsigned int *flags);
 
     /**
+     * gets flags and physical address for page
+     * @param [in] virt virtual address of page
+     * @param [out] fla
+     * @return the physical address of the page
+     */
+    mm::paddr_t get_page_pt(pt_t pt, mm::vaddr_t virt, unsigned int *flags);
+
+    /**
      * sets flags and physical address for page (a TLB flush may be required after this)
      * @param [in] virt virtual address of page
      * @param [in] phys physical address of page

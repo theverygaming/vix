@@ -62,7 +62,7 @@ status::StatusOr<void *> mm::map_arbitrary_phys(
     vaddr_t area = mm::vmm::find_free(vrange, pages);
     for (size_t i = 0; i < pages; i++) {
         uintptr_t virt = area + (i * CONFIG_ARCH_PAGE_SIZE);
-        arch::vmm::set_page(virt, phys + (i * CONFIG_ARCH_PAGE_SIZE), vm_flags);
+        arch::vmm::set_page_pt(arch::vmm::get_active_pt(), virt, phys + (i * CONFIG_ARCH_PAGE_SIZE), vm_flags);
         arch::vmm::flush_tlb_single(virt);
     }
     return (void *)area;
@@ -82,8 +82,8 @@ void mm::unmap_arbitrary_phys(void *addr, size_t bytes) {
         (ALIGN_UP(bytes, CONFIG_ARCH_PAGE_SIZE)) / CONFIG_ARCH_PAGE_SIZE;
     for (size_t i = 0; i < n_pages; i++) {
         if (unlikely(
-                !(arch::vmm::set_page(
-                      ((vaddr_t)addr) + (i * CONFIG_ARCH_PAGE_SIZE), 0, 0
+                !(arch::vmm::set_page_pt(
+                      arch::vmm::get_active_pt(), ((vaddr_t)addr) + (i * CONFIG_ARCH_PAGE_SIZE), 0, 0
                   ) &
                   arch::vmm::FLAGS_PRESENT)
             )) {
@@ -116,15 +116,15 @@ status::StatusOr<void *> mm::allocate_non_contiguous(
             for (size_t j = 0; j < i; j++) {
                 uintptr_t virt = area + (j * CONFIG_ARCH_PAGE_SIZE);
                 unsigned int tmp;
-                paddr_t phys = arch::vmm::get_page(virt, &tmp);
+                paddr_t phys = arch::vmm::get_page_pt(arch::vmm::get_active_pt(), virt, &tmp);
                 mm::pmm::free_contiguous(phys, 1);
-                arch::vmm::set_page(virt, 0, 0);
+                arch::vmm::set_page_pt(arch::vmm::get_active_pt(), virt, 0, 0);
                 arch::vmm::flush_tlb_single(virt);
             }
             return phys_alloc.status().code();
         }
         uintptr_t virt = area + (i * CONFIG_ARCH_PAGE_SIZE);
-        arch::vmm::set_page(virt, phys_alloc.value(), vm_flags);
+        arch::vmm::set_page_pt(arch::vmm::get_active_pt(), virt, phys_alloc.value(), vm_flags);
         arch::vmm::flush_tlb_single(virt);
     }
     return (void *)area;
@@ -142,12 +142,12 @@ void mm::free_non_contiguous(void *addr, size_t bytes) {
 #ifdef CONFIG_ARCH_HAS_PAGING
     unsigned int flags;
     for (size_t i = 0; i < n_pages; i++) {
-        paddr_t phys = arch::vmm::get_page(
-            ((vaddr_t)addr) + (i * CONFIG_ARCH_PAGE_SIZE), &flags
+        paddr_t phys = arch::vmm::get_page_pt(
+            arch::vmm::get_active_pt(), ((vaddr_t)addr) + (i * CONFIG_ARCH_PAGE_SIZE), &flags
         );
         if (unlikely(
-                !(arch::vmm::set_page(
-                      ((vaddr_t)addr) + (i * CONFIG_ARCH_PAGE_SIZE), 0, 0
+                !(arch::vmm::set_page_pt(
+                      arch::vmm::get_active_pt(), ((vaddr_t)addr) + (i * CONFIG_ARCH_PAGE_SIZE), 0, 0
                   ) &
                   arch::vmm::FLAGS_PRESENT)
             )) {
@@ -179,7 +179,8 @@ status::StatusOr<void *> mm::allocate_contiguous(
     vaddr_t area = mm::vmm::find_free(vrange, pages);
     for (size_t i = 0; i < pages; i++) {
         uintptr_t virt = ((uintptr_t)area) + (i * CONFIG_ARCH_PAGE_SIZE);
-        arch::vmm::set_page(
+        arch::vmm::set_page_pt(
+            arch::vmm::get_active_pt(),
             virt,
             (uintptr_t)phys + (i * CONFIG_ARCH_PAGE_SIZE),
             arch::vmm::FLAGS_PRESENT

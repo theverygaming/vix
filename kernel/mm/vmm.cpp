@@ -20,7 +20,7 @@ static mm::vaddr_t find_free_pages(mm::vaddr_range range, size_t pages) {
     mm::vaddr_t start_found = 0;
     while ((uintptr_t)start < (uintptr_t)end && pages_found != pages) {
         unsigned int flags;
-        arch::vmm::get_page((uintptr_t)start, &flags);
+        arch::vmm::get_page_pt(arch::vmm::get_active_pt(), (uintptr_t)start, &flags);
         if (!(flags & arch::vmm::FLAGS_PRESENT)) {
             if (pages_found == 0) {
                 start_found = start;

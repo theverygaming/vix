@@ -164,8 +164,12 @@ void paging_init() {
 }
 
 uintptr_t arch::vmm::get_page(uintptr_t virt, unsigned int *flags) {
+    return get_page_pt(kernel_pt, virt, flags);
+}
+
+uintptr_t arch::vmm::get_page_pt(pt_t pt, uintptr_t virt, unsigned int *flags) {
     pte_t pte;
-    ASSIGN_OR_PANIC(pte, walk(kernel_pt, virt));
+    ASSIGN_OR_PANIC(pte, walk(pt, virt));
     auto pter = read_pte(pte);
 
     if (flags != nullptr) {
