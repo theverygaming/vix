@@ -25,7 +25,7 @@ menuconfig:
 	@$(MAKE) --no-print-directory -C kernel menuconfig
 
 bootimg-x86-32:
-	@$(MAKE) --no-print-directory -C shitshell
+	@$(MAKE) --no-print-directory -C shitshell CROSS_COMPILE=$(CROSS_COMPILE)
 	@$(MAKE) --no-print-directory -C kernel/ M=$(PWD)/modules/guimodule modules
 	@$(MAKE) --no-print-directory -C kernel/ M=$(PWD)/modules/module2 modules
 	@#g++ -m32 -march=i386 -static -static-libgcc -static-libstdc++ -mno-red-zone -fno-pie -fno-stack-protector tools/glibctest.cpp -o libctest
@@ -64,7 +64,7 @@ bootimg-aarch64:
 	@boot/createimg-aarch64.sh
 
 bootimg-linux:
-	@$(MAKE) --no-print-directory -C shitshell
+	@$(MAKE) --no-print-directory -C shitshell CROSS_COMPILE=$(CROSS_COMPILE)
 	@mkdir -p sysroot/bin/
 	@cp shitshell/shitshell sysroot/bin/sh
 	@find sysroot/ -printf "%P\n" | tar --format=ustar -cf roramfs.fs --no-recursion -C sysroot/ -T -
