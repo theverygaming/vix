@@ -94,3 +94,21 @@ namespace status {
             KERNEL_PANIC("ASSIGN_OR_PANIC - Error code %d", _tmp_status.status().code()); \
         }                                                                                 \
     } while (0)
+
+#define CHKSTATUS(expr, onsuccess, onerror) \
+    do {                                        \
+        auto _tmp_status = (expr);              \
+        if (_tmp_status.status().ok()) {        \
+            auto value = _tmp_status.value();   \
+            do onsuccess while (0);             \
+        } else {                                \
+            auto status = _tmp_status.status(); \
+            do onerror while (0);               \
+        }                                       \
+    } while (0)
+
+#define RUN_OR_RETURN(expr, onsuccess, onerror) \
+    CHKSTATUS(expr, onsuccess, {                  \
+        do onerror while (0);                   \
+        return status;                          \
+    })

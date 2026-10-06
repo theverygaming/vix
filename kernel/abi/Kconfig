@@ -5,3 +5,5 @@ config ENABLE_ABI_LINUX
 config ENABLE_ABI_VIX
     default y
     bool "Enable vix ABI"
+
+source "abi/execfmt/Kconfig"

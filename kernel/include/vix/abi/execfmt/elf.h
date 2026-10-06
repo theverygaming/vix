@@ -1,15 +1,24 @@
 #pragma once
-#include <string>
-#include <vector>
-#include <vix/arch/common/cpu.h>
-#include <vix/arch/isr.h>
+#include <vix/arch/common/paging.h>
+#include <vix/fs/vfs.h>
+#include <memory>
+#include <utility>
+#include <vix/status.h>
 #include <vix/types.h>
 
-namespace elf {
-    void load_program(
-        void *ELF_baseadr, std::vector<std::string> *argv, bool replace_task = false, int replace_pid = 0, struct arch::full_ctx *regs = nullptr);
+namespace execfmt::elf {
+    /*
+     * Returns entry point on success.
+     * Assumes the pt is already loaded.
+     */ 
+    status::StatusOr<void *> load_elf32(arch::vmm::pt_t pt, std::shared_ptr<struct vfs::vnode> elf_file);
 
-    typedef struct ElfHeader {
+    // TODO: 64-bit support
+
+    inline const unsigned int PT_LOAD = 1;
+    inline const unsigned int ELFCLASS32 = 1;
+
+    struct elf_header {
         unsigned char e_ident[16]; // should start with [0x7f 'E' 'L' 'F']
         uint16_t e_type;
         uint16_t e_machine;
@@ -24,9 +33,9 @@ namespace elf {
         uint16_t e_shentsize;
         uint16_t e_shnum;
         uint16_t e_shstrndx;
-    } ElfHeader;
+    };
 
-    typedef struct ElfProgramHeader {
+    struct elf_program_header {
         uint32_t p_type;
         uint32_t p_offset; // offset of data in elf image
         uint32_t p_vaddr;  // virtual load address
@@ -35,5 +44,5 @@ namespace elf {
         uint32_t p_memsz;  // size of data in memory; any excess over disk size is zero'd
         uint32_t p_flags;
         uint32_t p_align; // alignment
-    } ElfProgramHeader;
+    };
 }

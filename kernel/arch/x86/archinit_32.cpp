@@ -7,7 +7,6 @@
 #include <vix/arch/cpubasics.h>
 #include <vix/arch/cpuid.h>
 #include <vix/arch/drivers/serial.h>
-#include <vix/arch/elf.h>
 #include <vix/arch/gdt.h>
 #include <vix/arch/generic/memory.h>
 #include <vix/arch/isr.h>
@@ -32,6 +31,7 @@
 #include <vix/stdio.h>
 #include <vix/time.h>
 #include <vix/arch/common/acpi.h>
+#include <vix/abi/linux/linux.h>
 
 fb::fb framebuffer; // HACK: exported so modules can use it // TODO: have a central framebuffer manager that takes care of this
 static fb::fbconsole fbconsole;
@@ -218,9 +218,10 @@ void arch::startup::kthread0() {
     load_all_modules("/usr/lib/modules");
 
     std::vector<std::string> args;
-    if (fs::vfs::fptr("/bin/sh", &elfptr)) {
-        args.push_back("/bin/sh");
-        elf::load_program(elfptr, &args);
+    args.push_back("/bin/sh");
+    auto status = abi::linux::exec("/bin/sh", &args);
+    if (!status.status().ok()) {
+        kprintf(KP_WARNING, "could not load /bin/sh error: %d\n", status.status().code());
     }
 
     sched::start_kworker(kt1);

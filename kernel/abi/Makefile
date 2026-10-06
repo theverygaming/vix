@@ -1,1 +1,1 @@
-obj-d += linux vix
+obj-d += linux vix execfmt
