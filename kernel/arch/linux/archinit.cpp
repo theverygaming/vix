@@ -318,11 +318,16 @@ void arch::startup::stage4_startup() {
 }
 
 static void kt(void *) {
+    unsigned long counter = 0;
     while (true) {
-        push_interrupt_disable();
-        volatile int test = 5;
-        kprintf(KP_INFO, "hi from kernel thread(TID %d) stack: 0x%p\n", sched::mythread()->tid, &test);
-        pop_interrupt_disable();
+        if (counter == 2000) {
+            push_interrupt_disable();
+            volatile int test = 5;
+            kprintf(KP_INFO, "hi from kernel thread(TID %d) stack: 0x%p\n", sched::mythread()->tid, &test);
+            pop_interrupt_disable();
+            counter = 0;
+        }
+        counter++;
         sched::yield();
     }
 }
