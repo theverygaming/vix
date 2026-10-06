@@ -2,6 +2,7 @@
 #include <vix/status.h>
 #include <vix/types.h>
 #include <vix/arch/generic/memory.h>
+#include <vix/config.h>
 
 namespace mm {
     // physical address
@@ -41,7 +42,11 @@ namespace mm {
         paddr_t phys,
         size_t bytes,
         alloc_attrs attrs = {false, false, false, caching_type::WRITE_BACK},
+#ifdef CONFIG_ARCH_HAS_PAGING
         vaddr_range vrange = {.start = ARCH_KERNEL_HEAP_START, .end = ARCH_KERNEL_HEAP_END}
+#else
+        vaddr_range vrange = {0, UINTPTR_MAX}
+#endif
     );
     void unmap_arbitrary_phys(void *addr, size_t bytes);
 
@@ -50,7 +55,11 @@ namespace mm {
         alloc_attrs attrs = {false, false, false, caching_type::WRITE_BACK},
         // FIXME: this should not be ignored!!!
         paddr_range prange = {0, UINTPTR_MAX},
+#ifdef CONFIG_ARCH_HAS_PAGING
         vaddr_range vrange = {.start = ARCH_KERNEL_HEAP_START, .end = ARCH_KERNEL_HEAP_END}
+#else
+        vaddr_range vrange = {0, UINTPTR_MAX}
+#endif
     );
     void free_contiguous(void *addr, size_t bytes);
 
@@ -59,7 +68,11 @@ namespace mm {
         alloc_attrs attrs = {false, false, false, caching_type::WRITE_BACK},
         // FIXME: this should not be ignored!!!
         paddr_range prange = {0, UINTPTR_MAX},
+#ifdef CONFIG_ARCH_HAS_PAGING
         vaddr_range vrange = {.start = ARCH_KERNEL_HEAP_START, .end = ARCH_KERNEL_HEAP_END}
+#else
+        vaddr_range vrange = {0, UINTPTR_MAX}
+#endif
     );
     void free_non_contiguous(void *addr, size_t bytes);
 }
