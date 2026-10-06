@@ -6,8 +6,10 @@
 #include <vix/config.h>
 
 namespace sched {
+    typedef int tid_t;
+
     struct thread {
-        int tid;
+        tid_t tid;
         bool running;
         struct arch::ctx *ctx;
 
@@ -54,10 +56,10 @@ namespace sched {
     // Called from inside a thread to kill it
     void __attribute__((noreturn)) die();
 
-    void thread_kill(int tid);
+    void thread_kill(tid_t tid);
 
-    void thread_sleep(int tid);
-    void thread_wakeup(int tid);
+    void thread_sleep(tid_t tid);
+    void thread_wakeup(tid_t tid);
 
     // FIXME: we need a proper critical section thingy
     // disables scheduling

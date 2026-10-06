@@ -101,7 +101,7 @@ struct sched::thread sched::init_thread(void (*func)(), struct abi::thread abi_t
 }
 
 int sched::start_thread(struct sched::thread t) {
-    static int tid_counter = 0;
+    static sched::tid_t tid_counter = 0;
     sched::thread *nt = new sched::thread(t);
     nt->tid = tid_counter++;
     if (nt->abi_thread.hooks != nullptr && nt->abi_thread.hooks->start_thread != nullptr) {
@@ -134,7 +134,7 @@ struct sched::thread *sched::mythread() {
     return current;
 }
 
-static sched::thread *find_by_tid(int tid) {
+static sched::thread *find_by_tid(sched::tid_t tid) {
     for (auto it = sched::sched_readyqueue.begin(); it != sched::sched_readyqueue.end(); it++) {
         if ((*it)->tid == tid) {
             return *it;
@@ -167,7 +167,7 @@ void sched::die() {
     KERNEL_PANIC("unreachable");
 }
 
-void sched::thread_kill(int tid) {
+void sched::thread_kill(sched::tid_t tid) {
     if (tid == mythread()->tid) {
         die();
         KERNEL_PANIC("unreachable");
@@ -181,7 +181,7 @@ void sched::thread_kill(int tid) {
     pop_interrupt_disable();
 }
 
-void sched::thread_sleep(int tid) {
+void sched::thread_sleep(sched::tid_t tid) {
     push_interrupt_disable();
     sched::thread *t = find_by_tid(tid);
     if (t == nullptr) {
@@ -195,7 +195,7 @@ void sched::thread_sleep(int tid) {
     }
 }
 
-void sched::thread_wakeup(int tid) {
+void sched::thread_wakeup(sched::tid_t tid) {
     push_interrupt_disable();
     sched::thread *t = find_by_tid(tid);
     if (t == nullptr) {
