@@ -1,3 +1,4 @@
+#include <vix/interrupts.h>
 #include <vix/abi/linux/calls.h>
 #include <vix/abi/linux/errno.h>
 #include <vix/kprintf.h>
@@ -15,7 +16,9 @@ __DEF_LINUX_SYSCALL(sys_write) {
     }
 
     for (size_t i = 0; i < count; i++) {
+        push_interrupt_disable(); // FIXME: should have proper locks!
         putc((char)buf[i]);
+        pop_interrupt_disable();
     }
     return count;
 }
