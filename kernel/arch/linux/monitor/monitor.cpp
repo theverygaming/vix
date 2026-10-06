@@ -5,12 +5,16 @@
 #include <vix/arch/linux-syscalls.h>
 #include <vix/panic.h>
 
+// FIXME: we should unmap kernel pages when we switch to userspace :P
+
 static unsigned long monitor_flags = 0;
 static uintptr_t trap_handler = 0;
+static uintptr_t kernel_stack = 0;
 static linux_pid_t childpid;
 #define MONITOR_CALL_SET_TRAP_HANDLER 1
 #define MONITOR_CALL_SET_FLAGS 2
 #define MONITOR_CALL_GET_FLAGS 3
+#define MONITOR_CALL_SET_KERNEL_STACK 4
 static uint8_t *kpmem;
 static size_t kpmem_size;
 
@@ -89,6 +93,13 @@ static void dumpchildregs(struct linux_user_regs_struct *regs) {
 
 static void trapchild(struct linux_user_regs_struct *regs, uint64_t icode, uint64_t imeta1, uint64_t imeta2, uint64_t imeta3, uint64_t imeta4) {
     uint64_t orig_sp = regs->sp;
+    unsigned long orig_monitor_flags = monitor_flags;
+
+    if ((monitor_flags & MONITOR_FLAG_USERMODE) != 0) {
+        regs->sp = kernel_stack;
+        monitor_flags &= ~(MONITOR_FLAG_USERMODE); // switch to kernel mode
+    }
+
     regs->sp = ALIGN_DOWN(regs->sp, 16); // the stack shall be 16-byte aligned as x86_64 commands!
     // push rsp
     regs->sp -= 8;
@@ -124,7 +135,7 @@ static void trapchild(struct linux_user_regs_struct *regs, uint64_t icode, uint6
 
     // push monitor flags
     regs->sp -= 8;
-    CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs->sp, (void *)monitor_flags));
+    CHK_ERR(linux_ptrace(LINUX_PTRACE_POKEDATA, childpid, (void *)regs->sp, (void *)orig_monitor_flags));
 
     // starting from here these won't be restored by MONITOR_CALL_TRAPRET
 
@@ -211,12 +222,23 @@ void monitor_entry(linux_pid_t _childpid, int memfd, size_t memfd_bytes) {
                 };
                 CHK_ERR(linux_ptrace(LINUX_PTRACE_GETREGSET, childpid, (void *)LINUX_NT_PRSTATUS, &iov));
 
-                bool syscall_emulate = false;
-
                 if ((monitor_flags & MONITOR_FLAG_USERMODE) != 0) {
-                    kprintf(KP_ALERT, "UNIMPLEMENTED: usermode syscall %u\n", regs.orig_ax);
-                    break;
+                    regs.ax = regs.orig_ax;
+                    trapchild(&regs, MONITOR_TRAPCODE_SYSCALL, 0, 0, 0, 0);
+                    CHK_ERR(linux_ptrace(LINUX_PTRACE_SETREGSET, childpid, (void *)LINUX_NT_PRSTATUS, &iov));
+                    // we must now catch the system call exit, usually LINUX_PTRACE_SYSEMU expects
+                    // one would call ptrace(LINUX_PTRACE_SYSEMU again, not ptrace(LINUX_PTRACE_SYSCALL
+                    // if we didn't do this LINUX_PTRACE_SYSCALL entry & exit would get out of sync and absolutely everything would explode!
+                    CHK_ERR(linux_ptrace(LINUX_PTRACE_SYSCALL, childpid, nullptr, nullptr));
+                    CHK_ERR(linux_wait4(childpid, &status, 0, nullptr));
+                    if (!(LINUX_WIFSTOPPED(status) && LINUX_WSTOPSIG(status) == (LINUX_SIGTRAP | 0x80))) {
+                        kprintf(KP_ALERT, "WTF? " __FILE__ ":" STRINGIFY(__LINE__) " status: 0x%p\n", status);
+                        break;
+                    }
+                    continue;
                 }
+
+                bool syscall_emulate = false;
 
                 // catch and intercept monitor calls (magic syscall number)
                 if (regs.orig_ax == MONITOR_CALL) {
@@ -280,6 +302,10 @@ void monitor_entry(linux_pid_t _childpid, int memfd, size_t memfd_bytes) {
                             regs.ax = monitor_flags;
                             break;
                         }
+                        case MONITOR_CALL_SET_KERNEL_STACK: {
+                            kernel_stack = regs.si;
+                            break;
+                        }
                         default: {
                             regs.ax = -1;
                             break;
@@ -321,11 +347,6 @@ void monitor_entry(linux_pid_t _childpid, int memfd, size_t memfd_bytes) {
                     }
                 }
             } else if (sig == LINUX_SIGSTOP) {
-                DEBUG_PRINTF("timer interrupt?\n");
-                if ((monitor_flags & MONITOR_FLAG_USERMODE) != 0) {
-                    kprintf(KP_ALERT, "UNIMPLEMENTED: usermode timer interrupt\n");
-                    break;
-                }
                 struct linux_user_regs_struct regs;
                 struct linux_iovec iov = {
                     .iov_base = &regs,
@@ -362,4 +383,8 @@ unsigned long monitor_set_flags(unsigned long flags) {
 
 unsigned long monitor_get_flags() {
     return linux_syscall1(MONITOR_CALL, MONITOR_CALL_GET_FLAGS);
+}
+
+void monitor_set_kernel_stack(uintptr_t addr) {
+    linux_syscall2(MONITOR_CALL, MONITOR_CALL_SET_KERNEL_STACK, addr);
 }

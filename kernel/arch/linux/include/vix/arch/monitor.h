@@ -9,6 +9,7 @@
 #define MONITOR_TRAPCODE_TIMER 0
 #define MONITOR_TRAPCODE_SEGV 1
 #define MONITOR_TRAPCODE_ME 2
+#define MONITOR_TRAPCODE_SYSCALL 3
 
 #ifndef __ASSEMBLER__
 
@@ -19,5 +20,6 @@ void monitor_entry(linux_pid_t childpid, int memfd, size_t memfd_bytes);
 void monitor_set_trap_handler(uintptr_t addr);
 unsigned long monitor_set_flags(unsigned long flags);
 unsigned long monitor_get_flags();
+void monitor_set_kernel_stack(uintptr_t addr);
 
 #endif
