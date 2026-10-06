@@ -100,11 +100,11 @@ static void user_thread_launch() {
     x86_load_cpu_full_ctx((struct arch::full_ctx *)sched::mythread()->data1);
 }
 
-void multitasking::create_task(void *stackadr, void *codeadr, arch::vmm::pt_t pt, std::vector<std::string> *argv) {
+sched::tid_t multitasking::create_task(void *stackadr, void *entrypoint, arch::vmm::pt_t pt, std::vector<std::string> *argv) {
     arch::vmm::pt_t prev_pt = arch::vmm::get_active_pt();
     arch::vmm::load_pt(pt);
 
-    stackadr = init_user_stack(stackadr, argv, codeadr, false);
+    stackadr = init_user_stack(stackadr, argv, entrypoint, false);
 
     struct arch::full_ctx *ctx = (struct arch::full_ctx *)mm::kmalloc(sizeof(struct arch::full_ctx));
 
@@ -119,7 +119,7 @@ void multitasking::create_task(void *stackadr, void *codeadr, arch::vmm::pt_t pt
     ctx->ss = ds;
 
     ctx->esp = (uintptr_t)stackadr;
-    ctx->eip = (uintptr_t)codeadr;
+    ctx->eip = (uintptr_t)entrypoint;
     ctx->eflags = 1 << 9;
 
     arch::vmm::load_pt(prev_pt);
@@ -130,7 +130,7 @@ void multitasking::create_task(void *stackadr, void *codeadr, arch::vmm::pt_t pt
     }, ctx);
     t.thread_arch.pt = pt;
     t.thread_arch.is_ring_3 = true;
-    sched::start_thread(t);
+    return sched::start_thread(t);
 }
 
 #endif

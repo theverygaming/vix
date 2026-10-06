@@ -8,11 +8,12 @@
 #include <vix/config.h>
 #include <vix/event.h>
 #include <vix/types.h>
+#include <vix/sched.h>
 
 namespace multitasking {
     void initMultitasking();
     void interruptTrigger();
 #ifdef CONFIG_ARCH_HAS_PAGING
-    void create_task(void *stackadr, void *codeadr, arch::vmm::pt_t pt, std::vector<std::string> *argv);
+    sched::tid_t create_task(void *stackadr, void *entrypoint, arch::vmm::pt_t pt, std::vector<std::string> *argv);
 #endif
 }
