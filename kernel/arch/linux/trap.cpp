@@ -4,6 +4,7 @@
 #include <vix/kprintf.h>
 #include <vix/arch/common/cpu.h>
 #include <vix/sched.h>
+#include <vix/arch/syscall.h>
 
 static void dumpregs(struct arch::full_ctx *ctx) {
     kprintf(
@@ -26,7 +27,6 @@ static void dumpregs(struct arch::full_ctx *ctx) {
 extern "C" void trap_handler(struct arch::full_ctx *ctx) {
     switch (ctx->interrupt_code) {
         case MONITOR_TRAPCODE_TIMER: {
-            DEBUG_PRINTF("timer tick!\n");
             sched::yield();
             break;
         }
@@ -38,6 +38,13 @@ extern "C" void trap_handler(struct arch::full_ctx *ctx) {
         case MONITOR_TRAPCODE_ME: {
             dumpregs(ctx);
             KERNEL_PANIC("math fault");
+            break;
+        }
+        case MONITOR_TRAPCODE_SYSCALL: {
+            // interrupts are safe inside syscalls!
+            monitor_set_flags(monitor_get_flags() | MONITOR_FLAG_TIMER);
+            dispatch_syscall(ctx);
+            monitor_set_flags(monitor_get_flags() & ~MONITOR_FLAG_TIMER);
             break;
         }
         default: {

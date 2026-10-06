@@ -10,8 +10,6 @@
 #include <vix/arch/paging.h>
 #include <string.h>
 
-// TODO: we currently only implement set_page and get_page for the kernel MM to work. Userspace stuff is still TODO!
-
 extern int memfd;
 extern size_t memfd_bytes;
 
@@ -80,7 +78,7 @@ static void do_mmap(mm::vaddr_t vaddr, mm::paddr_t paddr, size_t n_pages, unsign
     void *virt_tgt = (void *)vaddr;
     void *mmap_res = linux_mmap(virt_tgt, n_pages * CONFIG_ARCH_PAGE_SIZE, prot, LINUX_MAP_SHARED | LINUX_MAP_FIXED, memfd, paddr);
     if (mmap_res != virt_tgt) {
-        KERNEL_PANIC("linux mmap failed res: 0x%p", mmap_res);
+        KERNEL_PANIC("linux mmap failed res: 0x%p virt: 0x%p phys: 0x%p", mmap_res, virt_tgt, paddr);
     }
 }
 

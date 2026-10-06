@@ -18,6 +18,7 @@
 #include <vix/arch/paging.h>
 #include <vix/interrupts.h>
 #include <vix/sched.h>
+#include <vix/abi/linux/linux.h>
 
 
 static void writeputs(const char *s, size_t n) {
@@ -335,4 +336,11 @@ static void kt(void *) {
 void arch::startup::kthread0() {
     sched::start_kworker(kt);
     sched::start_kworker(kt);
+
+    std::vector<std::string> args;
+    args.push_back("/bin/sh");
+    auto status = abi::linux::exec("/bin/sh", &args);
+    if (!status.status().ok()) {
+        kprintf(KP_WARNING, "could not load /bin/sh error: %d\n", status.status().code());
+    }
 }

@@ -1,11 +1,36 @@
+#include <vix/arch/common/paging.h>
 #include <vix/mm/mm.h>
 #include <vix/panic.h>
 #include <vix/sched.h>
 #include <vix/types.h>
 #include <string.h>
 #include <vix/arch/monitor.h>
+#include <vix/arch/sched_helpers.h>
 
 extern "C" void trap_return_stack();
+extern "C" void trap_return(struct arch::full_ctx *);
+
+#define LINUX_CS_64 0x33
+
+void user_thread_launch() {
+    kprintf(KP_INFO,
+            "hi from user thread(TID %d) kernel stack top: 0x%p user stack top: 0x%p entry: 0x%p stack entry: 0x%p\n",
+            sched::mythread()->tid,
+            sched::mythread()->thread_arch.kernel_stack_top,
+            sched::mythread()->thread_arch.user_stack_top,
+            sched::mythread()->data1,
+            sched::mythread()->data2);
+    arch::vmm::load_pt(sched::mythread()->thread_arch.pt);
+    ((uint8_t *)sched::mythread()->thread_arch.user_stack_bottom)[100] = 5;
+    struct arch::full_ctx fullctx;
+    memset(&fullctx, 0, sizeof(fullctx));
+    fullctx.rip = (uint64_t)sched::mythread()->data1;
+    fullctx.cs = LINUX_CS_64;
+    fullctx.rsp = (uint64_t)sched::mythread()->data2;
+    fullctx.monitor_flags = MONITOR_FLAG_TIMER | MONITOR_FLAG_USERMODE;
+    monitor_set_kernel_stack((uintptr_t)sched::mythread()->thread_arch.kernel_stack_top);
+    trap_return(&fullctx);
+}
 
 #define THREAD_KERNEL_STACK_SIZE (65536)
 
@@ -19,7 +44,7 @@ void sched::arch_init_thread(struct sched::thread *proc, void (*func)()) {
     struct arch::full_ctx *fullctx = (struct arch::full_ctx *)stack;
     memset(fullctx, 0, sizeof(*fullctx));
     fullctx->rip = (uint64_t)func;
-    fullctx->cs = 0x33;
+    fullctx->cs = LINUX_CS_64;
     fullctx->rsp = (uint64_t)stack_top;
     fullctx->monitor_flags = MONITOR_FLAG_TIMER;
 
@@ -39,4 +64,11 @@ extern "C" void core_sched_switch(struct arch::ctx **old, struct arch::ctx *_new
 
 extern "C" void sched_switch(struct arch::ctx **old, struct arch::ctx *_new, struct sched::thread *prev, struct sched::thread *next) {
     core_sched_switch(old, _new, prev, next);
+    if (next->thread_arch.is_usermode) {
+        arch::vmm::load_pt(next->thread_arch.pt);
+        monitor_set_kernel_stack((uintptr_t)sched::mythread()->thread_arch.kernel_stack_top);
+    } else {
+        arch::vmm::load_pt(arch::vmm::kernel_pt);
+        monitor_set_kernel_stack(0x69420); // TODO: this can be removed. For debugging (since this should never be used in kernel threads, will make them crash if it is used)
+    }
 }
