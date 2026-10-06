@@ -100,7 +100,7 @@ struct sched::thread sched::init_thread(void (*func)(), struct abi::thread abi_t
     return t;
 }
 
-int sched::start_thread(struct sched::thread t) {
+sched::tid_t sched::start_thread(struct sched::thread t) {
     static sched::tid_t tid_counter = 0;
     sched::thread *nt = new sched::thread(t);
     nt->tid = tid_counter++;

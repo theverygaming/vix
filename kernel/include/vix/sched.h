@@ -45,7 +45,7 @@ namespace sched {
     struct thread init_thread(void (*func)(), struct abi::thread abi_thread, void *data1 = nullptr, void *data2 = nullptr);
 
     // low-level method to start a thread, allocates and returns TID
-    int start_thread(struct thread);
+    tid_t start_thread(struct thread);
 
     // high-level method to start a kernel worker thread, returns a TID, the thread will be killed when the function returns
     int start_kworker(void (*worker)(void *), void *ctx = nullptr);
