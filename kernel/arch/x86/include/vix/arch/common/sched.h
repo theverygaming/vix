@@ -1,6 +1,5 @@
 #pragma once
 #include <vix/arch/common/paging.h>
-#include <vix/arch/multitasking.h>
 
 namespace sched {
     struct arch_thread {
