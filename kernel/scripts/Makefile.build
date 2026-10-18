@@ -23,6 +23,10 @@ override INT_CXXFLAGS += -I arch/$(BUILD_ARCH)/include -I stdlibs/libc/include -
 	@echo "  AS $<"
 	@$(INT_CXX) $(INT_CXXFLAGS) -MMD -c $< -o $@
 
+%.o: %.s
+	@echo "  AS $<"
+	@$(INT_CXX) $(INT_CXXFLAGS) -MMD -c $< -o $@
+
 %.lds: %.lds.S
 	@echo "  CPP $<"
 	@$(INT_CPP) -P $(INT_CFLAGS) -MMD $< -o $@
