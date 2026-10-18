@@ -41,7 +41,9 @@ void fb::fb::write_pixel(size_t x, size_t y, uint8_t r, uint8_t g, uint8_t b) {
         if (val) {
             val = 0x1;
         }
-        *ptr ^= (-val ^ *ptr) & (1 << (7 - (x % 8)));
+        // rgb/bgr flag controls 1bpp with MSB -> +X vs LSB -> +X - this is relevant for stuff like the Classic Macintosh
+        uint8_t bit = _info.rgb ? (x % 8) : 7 - (x % 8);
+        *ptr ^= (-val ^ *ptr) & (1 << bit);
         return;
     }
     size_t offset = _info.pitch * y + (_info.bpp / 8) * x;
