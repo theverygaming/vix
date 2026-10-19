@@ -1,0 +1,19 @@
+config ARCH_FUNNYARCH
+  bool
+  default y
+
+# stuff from arch/Kconfig
+
+config ARCH_PAGE_SIZE
+  int
+  default 4096
+
+# END stuff from arch/Kconfig
+
+menu "Security"
+
+config ENABLE_STACKPROTECTOR
+  default y
+  bool "Enable Stack Smashing Protector"
+
+endmenu

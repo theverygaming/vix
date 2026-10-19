@@ -1,0 +1,26 @@
+{
+    "start": 0,
+    "sections": [
+        {"name": ".entry"},
+        {"name": ".text"},
+        {"name": ".gnu.linkonce.t._ZNSt6stringC1ERKS_"},
+        {"name": ".gnu.linkonce.t._ZNSt13unordered_mapISt6stringSt10shared_ptrI10tmpfs_nodeESt4hashIS0_ESt8equal_toIS0_ESt31unordered_map_default_constructIS3_EE8find_ptrES0_"},
+        {"name": ".gnu.linkonce.t._ZNSt13unordered_mapISt6stringSt10shared_ptrI10tmpfs_nodeESt4hashIS0_ESt8equal_toIS0_ESt31unordered_map_default_constructIS3_EEixES0_"},
+        {"name": ".ctors"},
+        {"name": ".dtors"},
+        {"name": ".initfn_functions"},
+        {"name": ".rodata"},
+        {"name": ".data"},
+        {"name": ".bss"}
+    ],
+    "anchor_symbols": [
+        {"name": "START_INITFN_FUNCTIONS", "anchor_section_start": ".initfn_functions"},
+        {"name": "END_INITFN_FUNCTIONS", "anchor_section_end": ".initfn_functions"},
+        {"name": "START_CONSTRUCTORS_INITARR", "anchor_section_start": ".ctors"},
+        {"name": "END_CONSTRUCTORS_INITARR", "anchor_section_start": ".ctors"},
+        {"name": "START_CONSTRUCTORS_CTORS", "anchor_section_start": ".ctors"},
+        {"name": "END_CONSTRUCTORS_CTORS", "anchor_section_end": ".ctors"},
+        {"name": "symtab_start", "anchor_section_start": ".data"},
+        {"name": "symtab_end", "anchor_section_start": ".data"}
+    ]
+}

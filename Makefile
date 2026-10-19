@@ -84,11 +84,15 @@ kernel-m68k:
 kernel-linux:
 	@$(MAKE) --no-print-directory -C kernel
 
+kernel-funnyarch:
+	@$(MAKE) --no-print-directory -C kernel
+
 clean-xtensa:
 clean-m68k:
 clean-aarch64:
 clean-x86:
 clean-linux:
+clean-funnyarch:
 
 clean: clean-$(MAKE_ARCH)
 	@rm -f vix.img vix.iso *.o

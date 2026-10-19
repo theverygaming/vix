@@ -63,6 +63,14 @@ jobs:
             runcmd: ./kernel/kernel.o roramfs.fs
             ignore_test_failure: false
             run_timeout_secs: 30
+          - flake: funnyarch
+            step_config: make alldefconfig MAKE_ARCH=funnyarch # && make tests MAKE_ARCH=funnyarch
+            step_build: make MAKE_ARCH=funnyarch CROSS_COMPILE=funnyarch-none-none-
+            step_bootimg: "true"
+            nm: funnyarch-none-none-nm
+            runcmd: "true"
+            ignore_test_failure: true
+            run_timeout_secs: 30
     steps:
       - uses: actions/checkout@v5
         with:

@@ -35,6 +35,7 @@
           esp32 = import ./nix-shells/esp32.nix { inherit pkgs; };
           esp8266 = import ./nix-shells/esp8266.nix { inherit pkgs; };
           linux = import ./nix-shells/linux.nix { inherit pkgs; };
+          funnyarch = import ./nix-shells/funnyarch.nix { inherit pkgs; };
         };
       }
     );
