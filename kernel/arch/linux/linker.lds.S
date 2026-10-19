@@ -15,7 +15,6 @@ SECTIONS
     .text ALIGN(CONFIG_ARCH_PAGE_SIZE) : {
         __text_start = .;
 		*(.text*)
-        KEEP(*(.tests))
 
         . = ALIGN(CONFIG_ARCH_PAGE_SIZE);
         __monitor_utils_start = .;

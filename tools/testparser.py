@@ -25,9 +25,9 @@ for line in sys.stdin:
     line = line.rstrip()
     split = line.split()
     symname = split[2]
-    if symname.startswith("__test_func_"):
+    if symname.startswith("__test_def_"):
         start = teststart_t()
-        start.name = symname[len("__test_func_"):]
+        start.name = symname[len("__test_def_"):]
         expected_tests.append(start)
 
 if len(sys.argv) < 2:

@@ -23,7 +23,6 @@ SECTIONS
     .text ALIGN(4) : {
         *(.entry)
 		*(.text)
-        KEEP(*(.tests))
 	}>ram :text
 
     .rodata ALIGN(4) : {

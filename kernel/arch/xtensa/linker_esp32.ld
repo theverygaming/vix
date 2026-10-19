@@ -21,7 +21,6 @@ SECTIONS
     .text ALIGN(16) : {
         *(.entry)
 		*(.text)
-        KEEP(*(.tests))
 	}>iram :text
 
     . = 0x3FFF0000;

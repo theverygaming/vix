@@ -15,6 +15,12 @@ START_INITFN_FUNCTIONS = .;
 KEEP(*(.initfn_functions));
 END_INITFN_FUNCTIONS = .;
 
+/* alignment to avoid padding */
+. = ALIGN(8);
+START_TEST_DEFS = .;
+KEEP(*(.test_defs));
+END_TEST_DEFS = .;
+
 KEEP(*(.sym_table))
 PROVIDE(symtab_start = .);
 PROVIDE(symtab_end = .);

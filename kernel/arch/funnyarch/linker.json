@@ -6,9 +6,14 @@
         {"name": ".gnu.linkonce.t._ZNSt6stringC1ERKS_"},
         {"name": ".gnu.linkonce.t._ZNSt13unordered_mapISt6stringSt10shared_ptrI10tmpfs_nodeESt4hashIS0_ESt8equal_toIS0_ESt31unordered_map_default_constructIS3_EE8find_ptrES0_"},
         {"name": ".gnu.linkonce.t._ZNSt13unordered_mapISt6stringSt10shared_ptrI10tmpfs_nodeESt4hashIS0_ESt8equal_toIS0_ESt31unordered_map_default_constructIS3_EEixES0_"},
+        {"name": ".gnu.linkonce.t._ZNSt13unordered_mapIi9testclassSt4hashIiESt8equal_toIiE17testclass_factoryEixEi"},
+        {"name": ".gnu.linkonce.t._ZNSt13unordered_mapIi9testclassSt4hashIiESt8equal_toIiE17testclass_factoryE4sizeEv"},
+        {"name": ".gnu.linkonce.t._ZNSt13unordered_mapIi9testclassSt4hashIiESt8equal_toIiE17testclass_factoryE13find_ptr_pairEi"},
+        {"name": ".gnu.linkonce.t._ZNSt13unordered_mapIi9testclassSt4hashIiESt8equal_toIiE17testclass_factoryE5eraseEi"},
         {"name": ".ctors"},
         {"name": ".dtors"},
         {"name": ".initfn_functions"},
+        {"name": ".test_defs"},
         {"name": ".rodata"},
         {"name": ".data"},
         {"name": ".bss"}
@@ -16,6 +21,8 @@
     "anchor_symbols": [
         {"name": "START_INITFN_FUNCTIONS", "anchor_section_start": ".initfn_functions"},
         {"name": "END_INITFN_FUNCTIONS", "anchor_section_end": ".initfn_functions"},
+        {"name": "START_TEST_DEFS", "anchor_section_start": ".test_defs"},
+        {"name": "END_TEST_DEFS", "anchor_section_end": ".test_defs"},
         {"name": "START_CONSTRUCTORS_INITARR", "anchor_section_start": ".ctors"},
         {"name": "END_CONSTRUCTORS_INITARR", "anchor_section_start": ".ctors"},
         {"name": "START_CONSTRUCTORS_CTORS", "anchor_section_start": ".ctors"},

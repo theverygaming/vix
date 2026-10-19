@@ -15,7 +15,6 @@ SECTIONS
 
     .text ALIGN(PAGE) : {
 		*(.text)
-        KEEP(*(.tests))
 	} :text
 
     .rodata ALIGN(PAGE) : {

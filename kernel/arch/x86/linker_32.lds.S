@@ -15,7 +15,6 @@ SECTIONS {
     .text ALIGN(PAGE) : AT(ADDR(.text) - HIGHER_HALF) {
         KEEP(*(.entry))
         KEEP(*(.text))
-        KEEP(*(.tests))
     }
 
     .rodata ALIGN(PAGE) : AT(ADDR(.rodata) - HIGHER_HALF) {

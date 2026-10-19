@@ -17,7 +17,6 @@ SECTIONS
 
     .text : ALIGN(16) {
 		*(.text*)
-        KEEP(*(.tests))
 	}>flash
 
     .rodata : ALIGN(16) {
