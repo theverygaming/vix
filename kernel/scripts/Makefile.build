@@ -8,9 +8,8 @@ INT_CFLAGS := $(CFLAGS)
 INT_CXXFLAGS := $(CXXFLAGS)
 INT_LDFLAGS := $(LDFLAGS)
 
-# FIXME: CXX_OPTIM_LEVEL doesn't actually work, it should be CONFIG_CXX_OPTIM_LEVEL
-override INT_CFLAGS += -I arch/$(BUILD_ARCH)/include -I stdlibs/libc/include -I stdlibs/libcxx/include -I include -O$(CXX_OPTIM_LEVEL) -std=gnu11 -Wall -Wextra -Wpedantic -Wno-unused-parameter -Werror=return-type
-override INT_CXXFLAGS += -I arch/$(BUILD_ARCH)/include -I stdlibs/libc/include -I stdlibs/libcxx/include -I include -O$(CXX_OPTIM_LEVEL) -std=gnu++20 -Wall -Wextra -Wpedantic -Wno-unused-parameter -Werror=return-type
+override INT_CFLAGS += -I arch/$(BUILD_ARCH)/include -I stdlibs/libc/include -I stdlibs/libcxx/include -I include -O$(CONFIG_CXX_OPTIM_LEVEL) -std=gnu11 -Wall -Wextra -Wpedantic -Wno-unused-parameter -Werror=return-type
+override INT_CXXFLAGS += -I arch/$(BUILD_ARCH)/include -I stdlibs/libc/include -I stdlibs/libcxx/include -I include -O$(CONFIG_CXX_OPTIM_LEVEL) -std=gnu++20 -Wall -Wextra -Wpedantic -Wno-unused-parameter -Werror=return-type
 
 %.o: %.c
 	@echo "  CC $<"
