@@ -7,8 +7,8 @@ let
     src = pkgs.fetchFromGitHub {
       owner = "theverygaming";
       repo = "funnyarch";
-      rev = "551ef159384b8c56f11cb9e6fa82cf8d9b60f3d1";
-      sha256 = "sha256-Z9iqfp/7EDxSVhgCHymvZuclVibpzlxNGslzBlO1s3U=";
+      rev = "223e1c4bb1acadca287fce108b8f357f769328b5";
+      sha256 = "sha256-XR/aXXQvIOUVOVSIJutCfs6QwM00IwHHPo5UObAglFY=";
     };
 
     buildInputs = [
@@ -35,8 +35,8 @@ pkgs.stdenv.mkDerivation {
         src = pkgs.fetchFromGitHub {
           owner = "theverygaming";
           repo = "gcc";
-          rev = "bfc122fed1076ca70f9d084287e85b5ec68f265a";
-          sha256 = "sha256-rm5XpmeCRsuhks/rQi4k3SLa3BkN/fQCZgU6SFFxmzA=";
+          rev = "25ef612b151ecd6fa6c0af74d76b64a13a06c55f";
+          sha256 = "sha256-JQ00wmzPkjuY+9xEHhxrYjFsHs6s6BFloi6WCekHCB8=";
         };
 
         # somehow breaks our config.sub modifications???
