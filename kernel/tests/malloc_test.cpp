@@ -28,6 +28,9 @@ struct info {
 #elif defined(CONFIG_ARCH_M68K)
 #define ALLOC_COUNT    3000
 #define ALLOC_MAX_SIZE 1000
+#elif defined(CONFIG_ARCH_FUNNYARCH)
+#define ALLOC_COUNT    100
+#define ALLOC_MAX_SIZE 100
 #else
 #define ALLOC_COUNT    3000
 #define ALLOC_MAX_SIZE 6000

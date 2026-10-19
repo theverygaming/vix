@@ -156,5 +156,5 @@ extern "C" int32_t __modsi3(int32_t a, int32_t b) {
         r -= b;
         q++;
     }
-    return q;
+    return r;
 }

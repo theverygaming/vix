@@ -10,6 +10,7 @@
         {"name": ".gnu.linkonce.t._ZNSt13unordered_mapIi9testclassSt4hashIiESt8equal_toIiE17testclass_factoryE4sizeEv"},
         {"name": ".gnu.linkonce.t._ZNSt13unordered_mapIi9testclassSt4hashIiESt8equal_toIiE17testclass_factoryE13find_ptr_pairEi"},
         {"name": ".gnu.linkonce.t._ZNSt13unordered_mapIi9testclassSt4hashIiESt8equal_toIiE17testclass_factoryE5eraseEi"},
+        {"name": ".gnu.linkonce.t._ZNSt13unordered_mapIi9testclassSt4hashIiESt8equal_toIiE17testclass_factoryE6insertEiS0_"},
         {"name": ".ctors"},
         {"name": ".dtors"},
         {"name": ".initfn_functions"},
