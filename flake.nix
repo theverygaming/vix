@@ -8,6 +8,10 @@
       url = "github:oxalica/rust-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    funnyarch = {
+      url = "github:theverygaming/funnyarch";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -16,6 +20,7 @@
       nixpkgs,
       flake-utils,
       rust-overlay,
+      funnyarch,
     }:
     { }
     // flake-utils.lib.eachDefaultSystem (
@@ -35,7 +40,10 @@
           esp32 = import ./nix-shells/esp32.nix { inherit pkgs; };
           esp8266 = import ./nix-shells/esp8266.nix { inherit pkgs; };
           linux = import ./nix-shells/linux.nix { inherit pkgs; };
-          funnyarch = import ./nix-shells/funnyarch.nix { inherit pkgs; };
+          funnyarch = import ./nix-shells/funnyarch.nix {
+            inherit pkgs;
+            funnyarch = funnyarch.packages.${system};
+          };
         };
       }
     );
