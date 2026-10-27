@@ -68,7 +68,7 @@ jobs:
             step_build: make MAKE_ARCH=funnyarch CROSS_COMPILE=funnyarch-none-none-
             step_bootimg: make bootimg-funnyarch MAKE_ARCH=funnyarch CROSS_COMPILE=funnyarch-none-none-
             nm: funnyarch-none-none-nm
-            runcmd: "vix-run -m 1M"
+            runcmd: "funnyarch-emulator -r ${FUNNYARCH_ROM_PATH} -m 1M -d vix.img"
             ignore_test_failure: true
             run_timeout_secs: 30
     steps:
