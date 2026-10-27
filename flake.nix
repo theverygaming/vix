@@ -15,6 +15,7 @@
     littleboot = {
       url = "github:theverygaming/littleboot";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.funnyarch.follows = "funnyarch";
     };
   };
 

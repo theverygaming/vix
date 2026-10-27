@@ -54,24 +54,6 @@
         "type": "github"
       }
     },
-    "flake-utils_4": {
-      "inputs": {
-        "systems": "systems_4"
-      },
-      "locked": {
-        "lastModified": 1791914995,
-        "narHash": "sha256-Zf/xfQEAasnwnmEfHqW/4hjDE/s44yn2hD4RuVIZRjA=",
-        "owner": "numtide",
-        "repo": "flake-utils",
-        "rev": "b7a79d3fea1e214f6d668d521cecec0c01e26544",
-        "type": "github"
-      },
-      "original": {
-        "owner": "numtide",
-        "repo": "flake-utils",
-        "type": "github"
-      }
-    },
     "funnyarch": {
       "inputs": {
         "flake-utils": "flake-utils_2",
@@ -80,33 +62,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1793099279,
-        "narHash": "sha256-GNqu9b0wPauxTVpzRiXtMLQMP6u0/aC0f8spBxXTA+0=",
+        "lastModified": 1793141999,
+        "narHash": "sha256-ii4BmO9EdmK+eVYS/NZGajt6CT5bAlvbgozraOjuwwI=",
         "owner": "theverygaming",
         "repo": "funnyarch",
-        "rev": "cf82a5c89be5af706da0bd0ab4e69c12d4765ac0",
-        "type": "github"
-      },
-      "original": {
-        "owner": "theverygaming",
-        "repo": "funnyarch",
-        "type": "github"
-      }
-    },
-    "funnyarch_2": {
-      "inputs": {
-        "flake-utils": "flake-utils_4",
-        "nixpkgs": [
-          "littleboot",
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1793099279,
-        "narHash": "sha256-GNqu9b0wPauxTVpzRiXtMLQMP6u0/aC0f8spBxXTA+0=",
-        "owner": "theverygaming",
-        "repo": "funnyarch",
-        "rev": "cf82a5c89be5af706da0bd0ab4e69c12d4765ac0",
+        "rev": "34bd378dbefa1e3c944eebff8cd363e591832489",
         "type": "github"
       },
       "original": {
@@ -118,18 +78,20 @@
     "littleboot": {
       "inputs": {
         "flake-utils": "flake-utils_3",
-        "funnyarch": "funnyarch_2",
+        "funnyarch": [
+          "funnyarch"
+        ],
         "nixpkgs": [
           "nixpkgs"
         ],
         "nur-theverygaming": "nur-theverygaming"
       },
       "locked": {
-        "lastModified": 1793104150,
-        "narHash": "sha256-rXfifA9j2/gXCyvbeQWWF+ivm3RMiZFK6GnvFUNTUQc=",
+        "lastModified": 1793142070,
+        "narHash": "sha256-o3ZEywCoxXw0E/YAACTsR9RpwArxWwAepATceLUvyWM=",
         "owner": "theverygaming",
         "repo": "littleboot",
-        "rev": "ccd1d45a25fc08c00fdcdbb867d1059981e03850",
+        "rev": "3b0c65ee54e7ffd4c0050299a4adefd5e9537352",
         "type": "github"
       },
       "original": {
@@ -233,21 +195,6 @@
       }
     },
     "systems_3": {
-      "locked": {
-        "lastModified": 1681028828,
-        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
-        "owner": "nix-systems",
-        "repo": "default",
-        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nix-systems",
-        "repo": "default",
-        "type": "github"
-      }
-    },
-    "systems_4": {
       "locked": {
         "lastModified": 1681028828,
         "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
