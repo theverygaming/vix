@@ -14,6 +14,7 @@ pkgs.stdenv.mkDerivation {
       funnyarch.toolchain
       funnyarch.gcc
       funnyarch.emulator
+      funnyarch.emulator-nographics
     ]
     ++ common.commonPkgs
     ++ common.fatTools;
