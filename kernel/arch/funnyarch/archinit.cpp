@@ -15,6 +15,8 @@
 #include <vix/stdio.h>
 #include <vix/time.h>
 #include <vix/debug.h>
+#define LITTLEBOOT_HAS_STDINT
+#include <littleboot/proto.h>
 
 static fb::fb framebuffer;
 static fb::fbconsole fbconsole;
@@ -23,9 +25,14 @@ static void fbputs(const char *str, size_t n) {
     fbconsole.fbputs(str, n);
 }
 
-extern "C" uint8_t __bss_start;
-extern "C" uint8_t __bss_end;
-extern "C" uint8_t __kernel_end;
+extern "C" void __kentry();
+
+extern "C" uint8_t KERNEL_START;
+extern "C" uint8_t KERNEL_END;
+
+static volatile struct littleboot_kernel_header __attribute__((section(".entry"))) header = {.id = LITTLEBOOT_KERNEL_HEADER_ID, .load_address = (uintptr_t)&KERNEL_START, .load_end_address = (uintptr_t)&KERNEL_END, .kmain = &__kentry};
+static volatile struct littleboot_memmap_request memmapreq = {.id = LITTLEBOOT_MEMMAP_REQUEST_ID, .response = nullptr};
+static volatile struct littleboot_kmem_request kmemreq = {.id = LITTLEBOOT_KMEM_REQUEST_ID, .response = nullptr};
 
 static void mmio_putc(char c) {
     *((volatile uint32_t *)0xF004B000) = c;
@@ -40,19 +47,40 @@ static void mmio_puts(const char *str, size_t n) {
 
 static void kernelinit() {
     mmio_puts("hi!\n", 4);
-    /*for (uint8_t *addr = &__bss_start; addr < &__bss_end; addr++) {
-        *addr = 0;
-    }*/
     stdio::set_puts_function(mmio_puts, true);
-    mm::set_mem_map(
-        [](void *, size_t n) -> struct mm::mem_map_entry {
-            struct mm::mem_map_entry r;
-            r.base = 0x00100000; // stack top
-            r.size = 4096 * 19;
-            r.type = mm::mem_map_entry::type_t::RAM;
-            return r;
-        },
-        1);
+    if (memmapreq.response != nullptr) {
+        size_t entrycount = 0;
+        struct littleboot_memmap_response *entry = memmapreq.response;
+        while (entry != nullptr) {
+            entrycount++;
+            entry = entry->next;
+        }
+        mm::set_mem_map(
+            [](void *, size_t n) -> struct mm::mem_map_entry {
+                struct mm::mem_map_entry r;
+                struct littleboot_memmap_response *entry = memmapreq.response;
+                for (size_t i = 0; i <= n; i++) {
+                    if (i == n) {
+                        r.base = entry->base;
+                        r.size = entry->size;
+                        switch (entry->type) {
+                        case LITTLEBOOT_MEMMAP_USABLE:
+                            r.type = mm::mem_map_entry::type_t::RAM;
+                            break;
+                        case LITTLEBOOT_MEMMAP_BOOTLOADER_RECLAIMABLE:
+                            r.type = mm::mem_map_entry::type_t::RECLAIMABLE;
+                            // r.type = mm::mem_map_entry::type_t::RAM; // we immediately reclaim the bootloader memory
+                            break;
+                        default:
+                            r.type = mm::mem_map_entry::type_t::RESERVED;
+                        }
+                    }
+                    entry = entry->next;
+                }
+                return r;
+            },
+            entrycount);
+    }
 
     kernelstart();
 }
@@ -64,7 +92,16 @@ extern "C" void _kentry() {
 
 void arch::startup::stage2_startup() {}
 
-void arch::startup::stage3_startup() {}
+void arch::startup::stage3_startup() {
+    if (kmemreq.response != nullptr) {
+        mm::pmm::force_alloc_contiguous(ALIGN_DOWN(kmemreq.response->base, CONFIG_ARCH_PAGE_SIZE),
+                                        ALIGN_UP(kmemreq.response->size, CONFIG_ARCH_PAGE_SIZE) / CONFIG_ARCH_PAGE_SIZE);
+        kprintf(KP_INFO,
+                "claimed 0x%p-0x%p as kernel memory\n",
+                ALIGN_DOWN(kmemreq.response->base, CONFIG_ARCH_PAGE_SIZE),
+                ALIGN_DOWN(kmemreq.response->base, CONFIG_ARCH_PAGE_SIZE) + ALIGN_UP(kmemreq.response->size, CONFIG_ARCH_PAGE_SIZE));
+    }
+}
 
 void arch::startup::stage4_startup() {
     time::bootupTime = time::getCurrentUnixTime();

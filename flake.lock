@@ -36,6 +36,42 @@
         "type": "github"
       }
     },
+    "flake-utils_3": {
+      "inputs": {
+        "systems": "systems_3"
+      },
+      "locked": {
+        "lastModified": 1791914995,
+        "narHash": "sha256-Zf/xfQEAasnwnmEfHqW/4hjDE/s44yn2hD4RuVIZRjA=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "b7a79d3fea1e214f6d668d521cecec0c01e26544",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
+      }
+    },
+    "flake-utils_4": {
+      "inputs": {
+        "systems": "systems_4"
+      },
+      "locked": {
+        "lastModified": 1791914995,
+        "narHash": "sha256-Zf/xfQEAasnwnmEfHqW/4hjDE/s44yn2hD4RuVIZRjA=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "b7a79d3fea1e214f6d668d521cecec0c01e26544",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
+      }
+    },
     "funnyarch": {
       "inputs": {
         "flake-utils": "flake-utils_2",
@@ -44,11 +80,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1792625608,
-        "narHash": "sha256-OGpKUzJT8BWxxgUImAw4I/TDO7hQaA65+9wAxue4qZk=",
+        "lastModified": 1793099279,
+        "narHash": "sha256-GNqu9b0wPauxTVpzRiXtMLQMP6u0/aC0f8spBxXTA+0=",
         "owner": "theverygaming",
         "repo": "funnyarch",
-        "rev": "aff47283bcae972d9b39ced604547e8cccb32b58",
+        "rev": "cf82a5c89be5af706da0bd0ab4e69c12d4765ac0",
         "type": "github"
       },
       "original": {
@@ -57,13 +93,58 @@
         "type": "github"
       }
     },
+    "funnyarch_2": {
+      "inputs": {
+        "flake-utils": "flake-utils_4",
+        "nixpkgs": [
+          "littleboot",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1793099279,
+        "narHash": "sha256-GNqu9b0wPauxTVpzRiXtMLQMP6u0/aC0f8spBxXTA+0=",
+        "owner": "theverygaming",
+        "repo": "funnyarch",
+        "rev": "cf82a5c89be5af706da0bd0ab4e69c12d4765ac0",
+        "type": "github"
+      },
+      "original": {
+        "owner": "theverygaming",
+        "repo": "funnyarch",
+        "type": "github"
+      }
+    },
+    "littleboot": {
+      "inputs": {
+        "flake-utils": "flake-utils_3",
+        "funnyarch": "funnyarch_2",
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "nur-theverygaming": "nur-theverygaming"
+      },
+      "locked": {
+        "lastModified": 1793104150,
+        "narHash": "sha256-rXfifA9j2/gXCyvbeQWWF+ivm3RMiZFK6GnvFUNTUQc=",
+        "owner": "theverygaming",
+        "repo": "littleboot",
+        "rev": "ccd1d45a25fc08c00fdcdbb867d1059981e03850",
+        "type": "github"
+      },
+      "original": {
+        "owner": "theverygaming",
+        "repo": "littleboot",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1792506237,
-        "narHash": "sha256-hVMDyAXU0kxRuG3GygbZkzf5x+aBNEC0NYEJ6KwHtD4=",
-        "rev": "5adc50831c259f87faeb09ddf930d43597197473",
+        "lastModified": 1792842277,
+        "narHash": "sha256-lrp+A0ZwQN3V0tSZP6vVFIX/16FFOzr19mSup8XD80w=",
+        "rev": "d3b13ad75cc492690728f9307e443dec9ef9a20e",
         "type": "tarball",
-        "url": "https://releases.nixos.org/nixpkgs/nixpkgs-26.11pre1097770.5adc50831c25/nixexprs.tar.zst"
+        "url": "https://releases.nixos.org/nixpkgs/nixpkgs-26.11pre1100901.d3b13ad75cc4/nixexprs.tar.zst"
       },
       "original": {
         "id": "nixpkgs",
@@ -71,10 +152,32 @@
         "type": "indirect"
       }
     },
+    "nur-theverygaming": {
+      "inputs": {
+        "nixpkgs": [
+          "littleboot",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1792700903,
+        "narHash": "sha256-dQ8V7+qN3R7YfLeyNYgN0Y6IUpOh3pDMtPzHQOAnOxw=",
+        "owner": "theverygaming",
+        "repo": "nix-repo",
+        "rev": "d680b0980247463e8ad5344f566400acfd1a0d94",
+        "type": "github"
+      },
+      "original": {
+        "owner": "theverygaming",
+        "repo": "nix-repo",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "flake-utils": "flake-utils",
         "funnyarch": "funnyarch",
+        "littleboot": "littleboot",
         "nixpkgs": "nixpkgs",
         "rust-overlay": "rust-overlay"
       }
@@ -86,11 +189,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1792567368,
-        "narHash": "sha256-mrM+zFDRO1pI85t2SEq5R739BIq7Nv5XkFtVZK9nkZM=",
+        "lastModified": 1793086596,
+        "narHash": "sha256-ObKS44vw4IIVpQ69YJzUGjZ0IwnpWoUlwjJSY7gefdo=",
         "owner": "oxalica",
         "repo": "rust-overlay",
-        "rev": "83dd732f2428827f35d997deae108a2ced5125f4",
+        "rev": "c7e9d512653a35ef4d5879c3df4d44d7b78d0e6d",
         "type": "github"
       },
       "original": {
@@ -115,6 +218,36 @@
       }
     },
     "systems_2": {
+      "locked": {
+        "lastModified": 1681028828,
+        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
+        "owner": "nix-systems",
+        "repo": "default",
+        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-systems",
+        "repo": "default",
+        "type": "github"
+      }
+    },
+    "systems_3": {
+      "locked": {
+        "lastModified": 1681028828,
+        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
+        "owner": "nix-systems",
+        "repo": "default",
+        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-systems",
+        "repo": "default",
+        "type": "github"
+      }
+    },
+    "systems_4": {
       "locked": {
         "lastModified": 1681028828,
         "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",

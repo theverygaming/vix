@@ -12,6 +12,10 @@
       url = "github:theverygaming/funnyarch";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    littleboot = {
+      url = "github:theverygaming/littleboot";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -21,6 +25,7 @@
       flake-utils,
       rust-overlay,
       funnyarch,
+      littleboot,
     }:
     { }
     // flake-utils.lib.eachDefaultSystem (
@@ -43,6 +48,7 @@
           funnyarch = import ./nix-shells/funnyarch.nix {
             inherit pkgs;
             funnyarch = funnyarch.packages.${system};
+            littleboot = littleboot.packages.${system};
           };
         };
       }

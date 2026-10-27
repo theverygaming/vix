@@ -69,6 +69,9 @@ bootimg-linux:
 	@cp shitshell/shitshell sysroot/bin/sh
 	@find sysroot/ -printf "%P\n" | tar --format=ustar -cf roramfs.fs --no-recursion -C sysroot/ -T -
 
+bootimg-funnyarch:
+	@boot/createimg-funnyarch.sh
+
 kernel-x86:
 	@$(MAKE) --no-print-directory -C kernel
 
