@@ -95,7 +95,7 @@ jobs:
         run: |
           nix develop .#${{ matrix.stuff.flake }} --command bash -c '${{ matrix.stuff.step_bootimg }}'
       - name: Run in emulator
-        run: nix develop .#${{ matrix.stuff.flake }} --command bash -c 'timeout ${{ matrix.stuff.run_timeout_secs }} ${{ matrix.stuff.runcmd }} | ansifilter | tee log.txt || true'
+        run: nix develop .#${{ matrix.stuff.flake }} --command bash -c 'timeout ${{ matrix.stuff.run_timeout_secs }} ${{ matrix.stuff.runcmd }} 2>&1 | ansifilter | tee log.txt || true'
       - name: Check Tests
         continue-on-error: ${{ matrix.stuff.ignore_test_failure }}
         run: |
