@@ -1,5 +1,5 @@
-override INT_CFLAGS += -fno-pie -ffreestanding -nostdinc -nostdlib -nostartfiles -fno-exceptions -fno-merge-constants -munaligned-access -I$(LITTLEBOOT_INCLUDEPATH)
-override INT_CXXFLAGS += -fno-pie -ffreestanding -nostdinc -nostdlib -nostartfiles -fno-exceptions -fno-merge-constants -munaligned-access -I$(LITTLEBOOT_INCLUDEPATH)
+override INT_CFLAGS += -fno-pie -ffreestanding -nostdinc -nostdlib -nostartfiles -fno-exceptions -fno-merge-constants -munaligned-access -I$(LITTLEBOOT_INCLUDEPATH) -fno-omit-frame-pointer
+override INT_CXXFLAGS += -fno-pie -ffreestanding -nostdinc -nostdlib -nostartfiles -fno-exceptions -fno-merge-constants -munaligned-access -I$(LITTLEBOOT_INCLUDEPATH) -fno-omit-frame-pointer
 override INT_LDFLAGS  +=
 
 ifeq ($(CONFIG_ENABLE_FTRACE), y)

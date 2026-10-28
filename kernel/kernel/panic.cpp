@@ -11,6 +11,10 @@
 void x86_stack_trace();
 #endif
 #endif
+#ifdef CONFIG_ARCH_FUNNYARCH
+// FIXME: need stack trace abstraction
+void funnyarch_stack_trace();
+#endif
 
 void kernel_panic(const char *panic_fmt, ...) {
     sched::disable();
@@ -27,6 +31,9 @@ void kernel_panic(const char *panic_fmt, ...) {
 #ifdef CONFIG_ENABLE_KERNEL_32
     x86_stack_trace();
 #endif
+#endif
+#ifdef CONFIG_ARCH_FUNNYARCH
+    funnyarch_stack_trace();
 #endif
 
     while (true) {
