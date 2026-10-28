@@ -26,6 +26,6 @@ pkgs.stdenv.mkDerivation {
   shellHook = common.shellHook + ''
     alias funnyarch-emu='funnyarch-emulator -r ''${FUNNYARCH_ROM_PATH}'
     alias vix-build='make MAKE_ARCH=funnyarch CROSS_COMPILE=funnyarch-none-none- -j$NIX_BUILD_CORES && make bootimg-funnyarch MAKE_ARCH=funnyarch CROSS_COMPILE=funnyarch-none-none-'
-    alias vix-run='funnyarch-emu -d vix.img'
+    alias vix-run='funnyarch-emu -d vix.img -m 1M'
   '';
 }
