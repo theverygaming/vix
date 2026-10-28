@@ -87,11 +87,11 @@
         "nur-theverygaming": "nur-theverygaming"
       },
       "locked": {
-        "lastModified": 1793142070,
-        "narHash": "sha256-o3ZEywCoxXw0E/YAACTsR9RpwArxWwAepATceLUvyWM=",
+        "lastModified": 1793179423,
+        "narHash": "sha256-HwAEongk4a8NVFfAvth3qcjR1WH7J16HuDOh3h/gSX8=",
         "owner": "theverygaming",
         "repo": "littleboot",
-        "rev": "3b0c65ee54e7ffd4c0050299a4adefd5e9537352",
+        "rev": "1e9d91fd1fc1c50ed4ff1576faa1116a464c9c32",
         "type": "github"
       },
       "original": {
