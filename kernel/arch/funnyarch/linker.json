@@ -8,6 +8,7 @@
         {"name": ".initfn_functions"},
         {"name": ".test_defs"},
         {"name": ".rodata"},
+        {"name": ".sym_table"},
         {"name": ".data"},
         {"name": ".bss"}
     ],
@@ -20,8 +21,6 @@
         {"name": "END_CONSTRUCTORS_INITARR", "anchor_section_start": ".ctors"},
         {"name": "START_CONSTRUCTORS_CTORS", "anchor_section_start": ".ctors"},
         {"name": "END_CONSTRUCTORS_CTORS", "anchor_section_end": ".ctors"},
-        {"name": "symtab_start", "anchor_section_start": ".data"},
-        {"name": "symtab_end", "anchor_section_start": ".data"},
         {"name": "KERNEL_START", "anchor_section_start": ".entry"},
         {"name": "KERNEL_END", "anchor_section_end": ".bss"}
     ]
