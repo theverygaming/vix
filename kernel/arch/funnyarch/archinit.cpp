@@ -15,6 +15,7 @@
 #include <vix/stdio.h>
 #include <vix/time.h>
 #include <vix/debug.h>
+#include <vix/fs/tarfs.h>
 #define LITTLEBOOT_HAS_STDINT
 #include <littleboot/proto.h>
 
@@ -33,6 +34,7 @@ extern "C" uint8_t KERNEL_END;
 static volatile struct littleboot_kernel_header __attribute__((section(".entry"))) header = {.id = LITTLEBOOT_KERNEL_HEADER_ID, .load_address = (uintptr_t)&KERNEL_START, .load_end_address = (uintptr_t)&KERNEL_END, .kmain = &__kentry};
 static volatile struct littleboot_memmap_request memmapreq = {.id = LITTLEBOOT_MEMMAP_REQUEST_ID, .response = nullptr};
 static volatile struct littleboot_kmem_request kmemreq = {.id = LITTLEBOOT_KMEM_REQUEST_ID, .response = nullptr};
+static volatile struct littleboot_module_request modreq = {.id = LITTLEBOOT_MODULE_REQUEST_ID, .response = nullptr};
 
 static void mmio_putc(char c) {
     *((volatile uint32_t *)0xF004B000) = c;
@@ -104,6 +106,15 @@ void arch::startup::stage3_startup() {
 }
 
 void arch::startup::stage4_startup() {
+    if (modreq.response != nullptr) {
+        DEBUG_PRINTF("module at 0x%p size %u\n", modreq.response->address, modreq.response->size);
+        // NOTE: we ignore all other modules if there's more than one.
+        if (fs::filesystems::tarfs::init(
+                modreq.response->address
+            )) {
+            fs::filesystems::tarfs::mountInVFS();
+        }
+    }
     time::bootupTime = time::getCurrentUnixTime();
     DEBUG_PRINTF("framebuffer init\n");
     struct fb::fbinfo fbinfo = {

@@ -70,6 +70,9 @@ bootimg-linux:
 	@find sysroot/ -printf "%P\n" | tar --format=ustar -cf roramfs.fs --no-recursion -C sysroot/ -T -
 
 bootimg-funnyarch:
+	@mkdir -p sysroot/usr/share/consolefonts/
+	@cp fonts/Unifont-APL8x16-15.0.01.psf sysroot/usr/share/consolefonts
+	@find sysroot/ -printf "%P\n" | tar --format=ustar -cf roramfs.fs --no-recursion -C sysroot/ -T -
 	@boot/createimg-funnyarch.sh
 
 kernel-x86:
