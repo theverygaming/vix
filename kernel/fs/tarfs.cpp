@@ -101,9 +101,11 @@ bool fs::filesystems::tarfs::init(void *location) {
             DEBUG_PRINTF("    -> %s %u [UNSUPPORTED]\n", file_ptr->name, size);
         }
 
-        file_ptr = (struct tarheader *)(PTR_ALIGN_UP(
-            (uint8_t *)file_ptr + 512 + size, 512
-        ));
+        file_ptr = (struct tarheader *)(
+            (uint8_t *)file_ptr + ALIGN_UP_DIFF(
+                ((uint8_t *)file_ptr - (uint8_t *)location) + 512 + size, 512
+            ) + 512 + size
+        );
     }
 
     DEBUG_PRINTF("    -> total: %u\n", total_size);
@@ -157,9 +159,11 @@ void fs::filesystems::tarfs::mountInVFS() {
             break;
         }
 
-        file_ptr = (struct tarheader *)(PTR_ALIGN_UP(
-            (uint8_t *)file_ptr + 512 + size, 512
-        ));
+        file_ptr = (struct tarheader *)(
+            (uint8_t *)file_ptr + ALIGN_UP_DIFF(
+                ((uint8_t *)file_ptr - (uint8_t *)locationptr) + 512 + size, 512
+            ) + 512 + size
+        );
     }
 
     kprintf(KP_INFO, "tarfs: copied data\n");
