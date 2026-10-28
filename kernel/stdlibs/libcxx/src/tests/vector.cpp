@@ -2,6 +2,8 @@
 #include <vix/test.h>
 #include <vix/types.h>
 
+static size_t destruct_counter = 0;
+
 class testclass {
 public:
     testclass(int _value) {
@@ -10,6 +12,7 @@ public:
     }
 
     ~testclass() {
+        destruct_counter++;
         destructed = true;
     }
 
@@ -53,17 +56,21 @@ TEST(std_vector_construct_destruct_1) {
         TEST_ASSERT(vec[i].value == i);
     }
 
+    destruct_counter = 0;
     vec.clear();
 
     TEST_ASSERT(vec.size() == 0);
 
     // check if all destructors + constructors + copy constructors were called and if data was copied correctly
-    for (size_t i = 0; i < vec_ptr.size(); i++) {
+    TEST_ASSERT(vec_ptr.size() == destruct_counter);
+    // TODO: this doesn't work and causes page faults big time since vec.clear() calls krealloc which then may deallocate the pages pointed to..
+    /*for (size_t i = 0; i < vec_ptr.size(); i++) {
+        kprintf(KP_ALERT, "ptr: 0x%p\n", vec_ptr[i]);
         TEST_ASSERT(vec_ptr[i]->constructed == true);
         TEST_ASSERT(vec_ptr[i]->destructed == true);
         TEST_ASSERT(vec_ptr[i]->copied == true);
         TEST_ASSERT(vec_ptr[i]->value == i);
-    }
+    }*/
 
     return true;
 }
