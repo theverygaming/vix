@@ -199,8 +199,10 @@ void mm::free_contiguous(void *addr, size_t bytes) {
 }
 
 status::Status<> mm::mem_areas_init(mem_areas_t *areas) {
+#ifdef CONFIG_ARCH_HAS_PAGING
     // FIXME: problem! we should probably, maybe not allocate a e.g. level 5 page table on x86_64 with 5-level paging... Maybe add smth like CONFIG_ARCH_USER_PT_LEVEL or smth?
     ASSIGN_OR_PANIC(areas->pt, arch::vmm::alloc_pt(CONFIG_ARCH_PAGING_LEVELS));
+#endif
     return status::StatusCode::OK;
 }
 
@@ -208,8 +210,9 @@ void mm::mem_areas_deinit(mem_areas_t *areas) {
     for (auto it = areas->areas.begin(); it != areas->areas.end(); it++) {
         mm::free_non_contiguous((void *)it->arange.start, it->arange.end - it->arange.start);
     }
-
+#ifdef CONFIG_ARCH_HAS_PAGING
     arch::vmm::free_pt(areas->pt);
+#endif
 }
 
 status::StatusOr<void *> mm::mem_areas_alloc_range(
@@ -222,7 +225,7 @@ status::StatusOr<void *> mm::mem_areas_alloc_range(
 #ifdef CONFIG_ARCH_HAS_PAGING
     ASSIGN_OR_RETURN(allocated, mm::allocate_non_contiguous(min_bytes, attrs, PRANGE_DEFAULT, {.start = arange.start, .end = arange.end}));
 #else
-    #error "nommu broken :3"
+    ASSIGN_OR_RETURN(allocated, mm::allocate_non_contiguous(min_bytes, attrs, {.start = arange.start, .end = arange.end}, {.start = arange.start, .end = arange.end}));
 #endif
     size_t bytes_real = (ALIGN_UP(min_bytes, CONFIG_ARCH_PAGE_SIZE));
     areas->areas.push_front({
@@ -237,16 +240,22 @@ status::StatusOr<void *> mm::mem_areas_alloc_range(
 }
 
 void *mm::mem_areas_tmp_load(mem_areas_t *areas) {
+#ifdef CONFIG_ARCH_HAS_PAGING
     arch::vmm::pt_t prev_pt = arch::vmm::get_active_pt();
     arch::vmm::load_pt(areas->pt);
 
     arch::vmm::pt_t *ptptr = new arch::vmm::pt_t; // TODO: this is cursed big time but whatever.. We should store it somewhere else
     *ptptr = prev_pt;
     return ptptr;
+#else
+    return nullptr;
+#endif
 }
 
 void mm::mem_areas_tmp_restore(void *token) {
+#ifdef CONFIG_ARCH_HAS_PAGING
     arch::vmm::pt_t *ptptr = (arch::vmm::pt_t *)token;
     arch::vmm::load_pt(*ptptr);
     delete ptptr;
+#endif
 }
