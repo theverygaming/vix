@@ -1,5 +1,5 @@
 #pragma once
-#include <vix/arch/common/paging.h>
+#include <vix/mm/mm.h>
 #include <vix/fs/vfs.h>
 #include <memory>
 #include <utility>
@@ -12,13 +12,13 @@ namespace execfmt::elf {
      * Returns entry point on success.
      * Assumes the pt is already loaded.
      */ 
-    status::StatusOr<void *> load_elf32(arch::vmm::pt_t pt, std::shared_ptr<struct vfs::vnode> elf_file);
+    status::StatusOr<void *> load_elf32(mm::mem_areas_t *areas, std::shared_ptr<struct vfs::vnode> elf_file);
 
     /*
      * Returns entry point on success.
      * Assumes the pt is already loaded.
      */ 
-    status::StatusOr<void *> load_elf64(arch::vmm::pt_t pt, std::shared_ptr<struct vfs::vnode> elf_file);
+    status::StatusOr<void *> load_elf64(mm::mem_areas_t *areas, std::shared_ptr<struct vfs::vnode> elf_file);
 
     inline const unsigned int PT_LOAD = 1;
 #ifdef CONFIG_ENABLE_EXECFMT_ELF32

@@ -9,8 +9,9 @@
 #include <string.h>
 #include <utility>
 #include <vix/macros.h>
+#include <vix/mm/mm.h>
 
-status::StatusOr<std::pair<arch::vmm::pt_t, void *>> execfmt::load_any(const char *path) {
+status::StatusOr<std::pair<mm::mem_areas_t, void *>> execfmt::load_any(const char *path) {
     RUN_OR_RETURN(
         vfs::open(path),
         {
@@ -30,15 +31,15 @@ status::StatusOr<std::pair<arch::vmm::pt_t, void *>> execfmt::load_any(const cha
     );
 }
 
-status::StatusOr<std::pair<arch::vmm::pt_t, void *>> execfmt::load_any(std::shared_ptr<struct vfs::vnode> exec_file) {
-    status::StatusOr<void *> (*execfmt_loader)(arch::vmm::pt_t pt, std::shared_ptr<struct vfs::vnode> exec_file) = nullptr;
+status::StatusOr<std::pair<mm::mem_areas_t, void *>> execfmt::load_any(std::shared_ptr<struct vfs::vnode> exec_file) {
+    status::StatusOr<void *> (*execfmt_loader)(mm::mem_areas_t *areas, std::shared_ptr<struct vfs::vnode> exec_file) = nullptr;
 
 #if defined(CONFIG_ENABLE_EXECFMT_ELF32) || defined(CONFIG_ENABLE_EXECFMT_ELF64)
     uint8_t buf[5];
     uint8_t elfmagic[4] = {
         0x7f, 'E', 'L', 'F', // ELF magic
     };
-    std::pair<uint8_t, status::StatusOr<void *> (*)(arch::vmm::pt_t pt, std::shared_ptr<struct vfs::vnode> exec_file)> elf_dispatch[] = {
+    std::pair<uint8_t, status::StatusOr<void *> (*)(mm::mem_areas_t *areas, std::shared_ptr<struct vfs::vnode> exec_file)> elf_dispatch[] = {
 #ifdef CONFIG_ENABLE_EXECFMT_ELF32
         {elf::ELFCLASS32, &elf::load_elf32},
 #endif
@@ -67,25 +68,23 @@ status::StatusOr<std::pair<arch::vmm::pt_t, void *>> execfmt::load_any(std::shar
         return status::StatusCode::EGENERIC;
     }
 
-    arch::vmm::pt_t pt;
-    // FIXME: problem! we should probably, maybe not allocate a e.g. level 5 page table on x86_64 with 5-level paging... Maybe add smth like CONFIG_ARCH_USER_PT_LEVEL or smth?
-    ASSIGN_OR_PANIC(pt, arch::vmm::alloc_pt(CONFIG_ARCH_PAGING_LEVELS));
+    mm::mem_areas_t areas;
+    PANIC_IF_ERROR(mm::mem_areas_init(&areas));
 
-    arch::vmm::pt_t prev_pt = arch::vmm::get_active_pt();
-    arch::vmm::load_pt(pt);
+    void *token = mm::mem_areas_tmp_load(&areas);
 
-    auto execfmt_ret = execfmt_loader(pt, exec_file);
+    auto execfmt_ret = execfmt_loader(&areas, exec_file);
 
-    arch::vmm::load_pt(prev_pt);
+    mm::mem_areas_tmp_restore(token);
 
     if (execfmt_ret.status().ok()) {
-        std::pair<arch::vmm::pt_t, void *> rpair = {
-            .first = pt,
+        std::pair<mm::mem_areas_t, void *> rpair = {
+            .first = areas,
             .second = execfmt_ret.value()
         };
         return rpair;
     } else {
-        arch::vmm::free_pt(pt);
+        mm::mem_areas_deinit(&areas);
         return execfmt_ret.status().code();
     }
 }

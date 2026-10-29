@@ -81,7 +81,7 @@ extern "C" void sched_switch(struct arch::ctx **old, struct arch::ctx *_new, str
     if (next->thread_arch.is_ring_3) {
         tss::tss_entry.esp0 = (uintptr_t)next->thread_arch.kernel_stack_top;
 #ifdef CONFIG_ARCH_HAS_PAGING
-        arch::vmm::load_pt(next->thread_arch.pt);
+        arch::vmm::load_pt(next->mem_areas->pt);
     }
 #endif
 #endif

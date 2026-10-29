@@ -7,9 +7,9 @@ namespace std {
 
     template <class T> class shared_ptr {
     public:
-        shared_ptr() : ptr(nullptr), refcount(new uint32_t(1)) {}
+        shared_ptr() : ptr(nullptr), refcount(new size_t(1)) {}
 
-        shared_ptr(T *nptr) : ptr(nptr), refcount(new uint32_t(1)) {}
+        shared_ptr(T *nptr) : ptr(nptr), refcount(new size_t(1)) {}
 
         shared_ptr(const shared_ptr &p) : ptr(p.ptr), refcount(p.refcount) {
             (*refcount)++;
@@ -59,7 +59,7 @@ namespace std {
         }
 
         T &operator*() const noexcept {
-            return ptr;
+            return *ptr;
         }
 
         T *operator->() const noexcept {
@@ -70,13 +70,13 @@ namespace std {
             return &ptr[index];
         }
 
-        uint32_t use_count() const noexcept {
+        size_t use_count() const noexcept {
             return *refcount;
         }
 
     private:
         T *ptr;
-        uint32_t *refcount;
+        size_t *refcount;
 
         void clean() {
             if (refcount == nullptr) {

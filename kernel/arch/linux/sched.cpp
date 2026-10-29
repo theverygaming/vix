@@ -20,7 +20,7 @@ void user_thread_launch() {
             sched::mythread()->thread_arch.user_stack_top,
             sched::mythread()->data1,
             sched::mythread()->data2);
-    arch::vmm::load_pt(sched::mythread()->thread_arch.pt);
+    arch::vmm::load_pt(sched::mythread()->mem_areas->pt);
     ((uint8_t *)sched::mythread()->thread_arch.user_stack_bottom)[100] = 5;
     struct arch::full_ctx fullctx;
     memset(&fullctx, 0, sizeof(fullctx));
@@ -65,7 +65,7 @@ extern "C" void core_sched_switch(struct arch::ctx **old, struct arch::ctx *_new
 extern "C" void sched_switch(struct arch::ctx **old, struct arch::ctx *_new, struct sched::thread *prev, struct sched::thread *next) {
     core_sched_switch(old, _new, prev, next);
     if (next->thread_arch.is_usermode) {
-        arch::vmm::load_pt(next->thread_arch.pt);
+        arch::vmm::load_pt(next->mem_areas->pt);
         monitor_set_kernel_stack((uintptr_t)sched::mythread()->thread_arch.kernel_stack_top);
     } else {
         arch::vmm::load_pt(arch::vmm::kernel_pt);

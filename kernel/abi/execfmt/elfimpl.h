@@ -1,4 +1,5 @@
 #pragma once
+#include <vix/mm/mm.h>
 #include <vix/arch/common/paging.h>
 #include <vix/fs/vfs.h>
 #include <vix/status.h>
@@ -10,7 +11,7 @@
 #include <vix/macros.h>
 
 template<typename elf_header, typename elf_program_header> status::StatusOr<void *>
-static load_elf(arch::vmm::pt_t pt, std::shared_ptr<struct vfs::vnode> elf_file) {
+static load_elf(mm::mem_areas_t *areas, std::shared_ptr<struct vfs::vnode> elf_file) {
     // FIXME: BUG: I think one could load an ELF that loads in kernel space with this and REALLY fuck around!!
     elf_header header;
     elf_program_header pHeader;
@@ -55,24 +56,24 @@ static load_elf(arch::vmm::pt_t pt, std::shared_ptr<struct vfs::vnode> elf_file)
     uintptr_t max_v = ALIGN_UP(max, CONFIG_ARCH_PAGE_SIZE);
     uintptr_t min_v = ALIGN_DOWN(min, CONFIG_ARCH_PAGE_SIZE);
 
-    if (max > CONFIG_KERNEL_HIGHER_HALF) {
-        DEBUG_PRINTF("ELF: max load address (0x%p) > higher half (0x%p)!\n", max, CONFIG_KERNEL_HIGHER_HALF);
+    if (max_v > CONFIG_KERNEL_HIGHER_HALF) {
+        DEBUG_PRINTF("ELF: max_v load address (0x%p) > higher half (0x%p)!\n", max_v, CONFIG_KERNEL_HIGHER_HALF);
         return status::StatusCode::EGENERIC;
     }
 
     size_t pagecount = ((max_v - min_v) / CONFIG_ARCH_PAGE_SIZE);
 
-    for (size_t i = 0; i < pagecount; i++) {
-        mm::paddr_t allocated_phys;
-        // TODO: could do ASSIGN_OR_RETURN but we'd have to dealloc the failed stuff
-        ASSIGN_OR_PANIC(allocated_phys, mm::pmm::alloc_contiguous(pagecount));
-        arch::vmm::set_page_pt(
-            pt,
-            min_v + (i *CONFIG_ARCH_PAGE_SIZE),
-            allocated_phys + (i *CONFIG_ARCH_PAGE_SIZE),
-            arch::vmm::FLAGS_PRESENT | arch::vmm::FLAGS_USER
-        );
-    }
+    RETURN_IF_ERROR(mm::mem_areas_alloc_range(
+        areas,
+        pagecount * CONFIG_ARCH_PAGE_SIZE,
+        {
+            .user = true,
+            .read_only = false,
+            .no_execute = false,
+            .cache = mm::caching_type::WRITE_BACK,
+        },
+        {.start = min_v, .end = max_v}
+    ));
 
     // BUG: memory leak if things fail after this point
 

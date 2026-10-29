@@ -8,6 +8,6 @@
 
 namespace abi::linux::arch {
 #ifdef CONFIG_ARCH_HAS_PAGING
-    status::StatusOr<sched::tid_t> start_process(::arch::vmm::pt_t pt, void *entrypoint, std::vector<std::string> *args);
+    status::StatusOr<sched::tid_t> start_process(mm::mem_areas_t areas, void *entrypoint, std::vector<std::string> *args);
 #endif
 }

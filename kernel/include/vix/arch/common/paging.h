@@ -1,7 +1,7 @@
 #pragma once
 #include <utility>
 #include <vix/config.h>
-#include <vix/mm/mm.h>
+#include <vix/mm/mm_types.h>
 #include <vix/status.h>
 #include <vix/types.h>
 #include <vix/arch/common/paging_types.h>

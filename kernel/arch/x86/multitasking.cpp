@@ -96,13 +96,12 @@ static void user_thread_launch() {
             sched::mythread()->thread_arch.kernel_stack_top);
     tss::tss_entry.ss0 = GDT_KERNEL_DATA;
     tss::tss_entry.esp0 = (uintptr_t)sched::mythread()->thread_arch.kernel_stack_top;
-    arch::vmm::load_pt(sched::mythread()->thread_arch.pt);
+    arch::vmm::load_pt(sched::mythread()->mem_areas->pt);
     x86_load_cpu_full_ctx((struct arch::full_ctx *)sched::mythread()->data1);
 }
 
-sched::tid_t multitasking::create_task(void *stackadr, void *entrypoint, arch::vmm::pt_t pt, std::vector<std::string> *argv) {
-    arch::vmm::pt_t prev_pt = arch::vmm::get_active_pt();
-    arch::vmm::load_pt(pt);
+sched::tid_t multitasking::create_task(void *stackadr, void *entrypoint, mm::mem_areas_t areas, std::vector<std::string> *argv) {
+    void *token = mm::mem_areas_tmp_load(&areas);
 
     stackadr = init_user_stack(stackadr, argv, entrypoint, false);
 
@@ -122,13 +121,12 @@ sched::tid_t multitasking::create_task(void *stackadr, void *entrypoint, arch::v
     ctx->eip = (uintptr_t)entrypoint;
     ctx->eflags = 1 << 9;
 
-    arch::vmm::load_pt(prev_pt);
+    mm::mem_areas_tmp_restore(token);
     struct sched::thread t = sched::init_thread(user_thread_launch, {
         .type = abi::type::LINUX,
         .hooks = nullptr,
         .ctx = nullptr,
-    }, ctx);
-    t.thread_arch.pt = pt;
+    }, areas, ctx);
     t.thread_arch.is_ring_3 = true;
     return sched::start_thread(t);
 }

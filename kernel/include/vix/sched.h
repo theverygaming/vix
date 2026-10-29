@@ -4,6 +4,8 @@
 #include <vix/arch/common/cpu.h>
 #include <vix/arch/common/sched.h>
 #include <vix/config.h>
+#include <vix/mm/mm.h>
+#include <memory>
 
 namespace sched {
     typedef int tid_t;
@@ -12,6 +14,8 @@ namespace sched {
         tid_t tid;
         bool running;
         struct arch::ctx *ctx;
+        // shared_ptr because mem_areas may point to the exact same memory in e.g. a process with multiple threads
+        std::shared_ptr<mm::mem_areas_t> mem_areas;
 
         // architecture specific
         struct arch_thread thread_arch;
@@ -42,6 +46,7 @@ namespace sched {
     void yield();
 
     // allocates stack and stuff, ouput needs to be passed to start_thread later
+    struct thread init_thread(void (*func)(), struct abi::thread abi_thread, mm::mem_areas_t areas, void *data1 = nullptr, void *data2 = nullptr);
     struct thread init_thread(void (*func)(), struct abi::thread abi_thread, void *data1 = nullptr, void *data2 = nullptr);
 
     // low-level method to start a thread, allocates and returns TID

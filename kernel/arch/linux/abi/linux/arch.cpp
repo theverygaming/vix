@@ -4,23 +4,20 @@
 #include <vix/abi/linux/arch.h>
 #include <vix/arch/sched_helpers.h>
 
-status::StatusOr<sched::tid_t> abi::linux::arch::start_process(::arch::vmm::pt_t pt, void *entrypoint, std::vector<std::string> *args) {
+status::StatusOr<sched::tid_t> abi::linux::arch::start_process(mm::mem_areas_t areas, void *entrypoint, std::vector<std::string> *args) {
     void *stack_bottom;
 
-    ::arch::vmm::pt_t prev_pt = ::arch::vmm::get_active_pt();
-    ::arch::vmm::load_pt(pt);
+    void *token = mm::mem_areas_tmp_load(&areas);
 
     size_t stack_size = 40 * CONFIG_ARCH_PAGE_SIZE;
 
-    ASSIGN_OR_RETURN(
-        stack_bottom,
-        mm::allocate_non_contiguous(
-            stack_size,
-            {.user = true, .read_only = false, .no_execute = true, .cache = mm::caching_type::WRITE_BACK},
-            {.start = 0, .end = UINTPTR_MAX},
-            {.start = CONFIG_ARCH_PAGE_SIZE * 100, .end = CONFIG_KERNEL_HIGHER_HALF}
-        )
-    );
+    // TODO: we could ASSIGN_OR_RETURN but we need to call mm::mem_areas_tmp_restore this must be implemented!
+    ASSIGN_OR_PANIC(stack_bottom, mm::mem_areas_alloc_range(
+        &areas,
+        stack_size,
+        {.user = true, .read_only = false, .no_execute = true, .cache = mm::caching_type::WRITE_BACK},
+        {.start = CONFIG_ARCH_PAGE_SIZE * 100, .end = CONFIG_KERNEL_HIGHER_HALF}
+    ));
 
     DEBUG_PRINTF("stack bottom: 0x%p\n", stack_bottom);
 
@@ -65,14 +62,13 @@ status::StatusOr<sched::tid_t> abi::linux::arch::start_process(::arch::vmm::pt_t
     stack_entry--;
     *stack_entry = args->size();
 
-    ::arch::vmm::load_pt(prev_pt);
+    mm::mem_areas_tmp_restore(token);
 
     struct sched::thread t = sched::init_thread(&user_thread_launch, {
         .type = abi::type::LINUX,
         .hooks = nullptr,
         .ctx = nullptr,
-    }, entrypoint, stack_entry);
-    t.thread_arch.pt = pt;
+    }, areas, entrypoint, stack_entry);
     t.thread_arch.is_usermode = true;
     t.thread_arch.user_stack_top = stack_top;
     t.thread_arch.user_stack_bottom = stack_bottom;

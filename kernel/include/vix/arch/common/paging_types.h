@@ -2,7 +2,7 @@
 // This file exists in case an architecture wants to override these types
 
 #include <vix/config.h>
-#include <vix/mm/mm.h>
+#include <vix/mm/mm_types.h>
 #include <vix/types.h>
 
 #ifdef CONFIG_ARCH_HAS_PAGING

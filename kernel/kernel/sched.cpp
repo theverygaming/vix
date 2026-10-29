@@ -1,3 +1,6 @@
+#include <memory>
+#include <vix/mm/mm.h>
+#include <vix/status.h>
 #include <forward_list>
 #include <vix/interrupts.h>
 #include <vix/macros.h>
@@ -85,9 +88,10 @@ void sched::enter() {
     KERNEL_PANIC("unreachable");
 }
 
-struct sched::thread sched::init_thread(void (*func)(), struct abi::thread abi_thread, void *data1, void *data2) {
+struct sched::thread sched::init_thread(void (*func)(), struct abi::thread abi_thread, mm::mem_areas_t areas, void *data1, void *data2) {
     struct sched::thread t;
     t.abi_thread = abi_thread;
+    t.mem_areas = std::shared_ptr<mm::mem_areas_t>(new mm::mem_areas_t(areas));
     sched::arch_init_thread(&t, func);
     t.running = false;
     t.tid = -1;
@@ -98,6 +102,13 @@ struct sched::thread sched::init_thread(void (*func)(), struct abi::thread abi_t
         t.abi_thread.hooks->init_thread(&t);
     }
     return t;
+}
+
+struct sched::thread sched::init_thread(void (*func)(), struct abi::thread abi_thread, void *data1, void *data2) {
+    mm::mem_areas_t areas;
+    // TODO: maybe return a status?
+    PANIC_IF_ERROR(mm::mem_areas_init(&areas));
+    return init_thread(func, abi_thread, areas, data1, data2);
 }
 
 sched::tid_t sched::start_thread(struct sched::thread t) {
