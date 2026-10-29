@@ -6,7 +6,7 @@
 namespace mm::pmm {
     void init();
 
-    status::StatusOr<paddr_t> alloc_contiguous(size_t pages);
+    status::StatusOr<paddr_t> alloc_contiguous(size_t pages, paddr_range prange);
     void free_contiguous(paddr_t paddr, size_t pages);
 
     size_t get_free_blocks();

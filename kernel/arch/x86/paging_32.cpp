@@ -61,7 +61,7 @@ void paging::init() {
         + ((1024 - (CONFIG_KERNEL_HIGHER_HALF >> 22)) * (1024 * 4))
     );
     ASSIGN_OR_PANIC(arch::vmm::kernel_pt.ptr, mm::pmm::alloc_contiguous(
-        alloc_bytes / CONFIG_ARCH_PAGE_SIZE
+        alloc_bytes / CONFIG_ARCH_PAGE_SIZE, mm::PRANGE_DEFAULT
     ));
     // initialize the page directory
     uint32_t *pd = (uint32_t*)hhdm_offset(arch::vmm::kernel_pt.ptr);
@@ -132,7 +132,7 @@ status::StatusOr<arch::vmm::pt_t> arch::vmm::alloc_pt(short level) {
         (
             // page directory
             (1024*4)
-        ) / CONFIG_ARCH_PAGE_SIZE
+        ) / CONFIG_ARCH_PAGE_SIZE, mm::PRANGE_DEFAULT
     ));
     uint32_t *pd_v = (uint32_t*)hhdm_offset(pd.ptr);
     memset(pd_v, 0, 1024 * 4);
@@ -146,7 +146,7 @@ status::StatusOr<arch::vmm::pt_t> arch::vmm::alloc_pt(short level) {
             (
                 // page table
                 (1024*4)
-            ) / CONFIG_ARCH_PAGE_SIZE
+            ) / CONFIG_ARCH_PAGE_SIZE, mm::PRANGE_DEFAULT
         ));
 
         pd_v[i] = pt & 0xFFFFF000;

@@ -1,3 +1,4 @@
+#include <vix/debug.h>
 #include <string.h>
 #include <vix/arch/common/paging.h>
 #include <vix/arch/generic/memory.h>
@@ -9,6 +10,7 @@
 #include <vix/panic.h>
 #include <vix/status.h>
 #include <vix/types.h>
+#include <algorithm>
 
 // TODO: there are lots of places to optimize in this class!!!
 class bitmap {
@@ -263,14 +265,26 @@ void mm::pmm::init() {
     kprintf(KP_INFO, "pmm: initialized\n");
 }
 
-status::StatusOr<mm::paddr_t> mm::pmm::alloc_contiguous(size_t pages) {
+status::StatusOr<mm::paddr_t> mm::pmm::alloc_contiguous(size_t pages, paddr_range prange) {
     size_t pages_before = 0;
     for (size_t i = 0; i < pm_n_areas; i++) {
-        size_t found_start;
-        bool found = pm_bitmap.findRange(pages_before, pages_before + pm_areas[i].n_pages, pages, false, &found_start);
-        if (found) {
-            pm_bitmap.setRange(found_start, pages);
-            return pm_areas[i].start_addr + ((found_start - pages_before) * CONFIG_ARCH_PAGE_SIZE);
+        size_t area_addr_start = pm_areas[i].start_addr;
+        size_t area_addr_end = pm_areas[i].start_addr + (pm_areas[i].n_pages * CONFIG_ARCH_PAGE_SIZE);
+
+        size_t addr_start = std::min(std::max(prange.start, area_addr_start), area_addr_end);
+        size_t addr_end = std::max(std::min(prange.end, area_addr_end), area_addr_start);
+
+        DEBUG_PRINTF_INSANE("area: 0x%p-0x%p prange: 0x%p-0x%p adjusted range: 0x%p-0x%p\n", area_addr_start, area_addr_end, prange.start, prange.end, addr_start, addr_end);
+
+        size_t start = ((addr_start - area_addr_start) / CONFIG_ARCH_PAGE_SIZE);
+        size_t end = ((addr_end - area_addr_start) / CONFIG_ARCH_PAGE_SIZE);
+        if (start != end) {
+            size_t found_start;
+            bool found = pm_bitmap.findRange(start, end, pages, false, &found_start);
+            if (found) {
+                pm_bitmap.setRange(found_start, pages);
+                return pm_areas[i].start_addr + ((found_start - pages_before) * CONFIG_ARCH_PAGE_SIZE);
+            }
         }
         pages_before += pm_areas[i].n_pages;
     }

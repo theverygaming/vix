@@ -103,7 +103,7 @@ void paging_init() {
     DEBUG_PRINTF("need %u bytes for kernel PD & PTs\n", alloc_bytes);
     // TODO: we should ask the allocator to give us memory in the HHDM range
     ASSIGN_OR_PANIC(arch::vmm::kernel_pt.ptr, mm::pmm::alloc_contiguous(
-        alloc_bytes / CONFIG_ARCH_PAGE_SIZE
+        alloc_bytes / CONFIG_ARCH_PAGE_SIZE, mm::PRANGE_DEFAULT
     ));
     // initialize the page directory
     pt_entry_t *pd = (pt_entry_t*)hhdm_offset(arch::vmm::kernel_pt.ptr);
@@ -211,7 +211,7 @@ status::StatusOr<arch::vmm::pt_t> arch::vmm::alloc_pt(short level) {
         (
             // page directory
             (1024*sizeof(pt_entry_t))
-        ) / CONFIG_ARCH_PAGE_SIZE
+        ) / CONFIG_ARCH_PAGE_SIZE, mm::PRANGE_DEFAULT
     ));
     pt_entry_t *pd_v = (pt_entry_t*)hhdm_offset(pd.ptr);
     memset(pd_v, 0, 1024 * 4);
@@ -225,7 +225,7 @@ status::StatusOr<arch::vmm::pt_t> arch::vmm::alloc_pt(short level) {
             (
                 // page table
                 (1024*sizeof(pt_entry_t))
-            ) / CONFIG_ARCH_PAGE_SIZE
+            ) / CONFIG_ARCH_PAGE_SIZE, mm::PRANGE_DEFAULT
         ));
 
         paddr_into_pte(&pd_v[i], pt);

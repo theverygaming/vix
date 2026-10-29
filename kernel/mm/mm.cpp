@@ -97,7 +97,6 @@ void mm::unmap_arbitrary_phys(void *addr, size_t bytes) {
 status::StatusOr<void *> mm::allocate_non_contiguous(
     size_t bytes,
     alloc_attrs attrs,
-    // FIXME: this should not be ignored!!! (NOTE: when done update comments in mm.h)
     paddr_range prange,
     vaddr_range vrange
 ) {
@@ -109,7 +108,7 @@ status::StatusOr<void *> mm::allocate_non_contiguous(
 
     vaddr_t area = mm::vmm::find_free(vrange, pages);
     for (size_t i = 0; i < pages; i++) {
-        auto phys_alloc = mm::pmm::alloc_contiguous(1);
+        auto phys_alloc = mm::pmm::alloc_contiguous(1, prange);
         if (!phys_alloc.status().ok()) {
             // fuck! now we need to clean up the mess we made!
 
@@ -131,7 +130,7 @@ status::StatusOr<void *> mm::allocate_non_contiguous(
     return (void *)area;
 #else
     paddr_t area;
-    ASSIGN_OR_RETURN(area, mm::pmm::alloc_contiguous(pages));
+    ASSIGN_OR_RETURN(area, mm::pmm::alloc_contiguous(pages, prange));
     return (void *)area;
 #endif
 }
@@ -168,7 +167,6 @@ void mm::free_non_contiguous(void *addr, size_t bytes) {
 status::StatusOr<void *> mm::allocate_contiguous(
     size_t bytes,
     alloc_attrs attrs,
-    // FIXME: this should not be ignored!!! (NOTE: when done update comments in mm.h)
     paddr_range prange,
     vaddr_range vrange
 ) {
@@ -176,7 +174,7 @@ status::StatusOr<void *> mm::allocate_contiguous(
         ALIGN_UP(bytes, CONFIG_ARCH_PAGE_SIZE) / CONFIG_ARCH_PAGE_SIZE;
 #ifdef CONFIG_ARCH_HAS_PAGING
     paddr_t phys;
-    ASSIGN_OR_RETURN(phys, mm::pmm::alloc_contiguous(pages));
+    ASSIGN_OR_RETURN(phys, mm::pmm::alloc_contiguous(pages, prange));
     vaddr_t area = mm::vmm::find_free(vrange, pages);
     for (size_t i = 0; i < pages; i++) {
         uintptr_t virt = ((uintptr_t)area) + (i * CONFIG_ARCH_PAGE_SIZE);
@@ -191,7 +189,7 @@ status::StatusOr<void *> mm::allocate_contiguous(
     return (void *)area;
 #else
     paddr_t area;
-    ASSIGN_OR_RETURN(area, mm::pmm::alloc_contiguous(pages));
+    ASSIGN_OR_RETURN(area, mm::pmm::alloc_contiguous(pages, prange));
     return (void *)area;
 #endif
 }

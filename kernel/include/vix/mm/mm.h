@@ -41,7 +41,6 @@ namespace mm {
     status::StatusOr<void *> allocate_contiguous(
         size_t bytes,
         alloc_attrs attrs = {false, false, false, caching_type::WRITE_BACK},
-        // FIXME: this should not be ignored!!!
         paddr_range prange = PRANGE_DEFAULT,
 #ifdef CONFIG_ARCH_HAS_PAGING
         vaddr_range vrange = {.start = ARCH_KERNEL_HEAP_START, .end = ARCH_KERNEL_HEAP_END}
@@ -54,7 +53,6 @@ namespace mm {
     status::StatusOr<void *> allocate_non_contiguous(
         size_t bytes,
         alloc_attrs attrs = {false, false, false, caching_type::WRITE_BACK},
-        // FIXME: this should not be ignored!!!
         paddr_range prange = PRANGE_DEFAULT,
 #ifdef CONFIG_ARCH_HAS_PAGING
         vaddr_range vrange = {.start = ARCH_KERNEL_HEAP_START, .end = ARCH_KERNEL_HEAP_END}
