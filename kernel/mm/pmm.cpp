@@ -276,8 +276,8 @@ status::StatusOr<mm::paddr_t> mm::pmm::alloc_contiguous(size_t pages, paddr_rang
 
         DEBUG_PRINTF_INSANE("area: 0x%p-0x%p prange: 0x%p-0x%p adjusted range: 0x%p-0x%p\n", area_addr_start, area_addr_end, prange.start, prange.end, addr_start, addr_end);
 
-        size_t start = ((addr_start - area_addr_start) / CONFIG_ARCH_PAGE_SIZE);
-        size_t end = ((addr_end - area_addr_start) / CONFIG_ARCH_PAGE_SIZE);
+        size_t start = pages_before + ((addr_start - area_addr_start) / CONFIG_ARCH_PAGE_SIZE);
+        size_t end = pages_before + ((addr_end - area_addr_start) / CONFIG_ARCH_PAGE_SIZE);
         if (start != end) {
             size_t found_start;
             bool found = pm_bitmap.findRange(start, end, pages, false, &found_start);
