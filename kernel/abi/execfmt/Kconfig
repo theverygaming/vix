@@ -12,4 +12,9 @@ config ENABLE_EXECFMT_ELF64
     default y if ENABLE_ABI_LINUX || ENABLE_ABI_VIX
     default n
 
+config ENABLE_EXECFMT_WAF
+    bool "WAF Support"
+    default y if ENABLE_ABI_VIX && ARCH_FUNNYARCH
+    default n
+
 endmenu
