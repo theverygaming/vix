@@ -13,4 +13,6 @@
 
 namespace abi::vix {
     __DECL_VIX_SYSCALL(sys_exit);
+    __DECL_VIX_SYSCALL(sys_read);
+    __DECL_VIX_SYSCALL(sys_write);
 }

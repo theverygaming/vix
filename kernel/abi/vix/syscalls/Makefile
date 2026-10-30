@@ -1,1 +1,1 @@
-obj-$(CONFIG_ENABLE_ABI_VIX) += exit.o
+obj-$(CONFIG_ENABLE_ABI_VIX) += exit.o read.o write.o
