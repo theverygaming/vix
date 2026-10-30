@@ -1,9 +1,11 @@
 config ENABLE_ABI_LINUX
-    default y
     bool "Enable Linux ABI"
+    depends on ARCH_HAS_PAGING
+    default y
 
 config ENABLE_ABI_VIX
-    default y
     bool "Enable vix ABI"
+    default y if ARCH_FUNNYARCH
+    default n
 
 source "abi/execfmt/Kconfig"
