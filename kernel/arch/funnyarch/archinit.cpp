@@ -16,6 +16,10 @@
 #include <vix/time.h>
 #include <vix/debug.h>
 #include <vix/fs/tarfs.h>
+#include <vix/abi/vix/vix.h>
+#include <vector>
+#include <string>
+#include <vix/arch/trap.h>
 #define LITTLEBOOT_HAS_STDINT
 #include <littleboot/proto.h>
 
@@ -83,6 +87,8 @@ static void kernelinit() {
             },
             entrycount);
     }
+
+    trap_setup();
 
     kernelstart();
 }
@@ -153,4 +159,10 @@ static void kt(void *) {
 void arch::startup::kthread0() {
     sched::start_kworker(kt);
     sched::start_kworker(kt);
+    std::vector<std::string> args;
+    args.push_back("/bin/sh");
+    auto status = abi::vix::exec("/bin/sh", &args);
+    if (!status.status().ok()) {
+        kprintf(KP_WARNING, "could not load /bin/sh error: %d\n", status.status().code());
+    }
 }

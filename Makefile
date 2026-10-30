@@ -70,6 +70,10 @@ bootimg-linux:
 	@find sysroot/ -printf "%P\n" | tar --format=ustar -cf roramfs.fs --no-recursion -C sysroot/ -T -
 
 bootimg-funnyarch:
+	@$(MAKE) --no-print-directory -C shitshell CROSS_COMPILE=$(CROSS_COMPILE) ABI=vix CFLAGS="-fpic -mpic-data-is-text-relative" LDFLAGS="--relative-only"
+	@mkdir -p sysroot/bin/
+	@$(CROSS_COMPILE)objcopy -O binary shitshell/shitshell sysroot/bin/sh
+	@$(CROSS_COMPILE)nm --format=bsd shitshell/shitshell | grep ' _start$$' | tr ' ' '\n' | head -n 1 | python3 -c 'import sys;entry = int(sys.stdin.read(), 16);f = open("sysroot/bin/sh", "r+b");c=f.read();f.seek(0);f.write(b"WAF!" + len(c).to_bytes(4, "little") + entry.to_bytes(4, "little") + c);f.close()'
 	@mkdir -p sysroot/usr/share/consolefonts/
 	@cp fonts/Unifont-APL8x16-15.0.01.psf sysroot/usr/share/consolefonts
 	@find sysroot/ -printf "%P\n" | tar --format=ustar -cf roramfs.fs --no-recursion -C sysroot/ -T -

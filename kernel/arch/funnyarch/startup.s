@@ -3,7 +3,7 @@
 __kentry:
 // set up interrupt/exception handler
 mov r0, __except_early.low
-mov r0, __except_early.high
+movh r0, __except_early.high
 or r0, r0, #0x1 // no jump table
 mtsr ibptr, r0
 // go!!
