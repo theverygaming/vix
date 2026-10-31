@@ -59,6 +59,7 @@ static void reaper(void *) {
 
 void sched::init() {
     reaper_tid = sched::start_kworker(reaper);
+    sched::thread_sleep(reaper_tid);
     sched_disabled = false;
 }
 
