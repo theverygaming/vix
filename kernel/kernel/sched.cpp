@@ -145,14 +145,20 @@ struct sched::thread *sched::mythread() {
     return current;
 }
 
-static sched::thread *find_by_tid(sched::tid_t tid) {
+static sched::thread *find_by_tid(sched::tid_t tid, std::forward_list<sched::thread *> **found_in = nullptr) {
     for (auto it = sched::sched_readyqueue.begin(); it != sched::sched_readyqueue.end(); it++) {
         if ((*it)->tid == tid) {
+            if (found_in != nullptr) {
+                *found_in = &sched::sched_readyqueue;
+            }
             return *it;
         }
     }
     for (auto it = sched::sched_waitqueue.begin(); it != sched::sched_waitqueue.end(); it++) {
         if ((*it)->tid == tid) {
+            if (found_in != nullptr) {
+                *found_in = &sched::sched_waitqueue;
+            }
             return *it;
         }
     }
@@ -206,15 +212,22 @@ void sched::thread_sleep(sched::tid_t tid) {
     }
 }
 
-void sched::thread_wakeup(sched::tid_t tid) {
+bool sched::thread_wakeup(sched::tid_t tid) {
     push_interrupt_disable();
-    sched::thread *t = find_by_tid(tid);
+    std::forward_list<sched::thread *> *found_in;
+    sched::thread *t = find_by_tid(tid, &found_in);
     if (t == nullptr) {
         KERNEL_PANIC("requested to wake up TID %d but we coudln't find it", tid);
     }
-    sched::sched_waitqueue.erase_first_eq(t);
-    sched::sched_readyqueue.push_front(t);
+    bool was_sleeping = false;
+    // it's possible it's actually running already!
+    if (found_in == &sched::sched_waitqueue) {
+        sched::sched_waitqueue.erase_first_eq(t);
+        sched::sched_readyqueue.push_front(t);
+        was_sleeping = true;
+    }
     pop_interrupt_disable();
+    return was_sleeping;
 }
 
 void sched::disable() {

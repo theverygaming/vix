@@ -64,7 +64,8 @@ namespace sched {
     void thread_kill(tid_t tid);
 
     void thread_sleep(tid_t tid);
-    void thread_wakeup(tid_t tid);
+    // returns true if the thread was actually asleep
+    bool thread_wakeup(tid_t tid);
 
     // FIXME: we need a proper critical section thingy
     // disables scheduling
