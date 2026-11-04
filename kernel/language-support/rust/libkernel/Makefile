@@ -1,7 +1,7 @@
 lib-$(CONFIG_RUST_SUPPORT) += libkernel.rlib
 
-$(objtree)/libkernel.rlib: $(objtree)/kernel.rs $(objtree)/bindings.rs rust/stdlibs/liballoc.rlib
-	$(call build_rust,$<,$@,--crate-name kernel -L $(objtree)/rust/stdlibs,RS_GEN_DEPINFO)
+$(objtree)/libkernel.rlib: $(objtree)/kernel.rs $(objtree)/bindings.rs language-support/rust/stdlibs/liballoc.rlib
+	$(call build_rust,$<,$@,--crate-name kernel -L $(objtree)/language-support/rust/stdlibs,RS_GEN_DEPINFO)
 
 RUST_BINDGEN_TARGET_x86	:= i686-unknown-linux-gnu
 RUST_BINDGEN_TARGET		:= $(RUST_BINDGEN_TARGET_$(BUILD_ARCH))

@@ -5,7 +5,7 @@ LD=
 
 include Makefile.version
 
-BUILD_SUBDIRS := kernel drivers fs net tests mm stdlibs abi rust
+BUILD_SUBDIRS := kernel drivers fs net tests mm stdlibs abi language-support
 
 -include .config
 ifneq ($(CONFIG_ARCH),)
@@ -128,8 +128,8 @@ defconfig: scripts/kconfig/Makefile
 
 # clean targets
 clean: modclean
-	@rm -f kernel.o kernel.bin symtab.S symtab.o kernel_partial.o rust/rust-target-gen.json
-	@find ./arch ./drivers ./fs ./include ./kernel ./net ./mm ./stdlibs ./tests ./abi ./rust \( -name '*.lds' -o -name '*.o' -o -name '*.ko' -o -name '*.rlib' -o -name '*.d' \) -type f -delete
+	@rm -f kernel.o kernel.bin symtab.S symtab.o kernel_partial.o language-support/rust/rust-target-gen.json language-support/rust/libkernel/bindings.rs
+	@find ./arch ./drivers ./fs ./include ./kernel ./net ./mm ./stdlibs ./tests ./abi ./language-support \( -name '*.lds' -o -name '*.o' -o -name '*.ko' -o -name '*.rlib' -o -name '*.d' \) -type f -delete
 
 distclean: clean
 	@rm -f .config .config_old

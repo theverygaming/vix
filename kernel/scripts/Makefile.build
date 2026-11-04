@@ -31,7 +31,7 @@ override INT_CXXFLAGS += -I arch/$(BUILD_ARCH)/include -I stdlibs/libc/include -
 	@echo "  CPP $<"
 	@$(INT_CPP) -P $(INT_CFLAGS) -MMD $< -o $@
 
-RUST_TARGET := rust/rust-target-gen.json
+RUST_TARGET := language-support/rust/rust-target-gen.json
 
 define rustc_common_flags
 -Zunstable-options \
@@ -65,8 +65,8 @@ $(if $(filter $(4),RS_GEN_DEPINFO),\
 ,)
 endef
 
-%.o: %.rs ./rust/libkernel/libkernel.rlib
-	$(call build_rust,$<,$@,-L $(objtree)/rust/stdlibs --extern kernel=$(objtree)/rust/libkernel/libkernel.rlib --emit=obj,RS_GEN_DEPINFO)
+%.o: %.rs ./language-support/rust/libkernel/libkernel.rlib
+	$(call build_rust,$<,$@,-L $(objtree)/language-support/rust/stdlibs --extern kernel=$(objtree)/language-support/rust/libkernel/libkernel.rlib --emit=obj,RS_GEN_DEPINFO)
 
 ifeq ($(CONFIG_UBSAN), y)
 override INT_CFLAGS += -fsanitize=undefined -fno-strict-overflow
