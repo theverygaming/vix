@@ -8,6 +8,7 @@
 #include <vix/drivers/pci.h>
 #include <vix/kernel/irq.h>
 #include <vix/module.h>
+#include <vector>
 
 MODULE_AUTHOR("theverygaming");
 MODULE_DESCRIPTION("rtl8139");
